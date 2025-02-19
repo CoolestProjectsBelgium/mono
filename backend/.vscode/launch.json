@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Debug Nest Framework",
-            "cwd": "${workspaceFolder}/backend",
+            "cwd": "${workspaceFolder}",
             "runtimeExecutable": "npm",
             "runtimeArgs": [
               "run",
@@ -28,7 +28,7 @@
             "name": "ts-node",            
             "cwd": "${workspaceRoot}",
             "internalConsoleOptions": "openOnSessionStart",
-            "program": "${workspaceFolder}\\coolestproject-backend-rework\\src\\main.ts",
+            "program": "${workspaceFolder}/src/main.ts",
             "preLaunchTask": "npm: build - coolestproject-backend-rework",
             "sourceMaps": true,
             "smartStep": true,

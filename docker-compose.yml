@@ -1,7 +1,7 @@
-services :
-  proxy:    
+services:
+  proxy:
     image: "traefik:latest"
-    container_name: "coolestproject-proxy"
+    container_name: "${PROJECT_NAME:-coolestproject}-proxy"
     command:
       - "--tracing=true"
       - "--log.level=DEBUG"
@@ -20,10 +20,8 @@ services :
 
   db:
     image: mysql/mysql-server
-    container_name: coolestproject-db
+    container_name: ${PROJECT_NAME:-coolestproject}-db
     restart: always
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: coolestproject
       MYSQL_DATABASE: coolestproject
@@ -51,6 +49,7 @@ services :
 
   backend:
     image: node:latest
+    container_name: "${PROJECT_NAME:-coolestproject}-backend"
     environment:
       NODE_ENV: production
       DB_DIALECT: mysql
@@ -72,7 +71,6 @@ services :
 volumes:
   db_data:
 
-
   # frontend:
   #   build:
   #     context: ./frontend
@@ -82,7 +80,7 @@ volumes:
   #     NUXT_ENV_BASE_URL: https://backend.coolestprojects.localhost:1234
   #   volumes:
   #     - ./frontend:/usr/src/app
-      
+
   #   env_file:
   #     - configuration.env
   #   depends_on:
