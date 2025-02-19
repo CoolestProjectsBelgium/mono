@@ -1,0 +1,137 @@
+services :
+  proxy:    
+    image: "traefik:latest"
+    container_name: "coolestproject-proxy"
+    command:
+      - "--tracing=true"
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:1234"
+      - "--providers.file.directory=/configuration/"
+      - "--providers.file.watch=true"
+    ports:
+      - "1234:1234"
+      - "9080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./configuration/:/configuration/
+
+  db:
+    image: mysql/mysql-server
+    container_name: coolestproject-db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: coolestproject
+      MYSQL_DATABASE: coolestproject
+      MYSQL_USER: coolestproject
+      MYSQL_PASSWORD: Se84KCCCJlnfkdfv
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # db_test:
+  #   image: mysql/mysql-server
+  #   container_name: coolestproject-db-test
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: coolestproject_test
+  #     MYSQL_DATABASE: coolestproject_test
+  #     MYSQL_USER: coolestproject_test
+  #     MYSQL_PASSWORD: 9b6xgLku9vCP8wy2
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 8081:80
+    depends_on:
+      - db
+
+  backend:
+    image: node:latest
+    environment:
+      NODE_ENV: production
+      DB_DIALECT: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: coolestproject
+      DB_PASS: Se84KCCCJlnfkdfv
+      DB_NAME: coolestproject
+
+    command: npm run start:debug
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-coolestprojects.rule=Host(`backend.coolestprojects.localhost`)"
+      - "traefik.http.routers.backend-coolestprojects.entrypoints=web"
+      - "traefik.http.routers.backend-coolestprojects.tls=true"
+
+volumes:
+  db_data:
+
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #   container_name: coolestproject-frontend
+  #   working_dir: /usr/src/app
+  #   environment:
+  #     NUXT_ENV_BASE_URL: https://backend.coolestprojects.localhost:1234
+  #   volumes:
+  #     - ./frontend:/usr/src/app
+      
+  #   env_file:
+  #     - configuration.env
+  #   depends_on:
+  #     - backend
+  #   expose: [3000]
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.frontend-coolestprojects.rule=Host(`app.coolestprojects.localhost`)"
+  #     - "traefik.http.routers.frontend-coolestprojects.entrypoints=web"
+  #     - "traefik.http.routers.frontend-coolestprojects.tls=true"
+
+  # voting:
+  #   image: node:14-slim
+  #   container_name: coolestproject-voting
+  #   working_dir: /usr/src/app
+  #   environment:
+  #     NUXT_ENV_BASE_URL: https://backend.coolestprojects.localhost:1234
+  #   volumes:
+  #     - ./voting:/usr/src/app
+  #   env_file:
+  #     - configuration.env
+  #   command: npm run dev:light
+  #   expose: [3000]
+  #   depends_on:
+  #     - backend
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.voting-coolestprojects.rule=Host(`voting.coolestprojects.localhost`)"
+  #     - "traefik.http.routers.voting-coolestprojects.entrypoints=web"
+  #     - "traefik.http.routers.voting-coolestprojects.tls=true"
+
+  # azure:
+  #   image: mcr.microsoft.com/azure-storage/azurite
+  #   container_name: coolestproject-azure
+  #   environment:
+  #     AZURITE_ACCOUNTS: "account1.blob.coolestazure:key1"
+
+  #   command: "azurite-blob --blobPort 1234 --skipApiVersionCheck --loose --cert /pki/issued/account1.blob.coolestazure.localhost.crt --key /pki/private/account1.blob.coolestazure.localhost.key --blobHost coolestproject-azure --debug /configuration/azure_logs/debug.log"
+  #   volumes:
+  #     - ./configuration/certs/pki:/pki
+  #     - ./configuration/azure_logs:/configuration/azure_logs
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.tcp.routers.azure-coolestprojects.rule=HostSNI(`account1.blob.coolestazure.localhost`)"
+  #     - "traefik.tcp.routers.azure-coolestprojects.entrypoints=web"
+  #     - "traefik.tcp.routers.azure-coolestprojects.tls=true"
+  #     - "traefik.tcp.routers.azure-coolestprojects.tls.passthrough=true"
+  #     - "traefik.tcp.services.azure-coolestprojects.loadbalancer.server.port=1234"
+  #   networks:
+  #     default:
+  #       aliases:
+  #         - account1.blob.coolestazure.localhost

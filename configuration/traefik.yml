@@ -1,0 +1,14 @@
+tls:
+  certificates:
+    - certFile: /configuration/certs/pki/ca.crt
+    - certFile: /configuration/certs/pki/issued/app.coolestprojects.localhost.crt
+      keyFile: /configuration/certs/pki/private/app.coolestprojects.localhost.key
+    - certFile: /configuration/certs/pki/issued/backend.coolestprojects.localhost.crt
+      keyFile: /configuration/certs/pki/private/backend.coolestprojects.localhost.key
+    - certFile: /configuration/certs/pki/issued/account1.blob.coolestazure.localhost.crt
+      keyFile: /configuration/certs/pki/private/account1.blob.coolestazure.localhost.key
+    - certFile: /configuration/certs/pki/issued/voting.coolestprojects.localhost.crt
+      keyFile: /configuration/certs/pki/private/voting.coolestprojects.localhost.key
+  options:
+    default:
+      sniStrict: true
