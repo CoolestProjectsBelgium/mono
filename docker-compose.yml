@@ -50,6 +50,9 @@ services:
   backend:
     image: node:latest
     container_name: "${PROJECT_NAME:-coolestproject}-backend"
+    working_dir: /home/node/app
+    volumes:
+      - ./backend:/home/node/app
     environment:
       NODE_ENV: production
       DB_DIALECT: mysql
@@ -59,7 +62,11 @@ services:
       DB_PASS: Se84KCCCJlnfkdfv
       DB_NAME: coolestproject
 
-    command: npm run start:debug
+    command: bash -c "npm install -g @nestjs/cli && npm install --dev && npm run start:debug"
+
+    ports:
+      - "8025:3000"
+
     depends_on:
       - db
     labels:
