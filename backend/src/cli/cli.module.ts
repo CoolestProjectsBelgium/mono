@@ -51,9 +51,7 @@ import { Voucher } from 'src/models/voucher.model';
           username: configService.get('DB_USER') || 'coolestproject',
           password: configService.get('DB_PASS') || 'coolestproject',
           database: configService.get('DB_NAME') || 'coolestproject',
-          synchronize: true,
           autoLoadModels: true,
-          sync: { force: true },
 
 /*
 
