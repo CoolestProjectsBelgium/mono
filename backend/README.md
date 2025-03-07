@@ -9,4 +9,5 @@ $ npm run start
 ```bash
 $ npm run build
 $ node ./dist/cli event:create 
+$ node ./dist/cli event:init
 ```

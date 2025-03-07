@@ -65,13 +65,22 @@ const authenticate = async (email: string, password: string) => {
       isGlobal: true, // Makes the config available globally
     }),
     AdminModule.register(1),
-    AdminModule.register(2),
-    AdminModule.register(3),
+
     SequelizeModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule to access ConfigService
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
+          dialect: 'mysql',
+          host: configService.get('DB_HOST') || 'localhost',    //'db', 
+          port: 3306,
+          username: configService.get('DB_USER') || 'coolestproject',
+          password: configService.get('DB_PASS') || 'coolestproject',
+          database: configService.get('DB_NAME') || 'coolestproject',
+          synchronize: true,
+          autoLoadModels: true,
+          sync: { force: true },
+          /*
           dialect: 'mysql',
           host: configService.get('DB_HOST') || 'localhost',
           port: configService.get('DB_PORT') || 3308,
@@ -81,6 +90,7 @@ const authenticate = async (email: string, password: string) => {
           synchronize: true,
           autoLoadModels: true,
           sync: { force: true },
+          */
           models: [
             Event,
             User,
