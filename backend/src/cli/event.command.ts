@@ -536,7 +536,7 @@ export class EventCommand {
       }
     ]);
     
-    await Location.bulkCreate([
+    const location = await Location.bulkCreate([
       {
         eventId: event.id,
         text: 'Column 1'
@@ -565,258 +565,258 @@ export class EventCommand {
     await EventTable.bulkCreate([
       {
         eventId: event.id,
-        name: 'Tafel_1',
+        name: 'Tafel_01',
         requirements: null,
         maxPlaces: 4,
-        locationId: 1
+        locationId: location[0].id
       },
       {
         eventId: event.id,
-        name: 'Tafel_2',
+        name: 'Tafel_02',
         requirements: null,
         maxPlaces: 4,
-        locationId: 2
+        locationId: location[1].id
       },
       {
         eventId: event.id,
-        name: 'Tafel_3',
+        name: 'Tafel_03',
         requirements: null,
         maxPlaces: 4,
-        locationId: 3
+        locationId: location[2].id
       },
       {
         eventId: event.id,
-        name: 'Tafel_4',
+        name: 'Tafel_04',
         requirements: null,
         maxPlaces: 4,
-        locationId: 4
+        locationId: location[3].id
       },
       {
         eventId: event.id,
-        name: 'Tafel_5',
+        name: 'Tafel_05',
         requirements: null,
         maxPlaces: 4,
-        locationId: 5
+        locationId: location[4].id
       },     
       {
         eventId: event.id,
-        name: 'Tafel_6',
+        name: 'Tafel_06',
         requirements: null,
         maxPlaces: 4,
-        locationId: 6
+        locationId: location[5].id
       },
       {
         eventId: event.id,
-        name: 'Tafel_7',
+        name: 'Tafel_07',
         requirements: null,
         maxPlaces: 4,
-        locationId: 1
+        locationId: location[0].id
       },
       {
         eventId: event.id,
-        name: 'Tafel_8',
+        name: 'Tafel_08',
         requirements: null,
         maxPlaces: 4,
-        locationId: 2
+        locationId: location[1].id
       },
       {
         eventId: event.id,
-        name: 'Tafel_9',
+        name: 'Tafel_09',
         requirements: null,
         maxPlaces: 4,
-        locationId: 3
+        locationId: location[2].id
       },
       {
         eventId: event.id,
         name: 'Tafel_10',
         requirements: null,
         maxPlaces: 4,
-        locationId: 4
+        locationId: location[3].id
       },
       {
         eventId: event.id,
         name: 'Tafel_11',
         requirements: null,
         maxPlaces: 4,
-        locationId: 5
+        locationId: location[4].id
       },     
       {
         eventId: event.id,
         name: 'Tafel_12',
         requirements: null,
         maxPlaces: 4,
-        locationId: 6
+        locationId: location[5].id
       },
       {
         eventId: event.id,
         name: 'Tafel_13',
         requirements: null,
         maxPlaces: 4,
-        locationId: 1
+        locationId: location[0].id
       },
       {
         eventId: event.id,
         name: 'Tafel_14',
         requirements: null,
         maxPlaces: 4,
-        locationId: 2
+        locationId: location[1].id
       },
       {
         eventId: event.id,
         name: 'Tafel_15',
         requirements: null,
         maxPlaces: 4,
-        locationId: 3
+        locationId: location[2].id
       },
       {
         eventId: event.id,
         name: 'Tafel_16',
         requirements: null,
         maxPlaces: 4,
-        locationId: 4
+        locationId: location[3].id
       },
       {
         eventId: event.id,
         name: 'Tafel_17',
         requirements: null,
         maxPlaces: 4,
-        locationId: 5
+        locationId: location[4].id
       },     
       {
         eventId: event.id,
         name: 'Tafel_18',
         requirements: null,
         maxPlaces: 4,
-        locationId: 6
+        locationId: location[5].id
       },
       {
         eventId: event.id,
         name: 'Tafel_19',
         requirements: null,
         maxPlaces: 4,
-        locationId: 1
+        locationId: location[0].id
       },
       {
         eventId: event.id,
         name: 'Tafel_20',
         requirements: null,
         maxPlaces: 4,
-        locationId: 2
+        locationId: location[1].id
       },
       {
         eventId: event.id,
         name: 'Tafel_21',
         requirements: null,
         maxPlaces: 4,
-        locationId: 3
+        locationId: location[2].id
       },
       {
         eventId: event.id,
         name: 'Tafel_22',
         requirements: null,
         maxPlaces: 4,
-        locationId: 4
+        locationId: location[3].id
       },
       {
         eventId: event.id,
         name: 'Tafel_23',
         requirements: null,
         maxPlaces: 4,
-        locationId: 5
+        locationId: location[4].id
       },     
       {
         eventId: event.id,
         name: 'Tafel_24',
         requirements: null,
         maxPlaces: 4,
-        locationId: 6
+        locationId: location[5].id
       },
       {
         eventId: event.id,
         name: 'Tafel_25',
         requirements: null,
         maxPlaces: 4,
-        locationId: 1
+        locationId: location[0].id
       },
       {
         eventId: event.id,
         name: 'Tafel_26',
         requirements: null,
         maxPlaces: 4,
-        locationId: 2
+        locationId: location[1].id
       },
       {
         eventId: event.id,
         name: 'Tafel_27',
         requirements: null,
         maxPlaces: 4,
-        locationId: 3
+        locationId: location[2].id
       },
       {
         eventId: event.id,
         name: 'Tafel_28',
         requirements: null,
         maxPlaces: 4,
-        locationId: 4
+        locationId: location[3].id
       },
       {
         eventId: event.id,
         name: 'Tafel_29',
         requirements: null,
         maxPlaces: 4,
-        locationId: 5
+        locationId: location[4].id
       },     
       {
         eventId: event.id,
         name: 'Tafel_30',
         requirements: null,
         maxPlaces: 4,
-        locationId: 6
+        locationId: location[5].id
       },
       {
         eventId: event.id,
         name: 'Tafel_31',
         requirements: null,
         maxPlaces: 4,
-        locationId: 1
+        locationId: location[0].id
       },
       {
         eventId: event.id,
         name: 'Tafel_32',
         requirements: null,
         maxPlaces: 4,
-        locationId: 2
+        locationId: location[1].id
       },
       {
         eventId: event.id,
         name: 'Tafel_33',
         requirements: null,
         maxPlaces: 4,
-        locationId: 3
+        locationId: location[2].id
       },
       {
         eventId: event.id,
         name: 'Tafel_34',
         requirements: null,
         maxPlaces: 4,
-        locationId: 4
+        locationId: location[3].id
       },
       {
         eventId: event.id,
         name: 'Tafel_35',
         requirements: null,
         maxPlaces: 4,
-        locationId: 5
+        locationId: location[4].id
       },     
       {
         eventId: event.id,
         name: 'Tafel_36',
         requirements: null,
         maxPlaces: 4,
-        locationId: 6
+        locationId: location[5].id
       }
      ]);
-     await Registration.bulkCreate([
+     const registration = await Registration.bulkCreate([
       {
         eventId: event.id,
         tshirtId: 1,
@@ -877,33 +877,33 @@ export class EventCommand {
     const questionsRegistration = await QuestionRegistration.bulkCreate([
       {
       eventId: event.id,
-      registrationId: 1,
-      questionId: 1
+      registrationId: registration[0].id,
+      questionId: questions[0].id
     },
     {
       eventId: event.id,
-      registrationId: 1,
-      questionId: 2
+      registrationId: registration[0].id,
+      questionId: questions[1].id
     },
     {
       eventId: event.id,
-      registrationId: 1,
-      questionId: 3
+      registrationId: registration[0].id,
+      questionId: questions[2].id
     },
     {
       eventId: event.id,
-      registrationId: 2,
-      questionId: 1
+      registrationId: registration[1].id,
+      questionId: questions[0].id
     },
     {
       eventId: event.id,
-      registrationId: 2,
-      questionId: 2
+      registrationId: registration[1].id,
+      questionId: questions[1].id
     },
     {
       eventId: event.id,
-      registrationId: 2,
-      questionId: 3
+      registrationId: registration[1].id,
+      questionId: questions[2].id
     }
   ]);
 
