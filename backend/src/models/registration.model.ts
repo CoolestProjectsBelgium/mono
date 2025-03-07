@@ -21,7 +21,7 @@ export class Registration extends BaseEventModel {
   @ForeignKey(() => Event)
   @Index({ name: 'email-event-unique', unique: true })
   @Column
-  eventId: number = 0; // override we want index on this place
+  eventId: number; //= 0; // override we want index on this place
 
   @ForeignKey(() => Tshirt)
   @Column
@@ -100,7 +100,7 @@ export class Registration extends BaseEventModel {
   @Column(DataType.STRING(4000))
   project_descr: string;
 
-  @Column({ type: DataType.ENUM('m', 'f', 'x'), allowNull: false })
+  @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
   project_lang: string;
 
   @Column(DataType.STRING(100))

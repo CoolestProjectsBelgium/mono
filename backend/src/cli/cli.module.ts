@@ -45,6 +45,18 @@ import { Voucher } from 'src/models/voucher.model';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
+          dialect: 'mysql',  //dialect: 'postgres',
+          host: configService.get('DB_HOST') || 'localhost', //'db',
+          port: configService.get('DB_PORT') || 3306,  //5432,
+          username: configService.get('DB_USER') || 'coolestproject',
+          password: configService.get('DB_PASS') || 'coolestproject',
+          database: configService.get('DB_NAME') || 'coolestproject',
+          synchronize: true,
+          autoLoadModels: true,
+          sync: { force: true },
+
+/*
+
           dialect: 'mysql',
           host: configService.get('DB_HOST') || 'localhost',
           port: configService.get('DB_PORT') || 3308,
@@ -53,6 +65,10 @@ import { Voucher } from 'src/models/voucher.model';
           database: configService.get('DB_NAME') || 'coolestproject_proto',
           synchronize: true,
           autoLoadModels: true,
+*/
+
+
+
           models: [
             Event,
             User,
