@@ -23,6 +23,7 @@ import { UseInterceptors } from '@nestjs/common';
 export class AttachmentController {
   constructor(private readonly azureBlobService: AzureBlobService) {}
 
+  /*
   @Post('stream')
   @UseInterceptors(new FileUploadInterceptor('file'))
   async uploadFile(@Info() info: InfoDto, file: Express.Multer.File) {
@@ -44,7 +45,7 @@ export class AttachmentController {
     );
 
     return null;
-  }
+  }*/
 
   @Post()
   @ApiResponse({ status: 500, description: 'Internal server error.' })

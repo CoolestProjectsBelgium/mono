@@ -94,11 +94,11 @@ export class RegistrationService {
 
     // send mails
     if (registration.waiting_list) {
-      await this.mailerService.waitingListMail(createRegistrationDto.user);
+      await this.mailerService.waitingListMail(r);
     } else {
       const token = await this.tokenService.generateRegistrationToken(r.id);
       await this.mailerService.registrationMail(
-        createRegistrationDto.user,
+        r,
         token,
       );
     }

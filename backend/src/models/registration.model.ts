@@ -36,7 +36,7 @@ export class Registration extends BaseEventModel {
   @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
   language: string;
 
-  @Length({ min: 1000, max: 9999 })
+  @Length({ min: 4, max: 4 })
   @Column({ type: DataType.INTEGER, allowNull: false })
   postalcode: number;
 
