@@ -43,6 +43,7 @@ import { BackgroundService } from './background/background.service';
 import { AdminModule } from './admin/admin.module';
 import { CliModule } from './cli/cli.module';
 import { EventService } from './event/event.service';
+import { EmailTemplate } from './models/email_template.model';
 
 /*
 const DEFAULT_ADMIN = {
@@ -72,7 +73,7 @@ const authenticate = async (email: string, password: string) => {
       useFactory: async (configService: ConfigService) => {
         return {
           dialect: 'mysql',
-          host: configService.get('DB_HOST') || 'localhost',    //'db', 
+          host: configService.get('DB_HOST') || 'localhost', //'db',
           port: 3306,
           username: configService.get('DB_USER') || 'coolestproject',
           password: configService.get('DB_PASS') || 'coolestproject',
@@ -89,7 +90,7 @@ const authenticate = async (email: string, password: string) => {
           database: configService.get('DB_NAME') || 'coolestproject_proto',
           synchronize: true,
           autoLoadModels: true,
-          sync: { force: true },
+          sync: { force: true }
           */
           models: [
             Event,
@@ -117,6 +118,7 @@ const authenticate = async (email: string, password: string) => {
             VoteCategory,
             Account,
             Award,
+            EmailTemplate,
           ],
         };
       },

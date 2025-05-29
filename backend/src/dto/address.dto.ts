@@ -3,5 +3,5 @@ export class AddressDto {
   house_number: string;
   municipality_name: string;
   box_number: string;
-  postalcode: string;
+  postalcode: number;
 }

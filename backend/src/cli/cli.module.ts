@@ -33,6 +33,7 @@ import { User } from 'src/models/user.model';
 import { Vote } from 'src/models/vote.model';
 import { VoteCategory } from 'src/models/vote_category.model';
 import { Voucher } from 'src/models/voucher.model';
+import { EmailTemplate } from 'src/models/email_template.model';
 
 @Module({
   imports: [
@@ -52,6 +53,8 @@ import { Voucher } from 'src/models/voucher.model';
           password: configService.get('DB_PASS') || 'coolestproject',
           database: configService.get('DB_NAME') || 'coolestproject',
           autoLoadModels: true,
+          synchronize: true, // Set to false in production
+          sync: { force: true },
 
 /*
 
@@ -93,6 +96,7 @@ import { Voucher } from 'src/models/voucher.model';
             VoteCategory,
             Account,
             Award,
+            EmailTemplate,
           ],
         };
       },

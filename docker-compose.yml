@@ -48,6 +48,9 @@ services:
       - db
 
   backend:
+    env_file:
+    - path: ./.env
+      required: true # default
     image: node:latest
     container_name: "${PROJECT_NAME:-coolestproject}-backend"
     working_dir: /home/node/app
@@ -140,3 +143,4 @@ volumes:
   #     default:
   #       aliases:
   #         - account1.blob.coolestazure.localhost
+
