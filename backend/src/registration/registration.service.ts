@@ -7,6 +7,7 @@ import { Event } from '../models/event.model';
 import { MailerService } from '../mailer/mailer.service';
 import { Question } from 'src/models/question.model';
 import { TokensService } from '../tokens/tokens.service';
+import { Project } from 'src/models/project.model';
 
 @Injectable()
 export class RegistrationService {
@@ -46,7 +47,7 @@ export class RegistrationService {
       project_type: createRegistrationDto.project.own_project.project_type,
       project_lang: createRegistrationDto.project.own_project.project_lang,
       // other project
-      project_code: createRegistrationDto.project.other_project.project_code,
+      project_code: createRegistrationDto.project.other_project.project_code || null,
       // user info
       language: createRegistrationDto.user.language,
       email: createRegistrationDto.user.email,
@@ -152,16 +153,17 @@ export class RegistrationService {
       );
     }
 
-    const userCount = await User.count({
+    // count the projects in the event
+    const projectCount = await Project.count({
       where: { eventId: info.currentEvent },
     });
 
-    const registrationCount = await Registration.count({
-      where: { eventId: info.currentEvent },
+    const registrationProjectCount = await Registration.count({
+      where: { eventId: info.currentEvent, project_code: null },
     });
 
-
-    if (userCount + registrationCount >= event.maxRegistration) {
+    // check waiting list if project code is not filled, participant can always register
+    if (!registration.project_code && ( projectCount + registrationProjectCount >= event.maxRegistration)) {
       registration.waiting_list = true;
     }
     const r = await registration.save();
@@ -173,7 +175,7 @@ export class RegistrationService {
       const token = this.tokenService.generateRegistrationToken(r.id);
       await this.mailerService.registrationMail(
         r,
-        token,
+        token
       );
     }
 
