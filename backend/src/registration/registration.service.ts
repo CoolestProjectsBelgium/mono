@@ -5,6 +5,7 @@ import { InfoDto } from '../dto/info.dto';
 import { User } from '../models/user.model';
 import { Event } from '../models/event.model';
 import { MailerService } from '../mailer/mailer.service';
+import { Question } from 'src/models/question.model';
 import { TokensService } from '../tokens/tokens.service';
 
 @Injectable()
@@ -38,6 +39,7 @@ export class RegistrationService {
     }
 
     const registration = new Registration({
+      eventId: info.currentEvent,
       //project info
       project_name: createRegistrationDto.project.own_project.project_name,
       project_descr: createRegistrationDto.project.own_project.project_descr,
@@ -56,6 +58,11 @@ export class RegistrationService {
       email_guardian: createRegistrationDto.user.email_guardian,
       via: createRegistrationDto.user.via,
       medical: createRegistrationDto.user.medical,
+      tshirt: createRegistrationDto.user.t_size,
+      birthmonth: new Date(
+        createRegistrationDto.user.year,
+        createRegistrationDto.user.month,
+      ),
       //address
       postalcode: createRegistrationDto.user.address.postalcode,
       municipality_name: createRegistrationDto.user.address.municipality_name,
@@ -73,7 +80,77 @@ export class RegistrationService {
       ],
     });
 
-    //TODO validate record
+    // check if all mandatory questions are answered
+    const mandatoryQuestions = await Question.findAll({
+      attributes: ['id'],
+      where: {
+        EventId: info.currentEvent,
+        mandatory: true,
+      },
+    });
+    const answeredQuestionIds = registration.questions.map(q => q.id);
+    const missingMandatory = mandatoryQuestions.filter(
+      (q) => !answeredQuestionIds.includes(q.id.toString())
+    );
+
+    if (missingMandatory.length > 0) {
+      throw new Error('Not all mandatory questions have been answered.');
+    }
+
+    const event = await Event.findByPk(info.currentEvent, {
+      attributes: ['minAge', 'maxAge', 'maxRegistration', 'officialStartDate', 'minGuardianAge'],
+    });
+
+    // check date of birth
+    const minBirthDate = event.officialStartDate;
+    const maxBirthDate = event.officialStartDate;
+
+    minBirthDate.setFullYear(minBirthDate.getFullYear() - event.minAge);
+    maxBirthDate.setFullYear(minBirthDate.getFullYear() - event.maxAge - 1);
+  
+
+    if (registration.birthmonth > minBirthDate || registration.birthmonth < maxBirthDate) {
+      throw new Error(
+      `User does not meet the age requirements for this event. Minimum age: ${event.minAge}, Maximum age: ${event.maxAge}`
+      );
+    }
+    
+    // check guardian age
+    const guardianRequiredDate = event.officialStartDate;
+    guardianRequiredDate.setFullYear(guardianRequiredDate.getFullYear() - event.minGuardianAge);
+    const guardianRequired = (guardianRequiredDate < registration.birthmonth);
+
+    //guardian is required
+    if (guardianRequired && (!registration.email_guardian || !registration.gsm_guardian) ) {
+      throw new Error(
+        'Guardian email and phone number are required for participants under ' +
+          event.minGuardianAge +
+          ' years old.',
+      );
+    }
+  
+    //guardian is not allowed
+    if (!guardianRequired && ( registration.email_guardian || registration.gsm_guardian)) {
+      throw new Error(
+        'Guardian cannot be filled when participant is over ' +
+          event.minGuardianAge +
+          ' years old.',
+      );
+    }
+
+    // check if project code and project details are empty
+    if (registration.project_code && (registration.project_name || registration.project_descr || registration.project_type || registration.project_lang)) {
+      throw new Error(
+        'Project cannot be filled when project code is provided.',
+      );
+    }
+    
+    // check if project code is empty and project details are filled
+    if (!registration.project_code && ( !registration.project_name || !registration.project_descr || !registration.project_type || !registration.project_lang )) {
+      throw new Error(
+        'Project name, description, type and language are required when no project code is provided.',
+      );
+    }
 
     const userCount = await User.count({
       where: { eventId: info.currentEvent },
@@ -83,9 +160,6 @@ export class RegistrationService {
       where: { eventId: info.currentEvent },
     });
 
-    const event = await Event.findByPk(info.currentEvent, {
-      attributes: ['maxRegistration'],
-    });
 
     if (userCount + registrationCount >= event.maxRegistration) {
       registration.waiting_list = true;
@@ -96,7 +170,7 @@ export class RegistrationService {
     if (registration.waiting_list) {
       await this.mailerService.waitingListMail(r);
     } else {
-      const token = await this.tokenService.generateRegistrationToken(r.id);
+      const token = this.tokenService.generateRegistrationToken(r.id);
       await this.mailerService.registrationMail(
         r,
         token,
