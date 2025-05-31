@@ -81,85 +81,23 @@ export class RegistrationService {
       ],
     });
 
-    // check if all mandatory questions are answered
-    const mandatoryQuestions = await Question.findAll({
-      attributes: ['id'],
-      where: {
-        EventId: info.currentEvent,
-        mandatory: true,
-      },
-    });
-    const answeredQuestionIds = registration.questions.map(q => q.id);
-    const missingMandatory = mandatoryQuestions.filter(
-      (q) => !answeredQuestionIds.includes(q.id.toString())
-    );
-
-    if (missingMandatory.length > 0) {
-      throw new Error('Not all mandatory questions have been answered.');
-    }
-
     const event = await Event.findByPk(info.currentEvent, {
       attributes: ['minAge', 'maxAge', 'maxRegistration', 'officialStartDate', 'minGuardianAge'],
     });
-
-    // check date of birth
-    const minBirthDate = event.officialStartDate;
-    const maxBirthDate = event.officialStartDate;
-
-    minBirthDate.setFullYear(minBirthDate.getFullYear() - event.minAge);
-    maxBirthDate.setFullYear(minBirthDate.getFullYear() - event.maxAge - 1);
-  
-
-    if (registration.birthmonth > minBirthDate || registration.birthmonth < maxBirthDate) {
-      throw new Error(
-      `User does not meet the age requirements for this event. Minimum age: ${event.minAge}, Maximum age: ${event.maxAge}`
-      );
-    }
-    
-    // check guardian age
-    const guardianRequiredDate = event.officialStartDate;
-    guardianRequiredDate.setFullYear(guardianRequiredDate.getFullYear() - event.minGuardianAge);
-    const guardianRequired = (guardianRequiredDate < registration.birthmonth);
-
-    //guardian is required
-    if (guardianRequired && (!registration.email_guardian || !registration.gsm_guardian) ) {
-      throw new Error(
-        'Guardian email and phone number are required for participants under ' +
-          event.minGuardianAge +
-          ' years old.',
-      );
-    }
-  
-    //guardian is not allowed
-    if (!guardianRequired && ( registration.email_guardian || registration.gsm_guardian)) {
-      throw new Error(
-        'Guardian cannot be filled when participant is over ' +
-          event.minGuardianAge +
-          ' years old.',
-      );
+    if (!event) {
+      throw new Error('Event not found');
     }
 
-    // check if project code is filled and project details are empty
-    if (registration.project_code && (registration.project_name || registration.project_descr || registration.project_type || registration.project_lang)) {
-      throw new Error(
-        'Project cannot be filled when project code is provided.',
-      );
-    }
-    
-    // check if project code is empty and project details are filled
-    if (!registration.project_code && ( !registration.project_name || !registration.project_descr || !registration.project_type || !registration.project_lang )) {
-      throw new Error(
-        'Project name, description, type and language are required when no project code is provided.',
-      );
-    }
+    await this.validate(event, registration);
 
     // count the projects in the event
     const projectCount = await Project.count({
-      where: { eventId: info.currentEvent },
+      where: { eventId: event.id },
     });
 
+    // count the projects in the registration
     const registrationProjectCount = await Registration.count({
-      where: { eventId: info.currentEvent, project_code: null },
+      where: { eventId: event.id, project_code: null },
     });
 
     // check waiting list if project code is not filled, participant can always register
@@ -175,10 +113,79 @@ export class RegistrationService {
       const token = this.tokenService.generateRegistrationToken(r.id);
       await this.mailerService.registrationMail(
         r,
-        token
+        token,
       );
     }
 
     return null;
+  }
+
+  private async validate(event: Event, registration: Registration) {
+    // check if all mandatory questions are answered
+    const mandatoryQuestions = await Question.findAll({
+      attributes: ['id'],
+      where: {
+        EventId: event.id,
+        mandatory: true,
+      },
+    });
+    const answeredQuestionIds = registration.questions.map(q => q.id);
+    const missingMandatory = mandatoryQuestions.filter(
+      (q) => !answeredQuestionIds.includes(q.id.toString())
+    );
+
+    if (missingMandatory.length > 0) {
+      throw new Error('Not all mandatory questions have been answered.');
+    }
+
+    // check date of birth
+    const minBirthDate = event.officialStartDate;
+    const maxBirthDate = event.officialStartDate;
+
+    minBirthDate.setFullYear(minBirthDate.getFullYear() - event.minAge);
+    maxBirthDate.setFullYear(minBirthDate.getFullYear() - event.maxAge - 1);
+
+    if (registration.birthmonth > minBirthDate || registration.birthmonth < maxBirthDate) {
+      throw new Error(
+        `User does not meet the age requirements for this event. Minimum age: ${event.minAge}, Maximum age: ${event.maxAge}`
+      );
+    }
+
+    // check guardian age
+    const guardianRequiredDate = event.officialStartDate;
+    guardianRequiredDate.setFullYear(guardianRequiredDate.getFullYear() - event.minGuardianAge);
+    const guardianRequired = (guardianRequiredDate < registration.birthmonth);
+
+    //guardian is required
+    if (guardianRequired && (!registration.email_guardian || !registration.gsm_guardian)) {
+      throw new Error(
+        'Guardian email and phone number are required for participants under ' +
+        event.minGuardianAge +
+        ' years old.'
+      );
+    }
+
+    //guardian is not allowed
+    if (!guardianRequired && (registration.email_guardian || registration.gsm_guardian)) {
+      throw new Error(
+        'Guardian cannot be filled when participant is over ' +
+        event.minGuardianAge +
+        ' years old.'
+      );
+    }
+
+    // check if project code is filled and project details are empty
+    if (registration.project_code && (registration.project_name || registration.project_descr || registration.project_type || registration.project_lang)) {
+      throw new Error(
+        'Project cannot be filled when project code is provided.'
+      );
+    }
+
+    // check if project code is empty and project details are filled
+    if (!registration.project_code && (!registration.project_name || !registration.project_descr || !registration.project_type || !registration.project_lang)) {
+      throw new Error(
+        'Project name, description, type and language are required when no project code is provided.'
+      );
+    }
   }
 }
