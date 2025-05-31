@@ -63,6 +63,7 @@ export class RegistrationService {
       birthmonth: new Date(
         createRegistrationDto.user.year,
         createRegistrationDto.user.month,
+        1
       ),
       //address
       postalcode: createRegistrationDto.user.address.postalcode,
