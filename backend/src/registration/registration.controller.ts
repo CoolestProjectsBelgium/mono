@@ -1,4 +1,4 @@
-import { Controller, Body, Post } from '@nestjs/common';
+import { Controller, Body, Post, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { RegistrationService } from './registration.service';
 import { RegistrationDto } from '../dto/registration.dto';
@@ -11,11 +11,18 @@ export class RegistrationController {
   constructor(private registrationService: RegistrationService) {}
 
   @Post()
+  @ApiResponse({ status: 201, description: 'Successfully created registration.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async create(
     @Info() info: InfoDto,
     @Body() createRegistrationDto: RegistrationDto,
   ) {
-    await this.registrationService.create(info, createRegistrationDto);
+    try {
+      await this.registrationService.create(info, createRegistrationDto);
+      return { };
+    } catch (error) {
+      console.error('Error during registration:', error);
+      throw new HttpException('Internal server error.', HttpStatus.INTERNAL_SERVER_ERROR);  
+    }
   }
 }
