@@ -29,7 +29,7 @@ export class MailerService {
     const context = { event, user, token }
     const contentRich = templateRitch(context);
     const contentPlain = templatePlain(context);
-    const contentSubject = templatePlain(context);
+    const contentSubject = templateSubject(context);
 
     await createTransport({
       host: env.SMTP_HOST,
@@ -41,7 +41,7 @@ export class MailerService {
       },
     }).sendMail({
       from: env.SMTP_FROM,
-      to: [user.email, ...(user.email_guardian ? user.email_guardian : [])].join(","),
+      to: [user.email, ...(user.email_guardian ? [user.email_guardian] : [])].join(","),
       subject: contentSubject, 
       text: contentPlain, 
       html: contentRich,
