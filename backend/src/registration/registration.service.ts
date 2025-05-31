@@ -138,7 +138,7 @@ export class RegistrationService {
       );
     }
 
-    // check if project code and project details are empty
+    // check if project code is filled and project details are empty
     if (registration.project_code && (registration.project_name || registration.project_descr || registration.project_type || registration.project_lang)) {
       throw new Error(
         'Project cannot be filled when project code is provided.',
