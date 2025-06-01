@@ -8,6 +8,7 @@ import { MailerService } from '../mailer/mailer.service';
 import { Question } from 'src/models/question.model';
 import { TokensService } from '../tokens/tokens.service';
 import { Project } from 'src/models/project.model';
+import { QuestionRegistration } from 'src/models/question_registration.model';
 
 @Injectable()
 export class RegistrationService {
@@ -39,7 +40,8 @@ export class RegistrationService {
       return;
     }
 
-    const registration = new Registration({
+    // intermidiate formation for registration, used for validation & model creation
+    const registration = {
       eventId: info.currentEvent,
       //project info
       project_name: createRegistrationDto.project.own_project.project_name,
@@ -73,17 +75,19 @@ export class RegistrationService {
       box_number: createRegistrationDto.user.address.box_number,
       // map to questions
       questions: [
-        ...createRegistrationDto.user.general_questions.map((QuestionId) => {
-          return { QuestionId: QuestionId + '', EventId: info.currentEvent };
+        ...createRegistrationDto.user.general_questions.map((questionId) => {
+          return { questionId: questionId, eventId: info.currentEvent };
         }),
-        ...createRegistrationDto.user.mandatory_approvals.map((QuestionId) => {
-          return { QuestionId: QuestionId + '', EventId: info.currentEvent };
+        ...createRegistrationDto.user.mandatory_approvals.map((questionId) => {
+          return { questionId: questionId, eventId: info.currentEvent };
         }),
       ],
-    });
-
+      waiting_list: false,
+      internalinfo: null,
+    };
+    
     const event = await Event.findByPk(info.currentEvent, {
-      attributes: ['minAge', 'maxAge', 'maxRegistration', 'officialStartDate', 'minGuardianAge'],
+      attributes: ['id','minAge', 'maxAge', 'maxRegistration', 'officialStartDate', 'minGuardianAge'],
     });
     if (!event) {
       throw new Error('Event not found');
@@ -105,7 +109,19 @@ export class RegistrationService {
     if (!registration.project_code && ( projectCount + registrationProjectCount >= event.maxRegistration)) {
       registration.waiting_list = true;
     }
-    const r = await registration.save();
+    const r = await Registration.create(registration);
+
+    // map the questions to the registration
+    const questions = await Question.findAll({
+      where: { id: registration.questions.map(q => q.questionId), eventId: info.currentEvent },
+    });
+    await QuestionRegistration.bulkCreate(questions.map((question) => {
+      return {
+        questionId: question.id,
+        registrationId: r.id,
+        eventId: question.eventId,
+      };
+    }));
 
     // send mails
     if (registration.waiting_list) {
@@ -121,7 +137,9 @@ export class RegistrationService {
     return null;
   }
 
-  private async validate(event: Event, registration: Registration) {
+  private async validate(event: Event, registration: any) {
+    console.log(registration)
+
     // check if all mandatory questions are answered
     const mandatoryQuestions = await Question.findAll({
       attributes: ['id'],
@@ -130,9 +148,10 @@ export class RegistrationService {
         mandatory: true,
       },
     });
-    const answeredQuestionIds = registration.questions.map(q => q.id);
+
+    const answeredQuestionIds = registration.questions.map(q => q.questionId);
     const missingMandatory = mandatoryQuestions.filter(
-      (q) => !answeredQuestionIds.includes(q.id.toString())
+      (q) => !answeredQuestionIds.includes(q.id)
     );
 
     if (missingMandatory.length > 0) {
@@ -140,11 +159,11 @@ export class RegistrationService {
     }
 
     // check date of birth
-    const minBirthDate = event.officialStartDate;
-    const maxBirthDate = event.officialStartDate;
+    const minBirthDate = new Date(event.officialStartDate);
+    const maxBirthDate = new Date(event.officialStartDate);
 
     minBirthDate.setFullYear(minBirthDate.getFullYear() - event.minAge);
-    maxBirthDate.setFullYear(minBirthDate.getFullYear() - event.maxAge - 1);
+    maxBirthDate.setFullYear(maxBirthDate.getFullYear() - event.maxAge - 1);
 
     if (registration.birthmonth > minBirthDate || registration.birthmonth < maxBirthDate) {
       throw new Error(
