@@ -1,6 +1,5 @@
 import {
   Column,
-  Model,
   Table,
   ForeignKey,
   BelongsTo,

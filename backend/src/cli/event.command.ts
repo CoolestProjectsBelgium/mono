@@ -964,11 +964,11 @@ export class EventCommand {
           gsm: '1234567890',
           gsm_guardian: '0987654321',
           general_questions: [],
-          mandatory_approvals: [],
+          mandatory_approvals: [questions[2].id],
           id: 0,
           sex: 'x',
-          year: 0,
-          month: 0,
+          year: 2010,
+          month: 5,
           t_size: 0,
           via: '',
           medical: '',
@@ -986,7 +986,7 @@ export class EventCommand {
             delete_possible: false
           },
           other_project: {
-            project_code: 'test123',
+            project_code: '',
           },
           attachments: []
         },
