@@ -9,15 +9,18 @@ import { Question } from 'src/models/question.model';
 import { TokensService } from '../tokens/tokens.service';
 import { Project } from 'src/models/project.model';
 import { QuestionRegistration } from 'src/models/question_registration.model';
+import { Sequelize } from 'sequelize-typescript';
+
 
 @Injectable()
 export class RegistrationService {
   constructor(
     private mailerService: MailerService,
     private tokenService: TokensService,
-  ) {}
+    private readonly sequelize: Sequelize,
+  ) { }
 
-  async create(info: InfoDto, createRegistrationDto: RegistrationDto) {
+  async create(info: InfoDto, createRegistrationDto: RegistrationDto): Promise<void> {
     const emailUserFound = await User.count({
       where: {
         email: createRegistrationDto.user.email,
@@ -85,9 +88,9 @@ export class RegistrationService {
       waiting_list: false,
       internalinfo: null,
     };
-    
+
     const event = await Event.findByPk(info.currentEvent, {
-      attributes: ['id','minAge', 'maxAge', 'maxRegistration', 'officialStartDate', 'minGuardianAge'],
+      attributes: ['id', 'minAge', 'maxAge', 'maxRegistration', 'officialStartDate', 'minGuardianAge'],
     });
     if (!event) {
       throw new Error('Event not found');
@@ -95,33 +98,53 @@ export class RegistrationService {
 
     await this.validate(event, registration);
 
+    // we want to make sure that the count, insert & waiting list logic is atomic
+    const transaction = await this.sequelize.transaction();
+
+    // lock registrations for the current event
+    await Registration.findAll({
+      where: {
+        eventId: info.currentEvent,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
     // count the projects in the event
     const projectCount = await Project.count({
-      where: { eventId: event.id },
+      where: { eventId: event.id }, transaction,
     });
 
     // count the projects in the registration
     const registrationProjectCount = await Registration.count({
-      where: { eventId: event.id, project_code: null },
+      where: { eventId: event.id, project_code: null }, transaction,
     });
 
     // check waiting list if project code is not filled, participant can always register
-    if (!registration.project_code && ( projectCount + registrationProjectCount >= event.maxRegistration)) {
+    if (!registration.project_code && (projectCount + registrationProjectCount >= event.maxRegistration)) {
       registration.waiting_list = true;
     }
-    const r = await Registration.create(registration);
 
-    // map the questions to the registration
+    const r = await Registration.create(registration, { transaction });
+
+    // map the questions to the registration (verify if questions exist for the event)
     const questions = await Question.findAll({
       where: { id: registration.questions.map(q => q.questionId), eventId: info.currentEvent },
     });
-    await QuestionRegistration.bulkCreate(questions.map((question) => {
+    await QuestionRegistration.bulkCreate(questions.map((q) => {
       return {
-        questionId: question.id,
+        questionId: q.id,
         registrationId: r.id,
-        eventId: question.eventId,
+        eventId: q.eventId,
       };
-    }));
+    }), { transaction });
+
+    try {
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw new Error('Transaction commit failed: ' + error);
+    }
 
     // send mails
     if (registration.waiting_list) {
@@ -134,7 +157,7 @@ export class RegistrationService {
       );
     }
 
-    return null;
+    return;
   }
 
   private async validate(event: Event, registration: any) {
