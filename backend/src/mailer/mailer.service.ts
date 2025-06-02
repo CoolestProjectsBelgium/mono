@@ -8,25 +8,36 @@ import { env } from 'process';
 import { Registration } from 'src/models/registration.model';
 import { Event } from 'src/models/event.model';
 
+export  enum MailTemplates {
+  registration = 'registration',
+  waiting = 'waiting',
+  welcomeOwner = 'welcomeOwner',
+  welcomeCoWorker = 'welcomeCoWorker',
+  delete = 'delete',
+  warningNoProject = 'warningNoProject',
+  deadlineApproaching = 'deadlineApproaching',
+  waitingMail = 'waitingMail',
+  activation = 'activation',
+  ask4Token = 'ask4Token',
+  emailExists = 'emailExists',
+}
+
 @Injectable()
 export class MailerService {
 
-  async registrationMail(user: Registration, token: string) {
+  private async sendMail(template: string, language: string, event: Event, to: string, context: any) {
     const templateMail = await EmailTemplate.findOne({
-      where: { template: 'registration', language: user.language, eventId: user.eventId },
+      where: { template, language, eventId: event.id },
     });
 
     if (!templateMail) {
       throw new Error('Email template not found');
     }
 
-    const event = await Event.findByPk(user.eventId);
-
-    const templateRitch: Template = Handlebars.compile(templateMail.contentRich, {noEscape: true});
+    const templateRitch: Template = Handlebars.compile(templateMail.contentRich, { noEscape: true });
     const templatePlain: Template = Handlebars.compile(templateMail.contentPlain);
     const templateSubject: Template = Handlebars.compile(templateMail.subject);
 
-    const context = { event, user, token }
     const contentRich = templateRitch(context);
     const contentPlain = templatePlain(context);
     const contentSubject = templateSubject(context);
@@ -36,20 +47,30 @@ export class MailerService {
       port: env.SMTP_PORT,
       //secure: env.SMTP_SECURE === 'true', 
       auth: {
-        user: env.SMTP_USER, 
-        pass: env.SMTP_PASS, 
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASS,
       },
     }).sendMail({
       from: env.SMTP_FROM,
-      to: [user.email, ...(user.email_guardian ? [user.email_guardian] : [])].join(","),
-      subject: contentSubject, 
-      text: contentPlain, 
+      to,
+      subject: contentSubject,
+      text: contentPlain,
       html: contentRich,
     });
 
   }
+
+  async registrationMail(user: Registration, token: string) {
+    const event = await Event.findByPk(user.eventId);
+    const to = [user.email, ...(user.email_guardian ? [user.email_guardian] : [])].join(",");
+    const context = { event, user, token };
+    await this.sendMail(MailTemplates.registration, user.language, event, to, context);
+  }
   async waitingListMail(user: Registration) {
-    throw new Error('Method not implemented.');
+    const event = await Event.findByPk(user.eventId);
+    const to = [user.email, ...(user.email_guardian ? [user.email_guardian] : [])].join(",");
+    const context = { event, user };
+    await this.sendMail(MailTemplates.waiting, user.language, event, to, context);
   }
   constructor() { }
 
