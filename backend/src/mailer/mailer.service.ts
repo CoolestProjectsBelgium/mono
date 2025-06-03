@@ -7,6 +7,8 @@ import { createTransport } from 'nodemailer';
 import { env } from 'process';
 import { Registration } from 'src/models/registration.model';
 import { Event } from 'src/models/event.model';
+import { InjectModel } from '@nestjs/sequelize';
+
 
 export  enum MailTemplates {
   registration = 'registration',
@@ -25,8 +27,15 @@ export  enum MailTemplates {
 @Injectable()
 export class MailerService {
 
+  constructor(
+    @InjectModel(Event)
+    private eventModel: typeof Event,
+    @InjectModel(EmailTemplate)
+    private emailTemplateModel: typeof EmailTemplate,
+  ) {}
+
   private async sendMail(template: string, language: string, event: Event, to: string, context: any) {
-    const templateMail = await EmailTemplate.findOne({
+    const templateMail = await this.emailTemplateModel.findOne({
       where: { template, language, eventId: event.id },
     });
 
@@ -61,18 +70,17 @@ export class MailerService {
   }
 
   async registrationMail(user: Registration, token: string) {
-    const event = await Event.findByPk(user.eventId);
+    const event = await this.eventModel.findByPk(user.eventId);
     const to = [user.email, ...(user.email_guardian ? [user.email_guardian] : [])].join(",");
     const context = { event, user, token };
     await this.sendMail(MailTemplates.registration, user.language, event, to, context);
   }
   async waitingListMail(user: Registration) {
-    const event = await Event.findByPk(user.eventId);
+    const event = await this.eventModel.findByPk(user.eventId);
     const to = [user.email, ...(user.email_guardian ? [user.email_guardian] : [])].join(",");
     const context = { event, user };
     await this.sendMail(MailTemplates.waiting, user.language, event, to, context);
   }
-  constructor() { }
 
   async welcomeMailOwner() { }
   async welcomeMailCoWorker() { }

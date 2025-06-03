@@ -10,6 +10,7 @@ import { TokensService } from '../tokens/tokens.service';
 import { Project } from 'src/models/project.model';
 import { QuestionRegistration } from 'src/models/question_registration.model';
 import { Sequelize } from 'sequelize-typescript';
+import { InjectModel } from '@nestjs/sequelize';
 
 
 @Injectable()
@@ -18,10 +19,22 @@ export class RegistrationService {
     private mailerService: MailerService,
     private tokenService: TokensService,
     private readonly sequelize: Sequelize,
+    @InjectModel(Event)
+    private eventModel: typeof Event,
+    @InjectModel(Project)
+    private projectModel: typeof Project,
+    @InjectModel(Registration)
+    private registrationModel: typeof Registration,
+    @InjectModel(User)
+    private userModel: typeof User,
+    @InjectModel(Question)
+    private questionModel: typeof Question,
+    @InjectModel(QuestionRegistration)
+    private questionRegistrationModel: typeof QuestionRegistration,
   ) { }
 
   async create(info: InfoDto, createRegistrationDto: RegistrationDto): Promise<void> {
-    const emailUserFound = await User.count({
+    const emailUserFound = await this.userModel.count({
       where: {
         email: createRegistrationDto.user.email,
         eventId: info.currentEvent,
@@ -32,7 +45,7 @@ export class RegistrationService {
       return;
     }
 
-    const emailRegistrationFound = await Registration.count({
+    const emailRegistrationFound = await this.registrationModel.count({
       where: {
         email: createRegistrationDto.user.email,
         eventId: info.currentEvent,
@@ -89,7 +102,7 @@ export class RegistrationService {
       internalinfo: null,
     };
 
-    const event = await Event.findByPk(info.currentEvent, {
+    const event = await this.eventModel.findByPk(info.currentEvent, {
       attributes: ['id', 'minAge', 'maxAge', 'maxRegistration', 'officialStartDate', 'minGuardianAge'],
     });
     if (!event) {
@@ -102,7 +115,7 @@ export class RegistrationService {
     const transaction = await this.sequelize.transaction();
 
     // lock registrations for the current event
-    await Registration.findAll({
+    await this.eventModel.findAll({
       where: {
         eventId: info.currentEvent,
       },
@@ -111,12 +124,12 @@ export class RegistrationService {
     });
 
     // count the projects in the event
-    const projectCount = await Project.count({
+    const projectCount = await this.projectModel.count({
       where: { eventId: event.id }, transaction,
     });
 
     // count the projects in the registration
-    const registrationProjectCount = await Registration.count({
+    const registrationProjectCount = await this.registrationModel.count({
       where: { eventId: event.id, project_code: null }, transaction,
     });
 
@@ -125,13 +138,13 @@ export class RegistrationService {
       registration.waiting_list = true;
     }
 
-    const r = await Registration.create(registration, { transaction });
+    const r = await this.registrationModel.create(registration, { transaction });
 
     // map the questions to the registration (verify if questions exist for the event)
-    const questions = await Question.findAll({
+    const questions = await this.questionModel.findAll({
       where: { id: registration.questions.map(q => q.questionId), eventId: info.currentEvent },
     });
-    await QuestionRegistration.bulkCreate(questions.map((q) => {
+    await this.questionRegistrationModel.bulkCreate(questions.map((q) => {
       return {
         questionId: q.id,
         registrationId: r.id,
@@ -164,7 +177,7 @@ export class RegistrationService {
     console.log(registration)
 
     // check if all mandatory questions are answered
-    const mandatoryQuestions = await Question.findAll({
+    const mandatoryQuestions = await this.questionModel.findAll({
       attributes: ['id'],
       where: {
         EventId: event.id,
