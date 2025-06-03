@@ -129,6 +129,7 @@ const authenticate = async (email: string, password: string) => {
       Event,
       Registration,
       User,
+      Project,
     ]),
     AdminModule,
     CliModule,

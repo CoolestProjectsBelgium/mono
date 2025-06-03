@@ -117,7 +117,7 @@ export class RegistrationService {
     // lock registrations for the current event
     await this.eventModel.findAll({
       where: {
-        eventId: info.currentEvent,
+        id: info.currentEvent,
       },
       transaction,
       lock: transaction.LOCK.UPDATE,
