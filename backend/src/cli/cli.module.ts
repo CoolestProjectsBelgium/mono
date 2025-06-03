@@ -107,6 +107,10 @@ import { EmailTemplate } from 'src/models/email_template.model';
       Event,
       Registration,
       User,
+      Project,
+      QuestionRegistration,
+      EmailTemplate,
+      Account,
     ]),
   ],
   providers: [
