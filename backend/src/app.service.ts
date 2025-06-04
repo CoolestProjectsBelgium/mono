@@ -15,6 +15,7 @@ import { ApprovalDto } from './dto/approval.dto';
 import { SettingDto } from './dto/setting.dto';
 import { Registration } from './models/registration.model';
 import { User } from './models/user.model';
+import { Project } from './models/project.model';
 
 @Injectable()
 export class AppService {
@@ -29,6 +30,8 @@ export class AppService {
     private registrationModel: typeof Registration,
     @InjectModel(User)
     private userModel: typeof User,
+    @InjectModel(Project)
+    private projectModel: typeof Project,
   ) {}
   async findAllQuestions(info: InfoDto): Promise<QuestionDto[]> {
     const questions = await this.questionModel.findAll({
@@ -115,13 +118,19 @@ export class AppService {
       where: { id: info.currentEvent },
     });
 
-    const registration_count = await this.registrationModel.count({
-      where: { eventId: info.currentEvent },
+    const projectCount = await this.projectModel.count({
+      where: { eventId: event.id },
     });
 
-    const user_count = await this.userModel.count({
-      where: { eventId: info.currentEvent },
+    //keep in sync with registration validation logic
+    let waitingListActive = false;
+    const registrationProjectCount = await this.registrationModel.count({
+      where: { eventId: event.id, project_code: null },
     });
+
+    if (projectCount + registrationProjectCount >= event.maxRegistration) {
+      waitingListActive = true;
+    }
 
     return {
       maxAge: event.maxAge,
@@ -129,8 +138,7 @@ export class AppService {
 
       guardianAge: event.minGuardianAge,
       enviroment: process.env.NODE_ENV,
-      waitingListActive:
-        registration_count + user_count >= event.maxRegistration,
+      waitingListActive,
       maxUploadSize: event.maxFileSize || 1024 * 1024 * 1024 * 5, // 5 gigs in bytes
 
       startDateEvent: event.eventBeginDate,

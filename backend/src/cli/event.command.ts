@@ -1,6 +1,5 @@
-import { Command, Positional, Option } from 'nestjs-command';
+import { Command } from 'nestjs-command';
 import { Injectable } from '@nestjs/common';
-import { EventService } from '../event/event.service';
 import { Event } from '../models/event.model'; // Adjust the path based on your project structure
 import { Tshirt } from 'src/models/tshirt.model';
 import { TshirtGroup } from 'src/models/tshirt_group.model';
@@ -8,23 +7,46 @@ import { TshirtGroupTranslation } from 'src/models/tshirt_group_translation.mode
 import { TshirtTranslation } from 'src/models/tshirt_translation.model';
 import { Question } from 'src/models/question.model';
 import { QuestionTranslation } from 'src/models/question_translation.model';
-import { QuestionRegistration } from 'src/models/question_registration.model';
 import { Location } from 'src/models/location.model';
 import { EventTable } from 'src/models/event_table.model';
-import { Registration } from 'src/models/registration.model';
 import { EmailTemplate } from 'src/models/email_template.model';
 import { RegistrationService } from 'src/registration/registration.service';
+import { TokensService } from 'src/tokens/tokens.service';
+import { InjectModel } from '@nestjs/sequelize';
 
 @Injectable()
 export class EventCommand {
-  constructor(private readonly eventService: EventService, private readonly registrationService: RegistrationService) {}
+  constructor(
+    @InjectModel(Event)
+    private readonly eventModel: typeof Event,
+    @InjectModel(TshirtGroup)
+    private readonly tshirtGroupModel: typeof TshirtGroup,
+    @InjectModel(Question)
+    private readonly questionModel: typeof Question,
+    @InjectModel(QuestionTranslation)
+    private readonly questionTranslationModel: typeof QuestionTranslation,
+    @InjectModel(Tshirt)
+    private readonly tshirtModel: typeof Tshirt,
+    @InjectModel(TshirtGroupTranslation)
+    private readonly tshirtGroupTranslationModel: typeof TshirtGroupTranslation,
+    @InjectModel(TshirtTranslation)
+    private readonly tshirtTranslationModel: typeof TshirtTranslation,
+    @InjectModel(Location)
+    private readonly locationModel: typeof Location,
+    @InjectModel(EventTable)
+    private readonly eventTableModel: typeof EventTable,
+    @InjectModel(EmailTemplate)
+    private readonly emailTemplateModel: typeof EmailTemplate,
+    private readonly registrationService: RegistrationService,
+    private readonly tokenService: TokensService,
+  ) {}
 
   @Command({
     command: 'event:init',
     describe: 'init db',
   })
   async initEventDB() {
-    const event = await Event.create({
+    const event = await this.eventModel.create({
       azure_storage_container: 'coolestproject25',
       minAge: 7,
       maxAge: 18,
@@ -39,11 +61,9 @@ export class EventCommand {
       eventEndDate: new Date('2025-08-31T00:00:00'),
       maxFileSize: 2147483647,
       event_title: 'Coolest Projects 2025',
-      createdAt: new Date('2025-01-15T19:47:29'),
-      updatedAt: new Date('2025-01-16T12:16:48'),
     });
 
-    const groups = await TshirtGroup.bulkCreate([
+    const groups = await this.tshirtGroupModel.bulkCreate([
       {
         eventId: event.id,
         name: 'kids',
@@ -54,7 +74,7 @@ export class EventCommand {
       },
     ]);
 
-    const questions = await Question.bulkCreate([
+    const questions = await this.questionModel.bulkCreate([
       {
         eventId: event.id,
         name: 'Agree to Photo',
@@ -69,7 +89,7 @@ export class EventCommand {
         mandatory: 1,
       },
     ]);
-    await QuestionTranslation.bulkCreate([
+    await this.questionTranslationModel.bulkCreate([
       {
         eventId: event.id,
         language: 'en',
@@ -190,7 +210,7 @@ export class EventCommand {
       },
     ]);
 
-    const tshirts = await Tshirt.bulkCreate([
+    const tshirts = await this.tshirtModel.bulkCreate([
       {
         eventId: event.id,
         name: 'kid_3-4',
@@ -268,7 +288,7 @@ export class EventCommand {
       },
     ]);
 
-    await TshirtTranslation.bulkCreate([
+    await this.tshirtGroupModel.bulkCreate([
       {
         eventId: event.id,
         language: 'en',
@@ -543,7 +563,7 @@ export class EventCommand {
       },
     ]);
 
-    const location = await Location.bulkCreate([
+    const location = await this.locationModel.bulkCreate([
       {
         eventId: event.id,
         text: 'Column 1',
@@ -569,7 +589,7 @@ export class EventCommand {
         text: 'Column 6',
       },
     ]);
-    await EventTable.bulkCreate([
+    await this.eventTableModel.bulkCreate([
       {
         eventId: event.id,
         name: 'Tafel_01',
@@ -915,7 +935,7 @@ export class EventCommand {
       },
     ]);
     */
-    await EmailTemplate.bulkCreate([
+    await this.emailTemplateModel.bulkCreate([
       {
         eventId: event.id,
         template: 'registration',
@@ -942,7 +962,7 @@ export class EventCommand {
       },
     ]);
 
-    await this.registrationService.create(
+    const r = await this.registrationService.create(
       {
         currentEvent: event.id,
         language: 'en',
@@ -965,14 +985,12 @@ export class EventCommand {
           gsm_guardian: '0987654321',
           general_questions: [],
           mandatory_approvals: [questions[2].id],
-          id: 0,
           sex: 'x',
           year: 2010,
           month: 5,
-          t_size: 0,
+          t_size: tshirts[1].id,
           via: '',
           medical: '',
-          delete_possible: false
         },
         project: {
           own_project: {
@@ -980,18 +998,13 @@ export class EventCommand {
             project_descr: 'This is a test project',
             project_type: 'test',
             project_lang: 'en',
-            project_id: '',
-            participants: [],
-            attachments: [],
-            delete_possible: false
           },
-          other_project: {
-            project_code: '',
-          },
-          attachments: []
         },
       },
     );
+
+    const token = this.tokenService.generateRegistrationToken(r.id);
+    this.registrationService.activateRegistration(token);
 
     /*
     const eventTables = [

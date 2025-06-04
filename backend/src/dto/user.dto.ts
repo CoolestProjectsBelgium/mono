@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { AddressDto } from './address.dto';
 
 export class UserDto {
-  id: number;
+  id?: number;
   @ApiProperty({ enum: ['nl', 'fr', 'en'] })
   language: string;
   email: string;
@@ -20,6 +20,6 @@ export class UserDto {
   email_guardian: string;
   via: string;
   medical: string;
-  delete_possible: boolean;
+  delete_possible?: boolean;
   address: AddressDto;
 }

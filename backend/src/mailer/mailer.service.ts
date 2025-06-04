@@ -9,8 +9,7 @@ import { Registration } from 'src/models/registration.model';
 import { Event } from 'src/models/event.model';
 import { InjectModel } from '@nestjs/sequelize';
 
-
-export  enum MailTemplates {
+export enum MailTemplates {
   registration = 'registration',
   waiting = 'waiting',
   welcomeOwner = 'welcomeOwner',
@@ -26,7 +25,6 @@ export  enum MailTemplates {
 
 @Injectable()
 export class MailerService {
-
   constructor(
     @InjectModel(Event)
     private eventModel: typeof Event,
@@ -34,7 +32,13 @@ export class MailerService {
     private emailTemplateModel: typeof EmailTemplate,
   ) {}
 
-  private async sendMail(template: string, language: string, event: Event, to: string, context: any) {
+  private async sendMail(
+    template: string,
+    language: string,
+    event: Event,
+    to: string,
+    context: any,
+  ) {
     const templateMail = await this.emailTemplateModel.findOne({
       where: { template, language, eventId: event.id },
     });
@@ -43,8 +47,13 @@ export class MailerService {
       throw new Error('Email template not found');
     }
 
-    const templateRitch: Template = Handlebars.compile(templateMail.contentRich, { noEscape: true });
-    const templatePlain: Template = Handlebars.compile(templateMail.contentPlain);
+    const templateRitch: Template = Handlebars.compile(
+      templateMail.contentRich,
+      { noEscape: true },
+    );
+    const templatePlain: Template = Handlebars.compile(
+      templateMail.contentPlain,
+    );
     const templateSubject: Template = Handlebars.compile(templateMail.subject);
 
     const contentRich = templateRitch(context);
@@ -54,7 +63,7 @@ export class MailerService {
     await createTransport({
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
-      //secure: env.SMTP_SECURE === 'true', 
+      //secure: env.SMTP_SECURE === 'true',
       auth: {
         user: env.SMTP_USER,
         pass: env.SMTP_PASS,
@@ -66,29 +75,47 @@ export class MailerService {
       text: contentPlain,
       html: contentRich,
     });
-
   }
 
   async registrationMail(user: Registration, token: string) {
     const event = await this.eventModel.findByPk(user.eventId);
-    const to = [user.email, ...(user.email_guardian ? [user.email_guardian] : [])].join(",");
+    const to = [
+      user.email,
+      ...(user.email_guardian ? [user.email_guardian] : []),
+    ].join(',');
     const context = { event, user, token };
-    await this.sendMail(MailTemplates.registration, user.language, event, to, context);
+    await this.sendMail(
+      MailTemplates.registration,
+      user.language,
+      event,
+      to,
+      context,
+    );
   }
   async waitingListMail(user: Registration) {
     const event = await this.eventModel.findByPk(user.eventId);
-    const to = [user.email, ...(user.email_guardian ? [user.email_guardian] : [])].join(",");
+    const to = [
+      user.email,
+      ...(user.email_guardian ? [user.email_guardian] : []),
+    ].join(',');
     const context = { event, user };
-    await this.sendMail(MailTemplates.waiting, user.language, event, to, context);
+    await this.sendMail(
+      MailTemplates.waiting,
+      user.language,
+      event,
+      to,
+      context,
+    );
   }
 
-  async welcomeMailOwner() { }
-  async welcomeMailCoWorker() { }
-  async deleteMail() { }
-  async warningNoProject() { }
-  async deadlineApproaching() { }
-  async waitingMail() { }
-  async activationMail() { }
-  async ask4TokenMail() { }
-  async emailExistsMail(user: UserDto) { }
+  async welcomeMailOwner() {}
+  async welcomeMailCoWorker() {}
+  async deleteMail() {}
+  async warningNoProject() {}
+  async deadlineApproaching() {}
+  async waitingMail() {}
+  async activationMail() {}
+  async ask4TokenMail() {}
+  async emailExistsMail(user: UserDto) {}
+  async notifyProjectOwner() {}
 }
