@@ -1,11 +1,4 @@
-import {
-  Column,
-  Model,
-  Table,
-  ForeignKey,
-  BelongsTo,
-} from 'sequelize-typescript';
-import { Event } from './event.model';
+import { Column, Table, ForeignKey, BelongsTo } from 'sequelize-typescript';
 import { Project } from './project.model';
 import { VoteCategory } from './vote_category.model';
 import { Account } from './account.model';

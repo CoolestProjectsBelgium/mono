@@ -28,5 +28,5 @@ export class Voucher extends BaseEventModel {
 
   @Index({ unique: true })
   @Column(DataType.UUID)
-  voucherGuid: number;
+  voucherGuid: string;
 }

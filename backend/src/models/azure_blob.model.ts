@@ -1,11 +1,4 @@
-import {
-  Column,
-  Model,
-  Table,
-  ForeignKey,
-  BelongsTo,
-} from 'sequelize-typescript';
-import { Event } from './event.model';
+import { Column, Table, ForeignKey, BelongsTo } from 'sequelize-typescript';
 import { Attachment } from './attachment.model';
 import { BaseEventModel } from './base_event.model';
 
@@ -25,5 +18,5 @@ export class AzureBlob extends BaseEventModel {
   attachmentId: number;
 
   @BelongsTo(() => Attachment)
-  attachment: Event;
+  attachment: Attachment;
 }

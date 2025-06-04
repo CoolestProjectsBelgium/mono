@@ -1,10 +1,8 @@
-import { Event } from './event.model';
 import { Project } from './project.model';
 import { ProjectTable } from './project_table.model';
 import { Location } from './location.model';
 import {
   Column,
-  Model,
   Table,
   ForeignKey,
   BelongsTo,
