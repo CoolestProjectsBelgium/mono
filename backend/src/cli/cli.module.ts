@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CommandModule } from 'nestjs-command';
 import { RegistrationService } from '../registration/registration.service';
+import { ParticipantService } from '../participant/participant.service';
 import { EventCommand } from './event.command';
 import { CliService } from './cli.service';
 import { MailerService } from '../mailer/mailer.service';
@@ -129,6 +130,7 @@ import { EmailTemplate } from 'src/models/email_template.model';
     EventService,
     EventCommand,
     CliService,
+    ParticipantService,
   ],
 })
 export class CliModule {}

@@ -44,6 +44,7 @@ import { AdminModule } from './admin/admin.module';
 import { CliModule } from './cli/cli.module';
 import { EventService } from './event/event.service';
 import { EmailTemplate } from './models/email_template.model';
+import { ParticipantService } from './participant/participant.service';
 
 /*
 const DEFAULT_ADMIN = {
@@ -163,6 +164,7 @@ const authenticate = async (email: string, password: string) => {
     TokensService,
     BackgroundService,
     EventService,
+    ParticipantService,
   ],
 })
 export class AppModule {}

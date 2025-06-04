@@ -99,7 +99,7 @@ export class Registration extends BaseEventModel {
   @Column(DataType.STRING(4000))
   project_descr: string;
 
-  @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
+  @Column({ type: DataType.ENUM('nl', 'fr', 'en') }) // mandatory for project owners
   project_lang: string;
 
   @Column(DataType.STRING(100))

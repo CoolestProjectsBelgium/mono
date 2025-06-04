@@ -1,6 +1,6 @@
 import { Command } from 'nestjs-command';
 import { Injectable } from '@nestjs/common';
-import { Event } from '../models/event.model'; // Adjust the path based on your project structure
+import { Event } from '../models/event.model';
 import { Tshirt } from 'src/models/tshirt.model';
 import { TshirtGroup } from 'src/models/tshirt_group.model';
 import { TshirtGroupTranslation } from 'src/models/tshirt_group_translation.model';
@@ -13,6 +13,7 @@ import { EmailTemplate } from 'src/models/email_template.model';
 import { RegistrationService } from 'src/registration/registration.service';
 import { TokensService } from 'src/tokens/tokens.service';
 import { InjectModel } from '@nestjs/sequelize';
+import { ParticipantService } from 'src/participant/participant.service';
 
 @Injectable()
 export class EventCommand {
@@ -38,6 +39,7 @@ export class EventCommand {
     @InjectModel(EmailTemplate)
     private readonly emailTemplateModel: typeof EmailTemplate,
     private readonly registrationService: RegistrationService,
+    private readonly participantService: ParticipantService,
     private readonly tokenService: TokensService,
   ) {}
 
@@ -171,7 +173,7 @@ export class EventCommand {
       },
     ]);
 
-    await TshirtGroupTranslation.bulkCreate([
+    await this.tshirtGroupTranslationModel.bulkCreate([
       {
         eventId: event.id,
         language: 'en',
@@ -843,98 +845,7 @@ export class EventCommand {
         locationId: location[5].id,
       },
     ]);
-    /*
-    const registration = await Registration.bulkCreate([
-      {
-        eventId: event.id,
-        tshirtId: 1,
-        questions: questions[1],
-        language: 'nl',
-        postalcode: 9111,
-        municipality_name: null,
-        street: null,
-        box_number: null,
-        email: 'randomemail@example.com',
-        firstname: 'John',
-        lastname: 'Doe',
-        sex: 'm',
-        birthmonth: new Date('2015-01-01'),
-        via: 'friend',
-        medical: 'none',
-        gsm: '1234567890',
-        gsm_guardian: '0987654321',
-        internalinfo: 'No internal info',
-        email_guardian: 'guardian@example.com',
-        project_code: 'abc123',
-        waiting_list: false,
-        project_name: 'Cool Project',
-        project_descr: 'This is a cool project',
-        project_lang: 'en',
-        project_type: 'science',
-        max_tokens: 3,
-      },
-      {
-        eventId: event.id,
-        tshirtId: 15,
-        questions: questions[1],
-        language: 'nl',
-        postalcode: 9111,
-        municipality_name: null,
-        street: null,
-        box_number: null,
-        email: 'hallo@webenzo.be',
-        firstname: 'John',
-        lastname: 'DoeDoe',
-        sex: 'm',
-        birthmonth: new Date('2009-01-01'),
-        via: 'friend van een vriend',
-        medical: 'none',
-        gsm: '1234567890',
-        gsm_guardian: '0987654321',
-        internalinfo: 'No internal info',
-        email_guardian: 'hallo@webenzo.be',
-        project_code: 'be6aa4ef9b1a19a94eeecf2ee18f7e629119',
-        waiting_list: false,
-        project_name: null,
-        project_descr: null,
-        project_lang: 'nl',
-        project_type: null,
-        max_tokens: 0,
-      },
-    ]);
-    await QuestionRegistration.bulkCreate([
-      {
-        eventId: event.id,
-        registrationId: registration[0].id,
-        questionId: questions[0].id,
-      },
-      {
-        eventId: event.id,
-        registrationId: registration[0].id,
-        questionId: questions[1].id,
-      },
-      {
-        eventId: event.id,
-        registrationId: registration[0].id,
-        questionId: questions[2].id,
-      },
-      {
-        eventId: event.id,
-        registrationId: registration[1].id,
-        questionId: questions[0].id,
-      },
-      {
-        eventId: event.id,
-        registrationId: registration[1].id,
-        questionId: questions[1].id,
-      },
-      {
-        eventId: event.id,
-        registrationId: registration[1].id,
-        questionId: questions[2].id,
-      },
-    ]);
-    */
+
     await this.emailTemplateModel.bulkCreate([
       {
         eventId: event.id,
@@ -962,6 +873,7 @@ export class EventCommand {
       },
     ]);
 
+    //trigger project creation / user
     const r = await this.registrationService.create(
       {
         currentEvent: event.id,
@@ -1004,21 +916,48 @@ export class EventCommand {
     );
 
     const token = this.tokenService.generateRegistrationToken(r.id);
-    this.registrationService.activateRegistration(token);
+    const user = await this.registrationService.activateRegistration(token);
+    
+    const voucher = await this.participantService.generateParticipantVoucher(user.id);
+    const r1 = await this.registrationService.create(
+      {
+        currentEvent: event.id,
+        language: 'en',
+      },
+      {
+        user: {
+          email: 'test1@test.be',
+          firstname: 'John',
+          lastname: 'Doe',
+          address: {
+            postalcode: 1000,
+            municipality_name: 'Test City',
+            street: 'Test Street',
+            house_number: '1',
+            box_number: 'A',
+          },
+          language: 'en',
+          email_guardian: 'guardian1@test.be',
+          gsm: '1234567890',
+          gsm_guardian: '0987654321',
+          general_questions: [],
+          mandatory_approvals: [questions[2].id],
+          sex: 'x',
+          year: 2010,
+          month: 5,
+          t_size: tshirts[2].id,
+          via: '',
+          medical: '',
+        },
+        project: {
+          other_project: {
+            project_code: voucher.voucherGuid,
+          },
+        },
+      },
+    );
 
-    /*
-    const eventTables = [
-      { name: 'Table 1', capacity: 10 },
-      { name: 'Table 2', capacity: 8 },
-      { name: 'Table 3', capacity: 12 },
-    ];
-
-    for (const table of eventTables) {
-      await EventTable.create({
-        eventId: event.id,
-        name: table.name,
-        capacity: table.capacity,
-      });
-    }*/
+    const token1 = this.tokenService.generateRegistrationToken(r1.id);
+    const user1 = await this.registrationService.activateRegistration(token1);
   }
 }
