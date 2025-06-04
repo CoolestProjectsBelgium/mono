@@ -1,4 +1,10 @@
-import { Column, Table, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import {
+  Column,
+  Table,
+  ForeignKey,
+  BelongsTo,
+  DataType,
+} from 'sequelize-typescript';
 import { User } from './user.model';
 import { BaseEventModel } from './base_event.model';
 
@@ -10,4 +16,22 @@ export class Project extends BaseEventModel {
 
   @BelongsTo(() => User)
   owner: User;
+
+  @Column
+  name: string;
+
+  @Column
+  description: string;
+
+  @Column
+  type: string;
+
+  @Column
+  internalInformation: string;
+
+  @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
+  language: string;
+
+  @Column
+  maxVoucher: number;
 }
