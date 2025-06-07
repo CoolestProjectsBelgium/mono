@@ -19,6 +19,7 @@
     "forceConsistentCasingInFileNames": false,
     "strict": true,
     "noFallthroughCasesInSwitch": false,
-    "moduleResolution": "Node16"
+    "moduleResolution": "Node16",
+    "isolatedModules": true
   }
 }

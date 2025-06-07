@@ -5,14 +5,14 @@ import { InfoDto } from '../dto/info.dto';
 import { User } from '../models/user.model';
 import { Event } from '../models/event.model';
 import { MailerService } from '../mailer/mailer.service';
-import { Question } from 'src/models/question.model';
+import { Question } from '../models/question.model';
 import { TokensService } from '../tokens/tokens.service';
-import { Project } from 'src/models/project.model';
-import { QuestionRegistration } from 'src/models/question_registration.model';
+import { Project } from '../models/project.model';
+import { QuestionRegistration } from '../models/question_registration.model';
 import { Sequelize } from 'sequelize-typescript';
 import { InjectModel } from '@nestjs/sequelize';
-import { Voucher } from 'src/models/voucher.model';
-import { QuestionUser } from 'src/models/question_user.model';
+import { Voucher } from '../models/voucher.model';
+import { QuestionUser } from '../models/question_user.model';
 
 @Injectable()
 export class RegistrationService {

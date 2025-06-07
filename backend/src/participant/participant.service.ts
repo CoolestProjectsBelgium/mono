@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Project } from 'src/models/project.model';
-import { Voucher } from 'src/models/voucher.model';
+import { Project } from '../models/project.model';
+import { Voucher } from '../models/voucher.model';
 
 @Injectable()
 export class ParticipantService {
