@@ -1,19 +1,19 @@
 import { Command } from 'nestjs-command';
 import { Injectable } from '@nestjs/common';
 import { Event } from '../models/event.model';
-import { Tshirt } from 'src/models/tshirt.model';
-import { TshirtGroup } from 'src/models/tshirt_group.model';
-import { TshirtGroupTranslation } from 'src/models/tshirt_group_translation.model';
-import { TshirtTranslation } from 'src/models/tshirt_translation.model';
-import { Question } from 'src/models/question.model';
-import { QuestionTranslation } from 'src/models/question_translation.model';
-import { Location } from 'src/models/location.model';
-import { EventTable } from 'src/models/event_table.model';
-import { EmailTemplate } from 'src/models/email_template.model';
-import { RegistrationService } from 'src/registration/registration.service';
-import { TokensService } from 'src/tokens/tokens.service';
+import { Tshirt } from '../models/tshirt.model';
+import { TshirtGroup } from '../models/tshirt_group.model';
+import { TshirtGroupTranslation } from '../models/tshirt_group_translation.model';
+import { TshirtTranslation } from '../models/tshirt_translation.model';
+import { Question } from '../models/question.model';
+import { QuestionTranslation } from '../models/question_translation.model';
+import { Location } from '../models/location.model';
+import { EventTable } from '../models/event_table.model';
+import { EmailTemplate } from '../models/email_template.model';
+import { RegistrationService } from '../registration/registration.service';
+import { TokensService } from '../tokens/tokens.service';
 import { InjectModel } from '@nestjs/sequelize';
-import { ParticipantService } from 'src/participant/participant.service';
+import { ParticipantService } from '../participant/participant.service';
 
 @Injectable()
 export class EventCommand {

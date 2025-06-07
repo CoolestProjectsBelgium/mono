@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { UserDto } from 'src/dto/user.dto';
+import { UserDto } from '../dto/user.dto';
 import { Template } from 'handlebars';
 import * as Handlebars from 'handlebars';
-import { EmailTemplate } from 'src/models/email_template.model';
+import { EmailTemplate } from '../models/email_template.model';
 import { createTransport } from 'nodemailer';
 import { env } from 'process';
-import { Registration } from 'src/models/registration.model';
-import { Event } from 'src/models/event.model';
+import { Registration } from '../models/registration.model';
+import { Event } from '../models/event.model';
 import { InjectModel } from '@nestjs/sequelize';
 
 export enum MailTemplates {
