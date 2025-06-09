@@ -100,7 +100,6 @@ export class AppService {
       attributes: [],
       where: { eventId: info.currentEvent },
     });
-    console.log(groups);
     return groups.map((group) => {
       return {
         group: group.translations[0].description,
