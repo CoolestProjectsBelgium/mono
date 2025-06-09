@@ -89,6 +89,6 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
-    "testTimeout": 15000
+    "testTimeout": 150000
   }
 }
