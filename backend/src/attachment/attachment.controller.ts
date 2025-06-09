@@ -4,24 +4,23 @@ import {
   Post,
   Param,
   Delete,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags, ApiCookieAuth } from '@nestjs/swagger';
-import { AzureBlobService } from '../azureblob/azureblob.service';
+//import { AzureBlobService } from '../azureblob/azureblob.service';
 import { AttachmentDto } from '../dto/attachment.dto';
 import { SASToken } from '../dto/sas-token.dto';
-import { Readable } from 'stream';
-import { InfoDto } from '../dto/info.dto';
-import { Info } from '../info.decorator';
-import { Event } from '../models/event.model';
-import { FileUploadInterceptor } from '../file-upload/file-upload.interceptor';
-import { UseInterceptors } from '@nestjs/common';
+//import { Readable } from 'stream';
+//import { InfoDto } from '../dto/info.dto';
+//import { Info } from '../info.decorator';
+//import { Event } from '../models/event.model';
+//import { FileUploadInterceptor } from '../file-upload/file-upload.interceptor';
+//import { UseInterceptors } from '@nestjs/common';
 
 @Controller('attachment')
 @ApiTags('attachment')
 @ApiCookieAuth()
 export class AttachmentController {
-  constructor(private readonly azureBlobService: AzureBlobService) {}
+  constructor() {} //private readonly azureBlobService: AzureBlobService
 
   /*
   @Post('stream')

@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { EventDto } from '../dto/event.dto';
-//import { User } from 'src/models/user.model';
 import { Event } from '../models/event.model';
+import { InjectModel } from '@nestjs/sequelize';
 
 @Injectable()
 export class EventService {
-  constructor() {}
+  constructor(
+    @InjectModel(Event)
+    private readonly eventModel: typeof Event,
+  ) {}
 
   async create(event: EventDto) {
-    return await Event.create({
+    return await this.eventModel.create({
       azure_storage_container: event.azureStorageContainer,
       minAge: event.minAge,
       maxAge: event.maxAge,

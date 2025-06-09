@@ -27,9 +27,9 @@ export enum MailTemplates {
 export class MailerService {
   constructor(
     @InjectModel(Event)
-    private eventModel: typeof Event,
+    private readonly eventModel: typeof Event,
     @InjectModel(EmailTemplate)
-    private emailTemplateModel: typeof EmailTemplate,
+    private readonly emailTemplateModel: typeof EmailTemplate,
   ) {}
 
   private async sendMail(

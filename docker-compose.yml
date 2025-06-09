@@ -30,6 +30,18 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+  db_test:
+    image: mysql/mysql-server
+    container_name: ${PROJECT_NAME:-coolestproject}-db_test
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: coolestproject_test
+      MYSQL_DATABASE: coolestproject_test
+      MYSQL_USER: coolestproject_test
+      MYSQL_PASSWORD: Se84KCCCJlnfkdfv_test
+    volumes:
+      - db_data_test:/var/lib/mysql
+
   # db_test:
   #   image: mysql/mysql-server
   #   container_name: coolestproject-db-test
@@ -64,6 +76,12 @@ services:
       DB_USER: coolestproject
       DB_PASS: Se84KCCCJlnfkdfv
       DB_NAME: coolestproject
+      # set setup
+      DB_HOST_TEST: db_test
+      DB_USER_TEST: coolestproject_test
+      DB_PASS_TEST: Se84KCCCJlnfkdfv_test
+      DB_NAME_TEST: coolestproject_test
+
 
     command: bash -c "npm install -g @nestjs/cli && npm install --dev && npm run start:debug"
 
@@ -72,6 +90,7 @@ services:
 
     depends_on:
       - db
+      - db_test
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend-coolestprojects.rule=Host(`backend.coolestprojects.localhost`)"
@@ -80,6 +99,7 @@ services:
 
 volumes:
   db_data:
+  db_data_test:
 
   # frontend:
   #   build:

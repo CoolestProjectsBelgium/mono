@@ -26,7 +26,7 @@ import { TshirtGroupTranslation } from './models/tshirt_group_translation.model'
 import { TshirtTranslation } from './models/tshirt_translation.model';
 import { QuestionTranslation } from './models/question_translation.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AzureBlobService } from './azureblob/azureblob.service';
+//import { AzureBlobService } from './azureblob/azureblob.service';
 import { TokensService } from './tokens/tokens.service';
 import { Voucher } from './models/voucher.model';
 import { AzureBlob } from './models/azure_blob.model';
@@ -40,26 +40,12 @@ import { Account } from './models/account.model';
 import { Award } from './models/award.model';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BackgroundService } from './background/background.service';
-import { AdminModule } from './admin/admin.module';
-import { CliModule } from './cli/cli.module';
+//import { AdminModule } from './admin/admin.module';
+//import { CliModule } from './cli/cli.module';
 import { EventService } from './event/event.service';
 import { EmailTemplate } from './models/email_template.model';
 import { ParticipantService } from './participant/participant.service';
 import { ProjectinfoService } from './projectinfo/projectinfo.service';
-
-/*
-const DEFAULT_ADMIN = {
-  email: 'admin@example.com',
-  password: 'password',
-};
-
-
-const authenticate = async (email: string, password: string) => {
-  if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
-    return Promise.resolve(DEFAULT_ADMIN);
-  }
-  return null;
-};*/
 
 @Module({
   imports: [
@@ -67,33 +53,22 @@ const authenticate = async (email: string, password: string) => {
     ConfigModule.forRoot({
       isGlobal: true, // Makes the config available globally
     }),
-    AdminModule.register(1),
+    //AdminModule.register(1),
 
     SequelizeModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule to access ConfigService
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
-          dialect: 'mysql',
-          host: configService.get('DB_HOST') || 'localhost', //'db',
-          port: 3306,
-          username: configService.get('DB_USER') || 'coolestproject',
-          password: configService.get('DB_PASS') || 'coolestproject',
-          database: configService.get('DB_NAME') || 'coolestproject',
+          dialect: configService.get('DB_DIALECT'),
+          host: configService.get('DB_HOST'),
+          port: configService.get('DB_PORT'),
+          username: configService.get('DB_USER') ,
+          password: configService.get('DB_PASS'),
+          database: configService.get('DB_NAME'),
           synchronize: true,
           autoLoadModels: true,
-          sync: { force: true },
-          /*
-          dialect: 'mysql',
-          host: configService.get('DB_HOST') || 'localhost',
-          port: configService.get('DB_PORT') || 3308,
-          username: configService.get('DB_USER') || 'coolestproject_proto',
-          password: configService.get('DB_PASS') || '44bJXqikC6okq7h',
-          database: configService.get('DB_NAME') || 'coolestproject_proto',
-          synchronize: true,
-          autoLoadModels: true,
-          sync: { force: true }
-          */
+          //sync: { force: true },
           models: [
             Event,
             User,
@@ -145,8 +120,8 @@ const authenticate = async (email: string, password: string) => {
       EventTable,
       ProjectTable,
     ]),
-    AdminModule,
-    CliModule,
+    //AdminModule,
+    //CliModule,
   ],
   controllers: [
     AppController,
@@ -161,7 +136,7 @@ const authenticate = async (email: string, password: string) => {
     AppService,
     RegistrationService,
     MailerService,
-    AzureBlobService,
+    //AzureBlobService,
     TokensService,
     BackgroundService,
     EventService,
