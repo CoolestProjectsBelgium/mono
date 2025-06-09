@@ -21,17 +21,17 @@ import { Project } from './models/project.model';
 export class AppService {
   constructor(
     @InjectModel(TshirtGroup)
-    private tshirtGroupModel: typeof TshirtGroup,
+    private readonly tshirtGroupModel: typeof TshirtGroup,
     @InjectModel(Question)
-    private questionModel: typeof Question,
+    private readonly questionModel: typeof Question,
     @InjectModel(Event)
-    private eventModel: typeof Event,
+    private readonly eventModel: typeof Event,
     @InjectModel(Registration)
-    private registrationModel: typeof Registration,
+    private readonly registrationModel: typeof Registration,
     @InjectModel(User)
-    private userModel: typeof User,
+    private readonly userModel: typeof User,
     @InjectModel(Project)
-    private projectModel: typeof Project,
+    private readonly projectModel: typeof Project,
   ) {}
   async findAllQuestions(info: InfoDto): Promise<QuestionDto[]> {
     const questions = await this.questionModel.findAll({
@@ -117,6 +117,10 @@ export class AppService {
     const event = await this.eventModel.findOne({
       where: { id: info.currentEvent },
     });
+
+    if (!event) {
+      throw new Error('Event not found');
+    }
 
     const projectCount = await this.projectModel.count({
       where: { eventId: event.id },

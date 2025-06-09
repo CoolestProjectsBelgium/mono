@@ -21,21 +21,21 @@ export class RegistrationService {
     private tokenService: TokensService,
     private readonly sequelize: Sequelize,
     @InjectModel(Event)
-    private eventModel: typeof Event,
+    private readonly eventModel: typeof Event,
     @InjectModel(Project)
-    private projectModel: typeof Project,
+    private readonly projectModel: typeof Project,
     @InjectModel(Registration)
-    private registrationModel: typeof Registration,
+    private readonly registrationModel: typeof Registration,
     @InjectModel(User)
-    private userModel: typeof User,
+    private readonly userModel: typeof User,
     @InjectModel(Voucher)
-    private voucherModel: typeof Voucher,
+    private readonly voucherModel: typeof Voucher,
     @InjectModel(Question)
-    private questionModel: typeof Question,
+    private readonly questionModel: typeof Question,
     @InjectModel(QuestionUser)
-    private questionUser: typeof QuestionUser,
+    private readonly questionUser: typeof QuestionUser,
     @InjectModel(QuestionRegistration)
-    private questionRegistrationModel: typeof QuestionRegistration,
+    private readonly questionRegistrationModel: typeof QuestionRegistration,
   ) {}
 
   async create(
