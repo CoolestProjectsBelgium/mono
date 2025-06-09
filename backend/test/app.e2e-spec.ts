@@ -75,6 +75,26 @@ describe('AppController (e2e)', () => {
       );
   });
 
+  it('/questions (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/questions')
+      .set('Accept-Language', 'en-US')
+      .expect(200)
+      .expect(
+        '[{"id":1,"name":"Agree to Photo","description":"It is possible that the participant is photographed or filmed","positive":"That is no problem","negative":"Don\'t use any pictures or movies where the participant is reconizable"},{"id":2,"name":"Agree to Contact","description":"Can CoderDojo contact you for the next edition","positive":"Yes","negative":"No"}]',
+      );
+  });
+
+  it('/approvals (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/approvals')
+      .set('Accept-Language', 'en-US')
+      .expect(200)
+      .expect(
+        '[{"id":3,"name":"Approved","description":"Be sure to read our rules. Do you agree"}]',
+      );
+  });
+
   afterAll(async () => {
     if (app) {
       await app.close(); // VERY important
