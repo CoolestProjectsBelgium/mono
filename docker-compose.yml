@@ -58,6 +58,11 @@ services:
       - 8081:80
     depends_on:
       - db
+      - db_test
+    environment:
+      PMA_HOSTS: db,db_test
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
 
   backend:
     env_file:

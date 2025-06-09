@@ -2,7 +2,7 @@ import { Event } from '../models/event.model';
 import { Tshirt } from '../models/tshirt.model';
 import { TshirtGroup } from '../models/tshirt_group.model';
 import { TshirtGroupTranslation } from '../models/tshirt_group_translation.model';
-//import { TshirtTranslation } from '../models/tshirt_translation.model';
+import { TshirtTranslation } from '../models/tshirt_translation.model';
 import { Question } from '../models/question.model';
 import { QuestionTranslation } from '../models/question_translation.model';
 import { Location } from '../models/location.model';
@@ -19,6 +19,7 @@ export async function seedDatabase(
   locationModel: typeof Location,
   eventTableModel: typeof EventTable,
   emailTemplateModel: typeof EmailTemplate,
+  tshirtTranslationModel: typeof TshirtTranslation,
 ) {
   const event = await eventModel.create({
     azure_storage_container: 'coolestproject25',
@@ -167,7 +168,7 @@ export async function seedDatabase(
     {
       eventId: event.id,
       language: 'nl',
-      description: 'volwassen  ',
+      description: 'volwassen',
       groupId: groups[1].id,
     },
     {
@@ -259,6 +260,129 @@ export async function seedDatabase(
       eventId: event.id,
       name: 'adult_5XL',
       groupId: groups[1].id,
+    },
+  ]);
+
+  await tshirtTranslationModel.bulkCreate([
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_3-4',
+      tshirtId: tshirts[0].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_5-6',
+      tshirtId: tshirts[1].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_7-8',
+      tshirtId: tshirts[2].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_9-11',
+      tshirtId: tshirts[3].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_12-14',
+      tshirtId: tshirts[4].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_XXS',
+      tshirtId: tshirts[5].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_XS',
+      tshirtId: tshirts[6].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_S',
+      tshirtId: tshirts[7].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_M',
+      tshirtId: tshirts[8].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_L',
+      tshirtId: tshirts[9].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_XL',
+      tshirtId: tshirts[10].id,
+    },
+    {
+      eventId: event.id, 
+      language: 'en',
+      description: 'adult_XXL',
+      tshirtId: tshirts[11].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_3XL',
+      tshirtId: tshirts[12].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_4XL',
+      tshirtId: tshirts[13].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_5XL',
+      tshirtId: tshirts[14].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kid_3-4',
+      tshirtId: tshirts[0].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kid_5-6',
+      tshirtId: tshirts[1].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kid_7-8',
+      tshirtId: tshirts[2].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kid_9-11',
+      tshirtId: tshirts[3].id,
+    },
+    {
+      eventId: event.id, 
+      language: 'nl',
+      description: 'kid_12-14',
+      tshirtId: tshirts[4].id,
     },
   ]);
 
