@@ -1,5 +1,4 @@
-import { config } from 'dotenv';
-import { join } from 'path';
+import 'reflect-metadata';
 
 export default async () => {
   // Set environment variables for testing

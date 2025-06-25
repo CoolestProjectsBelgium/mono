@@ -18,12 +18,103 @@ import { TshirtTranslation } from '../src/models/tshirt_translation.model';
 //import { TokensService } from '../src/tokens/tokens.service';
 import { getModelToken } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
+import { InfoDto } from 'src/dto/info.dto';
 //import { MailerService } from '../src/mailer/mailer.service';
+
+// TODO include this
+    /*
+    const r = await registrationService.create(
+      {
+        currentEvent: event.id,
+        language: 'en',
+      },
+      {
+        user: {
+          email: 'test@test.be',
+          firstname: 'John',
+          lastname: 'Doe',
+          address: {
+            postalcode: 1000,
+            municipality_name: 'Test City',
+            street: 'Test Street',
+            house_number: '1',
+            box_number: 'A',
+          },
+          language: 'en',
+          email_guardian: 'guardian@test.be',
+          gsm: '1234567890',
+          gsm_guardian: '0987654321',
+          general_questions: [],
+          mandatory_approvals: [questions[2].id],
+          sex: 'x',
+          year: 2010,
+          month: 5,
+          t_size: tshirts[1].id,
+          via: '',
+          medical: '',
+        },
+        project: {
+          own_project: {
+            project_name: 'Test Project',
+            project_descr: 'This is a test project',
+            project_type: 'test',
+            project_lang: 'en',
+          },
+        },
+      },
+    );
+
+    const token = tokenService.generateRegistrationToken(r.id);
+    const user = await registrationService.activateRegistration(token);
+    
+    const voucher = await participantService.generateParticipantVoucher(user.id);
+    const r1 = await registrationService.create(
+      {
+        currentEvent: event.id,
+        language: 'en',
+      },
+      {
+        user: {
+          email: 'test1@test.be',
+          firstname: 'John',
+          lastname: 'Doe',
+          address: {
+            postalcode: 1000,
+            municipality_name: 'Test City',
+            street: 'Test Street',
+            house_number: '1',
+            box_number: 'A',
+          },
+          language: 'en',
+          email_guardian: 'guardian1@test.be',
+          gsm: '1234567890',
+          gsm_guardian: '0987654321',
+          general_questions: [],
+          mandatory_approvals: [questions[2].id],
+          sex: 'x',
+          year: 2010,
+          month: 5,
+          t_size: tshirts[2].id,
+          via: '',
+          medical: '',
+        },
+        project: {
+          other_project: {
+            project_code: voucher.voucherGuid,
+          },
+        },
+      },
+    );
+
+    const token1 = tokenService.generateRegistrationToken(r1.id);
+    await registrationService.activateRegistration(token1);
+    */
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
       providers: [],
@@ -49,10 +140,7 @@ describe('AppController (e2e)', () => {
       app.get<typeof Location>(getModelToken(Location)),
       app.get<typeof EventTable>(getModelToken(EventTable)),
       app.get<typeof EmailTemplate>(getModelToken(EmailTemplate)),
-      app.get<typeof TshirtTranslation>(getModelToken(TshirtTranslation)),
-      //app.get<RegistrationService>(RegistrationService),
-      //app.get<ParticipantService>(ParticipantService),
-      //app.get<TokensService>(TokensService),
+      app.get<typeof TshirtTranslation>(getModelToken(TshirtTranslation))
     );
   }, 1 * 60 * 1000);
 
@@ -95,9 +183,90 @@ describe('AppController (e2e)', () => {
       );
   });
 
+  it('register project with guardian', () => {
+    return request(app.getHttpServer())
+      .post('/registration')
+      .send({
+        user: {
+          email: '',
+          firstname: 'John',
+          lastname: 'Doe',
+          address: {
+            postalcode: 1000,
+            municipality_name: 'Test City',
+            street: 'Test Street',
+            house_number: '1',
+            box_number: 'A',
+          },
+          general_questions: [],
+          mandatory_approvals: [3],
+          language: 'en',
+          year: 2010,
+          month: 5,
+          t_size: 1, // kid_3-4
+          via: '',
+          medical: '',  
+        },
+        email_guardian: 'test@test.be',
+        gsm_guardian: '0987654321',
+        gsm: '1234567890',
+        sex: 'x',
+        project: {
+          own_project: {
+            project_name: 'Test Project',
+            project_descr: 'This is a test project',
+            project_type: 'test',
+            project_lang: 'en',
+          },
+        }      
+      })
+      .set('Accept-Language', 'en-US')//TODO test all languages
+      .expect(200)
+      .expect(
+        '[{"id":3,"name":"Approved","description":"Be sure to read our rules. Do you agree"}]',
+      );
+
+  });
+
+  it('register project without guardian', () => {
+
+  });
+
+  it('register project participant to young', () => {
+
+  });
+
+  it('register project participant to to old', () => {
+
+  });
+
+  it('register project with incorrect data', () => {
+
+  });
+
+  it('register participant on project', () => {
+
+  });
+
+  it('register participant with incorrect token', () => {
+
+  });
+
+  it('register project on waiting list', () => {
+
+  });
+
+  it('register participant when waiting list is active', () => {
+
+  });
+
+  it('register project when event is closed', () => {
+
+  });
+
   afterAll(async () => {
     if (app) {
-      await app.close(); // VERY important
+      await app.close();
     }
   });
 });
