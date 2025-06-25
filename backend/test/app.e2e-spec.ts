@@ -113,36 +113,41 @@ import { InfoDto } from 'src/dto/info.dto';
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
-  beforeAll(async () => {
+  beforeAll(
+    async () => {
+      const moduleFixture: TestingModule = await Test.createTestingModule({
+        imports: [AppModule],
+        providers: [],
+      }).compile();
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-      providers: [],
-    }).compile();
+      app = moduleFixture.createNestApplication();
+      await app.init();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+      // Clean test database
+      const sequelize = app.get(Sequelize);
+      await sequelize.sync({ force: true });
 
-    //clean test database
-    const sequelize = app.get(Sequelize);
-    await sequelize.sync({ force: true });
-
-    // load testing data
-    await seedDatabase(
-      app.get<typeof Event>(getModelToken(Event)),
-      app.get<typeof TshirtGroup>(getModelToken(TshirtGroup)),
-      app.get<typeof Question>(getModelToken(Question)),
-      app.get<typeof QuestionTranslation>(getModelToken(QuestionTranslation)),
-      app.get<typeof Tshirt>(getModelToken(Tshirt)),
-      app.get<typeof TshirtGroupTranslation>(
-        getModelToken(TshirtGroupTranslation),
-      ),
-      app.get<typeof Location>(getModelToken(Location)),
-      app.get<typeof EventTable>(getModelToken(EventTable)),
-      app.get<typeof EmailTemplate>(getModelToken(EmailTemplate)),
-      app.get<typeof TshirtTranslation>(getModelToken(TshirtTranslation))
-    );
-  }, 1 * 60 * 1000);
+      // load testing data
+      await seedDatabase(
+        app.get<typeof Event>(getModelToken(Event)),
+        app.get<typeof TshirtGroup>(getModelToken(TshirtGroup)),
+        app.get<typeof Question>(getModelToken(Question)),
+        app.get<typeof QuestionTranslation>(getModelToken(QuestionTranslation)),
+        app.get<typeof Tshirt>(getModelToken(Tshirt)),
+        app.get<typeof TshirtGroupTranslation>(
+          getModelToken(TshirtGroupTranslation),
+        ),
+        app.get<typeof Location>(getModelToken(Location)),
+        app.get<typeof EventTable>(getModelToken(EventTable)),
+        app.get<typeof EmailTemplate>(getModelToken(EmailTemplate)),
+        app.get<typeof TshirtTranslation>(getModelToken(TshirtTranslation)),
+        //app.get<RegistrationService>(RegistrationService),
+        //app.get<ParticipantService>(ParticipantService),
+        //app.get<TokensService>(TokensService),
+      );
+    },
+    1 * 60 * 1000,
+  );
 
   it('/settings (GET)', () => {
     return request(app.getHttpServer())
@@ -156,7 +161,7 @@ describe('AppController (e2e)', () => {
   it('/tshirts (GET)', () => {
     return request(app.getHttpServer())
       .get('/tshirts')
-      .set('Accept-Language', 'en-US')//TODO test all languages
+      .set('Accept-Language', 'en-US') //TODO test all languages
       .expect(200)
       .expect(
         '[{"group":"kids","items":[{"id":1,"name":"kid_3-4"},{"id":2,"name":"kid_5-6"},{"id":3,"name":"kid_7-8"},{"id":4,"name":"kid_9-11"},{"id":5,"name":"kid_12-14"}]},{"group":"adults","items":[{"id":6,"name":"adult_XXS"},{"id":7,"name":"adult_XS"},{"id":8,"name":"adult_S"},{"id":9,"name":"adult_M"},{"id":10,"name":"adult_L"},{"id":11,"name":"adult_XL"},{"id":12,"name":"adult_XXL"},{"id":13,"name":"adult_3XL"},{"id":14,"name":"adult_4XL"},{"id":15,"name":"adult_5XL"}]}]',
@@ -166,7 +171,7 @@ describe('AppController (e2e)', () => {
   it('/questions (GET)', () => {
     return request(app.getHttpServer())
       .get('/questions')
-      .set('Accept-Language', 'en-US')//TODO test all languages
+      .set('Accept-Language', 'en-US') //TODO test all languages
       .expect(200)
       .expect(
         '[{"id":1,"name":"Agree to Photo","description":"It is possible that the participant is photographed or filmed","positive":"That is no problem","negative":"Don\'t use any pictures or movies where the participant is reconizable"},{"id":2,"name":"Agree to Contact","description":"Can CoderDojo contact you for the next edition","positive":"Yes","negative":"No"}]',
@@ -176,7 +181,7 @@ describe('AppController (e2e)', () => {
   it('/approvals (GET)', () => {
     return request(app.getHttpServer())
       .get('/approvals')
-      .set('Accept-Language', 'en-US')//TODO test all languages
+      .set('Accept-Language', 'en-US') //TODO test all languages
       .expect(200)
       .expect(
         '[{"id":3,"name":"Approved","description":"Be sure to read our rules. Do you agree"}]',
