@@ -20,6 +20,6 @@
     "strict": true,
     "noFallthroughCasesInSwitch": false,
     "moduleResolution": "Node16",
-    "isolatedModules": true
+    "isolatedModules": true,
   }
 }

@@ -6,7 +6,7 @@ import { InfoDto } from 'src/dto/info.dto';
 export const Info = createParamDecorator(async function (
   data: unknown,
   ctx: ExecutionContext,
-) {
+) : Promise<InfoDto> {
   const request = ctx.switchToHttp().getRequest();
   const activeEvent = await Event.findOne({
     where: {
