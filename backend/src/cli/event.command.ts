@@ -51,7 +51,7 @@ export class EventCommand {
   async initEventDB() {
     await seedDatabase(
       this.eventModel,
-      this.tshirtGroupModel,  
+      this.tshirtGroupModel,
       this.questionModel,
       this.questionTranslationModel,
       this.tshirtModel,
@@ -59,9 +59,10 @@ export class EventCommand {
       this.locationModel,
       this.eventTableModel,
       this.emailTemplateModel,
-    )
+      this.tshirtTranslationModel,
+    );
 
-       //trigger project creation / user
+    //trigger project creation / user
     /*
     const r = await registrationService.create(
       {
