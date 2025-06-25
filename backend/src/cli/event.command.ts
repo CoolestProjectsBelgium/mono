@@ -59,6 +59,7 @@ export class EventCommand {
       this.locationModel,
       this.eventTableModel,
       this.emailTemplateModel,
+      this.tshirtTranslationModel,
     )
 
        //trigger project creation / user
