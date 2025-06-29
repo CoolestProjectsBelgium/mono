@@ -259,7 +259,7 @@ describe('AppController (e2e)', () => {
       .set('Accept-Language', 'en-US'); //TODO test all languages
 
     expect(response.status).toBe(201);
-
+  
     // check if mail was sent
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -275,10 +275,13 @@ describe('AppController (e2e)', () => {
 
     response = await request(app.getHttpServer())
       .get('/projectinfo')
-      .set('Authorization', `Bearer ${matches[0]}`)
+      .set('Authorization', matches[0])
       .set('Accept-Language', 'en-US'); //TODO test all
 
     expect(response.status).toBe(200);
+
+    expect(response.headers['set-cookie']).toBeDefined();
+    expect(response.headers['set-cookie'][0]).toMatch(/user_id=\d+; .*/);
 
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
