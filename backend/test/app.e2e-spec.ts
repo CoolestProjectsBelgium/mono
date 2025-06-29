@@ -220,7 +220,7 @@ describe('AppController (e2e)', () => {
       registrationOpen: true,  
     });
 
-    const response = await request(app.getHttpServer())
+    let response = await request(app.getHttpServer())
       .post('/registration')
       .send({
         user: {
@@ -271,6 +271,18 @@ describe('AppController (e2e)', () => {
       const jwtRegex = /eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g;
       const matches = sendMailMock.mock.calls[0][0].text.match(jwtRegex);
       expect(matches).not.toBeNull();
+
+      response = await request(app.getHttpServer()).get('/projectinfo').set('Authorization', `Bearer ${matches[0]}`)
+        .set('Accept-Language', 'en-US'); //TODO test all
+
+      expect(response.status).toBe(200);
+
+      expect(sendMailMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'test@test.be,test1@test.be',
+          subject: expect.stringContaining('Registration Activation'),
+        }));
+
   });
 
   it('register project without guardian', () => {});

@@ -8,6 +8,7 @@ import { env } from 'process';
 import { Registration } from '../models/registration.model';
 import { Event } from '../models/event.model';
 import { InjectModel } from '@nestjs/sequelize';
+import { User } from '../models/user.model';
 
 export enum MailTemplates {
   registration = 'registration',
@@ -108,7 +109,21 @@ export class MailerService {
     );
   }
 
-  async welcomeMailOwner() {}
+  async welcomeMailOwner(user: User) {
+    const event = await this.eventModel.findByPk(user.eventId);
+    const to = [
+      user.email,
+      ...(user.email_guardian ? [user.email_guardian] : []),
+    ].join(',');
+    const context = { event, user };
+    await this.sendMail(
+      MailTemplates.activation,
+      user.language,
+      event,
+      to,
+      context,
+    );
+  }
   async welcomeMailCoWorker() {}
   async deleteMail() {}
   async warningNoProject() {}
