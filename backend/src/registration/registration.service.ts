@@ -42,6 +42,7 @@ export class RegistrationService {
     info: InfoDto,
     createRegistrationDto: RegistrationDto,
   ): Promise<Registration> {
+    console.error('createRegistrationDto', createRegistrationDto);
     const emailUserFound = await this.userModel.count({
       where: {
         email: createRegistrationDto.user.email,
@@ -374,6 +375,7 @@ export class RegistrationService {
     );
     const guardianRequired = guardianRequiredDate < registration.birthmonth;
 
+    console.error(registration)
     //guardian is required
     if (
       guardianRequired &&

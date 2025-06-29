@@ -163,7 +163,6 @@ export class AppService {
       isRegistrationOpen: info.registrationOpen,
       isProjectClosed: info.projectClosed,
       isActive: info.current,
-
     };
   }
 }
