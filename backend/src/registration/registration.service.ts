@@ -42,7 +42,11 @@ export class RegistrationService {
     info: InfoDto,
     createRegistrationDto: RegistrationDto,
   ): Promise<Registration> {
-    console.error('createRegistrationDto', createRegistrationDto);
+    console.log(info);
+    if (!info.registrationOpen) {
+      throw new Error('Registration is not open for this event.');
+    }
+
     const emailUserFound = await this.userModel.count({
       where: {
         email: createRegistrationDto.user.email,
@@ -332,8 +336,6 @@ export class RegistrationService {
   }
 
   private async validate(event: Event, registration: any) {
-    console.log(registration);
-
     // check if all mandatory questions are answered
     const mandatoryQuestions = await this.questionModel.findAll({
       attributes: ['id'],

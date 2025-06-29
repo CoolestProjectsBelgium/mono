@@ -4,6 +4,5 @@ export class InfoDto {
   current: boolean;
   closed: boolean;
   registrationOpen: boolean;
-  registationClosed: boolean;
   projectClosed: boolean;
 }
