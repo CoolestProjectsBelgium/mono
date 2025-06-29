@@ -148,8 +148,6 @@ export class AppService {
       startDateEvent: event.eventBeginDate,
       tshirtDate: event.registrationClosedDate,
 
-      isActive: event.current,
-
       eventBeginDate: event.eventBeginDate,
       registrationOpenDate: event.registrationOpenDate,
       registrationClosedDate: event.registrationClosedDate,
@@ -158,12 +156,14 @@ export class AppService {
       eventEndDate: event.eventEndDate,
       eventTitle: event.event_title,
 
-      isRegistrationOpen: event.registrationOpen,
-
-      isProjectClosed: event.projectClosed,
-
       maxRegistration: event.maxRegistration,
       maxParticipants: event.maxVoucher,
+
+      // info object
+      isRegistrationOpen: info.registrationOpen,
+      isProjectClosed: info.projectClosed,
+      isActive: info.current,
+
     };
   }
 }
