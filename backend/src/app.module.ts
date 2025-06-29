@@ -48,6 +48,8 @@ import { ParticipantService } from './participant/participant.service';
 import { ProjectinfoService } from './projectinfo/projectinfo.service';
 import { InfoInterceptor } from './info.interceptor';
 
+import { APP_INTERCEPTOR } from '@nestjs/core';
+
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -135,6 +137,10 @@ import { InfoInterceptor } from './info.interceptor';
   ],
   providers: [
     InfoInterceptor,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: InfoInterceptor,
+    },
     AppService,
     RegistrationService,
     MailerService,

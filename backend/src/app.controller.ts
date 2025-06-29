@@ -37,6 +37,7 @@ export class AppController {
     try {
       return this.appService.getSettings(info);
     } catch (error) {
+      console.error('Error fetching settings:', error);
       throw new HttpException(
         'Internal server error.',
         HttpStatus.INTERNAL_SERVER_ERROR,

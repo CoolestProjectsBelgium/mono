@@ -9,19 +9,22 @@ import { Observable } from 'rxjs';
 import { Op } from 'sequelize';
 import { Event } from '../src/models/event.model';
 import { Request } from 'express';
+import { InfoDto } from './dto/info.dto';
 
 @Injectable()
 export class InfoInterceptor implements NestInterceptor {
   constructor(
     @InjectModel(Event)
     private readonly eventModel: typeof Event,
-  ) {}
+  ) { }
 
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
-    const req = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<Request>();
+
+     console.error('intercept called, fetching active event', Object.keys(request));
 
     const activeEvent = await this.eventModel.findOne({
       attributes: [
@@ -38,30 +41,31 @@ export class InfoInterceptor implements NestInterceptor {
       },
     });
 
-    const lang = req.acceptsLanguages('fr', 'nl', 'en') || 'en';
+    console.error('Active event found:', activeEvent);
 
-    req['info'] = {
-      currentEvent: activeEvent?.id ?? null,
-      language: lang,
-      closed: activeEvent
-        ? Date.now() < new Date(activeEvent.eventBeginDate).getTime() ||
-          Date.now() > new Date(activeEvent.eventEndDate).getTime()
-        : false,
-      current: activeEvent
-        ? Date.now() >= new Date(activeEvent.eventBeginDate).getTime() &&
-          Date.now() <= new Date(activeEvent.eventEndDate).getTime()
-        : false,
-      registationClosed: activeEvent
-        ? Date.now() > new Date(activeEvent.registrationClosedDate).getTime()
-        : false,
-      registrationOpen: activeEvent
-        ? Date.now() < new Date(activeEvent.registrationOpenDate).getTime() &&
-          new Date(activeEvent.registrationClosedDate).getTime() > Date.now()
-        : false,
-      projectClosed: activeEvent
-        ? Date.now() > new Date(activeEvent.projectClosedDate).getTime()
-        : false,
+    let info: InfoDto = {
+      language: request.acceptsLanguages('fr', 'nl', 'en') || 'en',
+      currentEvent: null,
+      closed: true,
+      current: false,
+      registrationOpen: false,
+      registationClosed: true,
+      projectClosed: true,
     };
+
+    if (activeEvent) {
+      info.currentEvent = activeEvent.id;
+      info.closed = Date.now() < new Date(activeEvent.eventBeginDate).getTime() ||
+        Date.now() > new Date(activeEvent.eventEndDate).getTime();
+      info.current = Date.now() >= new Date(activeEvent.eventBeginDate).getTime() &&
+        Date.now() <= new Date(activeEvent.eventEndDate).getTime();
+      info.registationClosed = Date.now() > new Date(activeEvent.registrationClosedDate).getTime();
+      info.registrationOpen = Date.now() < new Date(activeEvent.registrationOpenDate).getTime() &&
+        new Date(activeEvent.registrationClosedDate).getTime() > Date.now();
+      info.projectClosed = Date.now() > new Date(activeEvent.projectClosedDate).getTime();
+    }
+
+    request['info'] = info
 
     return next.handle();
   }

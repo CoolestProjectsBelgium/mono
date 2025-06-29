@@ -5,8 +5,7 @@ import { InfoInterceptor } from './info.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalInterceptors(app.get(InfoInterceptor));
-
+  
   const config = new DocumentBuilder()
     .setTitle('Coolestprojects registration')
     .setDescription(
