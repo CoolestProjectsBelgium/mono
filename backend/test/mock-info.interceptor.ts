@@ -5,22 +5,25 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
+import { InfoDto } from 'src/dto/info.dto';
 
 @Injectable()
 export class MockInfoInterceptor implements NestInterceptor {
   constructor(
-    private readonly eventId: number = 999,
-    private readonly language: string = 'en',
+    private readonly info: InfoDto = {
+      currentEvent: 1,
+      language: 'en',
+      closed: false,
+      current: true,
+      registrationOpen: true,
+      registationClosed: false,
+      projectClosed: false,
+    }
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
-
-    req.info = {
-      currentEvent: this.eventId,
-      language: this.language,
-    };
-
+    req.info = this.info;
     return next.handle();
   }
 }
