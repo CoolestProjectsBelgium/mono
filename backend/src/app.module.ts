@@ -137,10 +137,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
   ],
   providers: [
     InfoInterceptor,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: InfoInterceptor,
-    },
     AppService,
     RegistrationService,
     MailerService,

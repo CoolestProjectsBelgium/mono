@@ -20,6 +20,7 @@ import { getModelToken } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { InfoInterceptor } from '../src/info.interceptor';
 import { MockInfoInterceptor } from './mock-info.interceptor'; // Import your mock interceptor
+import { mock } from 'node:test';
 
 // TODO include this
 /*
@@ -112,28 +113,29 @@ import { MockInfoInterceptor } from './mock-info.interceptor'; // Import your mo
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
+  let mockInterceptor: MockInfoInterceptor;
 
   beforeAll(
     async () => {
+      mockInterceptor = new MockInfoInterceptor({
+        currentEvent: 1,
+        language: 'en',
+        closed: false,
+        current: true,
+        projectClosed: false,
+        registrationOpen: true,
+      });
+
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
         providers: [],
       })
         .overrideInterceptor(InfoInterceptor)
-        .useClass(
-          new MockInfoInterceptor({
-            currentEvent: 1,
-            language: 'en',
-            closed: false,
-            current: true,
-            projectClosed: false,
-            registationClosed: false,
-            registrationOpen: true,
-          }),
-        )
+        .useValue(mockInterceptor)
         .compile();
 
       app = moduleFixture.createNestApplication();
+      app.useGlobalInterceptors(mockInterceptor);
       await app.init();
 
       // Clean test database
@@ -167,7 +169,7 @@ describe('AppController (e2e)', () => {
       .get('/settings')
       .expect(200)
       .expect(
-        '{"maxAge":18,"minAge":7,"guardianAge":16,"enviroment":"production","waitingListActive":false,"maxUploadSize":2147483647,"startDateEvent":"2024-09-01T00:00:00.000Z","tshirtDate":"2025-04-01T00:00:00.000Z","eventBeginDate":"2024-09-01T00:00:00.000Z","registrationOpenDate":"2024-11-01T00:00:00.000Z","registrationClosedDate":"2025-04-01T00:00:00.000Z","projectClosedDate":"2025-04-12T00:00:00.000Z","officialStartDate":"2025-04-26T00:00:00.000Z","eventEndDate":"2025-08-31T00:00:00.000Z","eventTitle":"Coolest Projects 2025","maxRegistration":64,"maxParticipants":3,"isRegistrationOpen":false,"isProjectClosed":true,"isActive":true}',
+        '{"maxAge":18,"minAge":7,"guardianAge":16,"enviroment":"production","waitingListActive":false,"maxUploadSize":2147483647,"startDateEvent":"2024-09-01T00:00:00.000Z","tshirtDate":"2025-04-01T00:00:00.000Z","eventBeginDate":"2024-09-01T00:00:00.000Z","registrationOpenDate":"2024-11-01T00:00:00.000Z","registrationClosedDate":"2025-04-01T00:00:00.000Z","projectClosedDate":"2025-04-12T00:00:00.000Z","officialStartDate":"2025-04-26T00:00:00.000Z","eventEndDate":"2025-08-31T00:00:00.000Z","eventTitle":"Coolest Projects 2025","maxRegistration":64,"maxParticipants":3,"isRegistrationOpen":true,"isProjectClosed":false,"isActive":true}',
       );
   });
 
@@ -202,6 +204,15 @@ describe('AppController (e2e)', () => {
   });
 
   it('register project with guardian', () => {
+    mockInterceptor.setInfo({
+      currentEvent: 1,
+      language: 'en',
+      closed: false,
+      current: true,
+      projectClosed: false,
+      registrationOpen: true,  
+    });
+
     return request(app.getHttpServer())
       .post('/registration')
       .send({
@@ -258,7 +269,22 @@ describe('AppController (e2e)', () => {
 
   it('register participant when waiting list is active', () => {});
 
-  it('register project when event is closed', () => {});
+  it('register project when event is closed', () => {
+    mockInterceptor.setInfo({
+      currentEvent: 1,
+      language: 'en',
+      closed: false,
+      current: true,
+      projectClosed: false,
+      registrationOpen: false, // simulate closed registration
+    });
+
+    return request(app.getHttpServer())
+      .post('/registration')
+      .send({}) // first validation is always event
+      .set('Accept-Language', 'en-US') //TODO test all languages
+      .expect(500)
+  });
 
   afterAll(async () => {
     if (app) {
