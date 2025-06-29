@@ -47,8 +47,7 @@ import { EmailTemplate } from './models/email_template.model';
 import { ParticipantService } from './participant/participant.service';
 import { ProjectinfoService } from './projectinfo/projectinfo.service';
 import { InfoInterceptor } from './info.interceptor';
-
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -59,7 +58,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     //AdminModule.register(1),
 
     SequelizeModule.forRootAsync({
-      imports: [ConfigModule], // Import ConfigModule to access ConfigService
+      imports: [AuthModule, ConfigModule], // Import ConfigModule to access ConfigService
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {

@@ -202,14 +202,13 @@ export class RegistrationService {
     return r;
   }
 
-  async activateRegistration(token: string): Promise<User> {
-    const registrationToken = this.tokenService.verifyRegistrationToken(token);
+  async activateRegistration(registrationID: number): Promise<User> {
 
     // update everything in a transaction
     const transaction = await this.sequelize.transaction();
     try {
       const r = await this.registrationModel.findOne({
-        where: { id: registrationToken.registrationID },
+        where: { id: registrationID },
         transaction,
         lock: transaction.LOCK.UPDATE,
       });
@@ -324,7 +323,7 @@ export class RegistrationService {
         await this.mailerService.welcomeMailCoWorker();
         await this.mailerService.notifyProjectOwner();
       } else {
-        await this.mailerService.welcomeMailOwner();
+        await this.mailerService.welcomeMailOwner(user);
       }
 
       return user;

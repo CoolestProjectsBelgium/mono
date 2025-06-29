@@ -693,5 +693,30 @@ export async function seedDatabase(
       contentRich: '<p>Merci de vous être inscrit à l’événement.</p>',
       subject: 'Confirmation d’inscription',
     },
+
+    {
+      eventId: event.id,
+      template: 'activation',
+      language: 'en',
+      contentPlain: 'Thank you for activating your registration',
+      contentRich: '<p>Thank you for activating your registration.</p>',
+      subject: 'Registration Activation',
+    },
+    {
+      eventId: event.id,
+      template: 'activation',
+      language: 'nl',
+      contentPlain: 'Bedankt voor het activeren van uw registratie',
+      contentRich: 'Bedankt voor het activeren van uw registratie.',
+      subject: 'Activatie van registratie',
+    },
+    {
+      eventId: event.id,
+      template: 'activation',
+      language: 'fr',
+      contentPlain: 'Merci d’avoir activé votre inscription',
+      contentRich: '<p>Merci d’avoir activé votre inscription.</p>',
+      subject: 'Activation de l’inscription',
+    },
   ]);
 }
