@@ -217,7 +217,7 @@ describe('AppController (e2e)', () => {
       closed: false,
       current: true,
       projectClosed: false,
-      registrationOpen: true,  
+      registrationOpen: true,
     });
 
     let response = await request(app.getHttpServer())
@@ -256,33 +256,36 @@ describe('AppController (e2e)', () => {
           },
         },
       })
-      .set('Accept-Language', 'en-US') //TODO test all languages
-      
-      expect(response.status).toBe(201);
-      
-      // check if mail was sent
-      expect(sendMailMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: 'test@test.be,test1@test.be',
-          subject: expect.stringContaining('Registration Confirmation'),
-        }));
+      .set('Accept-Language', 'en-US'); //TODO test all languages
 
-      // get the registration token from the response
-      const jwtRegex = /eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g;
-      const matches = sendMailMock.mock.calls[0][0].text.match(jwtRegex);
-      expect(matches).not.toBeNull();
+    expect(response.status).toBe(201);
 
-      response = await request(app.getHttpServer()).get('/projectinfo').set('Authorization', `Bearer ${matches[0]}`)
-        .set('Accept-Language', 'en-US'); //TODO test all
+    // check if mail was sent
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'test@test.be,test1@test.be',
+        subject: expect.stringContaining('Registration Confirmation'),
+      }),
+    );
 
-      expect(response.status).toBe(200);
+    // get the registration token from the response
+    const jwtRegex = /eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g;
+    const matches = sendMailMock.mock.calls[0][0].text.match(jwtRegex);
+    expect(matches).not.toBeNull();
 
-      expect(sendMailMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: 'test@test.be,test1@test.be',
-          subject: expect.stringContaining('Registration Activation'),
-        }));
+    response = await request(app.getHttpServer())
+      .get('/projectinfo')
+      .set('Authorization', `Bearer ${matches[0]}`)
+      .set('Accept-Language', 'en-US'); //TODO test all
 
+    expect(response.status).toBe(200);
+
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'test@test.be,test1@test.be',
+        subject: expect.stringContaining('Registration Activation'),
+      }),
+    );
   });
 
   it('register project without guardian', () => {});
@@ -315,7 +318,7 @@ describe('AppController (e2e)', () => {
       .post('/registration')
       .send({}) // first validation is always event
       .set('Accept-Language', 'en-US') //TODO test all languages
-      .expect(500)
+      .expect(500);
   });
 
   afterAll(async () => {
