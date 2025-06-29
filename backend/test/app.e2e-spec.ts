@@ -120,8 +120,8 @@ describe('AppController (e2e)', () => {
         providers: [],
       })
         .overrideInterceptor(InfoInterceptor)
-        .useClass(MockInfoInterceptor)
-        .compile(); // 👈 override with mock.compile();
+        .useClass(new MockInfoInterceptor(1, 'en'))
+        .compile();
 
       app = moduleFixture.createNestApplication();
       await app.init();
