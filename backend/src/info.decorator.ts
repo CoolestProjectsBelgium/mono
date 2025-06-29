@@ -1,6 +1,4 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { Event } from './models/event.model';
-import { Op } from 'sequelize';
 import { InfoDto } from 'src/dto/info.dto';
 
 export const Info = createParamDecorator(
