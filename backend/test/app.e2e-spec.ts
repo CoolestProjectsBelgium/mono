@@ -20,7 +20,14 @@ import { getModelToken } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { InfoInterceptor } from '../src/info.interceptor';
 import { MockInfoInterceptor } from './mock-info.interceptor'; // Import your mock interceptor
-import { mock } from 'node:test';
+import * as nodemailer from 'nodemailer';
+
+// Mock nodemailer
+jest.mock('nodemailer');
+const sendMailMock = jest.fn().mockResolvedValue({});
+(nodemailer.createTransport as jest.Mock).mockReturnValue({
+  sendMail: sendMailMock,
+});
 
 // TODO include this
 /*
@@ -203,7 +210,7 @@ describe('AppController (e2e)', () => {
       );
   });
 
-  it('register project with guardian', () => {
+  it('register project with guardian', async () => {
     mockInterceptor.setInfo({
       currentEvent: 1,
       language: 'en',
@@ -213,7 +220,7 @@ describe('AppController (e2e)', () => {
       registrationOpen: true,  
     });
 
-    return request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post('/registration')
       .send({
         user: {
@@ -250,7 +257,20 @@ describe('AppController (e2e)', () => {
         },
       })
       .set('Accept-Language', 'en-US') //TODO test all languages
-      .expect(201)
+      
+      expect(response.status).toBe(201);
+      
+      // check if mail was sent
+      expect(sendMailMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'test@test.be,test1@test.be',
+          subject: expect.stringContaining('Registration Confirmation'),
+        }));
+
+      // get the registration token from the response
+      const jwtRegex = /eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g;
+      const matches = sendMailMock.mock.calls[0][0].text.match(jwtRegex);
+      expect(matches).not.toBeNull();
   });
 
   it('register project without guardian', () => {});
