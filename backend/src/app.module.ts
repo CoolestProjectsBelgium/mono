@@ -46,6 +46,7 @@ import { EventService } from './event/event.service';
 import { EmailTemplate } from './models/email_template.model';
 import { ParticipantService } from './participant/participant.service';
 import { ProjectinfoService } from './projectinfo/projectinfo.service';
+import { InfoInterceptor } from './info.interceptor';
 
 @Module({
   imports: [
@@ -133,6 +134,7 @@ import { ProjectinfoService } from './projectinfo/projectinfo.service';
     LoginController,
   ],
   providers: [
+    InfoInterceptor,
     AppService,
     RegistrationService,
     MailerService,
@@ -142,6 +144,9 @@ import { ProjectinfoService } from './projectinfo/projectinfo.service';
     EventService,
     ParticipantService,
     ProjectinfoService,
+  ],
+  exports: [
+    InfoInterceptor
   ],
 })
 export class AppModule {}

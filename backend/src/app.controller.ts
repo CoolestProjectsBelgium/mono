@@ -1,5 +1,5 @@
 import { AppService } from './app.service';
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { TshirtGroupDto } from './dto/tshirt-group.dto';
 import { QuestionDto } from './dto/question.dto';
@@ -34,6 +34,13 @@ export class AppController {
   @Get('settings')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   getSettings(@Info() info: InfoDto): Promise<SettingDto> {
-    return this.appService.getSettings(info);
+    try {
+      return this.appService.getSettings(info);
+    } catch (error) {
+      throw new HttpException(
+        'Internal server error.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
