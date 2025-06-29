@@ -120,7 +120,17 @@ describe('AppController (e2e)', () => {
         providers: [],
       })
         .overrideInterceptor(InfoInterceptor)
-        .useClass(new MockInfoInterceptor(1, 'en'))
+        .useClass(
+          new MockInfoInterceptor({
+            currentEvent: 1,
+            language: 'en',
+            closed: false,
+            current: true,
+            projectClosed: false,
+            registationClosed: false,
+            registrationOpen: true,
+          }),
+        )
         .compile();
 
       app = moduleFixture.createNestApplication();
@@ -157,7 +167,7 @@ describe('AppController (e2e)', () => {
       .get('/settings')
       .expect(200)
       .expect(
-        '{"maxAge":18,"minAge":7,"guardianAge":16,"enviroment":"production","waitingListActive":false,"maxUploadSize":2147483647,"startDateEvent":"2024-09-01T00:00:00.000Z","tshirtDate":"2025-04-01T00:00:00.000Z","isActive":true,"eventBeginDate":"2024-09-01T00:00:00.000Z","registrationOpenDate":"2024-11-01T00:00:00.000Z","registrationClosedDate":"2025-04-01T00:00:00.000Z","projectClosedDate":"2025-04-12T00:00:00.000Z","officialStartDate":"2025-04-26T00:00:00.000Z","eventEndDate":"2025-08-31T00:00:00.000Z","eventTitle":"Coolest Projects 2025","isRegistrationOpen":false,"isProjectClosed":true,"maxRegistration":64,"maxParticipants":3}',
+        '{"maxAge":18,"minAge":7,"guardianAge":16,"enviroment":"production","waitingListActive":false,"maxUploadSize":2147483647,"startDateEvent":"2024-09-01T00:00:00.000Z","tshirtDate":"2025-04-01T00:00:00.000Z","eventBeginDate":"2024-09-01T00:00:00.000Z","registrationOpenDate":"2024-11-01T00:00:00.000Z","registrationClosedDate":"2025-04-01T00:00:00.000Z","projectClosedDate":"2025-04-12T00:00:00.000Z","officialStartDate":"2025-04-26T00:00:00.000Z","eventEndDate":"2025-08-31T00:00:00.000Z","eventTitle":"Coolest Projects 2025","maxRegistration":64,"maxParticipants":3,"isRegistrationOpen":false,"isProjectClosed":true,"isActive":true}',
       );
   });
 

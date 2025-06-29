@@ -5,7 +5,7 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { InfoDto } from 'src/dto/info.dto';
+import { InfoDto } from '../src/dto/info.dto';
 
 @Injectable()
 export class MockInfoInterceptor implements NestInterceptor {
@@ -18,12 +18,14 @@ export class MockInfoInterceptor implements NestInterceptor {
       registrationOpen: true,
       registationClosed: false,
       projectClosed: false,
-    }
-  ) {}
+    },
+  ) {
+    console.error("MockInfoInterceptor initialized with info:", this.info);
+  }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const req = context.switchToHttp().getRequest();
-    req.info = this.info;
+    const request = context.switchToHttp().getRequest();
+    request.info = this.info;
     return next.handle();
   }
 }
