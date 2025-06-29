@@ -4,7 +4,6 @@ import { SAMLStrategy } from './saml.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { env } from 'process';
-import { AuthService } from './auth.service';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from '../models/user.model';
 import { RegistrationService } from '../registration/registration.service';
@@ -28,7 +27,7 @@ import { QuestionRegistration } from '../models/question_registration.model';
     }),
     SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Voucher, Question, QuestionUser, QuestionRegistration]), // Import User model for JWT validation
   ],
-  providers: [ MailerService, TokensService, RegistrationService, JwtStrategy, AuthService], //SAMLStrategy later, needed for admin part
-  exports: [AuthService],
+  providers: [ MailerService, TokensService, RegistrationService, JwtStrategy], //SAMLStrategy later, needed for admin part
+  exports: [],
 })
 export class AuthModule {}

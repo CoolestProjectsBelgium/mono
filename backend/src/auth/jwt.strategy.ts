@@ -1,21 +1,19 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt-cookiecombo';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { env } from 'process';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '../models/user.model'; // Adjust the import path as per your project structure
-import { RegistrationService  } from '../registration/registration.service';
+import { RegistrationService } from '../registration/registration.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
-    private readonly registrationService: RegistrationService, // Replace with actual type if available
+    private readonly registrationService: RegistrationService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: env.JWT_KEY,
+      secretOrPublicKey: env.JWT_KEY,
     });
   }
 

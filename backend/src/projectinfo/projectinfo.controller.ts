@@ -1,8 +1,9 @@
-import { Controller, Get, Body, Post, Delete, Patch, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Body, Post, Delete, Patch, UseGuards, Request, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
 import { ProjectDto } from '../dto/project.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ProjectinfoService } from '../projectinfo/projectinfo.service';
+import { UserCookieInterceptor } from '../user-cookie.interceptor';
 
 @Controller('projectinfo')
 @ApiTags('projectinfo')
@@ -12,14 +13,16 @@ export class ProjectinfoController {
 
   @Get()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
   async getProject(@Request() req): Promise<ProjectDto> {
     return this.projectService.getProjectInfo(req.user.id); 
   }
 
   @Post()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
   async createProject(
     @Request() req,
     @Body() createProjectDto: ProjectDto,
@@ -29,7 +32,8 @@ export class ProjectinfoController {
 
   @Patch()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
   async updateProject(
     @Request() req,
     @Body() updateProjectDto: ProjectDto,
@@ -39,7 +43,8 @@ export class ProjectinfoController {
 
   @Delete()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
   async deleteProject(@Request() req,): Promise<void> {
     return await this.projectService.deleteProject(req.user.id,);
   }
