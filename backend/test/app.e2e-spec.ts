@@ -259,7 +259,7 @@ describe('AppController (e2e)', () => {
       .set('Accept-Language', 'en-US'); //TODO test all languages
 
     expect(response.status).toBe(201);
-  
+
     // check if mail was sent
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -268,7 +268,7 @@ describe('AppController (e2e)', () => {
       }),
     );
 
-    // get the registration token from the response
+    // get the registration token from the acitivation mail
     const jwtRegex = /eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g;
     const matches = sendMailMock.mock.calls[0][0].text.match(jwtRegex);
     expect(matches).not.toBeNull();
@@ -281,7 +281,7 @@ describe('AppController (e2e)', () => {
     expect(response.status).toBe(200);
 
     expect(response.headers['set-cookie']).toBeDefined();
-    expect(response.headers['set-cookie'][0]).toMatch(/user_id=\d+; .*/);
+    expect(response.headers['set-cookie'][0]).toMatch(/jwt=eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+; .*/); // Check if the JWT cookie is set
 
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
