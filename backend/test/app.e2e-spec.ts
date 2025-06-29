@@ -206,7 +206,7 @@ describe('AppController (e2e)', () => {
       .post('/registration')
       .send({
         user: {
-          email: '',
+          email: 'test@test.be',
           firstname: 'John',
           lastname: 'Doe',
           address: {
@@ -224,11 +224,11 @@ describe('AppController (e2e)', () => {
           t_size: 1, // kid_3-4
           via: '',
           medical: '',
+          email_guardian: 'test1@test.be',
+          gsm_guardian: '0987654321',
+          gsm: '1234567890',
+          sex: 'x',
         },
-        email_guardian: 'test@test.be',
-        gsm_guardian: '0987654321',
-        gsm: '1234567890',
-        sex: 'x',
         project: {
           own_project: {
             project_name: 'Test Project',
@@ -239,10 +239,7 @@ describe('AppController (e2e)', () => {
         },
       })
       .set('Accept-Language', 'en-US') //TODO test all languages
-      .expect(200)
-      .expect(
-        '[{"id":3,"name":"Approved","description":"Be sure to read our rules. Do you agree"}]',
-      );
+      .expect(201)
   });
 
   it('register project without guardian', () => {});

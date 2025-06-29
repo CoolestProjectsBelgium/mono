@@ -24,8 +24,6 @@ export class InfoInterceptor implements NestInterceptor {
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest<Request>();
 
-     console.error('intercept called, fetching active event', Object.keys(request));
-
     const activeEvent = await this.eventModel.findOne({
       attributes: [
         'id',
@@ -40,8 +38,6 @@ export class InfoInterceptor implements NestInterceptor {
         eventEndDate: { [Op.gt]: new Date() },
       },
     });
-
-    console.error('Active event found:', activeEvent);
 
     let info: InfoDto = {
       language: request.acceptsLanguages('fr', 'nl', 'en') || 'en',
