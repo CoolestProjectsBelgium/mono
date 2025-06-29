@@ -42,7 +42,6 @@ export class RegistrationService {
     info: InfoDto,
     createRegistrationDto: RegistrationDto,
   ): Promise<Registration> {
-    console.log(info);
     if (!info.registrationOpen) {
       throw new Error('Registration is not open for this event.');
     }
@@ -377,7 +376,6 @@ export class RegistrationService {
     );
     const guardianRequired = guardianRequiredDate < registration.birthmonth;
 
-    console.error(registration)
     //guardian is required
     if (
       guardianRequired &&
