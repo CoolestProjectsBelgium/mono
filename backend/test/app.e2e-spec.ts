@@ -18,11 +18,11 @@ import { TshirtTranslation } from '../src/models/tshirt_translation.model';
 //import { TokensService } from '../src/tokens/tokens.service';
 import { getModelToken } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { InfoDto } from 'src/dto/info.dto';
-//import { MailerService } from '../src/mailer/mailer.service';
+import { InfoInterceptor } from '../src/info.interceptor';
+import { MockInfoInterceptor } from './mock-info.interceptor'; // Import your mock interceptor
 
 // TODO include this
-    /*
+/*
     const r = await registrationService.create(
       {
         currentEvent: event.id,
@@ -118,7 +118,10 @@ describe('AppController (e2e)', () => {
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
         providers: [],
-      }).compile();
+      })
+        .overrideInterceptor(InfoInterceptor)
+        .useClass(MockInfoInterceptor)
+        .compile(); // 👈 override with mock.compile();
 
       app = moduleFixture.createNestApplication();
       await app.init();
@@ -210,7 +213,7 @@ describe('AppController (e2e)', () => {
           month: 5,
           t_size: 1, // kid_3-4
           via: '',
-          medical: '',  
+          medical: '',
         },
         email_guardian: 'test@test.be',
         gsm_guardian: '0987654321',
@@ -223,51 +226,32 @@ describe('AppController (e2e)', () => {
             project_type: 'test',
             project_lang: 'en',
           },
-        }      
+        },
       })
-      .set('Accept-Language', 'en-US')//TODO test all languages
+      .set('Accept-Language', 'en-US') //TODO test all languages
       .expect(200)
       .expect(
         '[{"id":3,"name":"Approved","description":"Be sure to read our rules. Do you agree"}]',
       );
-
   });
 
-  it('register project without guardian', () => {
+  it('register project without guardian', () => {});
 
-  });
+  it('register project participant to young', () => {});
 
-  it('register project participant to young', () => {
+  it('register project participant to to old', () => {});
 
-  });
+  it('register project with incorrect data', () => {});
 
-  it('register project participant to to old', () => {
+  it('register participant on project', () => {});
 
-  });
+  it('register participant with incorrect token', () => {});
 
-  it('register project with incorrect data', () => {
+  it('register project on waiting list', () => {});
 
-  });
+  it('register participant when waiting list is active', () => {});
 
-  it('register participant on project', () => {
-
-  });
-
-  it('register participant with incorrect token', () => {
-
-  });
-
-  it('register project on waiting list', () => {
-
-  });
-
-  it('register participant when waiting list is active', () => {
-
-  });
-
-  it('register project when event is closed', () => {
-
-  });
+  it('register project when event is closed', () => {});
 
   afterAll(async () => {
     if (app) {
