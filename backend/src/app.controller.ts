@@ -1,5 +1,5 @@
 import { AppService } from './app.service';
-import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { TshirtGroupDto } from './dto/tshirt-group.dto';
 import { QuestionDto } from './dto/question.dto';
@@ -15,19 +15,28 @@ export class AppController {
 
   @Get('tshirts')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  findAllTshirts(@Info() info: InfoDto): Promise<TshirtGroupDto[]> {
+  findAllTshirts(@Info() info: InfoDto, @Req() request: Request): Promise<TshirtGroupDto[]> {
+    const langue: string = request.headers['language'] || 'en-US'; // Default to 'en-US' if not provided
+    info.language = langue.split('-')[0]; // Set the language in the InfoDto
+
     return this.appService.findAllTshirts(info);
   }
 
   @Get('questions')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  findAllQuestions(@Info() info: InfoDto): Promise<QuestionDto[]> {
+  findAllQuestions(@Info() info: InfoDto, @Req() request: Request): Promise<QuestionDto[]> {
+    const langue: string = request.headers['language'] || 'en-US'; // Default to 'en-US' if not provided
+    info.language = langue.split('-')[0]; // Set the language in the InfoDto
+
     return this.appService.findAllQuestions(info);
   }
 
   @Get('approvals')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  findAllApprovals(@Info() info: InfoDto): Promise<ApprovalDto[]> {
+  findAllApprovals(@Info() info: InfoDto, @Req() request: Request): Promise<ApprovalDto[]> {
+    const langue: string = request.headers['language'] || 'en-US'; // Default to 'en-US' if not provided
+    info.language = langue.split('-')[0]; // Set the language in the InfoDto
+
     return this.appService.findAllApprovals(info);
   }
 
