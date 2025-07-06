@@ -191,10 +191,10 @@ describe('AppController (e2e)', () => {
 
   for (const [lang, expected] of Object.entries(expected_tshirts_outputs)) {
     it(`/tshirts (GET) - ${lang}`, () => {
-    return request(app.getHttpServer())
-      .get('/tshirts')
+      return request(app.getHttpServer())
+        .get('/tshirts')
         .set('language', lang)
-      .expect(200)
+        .expect(200)
         .expect(expected);
     });
   }
@@ -210,10 +210,10 @@ describe('AppController (e2e)', () => {
 
   for (const [lang, expected] of Object.entries(expected_questions_outputs)) {
     it(`/questions (GET) - ${lang}`, () => {
-    return request(app.getHttpServer())
-      .get('/questions')
+      return request(app.getHttpServer())
+        .get('/questions')
         .set('language', lang)
-      .expect(200)
+        .expect(200)
         .expect(expected);
     });
   }
@@ -229,12 +229,12 @@ describe('AppController (e2e)', () => {
 
   for (const [lang, expected] of Object.entries(expected_approvals_outputs)) {
     it(`/approvals (GET) - ${lang}`, () => {
-    return request(app.getHttpServer())
-      .get('/approvals')
+      return request(app.getHttpServer())
+        .get('/approvals')
         .set('language', lang)
-      .expect(200)
+        .expect(200)
         .expect(expected);
-  });
+    });
   }
 
   //TODO: Add wrong event id for /approvals (GET) ????
