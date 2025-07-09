@@ -15,6 +15,12 @@ export class MockInfoInterceptor implements NestInterceptor {
     this.info = info;
   }
 
+  setLanguage(language: string) {
+    if (this.info) {
+      this.info.language = language;
+    } 
+  }
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     request['info'] = this.info;
