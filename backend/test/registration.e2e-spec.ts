@@ -114,7 +114,9 @@ describe('RegistrationController (e2e)', () => {
     expect(response.status).toBe(200);
 
     expect(response.headers['set-cookie']).toBeDefined();
-    expect(response.headers['set-cookie'][0]).toMatch(/jwt=eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+; .*/); // Check if the JWT cookie is set
+    expect(response.headers['set-cookie'][0]).toMatch(
+      /jwt=eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+; .*/,
+    ); // Check if the JWT cookie is set
 
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -124,21 +126,21 @@ describe('RegistrationController (e2e)', () => {
     );
   });
 
-  it('register project without guardian', () => { });
+  it('register project without guardian', () => {});
 
-  it('register project participant to young', () => { });
+  it('register project participant to young', () => {});
 
-  it('register project participant to to old', () => { });
+  it('register project participant to to old', () => {});
 
-  it('register project with incorrect data', () => { });
+  it('register project with incorrect data', () => {});
 
-  it('register participant on project', () => { });
+  it('register participant on project', () => {});
 
-  it('register participant with incorrect token', () => { });
+  it('register participant with incorrect token', () => {});
 
-  it('register project on waiting list', () => { });
+  it('register project on waiting list', () => {});
 
-  it('register participant when waiting list is active', () => { });
+  it('register participant when waiting list is active', () => {});
 
   it('register project when event is closed', () => {
     mockInterceptor.setInfo({

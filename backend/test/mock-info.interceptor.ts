@@ -10,7 +10,7 @@ import { InfoDto } from '../src/dto/info.dto';
 @Injectable()
 export class MockInfoInterceptor implements NestInterceptor {
   constructor(private info: InfoDto) {}
-  
+
   setInfo(info: InfoDto) {
     this.info = info;
   }
@@ -18,7 +18,7 @@ export class MockInfoInterceptor implements NestInterceptor {
   setLanguage(language: string) {
     if (this.info) {
       this.info.language = language;
-    } 
+    }
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
