@@ -16,7 +16,7 @@ export class InfoInterceptor implements NestInterceptor {
   constructor(
     @InjectModel(Event)
     private readonly eventModel: typeof Event,
-  ) { }
+  ) {}
 
   async intercept(
     context: ExecutionContext,
@@ -39,7 +39,7 @@ export class InfoInterceptor implements NestInterceptor {
       },
     });
 
-    let info: InfoDto = {
+    const info: InfoDto = {
       language: request.acceptsLanguages('fr', 'nl', 'en') || 'en',
       currentEvent: null,
       closed: true,
@@ -50,16 +50,20 @@ export class InfoInterceptor implements NestInterceptor {
 
     if (activeEvent) {
       info.currentEvent = activeEvent.id;
-      info.closed = Date.now() < new Date(activeEvent.eventBeginDate).getTime() ||
+      info.closed =
+        Date.now() < new Date(activeEvent.eventBeginDate).getTime() ||
         Date.now() > new Date(activeEvent.eventEndDate).getTime();
-      info.current = Date.now() >= new Date(activeEvent.eventBeginDate).getTime() &&
+      info.current =
+        Date.now() >= new Date(activeEvent.eventBeginDate).getTime() &&
         Date.now() <= new Date(activeEvent.eventEndDate).getTime();
-      info.registrationOpen = Date.now() < new Date(activeEvent.registrationOpenDate).getTime() &&
+      info.registrationOpen =
+        Date.now() < new Date(activeEvent.registrationOpenDate).getTime() &&
         new Date(activeEvent.registrationClosedDate).getTime() > Date.now();
-      info.projectClosed = Date.now() > new Date(activeEvent.projectClosedDate).getTime();
+      info.projectClosed =
+        Date.now() > new Date(activeEvent.projectClosedDate).getTime();
     }
 
-    request['info'] = info
+    request['info'] = info;
 
     return next.handle();
   }
