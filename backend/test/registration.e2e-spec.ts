@@ -18,30 +18,30 @@ describe('RegistrationController (e2e)', () => {
   let mockInterceptor: MockInfoInterceptor;
 
   beforeAll(
-      async () => {
-        mockInterceptor = new MockInfoInterceptor({
-          currentEvent: 1,
-          language: 'en',
-          closed: false,
-          current: true,
-          projectClosed: false,
-          registrationOpen: true,
-        });
-  
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-          imports: [AppModule],
-          providers: [],
-        })
-          .overrideInterceptor(InfoInterceptor)
-          .useValue(mockInterceptor)
-          .compile();
-  
-        app = moduleFixture.createNestApplication();
-        app.useGlobalInterceptors(mockInterceptor);
-        await app.init();
-      },
-      1 * 60 * 1000,
-    );
+    async () => {
+      mockInterceptor = new MockInfoInterceptor({
+        currentEvent: 1,
+        language: 'en',
+        closed: false,
+        current: true,
+        projectClosed: false,
+        registrationOpen: true,
+      });
+
+      const moduleFixture: TestingModule = await Test.createTestingModule({
+        imports: [AppModule],
+        providers: [],
+      })
+        .overrideInterceptor(InfoInterceptor)
+        .useValue(mockInterceptor)
+        .compile();
+
+      app = moduleFixture.createNestApplication();
+      app.useGlobalInterceptors(mockInterceptor);
+      await app.init();
+    },
+    1 * 60 * 1000,
+  );
 
   it('register project with guardian', async () => {
     mockInterceptor.setInfo({
@@ -124,21 +124,21 @@ describe('RegistrationController (e2e)', () => {
     );
   });
 
-  it('register project without guardian', () => {});
+  it('register project without guardian', () => { });
 
-  it('register project participant to young', () => {});
+  it('register project participant to young', () => { });
 
-  it('register project participant to to old', () => {});
+  it('register project participant to to old', () => { });
 
-  it('register project with incorrect data', () => {});
+  it('register project with incorrect data', () => { });
 
-  it('register participant on project', () => {});
+  it('register participant on project', () => { });
 
-  it('register participant with incorrect token', () => {});
+  it('register participant with incorrect token', () => { });
 
-  it('register project on waiting list', () => {});
+  it('register project on waiting list', () => { });
 
-  it('register participant when waiting list is active', () => {});
+  it('register participant when waiting list is active', () => { });
 
   it('register project when event is closed', () => {
     mockInterceptor.setInfo({
