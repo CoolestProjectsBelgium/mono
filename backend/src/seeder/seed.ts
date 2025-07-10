@@ -332,7 +332,7 @@ export async function seedDatabase(
       tshirtId: tshirts[10].id,
     },
     {
-      eventId: event.id, 
+      eventId: event.id,
       language: 'en',
       description: 'adult_XXL',
       tshirtId: tshirts[11].id,
@@ -380,7 +380,7 @@ export async function seedDatabase(
       tshirtId: tshirts[3].id,
     },
     {
-      eventId: event.id, 
+      eventId: event.id,
       language: 'nl',
       description: 'kind_12-14',
       tshirtId: tshirts[4].id,
@@ -422,7 +422,7 @@ export async function seedDatabase(
       tshirtId: tshirts[10].id,
     },
     {
-      eventId: event.id, 
+      eventId: event.id,
       language: 'nl',
       description: 'volwassen_XXL',
       tshirtId: tshirts[11].id,
@@ -470,7 +470,7 @@ export async function seedDatabase(
       tshirtId: tshirts[3].id,
     },
     {
-      eventId: event.id, 
+      eventId: event.id,
       language: 'fr',
       description: 'enfants_12-14',
       tshirtId: tshirts[4].id,
@@ -512,7 +512,7 @@ export async function seedDatabase(
       tshirtId: tshirts[10].id,
     },
     {
-      eventId: event.id, 
+      eventId: event.id,
       language: 'fr',
       description: 'adulte_XXL',
       tshirtId: tshirts[11].id,
@@ -534,7 +534,7 @@ export async function seedDatabase(
       language: 'fr',
       description: 'adulte_5XL',
       tshirtId: tshirts[14].id,
-    }
+    },
   ]);
 
   const location = await locationModel.bulkCreate([
