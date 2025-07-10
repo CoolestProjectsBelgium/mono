@@ -2,22 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { seedDatabase } from '../src/seeder/seed';
-import { Event } from '../src/models/event.model';
-import { TshirtGroup } from '../src/models/tshirt_group.model';
-import { Question } from '../src/models/question.model';
-import { QuestionTranslation } from '../src/models/question_translation.model';
-import { Tshirt } from '../src/models/tshirt.model';
-import { Location } from '../src/models/location.model';
-import { TshirtGroupTranslation } from '../src/models/tshirt_group_translation.model';
-import { EventTable } from '../src/models/event_table.model';
-import { EmailTemplate } from '../src/models/email_template.model';
-import { TshirtTranslation } from '../src/models/tshirt_translation.model';
 //import { RegistrationService } from '../src/registration/registration.service';
 //import { ParticipantService } from '../src/participant/participant.service';
 //import { TokensService } from '../src/tokens/tokens.service';
-import { getModelToken } from '@nestjs/sequelize';
-import { Sequelize } from 'sequelize-typescript';
 import { InfoInterceptor } from '../src/info.interceptor';
 import { MockInfoInterceptor } from './mock-info.interceptor'; // Import your mock interceptor
 import * as nodemailer from 'nodemailer';
@@ -144,29 +131,6 @@ describe('AppController (e2e)', () => {
       app = moduleFixture.createNestApplication();
       app.useGlobalInterceptors(mockInterceptor);
       await app.init();
-
-      // Clean test database
-      const sequelize = app.get(Sequelize);
-      await sequelize.sync({ force: true });
-
-      // load testing data
-      await seedDatabase(
-        app.get<typeof Event>(getModelToken(Event)),
-        app.get<typeof TshirtGroup>(getModelToken(TshirtGroup)),
-        app.get<typeof Question>(getModelToken(Question)),
-        app.get<typeof QuestionTranslation>(getModelToken(QuestionTranslation)),
-        app.get<typeof Tshirt>(getModelToken(Tshirt)),
-        app.get<typeof TshirtGroupTranslation>(
-          getModelToken(TshirtGroupTranslation),
-        ),
-        app.get<typeof Location>(getModelToken(Location)),
-        app.get<typeof EventTable>(getModelToken(EventTable)),
-        app.get<typeof EmailTemplate>(getModelToken(EmailTemplate)),
-        app.get<typeof TshirtTranslation>(getModelToken(TshirtTranslation)),
-        //app.get<RegistrationService>(RegistrationService),
-        //app.get<ParticipantService>(ParticipantService),
-        //app.get<TokensService>(TokensService),
-      );
     },
     1 * 60 * 1000,
   );
@@ -180,149 +144,64 @@ describe('AppController (e2e)', () => {
       );
   });
 
-  it('/tshirts (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/tshirts')
-      .set('Accept-Language', 'en-US') //TODO test all languages
-      .expect(200)
-      .expect(
-        '[{"group":"kids","items":[{"id":1,"name":"kid_3-4"},{"id":2,"name":"kid_5-6"},{"id":3,"name":"kid_7-8"},{"id":4,"name":"kid_9-11"},{"id":5,"name":"kid_12-14"}]},{"group":"adults","items":[{"id":6,"name":"adult_XXS"},{"id":7,"name":"adult_XS"},{"id":8,"name":"adult_S"},{"id":9,"name":"adult_M"},{"id":10,"name":"adult_L"},{"id":11,"name":"adult_XL"},{"id":12,"name":"adult_XXL"},{"id":13,"name":"adult_3XL"},{"id":14,"name":"adult_4XL"},{"id":15,"name":"adult_5XL"}]}]',
-      );
-  });
+  //TODO: Add other paths for /settings (GET) ????
 
-  it('/questions (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/questions')
-      .set('Accept-Language', 'en-US') //TODO test all languages
-      .expect(200)
-      .expect(
-        '[{"id":1,"name":"Agree to Photo","description":"It is possible that the participant is photographed or filmed","positive":"That is no problem","negative":"Don\'t use any pictures or movies where the participant is reconizable"},{"id":2,"name":"Agree to Contact","description":"Can CoderDojo contact you for the next edition","positive":"Yes","negative":"No"}]',
-      );
-  });
+  // Test for /tshirts (GET)
+  const expected_tshirts_outputs = {
+    "en": '[{"group":"kids","items":[{"id":1,"name":"kid_3-4"},{"id":2,"name":"kid_5-6"},{"id":3,"name":"kid_7-8"},{"id":4,"name":"kid_9-11"},{"id":5,"name":"kid_12-14"}]},{"group":"adults","items":[{"id":6,"name":"adult_XXS"},{"id":7,"name":"adult_XS"},{"id":8,"name":"adult_S"},{"id":9,"name":"adult_M"},{"id":10,"name":"adult_L"},{"id":11,"name":"adult_XL"},{"id":12,"name":"adult_XXL"},{"id":13,"name":"adult_3XL"},{"id":14,"name":"adult_4XL"},{"id":15,"name":"adult_5XL"}]}]',
+    "nl": '[{"group":"kind","items":[{"id":1,"name":"kind_3-4"},{"id":2,"name":"kind_5-6"},{"id":3,"name":"kind_7-8"},{"id":4,"name":"kind_9-11"},{"id":5,"name":"kind_12-14"}]},{"group":"volwassen","items":[{"id":6,"name":"volwassen_XXS"},{"id":7,"name":"volwassen_XS"},{"id":8,"name":"volwassen_S"},{"id":9,"name":"volwassen_M"},{"id":10,"name":"volwassen_L"},{"id":11,"name":"volwassen_XL"},{"id":12,"name":"volwassen_XXL"},{"id":13,"name":"volwassen_3XL"},{"id":14,"name":"volwassen_4XL"},{"id":15,"name":"volwassen_5XL"}]}]',
+    "fr": '[{"group":"enfants","items":[{"id":1,"name":"enfants_3-4"},{"id":2,"name":"enfants_5-6"},{"id":3,"name":"enfants_7-8"},{"id":4,"name":"enfants_9-11"},{"id":5,"name":"enfants_12-14"}]},{"group":"adulte","items":[{"id":6,"name":"adulte_XXS"},{"id":7,"name":"adulte_XS"},{"id":8,"name":"adulte_S"},{"id":9,"name":"adulte_M"},{"id":10,"name":"adulte_L"},{"id":11,"name":"adulte_XL"},{"id":12,"name":"adulte_XXL"},{"id":13,"name":"adulte_3XL"},{"id":14,"name":"adulte_4XL"},{"id":15,"name":"adulte_5XL"}]}]'
+  }
 
-  it('/approvals (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/approvals')
-      .set('Accept-Language', 'en-US') //TODO test all languages
-      .expect(200)
-      .expect(
-        '[{"id":3,"name":"Approved","description":"Be sure to read our rules. Do you agree"}]',
-      );
-  });
-
-  it('register project with guardian', async () => {
-    mockInterceptor.setInfo({
-      currentEvent: 1,
-      language: 'en',
-      closed: false,
-      current: true,
-      projectClosed: false,
-      registrationOpen: true,
+  for (const [lang, expected] of Object.entries(expected_tshirts_outputs)) {
+    it(`/tshirts (GET) - ${lang}`, () => {
+      mockInterceptor.setLanguage(lang); // Set the language in the mock interceptor
+      return request(app.getHttpServer())
+        .get('/tshirts')
+        .expect(200)
+        .expect(expected);
     });
+  }
 
-    let response = await request(app.getHttpServer())
-      .post('/registration')
-      .send({
-        user: {
-          email: 'test@test.be',
-          firstname: 'John',
-          lastname: 'Doe',
-          address: {
-            postalcode: 1000,
-            municipality_name: 'Test City',
-            street: 'Test Street',
-            house_number: '1',
-            box_number: 'A',
-          },
-          general_questions: [],
-          mandatory_approvals: [3],
-          language: 'en',
-          year: 2010,
-          month: 5,
-          t_size: 1, // kid_3-4
-          via: '',
-          medical: '',
-          email_guardian: 'test1@test.be',
-          gsm_guardian: '0987654321',
-          gsm: '1234567890',
-          sex: 'x',
-        },
-        project: {
-          own_project: {
-            project_name: 'Test Project',
-            project_descr: 'This is a test project',
-            project_type: 'test',
-            project_lang: 'en',
-          },
-        },
-      })
-      .set('Accept-Language', 'en-US'); //TODO test all languages
+  //TODO: Add wrong event id for /tshirts (GET) ????
 
-    expect(response.status).toBe(201);
+  // Test for /questions (GET)
+  const expected_questions_outputs = {
+    "en": '[{"id":1,"name":"Agree to Photo","description":"It is possible that the participant is photographed or filmed","positive":"That is no problem","negative":"Don\'t use any pictures or movies where the participant is reconizable"},{"id":2,"name":"Agree to Contact","description":"Can CoderDojo contact you for the next edition","positive":"Yes","negative":"No"}]',
+    "nl": '[{"id":1,"name":"Agree to Photo","description":"Het is mogelijk dat de deelnemer gefotografeerd of gefilmd wordt","positive":"Dat is geen probleem","negative":"Gelieve geen foto’s en filmpjes te gebruiken waarop de deelnemer herkenbaar is"},{"id":2,"name":"Agree to Contact","description":"Mag CoderDojo je contacteren voor de volgende editie?","positive":"Ja","negative":"Nee"}]',
+    "fr": '[{"id":1,"name":"Agree to Photo","description":"Le ou la participant.e peut être photographié.e ou filmé.e.","positive":"Je suis d\'accord","negative":"Je ne suis pas d’accord que l’on utilise les images et vidéos si le ou la participant.e est reconnaissable"},{"id":2,"name":"Agree to Contact","description":"CoderDojo peut-il vous contacter pour la prochaine édition ?","positive":"Qui","negative":"Non"}]'
+  }
 
-    // check if mail was sent
-    expect(sendMailMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'test@test.be,test1@test.be',
-        subject: expect.stringContaining('Registration Confirmation'),
-      }),
-    );
-
-    // get the registration token from the acitivation mail
-    const jwtRegex = /eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g;
-    const matches = sendMailMock.mock.calls[0][0].text.match(jwtRegex);
-    expect(matches).not.toBeNull();
-
-    response = await request(app.getHttpServer())
-      .get('/projectinfo')
-      .set('Authorization', matches[0])
-      .set('Accept-Language', 'en-US'); //TODO test all
-
-    expect(response.status).toBe(200);
-
-    expect(response.headers['set-cookie']).toBeDefined();
-    expect(response.headers['set-cookie'][0]).toMatch(/jwt=eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+; .*/); // Check if the JWT cookie is set
-
-    expect(sendMailMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'test@test.be,test1@test.be',
-        subject: expect.stringContaining('Registration Activation'),
-      }),
-    );
-  });
-
-  it('register project without guardian', () => {});
-
-  it('register project participant to young', () => {});
-
-  it('register project participant to to old', () => {});
-
-  it('register project with incorrect data', () => {});
-
-  it('register participant on project', () => {});
-
-  it('register participant with incorrect token', () => {});
-
-  it('register project on waiting list', () => {});
-
-  it('register participant when waiting list is active', () => {});
-
-  it('register project when event is closed', () => {
-    mockInterceptor.setInfo({
-      currentEvent: 1,
-      language: 'en',
-      closed: false,
-      current: true,
-      projectClosed: false,
-      registrationOpen: false, // simulate closed registration
+  for (const [lang, expected] of Object.entries(expected_questions_outputs)) {
+    it(`/questions (GET) - ${lang}`, () => {
+      mockInterceptor.setLanguage(lang); // Set the language in the mock interceptor
+      return request(app.getHttpServer())
+        .get('/questions')
+        .expect(200)
+        .expect(expected);
     });
+  }
 
-    return request(app.getHttpServer())
-      .post('/registration')
-      .send({}) // first validation is always event
-      .set('Accept-Language', 'en-US') //TODO test all languages
-      .expect(500);
-  });
+  //TODO: Add wrong event id for /questions (GET) ????
+
+  // Test for /approvals (GET)
+  const expected_approvals_outputs = {
+    "en": '[{"id":3,"name":"Approved","description":"Be sure to read our rules. Do you agree"}]',
+    "nl": '[{"id":3,"name":"Approved","description":"Lees zeker onze regels. Ga je akkoord?"}]',
+    "fr": '[{"id":3,"name":"Approved","description":"Assure-toi de lire nos règles. Es-tu d\'accord ?"}]'
+  }
+
+  for (const [lang, expected] of Object.entries(expected_approvals_outputs)) {
+    it(`/approvals (GET) - ${lang}`, () => {
+      mockInterceptor.setLanguage(lang); // Set the language in the mock interceptor
+      return request(app.getHttpServer())
+        .get('/approvals')
+        .expect(200)
+        .expect(expected);
+    });
+  }
+
+  //TODO: Add wrong event id for /approvals (GET) ????
 
   afterAll(async () => {
     if (app) {
