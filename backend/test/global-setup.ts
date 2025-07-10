@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { seedDatabase } from '../src/seeder/seed';
 import { Event } from '../src/models/event.model';
@@ -24,16 +23,12 @@ export default async () => {
   process.env.DB_USER = process.env.DB_USER_TEST;
   process.env.DB_PASS = process.env.DB_PASS_TEST;
 
-  // Clear database and seed with test data
-  let app: INestApplication;
-
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
     providers: [],
-  })
-    .compile();
+  }).compile();
 
-  app = moduleFixture.createNestApplication();
+  const app = moduleFixture.createNestApplication();
   await app.init();
   // Clean test database
   const sequelize = app.get(Sequelize);
