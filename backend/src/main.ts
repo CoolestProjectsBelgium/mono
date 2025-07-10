@@ -4,12 +4,11 @@ import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { env } from 'process';
 
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser(env.JWT_KEY));
-  
+
   const config = new DocumentBuilder()
     .setTitle('Coolestprojects registration')
     .setDescription(
