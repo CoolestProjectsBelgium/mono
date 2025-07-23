@@ -40,7 +40,7 @@ import { Account } from './models/account.model';
 import { Award } from './models/award.model';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BackgroundService } from './background/background.service';
-//import { AdminModule } from './admin/admin.module';
+import { AdminModule } from './admin/admin.module';
 //import { CliModule } from './cli/cli.module';
 import { EventService } from './event/event.service';
 import { EmailTemplate } from './models/email_template.model';
