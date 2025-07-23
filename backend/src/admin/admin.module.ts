@@ -19,7 +19,7 @@ export class AdminModule {
       },
       customLoader: await MultipleAdminLoaderPromise,
     });
-    /*
+    
     return AdminModule.createAdminAsync({
       useFactory: async () => {
         const { Database, Resource } = await import('@adminjs/sequelize');
@@ -37,11 +37,10 @@ export class AdminModule {
         };
       },
     });
-  }*/
   }
-}
+  }
 
-/*
+
 import('@adminjs/nestjs').then(({ AdminModule }) =>
     AdminModule.createAdminAsync({
       useFactory: async () => {
@@ -117,4 +116,4 @@ import('@adminjs/nestjs').then(({ AdminModule }) =>
       },
     }),
   ),
-*/
+
