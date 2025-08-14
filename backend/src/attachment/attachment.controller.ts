@@ -16,6 +16,8 @@ import { SASToken } from '../dto/sas-token.dto';
 //import { FileUploadInterceptor } from '../file-upload/file-upload.interceptor';
 //import { UseInterceptors } from '@nestjs/common';
 
+//TODO: Install local test with https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage
+
 @Controller('attachment')
 @ApiTags('attachment')
 @ApiCookieAuth()
@@ -42,6 +44,10 @@ export class AttachmentController {
       fileStream,
       file.originalname,
     );
+
+    // TODO: Shut down the stream if upload too big (file interceptor maybe?)
+    // TODO: Check how we could to thumbnails for images/videos (https://apidog.com/blog/converting-images-to-jpeg-using-node-js-apidog/) 
+    // 2 different blobs on azure
 
     return null;
   }*/

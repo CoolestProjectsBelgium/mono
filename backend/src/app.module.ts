@@ -70,6 +70,7 @@ import { AuthModule } from './auth/auth.module';
           database: configService.get('DB_NAME'),
           synchronize: true,
           autoLoadModels: true,
+          logging: false,
           //sync: { force: true },
           models: [
             Event,
