@@ -64,6 +64,18 @@ services:
       PMA_PORT: 3306
       PMA_ARBITRARY: 1
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: "${PROJECT_NAME:-coolestproject}-azurite"
+    hostname: azurite
+    restart: always
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azure_data:/data
+
   backend:
     env_file:
     - path: ./.env
@@ -86,6 +98,9 @@ services:
       DB_USER_TEST: coolestproject_test
       DB_PASS_TEST: Se84KCCCJlnfkdfv_test
       DB_NAME_TEST: coolestproject_test
+      #Azure
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;FileEndpoint=https://devstoreaccount1.file.core.windows.net;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
+      #SharedAccessSignature=sv=2023-01-03&ss=btqf&srt=sco&spr=https%2Chttp&st=2025-08-14T08%3A49%3A48Z&se=2030-12-15T09%3A49%3A00Z&sp=rwdxftlacup&sig=QFF9Hd8iA%2FbEOxn5mIoeqVnYARkrZscBa8uj1fYexqw%3D;BlobEndpoint=http://azurite:10000/devstoreaccount1;FileEndpoint=https://devstoreaccount1.file.core.windows.net;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;
 
 
     command: bash -c "npm install -g @nestjs/cli && npm install --dev && npm run start:debug"
@@ -105,6 +120,7 @@ services:
 volumes:
   db_data:
   db_data_test:
+  azure_data:
 
   # frontend:
   #   build:
