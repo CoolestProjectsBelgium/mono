@@ -54,8 +54,6 @@ export class AttachmentController {
     //   attributes: ['azure_storage_container'],
     // });
 
-    console.log('File upload initiated:', file.originalname, file.size, file.buffer);
-
     const containerName = "coolestproject25";//event.azure_storage_container;
     const fileStream = Readable.from(file.buffer);
     const blobUrl = await this.azureBlobService.uploadStreamToAzure(

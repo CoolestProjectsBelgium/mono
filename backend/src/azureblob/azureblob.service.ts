@@ -10,15 +10,9 @@ export class AzureBlobService {
   ) {}
 
   private async getBlobServiceInstance() {
-    const connectionString = this.configService.get<string>(
-      'AZURE_STORAGE_CONNECTION_STRING',
-    );
+    const connectionString = this.configService.get<string>('AZURE_STORAGE_CONNECTION_STRING');
+    const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
 
-    const blobServiceClient =
-      BlobServiceClient.fromConnectionString(connectionString);
-
-    // Print blob service client for debugging
-    console.log('BlobServiceClient initialized:', blobServiceClient);
     return blobServiceClient;
   }
 

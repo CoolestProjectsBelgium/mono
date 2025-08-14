@@ -5,6 +5,10 @@ import {
   FileValidator,
 } from '@nestjs/common';
 import { IFile } from '@nestjs/common/pipes/file/interfaces';
+// Import your Event model and Op from sequelize
+import { Event } from '../models/event.model';
+import { Op } from 'sequelize';
+
 export type FileUploadValidatorOptions = {
     
 };
@@ -14,35 +18,40 @@ export class FileUploadValidator extends FileValidator<FileUploadValidatorOption
   //constructor();
 
   async isValid(file: IFile): Promise<boolean> {
-    // Implement your validation logic here
-    // For example, check file size, type, etc.
-    if (!file || !file.buffer) {
-      return false; // File is required and must be within the size limit
-    }
 
-    // Example validation: check if file size is less than 1MB
-    if (file.size > 1024 * 1024) {
-      return false; // File size exceeds 1MB
+    const activeEvent = await Event.findOne({
+      where: {
+        eventBeginDate: { [Op.lt]: Date.now() },
+        eventEndDate: { [Op.gt]: Date.now() },
+      },
+      attributes: ['maxFileSize'],
+    });
+
+    if (!activeEvent) {
+      return false; // No active event, validation fails
     }
     
-    // Example validation: check if file type is 'image/jpeg'
-    // if (file.mimetype !== 'image/jpeg') {
-    //   return false; // Invalid file type
-    // }
-    return true; // File is valid
+    if (!file || !file.buffer) {
+      return false; // File is required
+    }
+
+    if (file.size > activeEvent.maxFileSize) {
+      return false; 
+    }
+    
+    console.log('File upload initiated with type:', file.mimetype);
+
+    return true;
   }
 
   buildErrorMessage(file: IFile): string {
     if (!file || !file.buffer) {
       return 'File is required and must be within the size limit';
     }
-    if (file.size > 1024 * 1024) {
-      return 'File size exceeds 1MB';
-    }
     // if (file.mimetype !== 'image/jpeg') {
     //   return 'Invalid file type. Only JPEG images are allowed';
     // }
-    return '';
+    return 'There was no active event found or the file exceeds the maximum size limit';
   }
   
   // private readonly fileInterceptor: NestInterceptor;
