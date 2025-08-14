@@ -26,7 +26,7 @@ import { TshirtGroupTranslation } from './models/tshirt_group_translation.model'
 import { TshirtTranslation } from './models/tshirt_translation.model';
 import { QuestionTranslation } from './models/question_translation.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-//import { AzureBlobService } from './azureblob/azureblob.service';
+import { AzureBlobService } from './azureblob/azureblob.service';
 import { TokensService } from './tokens/tokens.service';
 import { Voucher } from './models/voucher.model';
 import { AzureBlob } from './models/azure_blob.model';
@@ -140,7 +140,7 @@ import { AuthModule } from './auth/auth.module';
     AppService,
     RegistrationService,
     MailerService,
-    //AzureBlobService,
+    AzureBlobService,
     TokensService,
     BackgroundService,
     EventService,

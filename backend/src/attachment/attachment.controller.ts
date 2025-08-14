@@ -4,17 +4,24 @@ import {
   Post,
   Param,
   Delete,
+  BadRequestException,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags, ApiCookieAuth } from '@nestjs/swagger';
-//import { AzureBlobService } from '../azureblob/azureblob.service';
+import { AzureBlobService } from '../azureblob/azureblob.service';
 import { AttachmentDto } from '../dto/attachment.dto';
 import { SASToken } from '../dto/sas-token.dto';
-//import { Readable } from 'stream';
-//import { InfoDto } from '../dto/info.dto';
-//import { Info } from '../info.decorator';
+import { Readable } from 'stream';
+import { InfoDto } from '../dto/info.dto';
+import { Info } from '../info.decorator';
 //import { Event } from '../models/event.model';
 //import { FileUploadInterceptor } from '../file-upload/file-upload.interceptor';
-//import { UseInterceptors } from '@nestjs/common';
+import { UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileUploadValidator } from 'src/file-upload/file-upload.validator';
 
 //TODO: Install local test with https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage
 
@@ -22,22 +29,34 @@ import { SASToken } from '../dto/sas-token.dto';
 @ApiTags('attachment')
 @ApiCookieAuth()
 export class AttachmentController {
-  constructor() {} //private readonly azureBlobService: AzureBlobService
+  constructor(
+    private readonly azureBlobService: AzureBlobService
+  ) {}
 
-  /*
   @Post('stream')
-  @UseInterceptors(new FileUploadInterceptor('file'))
-  async uploadFile(@Info() info: InfoDto, file: Express.Multer.File) {
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @Info() info: InfoDto, 
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileUploadValidator({}),
+        ],
+  }),
+    ) file: Express.Multer.File) 
+    {
     if (!file) {
       throw new BadRequestException(
         'File is required and must be within the size limit',
       );
     }
-    const event = await Event.findByPk(info.currentEvent, {
-      attributes: ['azure_storage_container'],
-    });
+    // const event = await Event.findByPk(info.currentEvent, {
+    //   attributes: ['azure_storage_container'],
+    // });
 
-    const containerName = event.azure_storage_container;
+    console.log('File upload initiated:', file.originalname, file.size, file.buffer);
+
+    const containerName = "coolestproject25";//event.azure_storage_container;
     const fileStream = Readable.from(file.buffer);
     const blobUrl = await this.azureBlobService.uploadStreamToAzure(
       containerName,
@@ -50,7 +69,7 @@ export class AttachmentController {
     // 2 different blobs on azure
 
     return null;
-  }*/
+  }
 
   @Post()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
