@@ -103,7 +103,7 @@ services:
       #SharedAccessSignature=sv=2023-01-03&ss=btqf&srt=sco&spr=https%2Chttp&st=2025-08-14T08%3A49%3A48Z&se=2030-12-15T09%3A49%3A00Z&sp=rwdxftlacup&sig=QFF9Hd8iA%2FbEOxn5mIoeqVnYARkrZscBa8uj1fYexqw%3D;BlobEndpoint=http://azurite:10000/devstoreaccount1;FileEndpoint=https://devstoreaccount1.file.core.windows.net;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;
 
 
-    command: bash -c "npm install -g @nestjs/cli && npm install --dev && npm run start:debug"
+    command: bash -c "npm install -g @nestjs/cli && npm install --dev  && npm run start:dev"
 
     ports:
       - "8025:3000"

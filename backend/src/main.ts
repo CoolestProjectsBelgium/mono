@@ -4,6 +4,8 @@ import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import { env } from 'process';
 
+declare const module: any;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -23,5 +25,10 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(3000);
+
+  if (module.hot) {
+    module.hot.accept();
+    module.hot.dispose(() => app.close());
+  }
 }
 bootstrap();
