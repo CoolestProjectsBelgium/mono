@@ -19,3 +19,8 @@ node ./dist/cli event:init
 ```bash
 npm run test:e2e
 ```
+
+## Run adminJS via express server
+```bash
+npm run start:admin-dev
+```
