@@ -7,7 +7,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Observable } from 'rxjs';
 import { Op } from 'sequelize';
-import { Event } from '../src/models/event.model';
+import { Event } from './models/event.model';
 import { Request } from 'express';
 import { InfoDto } from './dto/info.dto';
 

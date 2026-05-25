@@ -65,7 +65,7 @@ import { AuthModule } from './auth/auth.module';
           dialect: configService.get('DB_DIALECT'),
           host: configService.get('DB_HOST'),
           port: configService.get('DB_PORT'),
-          username: configService.get('DB_USER') ,
+          username: configService.get('DB_USER'),
           password: configService.get('DB_PASS'),
           database: configService.get('DB_NAME'),
           synchronize: true,
@@ -135,7 +135,7 @@ import { AuthModule } from './auth/auth.module';
     LoginController,
   ],
   providers: [
-    InfoInterceptor,
+    { provide: 'APP_INTERCEPTOR', useClass: InfoInterceptor },
     AppService,
     RegistrationService,
     MailerService,
@@ -146,8 +146,6 @@ import { AuthModule } from './auth/auth.module';
     ParticipantService,
     ProjectinfoService,
   ],
-  exports: [
-    InfoInterceptor
-  ],
+  exports: [],
 })
 export class AppModule {}
