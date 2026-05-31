@@ -24,3 +24,6 @@ npm run test:e2e
 ```bash
 npm run start:admin-dev
 ```
+
+## Build process for Dabase artifacts
+npm run build --workspace=@coolestprojects/database
