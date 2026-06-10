@@ -1,10 +1,10 @@
-import { Event } from './event.model.js';
 import { Project } from './project.model.js';
 import { Question } from './question.model.js';
+import { Tshirt } from './tshirt.model.js';
 import { BaseEventModel } from './base_event.model.js';
 export declare class User extends BaseEventModel {
     tshirtId: number;
-    tshirt: Event;
+    tshirt: Tshirt;
     project: Project;
     questions: Question[];
     language: string;

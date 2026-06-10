@@ -6,11 +6,6 @@
     "apps/*",
     "packages/*"
   ],
-  "scripts": {
-    "build": "npm run build --workspace=@coolestprojects/database && npm run build --workspace=@coolestprojects/api",
-    "build:database": "npm run build --workspace=@coolestprojects/database",
-    "start:dev": "npm run start:dev --workspace=@coolestprojects/api"
-  },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/jest": "^30.0.0",
