@@ -13,8 +13,8 @@ import { BelongsToGetAssociationMixin } from 'sequelize';
 
 @Table
 export class Voucher extends BaseEventModel {
-  @Column({ autoIncrement: true, primaryKey: true }) //we need to add this to force sequelize to not to add composite keys for many-to-many relations
-  id = 0;
+  @Column({ type: DataType.INTEGER, autoIncrement: true, primaryKey: true }) //we need to add this to force sequelize to not to add composite keys for many-to-many relations
+  declare id: number;
 
   @ForeignKey(() => Project)
   @Column

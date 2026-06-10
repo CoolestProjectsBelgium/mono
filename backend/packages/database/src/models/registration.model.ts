@@ -19,8 +19,8 @@ import { BaseEventModel } from './base_event.model.js';
 export class Registration extends BaseEventModel {
   @ForeignKey(() => Event)
   @Index({ name: 'email-event-unique', unique: true })
-  @Column
-  eventId = 0;
+  @Column({ type: DataType.INTEGER, allowNull: false })
+  declare eventId: number;
 
   @ForeignKey(() => Tshirt)
   @Column

@@ -46,6 +46,7 @@ import { EventService } from './event/event.service';
 import { EmailTemplate } from '@coolestprojects/database';
 import { ParticipantService } from './participant/participant.service';
 import { ProjectinfoService } from './projectinfo/projectinfo.service';
+import { AttachmentService } from './attachment/attachment.service';
 import { InfoInterceptor } from './info.interceptor';
 import { AuthModule } from './auth/auth.module';
 
@@ -122,6 +123,8 @@ import { AuthModule } from './auth/auth.module';
       Location,
       EventTable,
       ProjectTable,
+      Attachment,
+      AzureBlob,
     ]),
     //AdminModule,
     //CliModule,
@@ -146,6 +149,7 @@ import { AuthModule } from './auth/auth.module';
     EventService,
     ParticipantService,
     ProjectinfoService,
+    AttachmentService,
   ],
   exports: [],
 })

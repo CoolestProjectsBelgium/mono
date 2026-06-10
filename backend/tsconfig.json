@@ -1,10 +1,5 @@
 {
   "compilerOptions": {
-    "paths": {
-      "@coolestprojects/database": [
-        "./packages/database/src/index.ts"
-      ]
-    },
     "strict": true,
     "skipLibCheck": true,
     "moduleResolution": "NodeNext",
