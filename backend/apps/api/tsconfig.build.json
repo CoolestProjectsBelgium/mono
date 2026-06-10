@@ -23,6 +23,9 @@
     "noFallthroughCasesInSwitch": false,
     "moduleResolution": "Node16",
     "isolatedModules": true,
+    "paths": {
+      "@coolestprojects/database": ["../../packages/database/dist/index"]
+    }
   },
   "include": [
     "src"

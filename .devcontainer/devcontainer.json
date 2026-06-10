@@ -17,11 +17,9 @@
 	// The optional 'workspaceFolder' property is the path VS Code should open by default when
 	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
 	"workspaceFolder": "/home/node/app",
-	"features": {
-		"ghcr.io/devcontainers/features/node:1": {}
-	}
+	"remoteUser": "node",
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
+	// Image is already node:latest — a Node feature would re-install Node on every connect.
 	// "features": {},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
