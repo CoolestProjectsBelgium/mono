@@ -1,0 +1,26 @@
+﻿# Dependencies and build output
+**/node_modules/
+**/dist/
+**/*.tsbuildinfo
+**/coverage/
+
+# Generated artifacts (edit .ts sources, not these)
+backend/packages/database/src/**/*.js
+backend/packages/database/src/**/*.js.map
+backend/packages/database/src/models/*.d.ts
+
+# Secrets and local config
+.env
+.env.*
+**/.env
+
+# TLS private keys and cert material
+configuration/certs/pki/private/
+configuration/certs/pki/certs_by_serial/
+
+# AdminJS bundles
+backend/.adminjs/
+
+# OS and IDE
+.DS_Store
+**/.history/

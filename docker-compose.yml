@@ -106,7 +106,7 @@ services:
       #SharedAccessSignature=sv=2023-01-03&ss=btqf&srt=sco&spr=https%2Chttp&st=2025-08-14T08%3A49%3A48Z&se=2030-12-15T09%3A49%3A00Z&sp=rwdxftlacup&sig=QFF9Hd8iA%2FbEOxn5mIoeqVnYARkrZscBa8uj1fYexqw%3D;BlobEndpoint=http://azurite:10000/devstoreaccount1;FileEndpoint=https://devstoreaccount1.file.core.windows.net;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;
 
 
-    command: bash -c "npm install -g @nestjs/cli && npm install && npm run start:debug"
+    command: bash -c "npm install && npm run start:debug"
 
     ports:
       - "8025:3000"
@@ -120,32 +120,56 @@ services:
       - "traefik.http.routers.backend-coolestprojects.entrypoints=web"
       - "traefik.http.routers.backend-coolestprojects.tls=true"
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: "${PROJECT_NAME:-coolestproject}-frontend"
+    working_dir: /usr/src/app
+    environment:
+      NUXT_PUBLIC_API_BASE: https://backend.coolestprojects.localhost:1234
+      # Bind mounts on Windows/macOS do not propagate inotify events; poll instead.
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
+      WATCHPACK_POLLING: "true"
+      # Route Vite HMR through Traefik (TLS on port 1234).
+      NUXT_VITE_SERVER_HMR_PROTOCOL: wss
+      NUXT_VITE_SERVER_HMR_HOST: app.coolestprojects.localhost
+      NUXT_VITE_SERVER_HMR_CLIENT_PORT: "1234"
+    volumes:
+      - ./frontend:/usr/src/app
+      - frontend_node_modules:/usr/src/app/node_modules
+      # Keep Nuxt build cache off the Windows bind mount (avoids rollup entry errors).
+      - frontend_nuxt:/usr/src/app/.nuxt
+      - frontend_output:/usr/src/app/.output
+    command: bash -c "npm install && npx nuxt prepare && npm run dev"
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /usr/src/app
+          ignore:
+            - node_modules/
+            - .nuxt/
+            - .output/
+        - action: rebuild
+          path: ./frontend/package.json
+    depends_on:
+      - backend
+    expose: [3000]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-coolestprojects.rule=Host(`app.coolestprojects.localhost`)"
+      - "traefik.http.routers.frontend-coolestprojects.entrypoints=web"
+      - "traefik.http.routers.frontend-coolestprojects.tls=true"
+
 volumes:
   db_data:
   db_data_test:
   azure_data:
   backend_node_modules:
-
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #   container_name: coolestproject-frontend
-  #   working_dir: /usr/src/app
-  #   environment:
-  #     NUXT_ENV_BASE_URL: https://backend.coolestprojects.localhost:1234
-  #   volumes:
-  #     - ./frontend:/usr/src/app
-
-  #   env_file:
-  #     - configuration.env
-  #   depends_on:
-  #     - backend
-  #   expose: [3000]
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.frontend-coolestprojects.rule=Host(`app.coolestprojects.localhost`)"
-  #     - "traefik.http.routers.frontend-coolestprojects.entrypoints=web"
-  #     - "traefik.http.routers.frontend-coolestprojects.tls=true"
+  frontend_node_modules:
+  frontend_nuxt:
+  frontend_output:
 
   # voting:
   #   image: node:14-slim

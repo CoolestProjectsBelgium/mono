@@ -49,18 +49,28 @@ export class InfoInterceptor implements NestInterceptor {
     };
 
     if (activeEvent) {
+      const eventBeginDate = activeEvent.getDataValue('eventBeginDate') as Date;
+      const eventEndDate = activeEvent.getDataValue('eventEndDate') as Date;
+      const registrationOpenDate = activeEvent.getDataValue(
+        'registrationOpenDate',
+      ) as Date;
+      const registrationClosedDate = activeEvent.getDataValue(
+        'registrationClosedDate',
+      ) as Date;
+      const projectClosedDate = activeEvent.getDataValue(
+        'projectClosedDate',
+      ) as Date;
+      const now = Date.now();
+
       info.currentEvent = activeEvent.id;
       info.closed =
-        Date.now() < new Date(activeEvent.eventBeginDate).getTime() ||
-        Date.now() > new Date(activeEvent.eventEndDate).getTime();
+        now < eventBeginDate.getTime() || now > eventEndDate.getTime();
       info.current =
-        Date.now() >= new Date(activeEvent.eventBeginDate).getTime() &&
-        Date.now() <= new Date(activeEvent.eventEndDate).getTime();
+        now >= eventBeginDate.getTime() && now <= eventEndDate.getTime();
       info.registrationOpen =
-        Date.now() < new Date(activeEvent.registrationOpenDate).getTime() &&
-        new Date(activeEvent.registrationClosedDate).getTime() > Date.now();
-      info.projectClosed =
-        Date.now() > new Date(activeEvent.projectClosedDate).getTime();
+        registrationOpenDate.getTime() < now &&
+        registrationClosedDate.getTime() > now;
+      info.projectClosed = now > projectClosedDate.getTime();
     }
 
     request['info'] = info;

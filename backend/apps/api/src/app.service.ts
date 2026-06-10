@@ -132,32 +132,37 @@ export class AppService {
       where: { eventId: event.id, project_code: null },
     });
 
-    if (projectCount + registrationProjectCount >= event.maxRegistration) {
+    const maxRegistration = event.getDataValue('maxRegistration') as number;
+    if (projectCount + registrationProjectCount >= maxRegistration) {
       waitingListActive = true;
     }
 
-    return {
-      maxAge: event.maxAge,
-      minAge: event.minAge,
+    const maxFileSize = event.getDataValue('maxFileSize') as number | null;
 
-      guardianAge: event.minGuardianAge,
+    return {
+      maxAge: event.getDataValue('maxAge') as number,
+      minAge: event.getDataValue('minAge') as number,
+
+      guardianAge: event.getDataValue('minGuardianAge') as number,
       enviroment: process.env.NODE_ENV,
       waitingListActive,
-      maxUploadSize: event.maxFileSize || 1024 * 1024 * 1024 * 5, // 5 gigs in bytes
+      maxUploadSize: maxFileSize || 1024 * 1024 * 1024 * 5, // 5 gigs in bytes
 
-      startDateEvent: event.eventBeginDate,
-      tshirtDate: event.registrationClosedDate,
+      startDateEvent: event.getDataValue('eventBeginDate') as Date,
+      tshirtDate: event.getDataValue('registrationClosedDate') as Date,
 
-      eventBeginDate: event.eventBeginDate,
-      registrationOpenDate: event.registrationOpenDate,
-      registrationClosedDate: event.registrationClosedDate,
-      projectClosedDate: event.projectClosedDate,
-      officialStartDate: event.officialStartDate,
-      eventEndDate: event.eventEndDate,
-      eventTitle: event.event_title,
+      eventBeginDate: event.getDataValue('eventBeginDate') as Date,
+      registrationOpenDate: event.getDataValue('registrationOpenDate') as Date,
+      registrationClosedDate: event.getDataValue(
+        'registrationClosedDate',
+      ) as Date,
+      projectClosedDate: event.getDataValue('projectClosedDate') as Date,
+      officialStartDate: event.getDataValue('officialStartDate') as Date,
+      eventEndDate: event.getDataValue('eventEndDate') as Date,
+      eventTitle: event.getDataValue('event_title') as string,
 
-      maxRegistration: event.maxRegistration,
-      maxParticipants: event.maxVoucher,
+      maxRegistration,
+      maxParticipants: event.getDataValue('maxVoucher') as number,
 
       // info object
       isRegistrationOpen: info.registrationOpen,

@@ -1,0 +1,38 @@
+---
+description: NestJS backend patterns for Coolest Projects API
+globs: backend/**/*.ts
+alwaysApply: false
+---
+
+# Backend (NestJS + Sequelize)
+
+## Imports
+
+```typescript
+// ✅ Shared models from workspace package
+import { User, Event } from '@coolestprojects/database';
+
+// ✅ Inject models in services
+@InjectModel(User) private readonly userModel: typeof User
+```
+
+## Patterns
+
+- Register new models in both `SequelizeModule.forRootAsync({ models: [...] })` and `forFeature([...])` in `app.module.ts`
+- DTOs live in `backend/apps/api/src/dto/` with Swagger decorators
+- Auth: JWT via `AuthModule`; protect routes with Passport guards
+- File uploads: `AttachmentService` + `AzureBlobService`; SAS tokens for client-side upload
+- Email: `MailerService` renders `EmailTemplate` records with Handlebars
+
+## Testing
+
+- Unit: `*.spec.ts` next to source; `npm run test -w @coolestprojects/api`
+- E2E: `backend/apps/api/test/`; uses `DB_*_TEST` env vars; `npm run test:e2e -w @coolestprojects/api`
+
+## Database package exports
+
+Use `.js` extension in `packages/database/src/index.ts` exports (NodeNext ESM):
+
+```typescript
+export * from './models/user.model.js';
+```

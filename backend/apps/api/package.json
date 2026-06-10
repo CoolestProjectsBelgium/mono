@@ -20,6 +20,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register ../../node_modules/jest/bin/jest.js --runInBand",
+    "seed:event": "node dist/scripts/seed-event.js",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:debug_e2e": "jest --runInBand --detectOpenHandles --config ./test/jest-e2e.json --verbose"
   },
