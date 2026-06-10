@@ -19,3 +19,11 @@ node ./dist/cli event:init
 ```bash
 npm run test:e2e
 ```
+
+## Run adminJS via express server
+```bash
+npm run start:admin-dev
+```
+
+## Build process for Dabase artifacts
+npm run build --workspace=@coolestprojects/database

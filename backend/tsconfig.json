@@ -1,25 +1,13 @@
 {
   "compilerOptions": {
-    "useDefineForClassFields": false,
-    "module": "Node16",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "esnext",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
+    "paths": {
+      "@coolestprojects/database": [
+        "./packages/database/src/index.ts"
+      ]
+    },
     "strict": true,
-    "noFallthroughCasesInSwitch": false,
-    "moduleResolution": "Node16",
-    "isolatedModules": true,
+    "skipLibCheck": true,
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext"
   }
 }
