@@ -2,6 +2,11 @@
   "name": "coolestprojects",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "start:debug": "npm run start:debug -w @coolestprojects/api",
+    "start:dev": "npm run start:dev -w @coolestprojects/api",
+    "build": "npm run build -w @coolestprojects/api"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"

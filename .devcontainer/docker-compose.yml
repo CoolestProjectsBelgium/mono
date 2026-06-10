@@ -14,14 +14,17 @@ services:
       # Relative to the primary compose file (repo root), not .devcontainer/
       - .:/workspaces:cached
 
-    user: node
+    # Start as root briefly to fix node_modules volume ownership, then drop to node.
+    user: root
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        chown -R node:node /home/node/app/node_modules 2>/dev/null || true
+        exec su node -s /bin/bash -c "sleep infinity"
 
     # Uncomment the next four lines if you will use a ptrace-based debugger like C++, Go, and Rust.
     # cap_add:
     #   - SYS_PTRACE
     # security_opt:
     #   - seccomp:unconfined
-
-    # Overrides default command so things don't shut down after the process ends.
-    command: sleep infinity
  
