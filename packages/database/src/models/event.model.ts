@@ -1,7 +1,7 @@
 import { Column, Model, Table, DataType } from 'sequelize-typescript';
 
 @Table
-export class Event extends Model<Event> {
+export class Event extends Model {
   @Column(DataType.STRING(200))
   azure_storage_container!: string;
   @Column

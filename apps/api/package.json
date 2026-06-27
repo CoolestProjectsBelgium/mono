@@ -8,7 +8,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "nest build",
-    "seed-db": "nest command seed-db"
+    "seed-db": "npx nestjs-command event:init",
+    "start:dev": "nest start --watch"
   },
   "author": "",
   "license": "ISC",
@@ -34,6 +35,7 @@
     "@nestjs/testing": "^11.1.27",
     "@types/jest": "^30.0.0",
     "@types/mocha": "^10.0.10",
+    "@types/nodemailer": "^8.0.1",
     "jest": "^30.4.2",
     "supertest": "^7.2.2"
   }

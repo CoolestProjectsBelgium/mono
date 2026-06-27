@@ -41,7 +41,7 @@ export class RegistrationService {
   async create(
     info: InfoDto,
     createRegistrationDto: RegistrationDto,
-  ): Promise<Registration> {
+  ): Promise<Registration | undefined> {
     if (!info.registrationOpen) {
       throw new Error('Registration is not open for this event.');
     }
@@ -343,7 +343,7 @@ export class RegistrationService {
       },
     });
 
-    const answeredQuestionIds = registration.questions.map((q) => q.questionId);
+    const answeredQuestionIds = registration.questions.map((q: { questionId: any; }) => q.questionId);
     const missingMandatory = mandatoryQuestions.filter(
       (q) => !answeredQuestionIds.includes(q.id),
     );
