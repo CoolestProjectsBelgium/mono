@@ -25,6 +25,7 @@
     "cookie-parser": "^1.4.7",
     "handlebars": "^4.7.9",
     "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.22.5",
     "nestjs": "^0.0.1",
     "nestjs-command": "^3.1.5",
     "nodemailer": "^9.0.1",
