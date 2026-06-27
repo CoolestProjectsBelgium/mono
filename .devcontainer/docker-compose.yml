@@ -4,6 +4,14 @@ services:
   workspace:
     image: node:26
 
+    environment:
+      DB_DIALECT: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: coolestproject
+      DB_USER: coolestproject
+      DB_PASSWORD: Se84KCCCJlnfkdfv
+
     volumes:
       - ..:/workspace:cached
 
