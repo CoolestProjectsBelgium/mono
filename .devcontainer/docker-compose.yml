@@ -16,24 +16,19 @@ services:
       - "3001:3001"
 
     depends_on:
-      - mysql
+      - db
 
-  mysql:
+  db:
     image: mysql:latest
-
+    container_name: ${PROJECT_NAME:-coolestproject}-db
     restart: unless-stopped
-
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: myapp
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppassword
-
-    ports:
-      - "3306:3306"
-
+      MYSQL_ROOT_PASSWORD: coolestproject
+      MYSQL_DATABASE: coolestproject
+      MYSQL_USER: coolestproject
+      MYSQL_PASSWORD: Se84KCCCJlnfkdfv
     volumes:
-      - mysql-data:/var/lib/mysql
+      - db-data:/var/lib/mysql
 
 volumes:
-  mysql-data:
+  db-data:

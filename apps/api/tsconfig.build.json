@@ -23,7 +23,7 @@
     "noFallthroughCasesInSwitch": false,
     "moduleResolution": "Node16",
     "isolatedModules": true,
-    "composite": true
+    "composite": true,
   },
   "include": [
     "src"
