@@ -9,6 +9,7 @@ import { Registration } from '@coolestprojects/database';
 import { Event } from '@coolestprojects/database';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 export enum MailTemplates {
   registration = 'registration',
@@ -63,13 +64,13 @@ export class MailerService {
 
     await createTransport({
       host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
+      port: parseInt(env.SMTP_PORT || '587', 10),
       //secure: env.SMTP_SECURE === 'true',
       auth: {
         user: env.SMTP_USER,
         pass: env.SMTP_PASS,
       },
-    }).sendMail({
+    } as SMTPTransport.Options).sendMail({
       from: env.SMTP_FROM,
       to,
       subject: contentSubject,
@@ -80,6 +81,10 @@ export class MailerService {
 
   async registrationMail(user: Registration, token: string) {
     const event = await this.eventModel.findByPk(user.eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+    
     const to = [
       user.email,
       ...(user.email_guardian ? [user.email_guardian] : []),
@@ -95,6 +100,10 @@ export class MailerService {
   }
   async waitingListMail(user: Registration) {
     const event = await this.eventModel.findByPk(user.eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
     const to = [
       user.email,
       ...(user.email_guardian ? [user.email_guardian] : []),
@@ -111,6 +120,10 @@ export class MailerService {
 
   async welcomeMailOwner(user: User) {
     const event = await this.eventModel.findByPk(user.eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
     const to = [
       user.email,
       ...(user.email_guardian ? [user.email_guardian] : []),

@@ -11,7 +11,7 @@ export class TokensService {
         registrationID: registration_id,
         iat: Math.floor(Date.now() / 1000) - 30,
       },
-      env.JWT_KEY,
+      env.JWT_KEY || '',
       { expiresIn: '6d' },
     );
   }
@@ -21,7 +21,7 @@ export class TokensService {
         userID: user_id,
         iat: Math.floor(Date.now() / 1000) - 30,
       },
-      env.JWT_KEY,
+      env.JWT_KEY || '',
       { expiresIn: '6d' },
     );
   }
