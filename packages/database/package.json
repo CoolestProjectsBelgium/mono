@@ -1,0 +1,21 @@
+{
+  "name": "@coolestprojects/database",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "types": "./dist/index.d.ts",
+  "description": "",
+  "dependencies": {
+    "@adminjs/express": "^6.1.1",
+    "@nestjs/config": "^4.0.4",
+    "@types/bcrypt": "^6.0.0",
+    "adminjs": "^7.8.17",
+    "bcrypt": "^6.0.0",
+    "sequelize-typescript": "^2.1.6"
+  }
+}
