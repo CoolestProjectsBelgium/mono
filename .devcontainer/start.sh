@@ -12,11 +12,17 @@ npm run build --workspace=apps/api
 npm run seed-db --workspace=apps/api
 
 # Start Admin app
-npm run run:dev  --workspace=apps/admin &
+npm run start:dev  --workspace=apps/admin &
 
 # Start API backend
-#cd /apps/api
-#npm run run:dev &
+cd /apps/api
+npm run start:dev --workspace=apps/api &
+
+# Start Static apps
+npm run start:dev --workspace=apps/eventguide -- -p 3002 &
+npm run start:dev --workspace=apps/presentation -- -p 3003 &
+npm run start:dev --workspace=apps/registration -- -p 3004 &
+npm run start:dev --workspace=apps/voting -- -p 3005 &
 
 # Keep container running
 wait
