@@ -11,7 +11,7 @@ export class LoginController {
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async activateLogin(
     @Body() loginActivateDto: LoginActivateDto,
-  ): Promise<LoginDto> {
+  ): Promise<LoginDto|null> {
     return null;
   }
 

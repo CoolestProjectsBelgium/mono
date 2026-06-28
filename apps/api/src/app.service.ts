@@ -141,7 +141,7 @@ export class AppService {
       minAge: event.minAge,
 
       guardianAge: event.minGuardianAge,
-      enviroment: process.env.NODE_ENV,
+      enviroment: process.env.NODE_ENV || 'production',
       waitingListActive,
       maxUploadSize: event.maxFileSize || 1024 * 1024 * 1024 * 5, // 5 gigs in bytes
 

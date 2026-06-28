@@ -15,7 +15,7 @@ export class ParticipantController {
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async deleteParticipant(id) {
+  async deleteParticipant(id: number) {
     return null; //this.registrationService.createParticipant();
   }
 }

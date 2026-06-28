@@ -50,13 +50,13 @@ export class AttachmentController {
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async createAttachment(
     @Body() createAttachmentDto: AttachmentDto,
-  ): Promise<SASToken> {
+  ): Promise<SASToken|null> {
     return null; //this.registrationService.createAttachment(createAttachmentDto);
   }
 
   @Post(':name/sas')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async createSASToken(@Param() name: any): Promise<SASToken> {
+  async createSASToken(@Param() name: any): Promise<SASToken|null> {
     return null;
   }
 

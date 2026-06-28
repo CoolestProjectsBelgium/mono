@@ -1,3 +1,3 @@
 export class OtherProjectDto {
-  project_code: string;
+  project_code!: string;
 }

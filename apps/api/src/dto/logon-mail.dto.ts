@@ -1,3 +1,3 @@
 export class LoginMailDto {
-  email: string;
+  email!: string;
 }
