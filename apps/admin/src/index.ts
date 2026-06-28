@@ -2,27 +2,10 @@ import AdminJSExpress from '@adminjs/express'
 import AdminJS, { ComponentLoader } from 'adminjs'
 import type { Request } from 'express'
 import express from 'express'
+import * as AdminJSSequelize from '@adminjs/sequelize'
 
 import {
-  Account,
-  Award,
-  Event,
-  EventTable,
-  Location,
-  Project,
-  ProjectTable,
-  Question,
-  QuestionRegistration,
-  QuestionTranslation,
-  QuestionUser,
-  Registration,
-  Tshirt,
-  TshirtGroup,
-  TshirtGroupTranslation,
-  TshirtTranslation,
-  User,
-  VoteCategory,
-  Voucher
+  sequelize,
 } from './database.js'
 
 // roles: superadmin (can access everything), 
@@ -31,6 +14,11 @@ import {
 
 const componentLoader = new ComponentLoader()
 componentLoader.override('Login', './components/Login');
+
+const Components = {
+  Dashboard: componentLoader.add('Dashboard', './components/Dashboard'),
+  // other custom components
+}
 
 const addEventFilter = async (request: any, context: any) => {
   const eventId = context.currentAdmin?.eventId
@@ -83,32 +71,65 @@ const eventScopedResource = (resource: any, options: { properties?: Record<strin
   },
 })
 
-const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000') 
+const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000')
 
 const start = async () => {
   const app = express()
-  
+
+
+  AdminJS.registerAdapter({
+    Resource: AdminJSSequelize.Resource,
+    Database: AdminJSSequelize.Database,
+  })
+
+  const dashboardHandler = async () => {
+    return { message: 'Hello World' }
+  }
+
   const admin = new AdminJS({
+    dashboard: {
+      component: Components.Dashboard,
+      handler: dashboardHandler,
+    },
     resources: [
-      { resource: Account }, // only superadmins can access this resource
-      eventScopedResource(Event),
-      eventScopedResource(Award),
-      eventScopedResource(Location),
-      eventScopedResource(Project),
-      eventScopedResource(VoteCategory),
-      eventScopedResource(EventTable),
-      eventScopedResource(User),
-      eventScopedResource(Voucher),
-      eventScopedResource(ProjectTable),
-      eventScopedResource(Tshirt),
-      eventScopedResource(QuestionUser),
-      eventScopedResource(Question),
-      eventScopedResource(TshirtGroup),
-      eventScopedResource(TshirtTranslation),
-      eventScopedResource(QuestionTranslation),
-      eventScopedResource(QuestionRegistration),
-      eventScopedResource(Registration),
-      eventScopedResource(TshirtGroupTranslation),
+      { resource: sequelize.models.Account },
+      { resource: sequelize.models.Event },
+      { resource: sequelize.models.Award },
+      { resource: sequelize.models.Location },
+      { resource: sequelize.models.Project },
+      { resource: sequelize.models.VoteCategory },
+      { resource: sequelize.models.EventTable },
+      { resource: sequelize.models.User },
+      { resource: sequelize.models.Voucher },
+      { resource: sequelize.models.ProjectTable },
+      { resource: sequelize.models.Tshirt },
+      { resource: sequelize.models.QuestionUser },
+      { resource: sequelize.models.Question },
+      { resource: sequelize.models.TshirtGroup },
+      { resource: sequelize.models.TshirtTranslation },
+      { resource: sequelize.models.QuestionTranslation },
+      { resource: sequelize.models.QuestionRegistration },
+      { resource: sequelize.models.Registration },
+      { resource: sequelize.models.TshirtGroupTranslation },
+      /* TODO filter by eventID
+      eventScopedResource(sequelize.models.Event),
+      eventScopedResource(sequelize.models.Award),
+      eventScopedResource(sequelize.models.Location),
+      eventScopedResource(sequelize.models.Project),
+      eventScopedResource(sequelize.models.VoteCategory),
+      eventScopedResource(sequelize.models.EventTable),
+      eventScopedResource(sequelize.models.User),
+      eventScopedResource(sequelize.models.Voucher),
+      eventScopedResource(sequelize.models.ProjectTable),
+      eventScopedResource(sequelize.models.Tshirt),
+      eventScopedResource(sequelize.models.QuestionUser),
+      eventScopedResource(sequelize.models.Question),
+      eventScopedResource(sequelize.models.TshirtGroup),
+      eventScopedResource(sequelize.models.TshirtTranslation),
+      eventScopedResource(sequelize.models.QuestionTranslation),
+      eventScopedResource(sequelize.models.QuestionRegistration),
+      eventScopedResource(sequelize.models.Registration),
+      eventScopedResource(sequelize.models.TshirtGroupTranslation),*/
     ],
     componentLoader,
   })
@@ -119,8 +140,8 @@ const start = async () => {
     cookieName: 'adminjs',
     authenticate: async (email, password, context) => {
       const eventId = ((context?.req as unknown) as Request & { fields?: Record<string, any> })?.fields?.event
-      if (email === 'test' && password === 'password') {
-        return { email: 'test', eventId, role: 'admin' }
+      if (email === 'admin' && password === 'admin') {
+        return { email: 'admin', eventId, role: 'admin' }
       }
       return null
     },
@@ -136,7 +157,7 @@ const start = async () => {
   })
   app.get('/api/events', async (req, res) => {
     try {
-      const events = await Event.findAll({
+      const events = await sequelize.models.Event.findAll({
         attributes: ['id', 'event_title', 'current'],
         order: [['event_title', 'ASC']],
       })
