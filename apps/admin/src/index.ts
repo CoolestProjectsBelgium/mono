@@ -53,6 +53,9 @@ const canAccessResourceFieldFilter =
       return record?.params?.[fieldName] === adminValue
     }
 
+const canAccessResourceRoleFilter =
+  (roleName: string) => ({ currentAdmin }: any) => currentAdmin.role === roleName
+
 const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000')
 
 const filterEventId =
@@ -107,9 +110,9 @@ const start = async () => {
               before: filterEventId("id"),
             },
           },
-          edit: { isAccessible: canAccessResourceFieldFilter("id") },
-          show: { isAccessible: canAccessResourceFieldFilter("id") },
-          delete: { isAccessible: canAccessResourceFieldFilter("id") },
+          edit: { isAccessible: canAccessResourceFieldFilter("id") && canAccessResourceRoleFilter('admin') },
+          show: { isAccessible: canAccessResourceFieldFilter("id") && canAccessResourceRoleFilter('admin') },
+          delete: { isAccessible: canAccessResourceFieldFilter("id") && canAccessResourceRoleFilter('admin') },
         }
       },
       { resource: sequelize.models.Award },
@@ -132,9 +135,9 @@ const start = async () => {
             search: {
               before: filterEventId("eventId")
             },
-            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            edit: { isAccessible: canAccessResourceFieldFilter("eventId") && canAccessResourceRoleFilter('admin') },
+            show: { isAccessible: canAccessResourceFieldFilter("eventId") && canAccessResourceRoleFilter('admin') },
+            delete: { isAccessible: canAccessResourceFieldFilter("eventId") && canAccessResourceRoleFilter('admin') },
           }
         }
       },
