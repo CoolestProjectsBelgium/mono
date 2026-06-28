@@ -20,7 +20,7 @@ const Components = {
   // other custom components
 }
 
-const addEventFilter = async (request: any, context: any) => {
+const addEventFilter = async (filterName: string = "id", request: any, context: any) => {
   const eventId = context.currentAdmin?.eventId
   if (!eventId) return request
 
@@ -30,7 +30,7 @@ const addEventFilter = async (request: any, context: any) => {
       ...request.query,
       filters: {
         ...request.query?.filters,
-        eventId,
+        filterName: eventId,
       },
     },
     payload: request.payload
@@ -46,36 +46,40 @@ const canCreate = ({ currentAdmin, resource }: any) => {
   return true
 }
 
-const canAccessResource = ({ currentAdmin, record }: any) => {
-  if (!currentAdmin) return false
-  if (currentAdmin.role === 'superadmin') return true
-  return (currentAdmin.eventId && String(record?.param('eventId')) === String(currentAdmin.eventId)) || (record?.name() === 'Event' && currentAdmin.eventId === String(record?.param('id')))
-}
-
-
-const eventScopedResource = (resource: any, options: { properties?: Record<string, any> } = {},) => ({
-  resource,
-  options: {
-    actions: {
-      list: { before: addEventFilter, isAccessible: canAccessResource },
-      search: { before: addEventFilter, isAccessible: canAccessResource },
-      new: { before: addEventFilter, isAccessible: canCreate },
-      edit: { isAccessible: canAccessResource },
-      show: { isAccessible: canAccessResource },
-      delete: { isAccessible: canAccessResource },
-    },
-    properties: {
-      eventId: { isVisible: false },
-      ...options.properties,
-    },
-  },
-})
+const canAccessResourceFieldFilter =
+  (fieldName: string) =>
+    ({ currentAdmin, record }: any) => {
+      const adminValue = currentAdmin?.eventId
+      return record?.params?.[fieldName] === adminValue
+    }
 
 const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000')
 
+const filterEventId =
+  (filterName: string) =>
+    async (request: any, context: any) => {
+      const eventId = context.currentAdmin?.eventId
+
+      return {
+        ...request,
+        query: {
+          ...request.query,
+          filters: {
+            ...request.query?.filters,
+            [filterName]: eventId,
+          },
+        },
+        payload: request.payload
+          ? {
+            ...request.payload,
+            [filterName]: eventId,
+          }
+          : request.payload,
+      }
+    }
+
 const start = async () => {
   const app = express()
-
 
   AdminJS.registerAdapter({
     Resource: AdminJSSequelize.Resource,
@@ -93,7 +97,21 @@ const start = async () => {
     },
     resources: [
       { resource: sequelize.models.Account },
-      { resource: sequelize.models.Event },
+      {
+        resource: sequelize.models.Event, options: {
+          actions: {
+            list: {
+              before: filterEventId("id"),
+            },
+            search: {
+              before: filterEventId("id"),
+            },
+          },
+          edit: { isAccessible: canAccessResourceFieldFilter("id") },
+          show: { isAccessible: canAccessResourceFieldFilter("id") },
+          delete: { isAccessible: canAccessResourceFieldFilter("id") },
+        }
+      },
       { resource: sequelize.models.Award },
       { resource: sequelize.models.Location },
       { resource: sequelize.models.Project },
@@ -102,7 +120,24 @@ const start = async () => {
       { resource: sequelize.models.User },
       { resource: sequelize.models.Voucher },
       { resource: sequelize.models.ProjectTable },
-      { resource: sequelize.models.Tshirt },
+      {
+        resource: sequelize.models.Tshirt, options: {
+          properties: {
+            eventId: { isVisible: false },
+          },
+          actions: {
+            list: {
+              before: filterEventId("eventId")
+            },
+            search: {
+              before: filterEventId("eventId")
+            },
+            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
+          }
+        }
+      },
       { resource: sequelize.models.QuestionUser },
       { resource: sequelize.models.Question },
       { resource: sequelize.models.TshirtGroup },
@@ -111,25 +146,6 @@ const start = async () => {
       { resource: sequelize.models.QuestionRegistration },
       { resource: sequelize.models.Registration },
       { resource: sequelize.models.TshirtGroupTranslation },
-      /* TODO filter by eventID
-      eventScopedResource(sequelize.models.Event),
-      eventScopedResource(sequelize.models.Award),
-      eventScopedResource(sequelize.models.Location),
-      eventScopedResource(sequelize.models.Project),
-      eventScopedResource(sequelize.models.VoteCategory),
-      eventScopedResource(sequelize.models.EventTable),
-      eventScopedResource(sequelize.models.User),
-      eventScopedResource(sequelize.models.Voucher),
-      eventScopedResource(sequelize.models.ProjectTable),
-      eventScopedResource(sequelize.models.Tshirt),
-      eventScopedResource(sequelize.models.QuestionUser),
-      eventScopedResource(sequelize.models.Question),
-      eventScopedResource(sequelize.models.TshirtGroup),
-      eventScopedResource(sequelize.models.TshirtTranslation),
-      eventScopedResource(sequelize.models.QuestionTranslation),
-      eventScopedResource(sequelize.models.QuestionRegistration),
-      eventScopedResource(sequelize.models.Registration),
-      eventScopedResource(sequelize.models.TshirtGroupTranslation),*/
     ],
     componentLoader,
   })

@@ -1,6 +1,6 @@
 #!/bin/bash
 
- npm i -g @nestjs/cli
+npm i -g @nestjs/cli
 
 # build database package
 npm run build --workspace=packages/database
