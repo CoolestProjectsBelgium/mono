@@ -15,7 +15,7 @@ export class ProjectinfoController {
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(UserCookieInterceptor)
-  async getProject(@Request() req): Promise<ProjectDto> {
+  async getProject(@Request() req: any): Promise<ProjectDto> {
     return this.projectService.getProjectInfo(req.user.id); 
   }
 
@@ -24,7 +24,7 @@ export class ProjectinfoController {
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(UserCookieInterceptor)
   async createProject(
-    @Request() req,
+    @Request() req: any,
     @Body() createProjectDto: ProjectDto,
   ): Promise<ProjectDto> {
     return await this.projectService.createProject(req.user.id, createProjectDto);
@@ -35,7 +35,7 @@ export class ProjectinfoController {
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(UserCookieInterceptor)
   async updateProject(
-    @Request() req,
+    @Request() req: any,
     @Body() updateProjectDto: ProjectDto,
   ): Promise<ProjectDto> {
     return await this.projectService.updateProject(req.user.id, updateProjectDto);
@@ -45,7 +45,7 @@ export class ProjectinfoController {
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(UserCookieInterceptor)
-  async deleteProject(@Request() req,): Promise<void> {
+  async deleteProject(@Request() req: any,): Promise<void> {
     return await this.projectService.deleteProject(req.user.id,);
   }
 }

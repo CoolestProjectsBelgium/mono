@@ -15,7 +15,7 @@ export class ProjectinfoService {
     ) { }
 
     public async getProjectInfo(userId: number): Promise<ProjectDto> {
-        let project: Project | null;
+        let project: Project | null | undefined;
         let isOwner = true;
         // First, try to find the project where the user is the owner
         project = await this.projectModel.findOne({ where: { ownerId: userId } });
@@ -55,6 +55,9 @@ export class ProjectinfoService {
         if (existingProject) {
             throw new Error('User already has a project');
         }
+        if(createProjectDto.own_project == null){
+            throw new Error("Project Creation Failed");
+        }
         const project = await this.projectModel.create({
             name: createProjectDto.own_project.project_name,
             description: createProjectDto.own_project.project_descr,
@@ -76,6 +79,9 @@ export class ProjectinfoService {
         const project = await this.projectModel.findOne({ where: { ownerId: userId } });
         if (!project) {
             throw new Error('Project not found for user');
+        }
+        if(!updateProjectDto.own_project){
+            throw new Error('Data not provided');
         }
         project.name = updateProjectDto.own_project.project_name;
         project.description = updateProjectDto.own_project.project_descr;

@@ -41,7 +41,7 @@ export class InfoInterceptor implements NestInterceptor {
 
     const info: InfoDto = {
       language: request.acceptsLanguages('fr', 'nl', 'en') || 'en',
-      currentEvent: null,
+      currentEvent: -1,
       closed: true,
       current: false,
       registrationOpen: false,
@@ -63,7 +63,7 @@ export class InfoInterceptor implements NestInterceptor {
         Date.now() > new Date(activeEvent.projectClosedDate).getTime();
     }
 
-    request['info'] = info;
+    (request as any).info = info;
 
     return next.handle();
   }

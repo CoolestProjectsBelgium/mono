@@ -5,8 +5,8 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AzureBlobService {
-  private readonly blobServiceClient: BlobServiceClient;
-  private readonly containerName: string;
+  private readonly blobServiceClient!: BlobServiceClient;
+  private readonly containerName!: string;
 
   constructor(private readonly configService: ConfigService) {
     const connectionString = this.configService.get<string>(

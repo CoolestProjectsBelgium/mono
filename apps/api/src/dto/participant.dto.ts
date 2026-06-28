@@ -1,5 +1,5 @@
 export class ParticipantDto {
-    id: number;
-    name: string;
-    self: boolean;
+    id!: number;
+    name!: string;
+    self!: boolean;
 }

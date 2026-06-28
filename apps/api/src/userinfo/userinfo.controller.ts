@@ -11,7 +11,7 @@ export class UserinfoController {
   @Get()
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  getUserInfo(): Promise<UserDto> {
+  getUserInfo(): Promise<UserDto>|null {
     return null;
   }
 
@@ -25,7 +25,7 @@ export class UserinfoController {
   @Patch()
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async updateUser(@Body() updateUserDto: UserDto): Promise<UserDto> {
+  async updateUser(@Body() updateUserDto: UserDto): Promise<UserDto|null> {
     return null;
   }
 }

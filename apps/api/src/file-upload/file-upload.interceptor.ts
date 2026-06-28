@@ -10,7 +10,7 @@ import { Event } from '@coolestprojects/database';
 import { Op } from 'sequelize';
 @Injectable()
 export class FileUploadInterceptor implements NestInterceptor {
-  private readonly fileInterceptor: NestInterceptor;
+  private readonly fileInterceptor!: NestInterceptor;
   constructor(private fieldName: string) {
     this.fieldName = fieldName;
   }
@@ -27,6 +27,10 @@ export class FileUploadInterceptor implements NestInterceptor {
       },
       attributes: ['maxFileSize'],
     });
+
+    if(activeEvent === null){
+      throw new Error("Event not found");
+    }
 
     const fileInterceptor = new (FileInterceptor(this.fieldName, {
       limits: { fileSize: activeEvent.maxFileSize },

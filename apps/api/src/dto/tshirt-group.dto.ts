@@ -1,6 +1,6 @@
 import { TshirtDto } from './tshirt.dto';
 
 export class TshirtGroupDto {
-    group: string;
-    items: TshirtDto[];
+    group!: string;
+    items!: TshirtDto[];
 }
