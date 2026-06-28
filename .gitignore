@@ -148,4 +148,3 @@ dist
 # Ignore all local history of files
 .history
 .ionide
-apps/admin/.adminjs/**
