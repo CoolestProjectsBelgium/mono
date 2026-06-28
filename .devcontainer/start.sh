@@ -15,7 +15,6 @@ npm run seed-db --workspace=apps/api
 npm run start:dev  --workspace=apps/admin &
 
 # Start API backend
-cd /apps/api
 npm run start:dev --workspace=apps/api &
 
 # Start Static apps

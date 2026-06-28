@@ -1,37 +1,14 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "jsx": "react",
-    "useDefineForClassFields": false,
-    "module": "Node16",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "esnext",
-    "sourceMap": true,
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "strict": true,
-    "noFallthroughCasesInSwitch": false,
-    "moduleResolution": "Node16",
-    "isolatedModules": true,
-    "composite": true,
     "outDir": "./dist",
     "rootDir": "./src",
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
+  "include": ["src/**/*.ts"],
+   "exclude": [
+    "node_modules",
+    "dist",
     "**/*.spec.ts",
-    "**/*.test.ts",
-    "test",
-    "src/**/*.spec.ts"
+    "**/*.test.ts"
   ]
 }

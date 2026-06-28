@@ -18,6 +18,10 @@ services:
       ADMINJS_COOKIE_SECRET: nic2;To97Di\lF8zC'V{'[_
       ADMINJS_PORT: 3000
 
+      #API config
+      JWT_KEY: U"l!p@@{An31_1dJ60zb6|3
+      API_PORT: 3006
+
     volumes:
       - ..:/workspace:cached
 

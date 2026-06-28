@@ -48,6 +48,9 @@ export class InfoInterceptor implements NestInterceptor {
       projectClosed: true,
     };
 
+    if(!activeEvent)
+      throw new Error("No Active Event")
+
     if (activeEvent) {
       info.currentEvent = activeEvent.id;
       info.closed =
