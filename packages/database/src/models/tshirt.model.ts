@@ -12,15 +12,15 @@ import { BaseEventModel } from './base_event.model.js';
 @Table
 export class Tshirt extends BaseEventModel {
   @BelongsTo(() => TshirtGroup)
-  group!: TshirtGroup;
+  declare group: TshirtGroup;
 
   @ForeignKey(() => TshirtGroup)
   @Column
-  groupId!: number;
+  declare groupId: number;
 
   @Column
-  name!: string;
+  declare name: string;
 
   @HasMany(() => TshirtTranslation)
-  translations!: TshirtTranslation[];
+  declare translations: TshirtTranslation[];
 }

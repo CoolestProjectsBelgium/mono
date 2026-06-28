@@ -4,17 +4,17 @@ import { BaseEventModel } from './base_event.model.js';
 @Table
 export class EmailTemplate extends BaseEventModel {
   @Column
-  template!: string;
+  declare template: string;
 
   @Column
-  language!: string;
+  declare language: string;
 
   @Column
-  subject!: string;
+  declare subject: string;
 
   @Column
-  contentPlain!: string;
+  declare contentPlain: string;
 
   @Column
-  contentRich!: string;
+  declare contentRich: string;
 }

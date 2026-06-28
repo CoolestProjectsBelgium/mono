@@ -40,36 +40,22 @@ import { EmailTemplate } from '@coolestprojects/database';
   imports: [
     CommandModule,
     ConfigModule.forRoot({
-      isGlobal: true, // Makes the config available globally
+      isGlobal: true, 
     }),
     SequelizeModule.forRootAsync({
-      imports: [ConfigModule], // Import ConfigModule to access ConfigService
+      imports: [ConfigModule], 
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
-          dialect: 'mysql',  //dialect: 'postgres',
-          host: configService.get('DB_HOST') || 'localhost', //'db',
-          port: configService.get('DB_PORT') || 3306,  //5432,
+          dialect: 'mysql', 
+          host: configService.get('DB_HOST') || 'localhost', 
+          port: configService.get('DB_PORT') || 3306,
           username: configService.get('DB_USER') || 'coolestproject',
-          password: configService.get('DB_PASS') || 'coolestproject',
+          password: configService.get('DB_PASSWORD') || 'coolestproject',
           database: configService.get('DB_NAME') || 'coolestproject',
           autoLoadModels: true,
-          synchronize: true, // Set to false in production
+          synchronize: true, 
           sync: { force: true },
-
-          /*
-          
-                    dialect: 'mysql',
-                    host: configService.get('DB_HOST') || 'localhost',
-                    port: configService.get('DB_PORT') || 3308,
-                    username: configService.get('DB_USER') || 'coolestproject_proto',
-                    password: configService.get('DB_PASS') || '44bJXqikC6okq7h',
-                    database: configService.get('DB_NAME') || 'coolestproject_proto',
-                    synchronize: true,
-                    autoLoadModels: true,
-          */
-
-
 
           models: [
             Event,

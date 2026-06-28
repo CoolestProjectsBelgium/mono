@@ -5,8 +5,8 @@ import { BaseEventModel } from './base_event.model';
 @Table
 export class Location extends BaseEventModel {
   @HasMany(() => EventTable)
-  tables!: EventTable[];
+  declare tables: EventTable[];
 
   @Column({ allowNull: false, type: DataType.STRING(10) })
-  text!: string;
+  declare text: string;
 }

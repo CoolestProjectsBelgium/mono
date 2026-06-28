@@ -12,21 +12,21 @@ import { BaseEventModel } from './base_event.model.js';
 @Table
 export class QuestionTranslation extends BaseEventModel {
   @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
-  language!: string;
+  declare language: string;
 
   @ForeignKey(() => Question)
   @Column
-  questionId!: number;
+  declare questionId: number;
 
   @Column(DataType.STRING(255))
-  description!: string;
+  declare description: string;
 
   @Column(DataType.STRING(120))
-  positive!: string;
+  declare positive: string;
 
   @Column(DataType.STRING(120))
-  negative!: string;
+  declare negative: string;
 
   @BelongsTo(() => Question)
-  question!: Event;
+  declare question: Event;
 }

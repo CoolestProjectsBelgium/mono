@@ -83,12 +83,11 @@ const eventScopedResource = (resource: any, options: { properties?: Record<strin
   },
 })
 
-const PORT = 3000
+const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000') 
 
 const start = async () => {
   const app = express()
-  app.set('trust proxy', 1);
-
+  
   const admin = new AdminJS({
     resources: [
       { resource: Account }, // only superadmins can access this resource
@@ -116,12 +115,10 @@ const start = async () => {
 
 
   const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-    cookiePassword: 'some-secret-key',
+    cookiePassword: process.env.ADMINJS_COOKIE_SECRET || 'default-secret-password',
     cookieName: 'adminjs',
     authenticate: async (email, password, context) => {
       const eventId = ((context?.req as unknown) as Request & { fields?: Record<string, any> })?.fields?.event
-      console.log('Authenticating user with email:', email, 'and password:', password);
-      console.log('Event ID:', eventId);
       if (email === 'test' && password === 'password') {
         return { email: 'test', eventId, role: 'admin' }
       }
@@ -130,7 +127,7 @@ const start = async () => {
   }, null, {
     resave: true,
     saveUninitialized: true,
-    secret: 'sessionsecret',
+    secret: process.env.ADMINJS_COOKIE_SECRET,
     cookie: {
       httpOnly: process.env.NODE_ENV === 'production',
       secure: process.env.NODE_ENV === 'production',
@@ -151,15 +148,14 @@ const start = async () => {
         }))
       )
     } catch (error) {
-      console.error('Error fetching events:', error)
       res.status(500).json({ error: 'Failed to fetch events' })
     }
   })
 
   app.use(admin.options.rootPath, adminRouter)
 
-  app.listen(PORT, () => {
-    console.log(`AdminJS started on http://localhost:${PORT}${admin.options.rootPath}`)
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`AdminJS started on http://0.0.0.0:${PORT}${admin.options.rootPath}`)
   })
 
   admin.watch()

@@ -9,8 +9,8 @@ export class TshirtGroup extends BaseEventModel {
   translations!: TshirtGroupTranslation[];
 
   @HasMany(() => Tshirt)
-  tshirts!: Tshirt[];
+  declare tshirts: Tshirt[];
 
   @Column
-  name!: string;
+  declare name: string;
 }

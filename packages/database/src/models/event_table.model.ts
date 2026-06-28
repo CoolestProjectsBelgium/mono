@@ -14,21 +14,21 @@ import { BaseEventModel } from './base_event.model.js';
 @Table({ tableName: 'Tables' })
 export class EventTable extends BaseEventModel {
   @BelongsToMany(() => Project, () => ProjectTable)
-  table!: EventTable;
+  declare table: EventTable;
 
   @Column
-  name!: string;
+  declare name: string;
 
   @Column(DataType.JSON)
-  requirements!: string;
+  declare requirements: string;
 
   @Column
-  maxPlaces!: number;
+  declare maxPlaces: number;
 
   @ForeignKey(() => Location)
   @Column
-  locationId!: number;
+  declare locationId: number;
 
   @BelongsTo(() => Location)
-  location!: Location;
+  declare location: Location;
 }

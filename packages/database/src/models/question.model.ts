@@ -15,10 +15,10 @@ import { BaseEventModel } from './base_event.model.js';
 @Table
 export class Question extends BaseEventModel {
   @Column(DataType.STRING(30))
-  name!: string;
+  declare name: string;
 
   @Column
-  mandatory!: boolean;
+  declare mandatory: boolean;
 
   @BelongsToMany(() => User, () => QuestionUser)
   users!: User[];

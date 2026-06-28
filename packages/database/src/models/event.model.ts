@@ -3,29 +3,29 @@ import { Column, Model, Table, DataType } from 'sequelize-typescript';
 @Table
 export class Event extends Model {
   @Column(DataType.STRING(200))
-  azure_storage_container!: string;
+  declare azure_storage_container: string;
   @Column
-  minAge!: number;
+  declare minAge: number;
   @Column
-  maxAge!: number;
+  declare maxAge: number;
   @Column
-  minGuardianAge!: number;
+  declare minGuardianAge: number;
   @Column
-  maxRegistration!: number;
+  declare maxRegistration: number;
   @Column
-  maxVoucher!: number;
+  declare maxVoucher: number;
   @Column
-  eventBeginDate!: Date;
+  declare eventBeginDate: Date;
   @Column
-  registrationOpenDate!: Date;
+  declare registrationOpenDate: Date;
   @Column
-  registrationClosedDate!: Date;
+  declare registrationClosedDate: Date;
   @Column
-  projectClosedDate!: Date;
+  declare projectClosedDate: Date;
   @Column
-  officialStartDate!: Date;
+  declare officialStartDate: Date;
   @Column
-  eventEndDate!: Date;
+  declare eventEndDate: Date;
 
   @Column({
     type: DataType.VIRTUAL,
@@ -36,7 +36,7 @@ export class Event extends Model {
       );
     },
   })
-  current!: boolean;
+  declare current: boolean;
 
   @Column({
     type: DataType.VIRTUAL,
@@ -47,7 +47,7 @@ export class Event extends Model {
       );
     },
   })
-  closed!: boolean;
+  declare closed: boolean;
 
   @Column({
     type: DataType.VIRTUAL,
@@ -55,7 +55,7 @@ export class Event extends Model {
       return Date.now() > this.getDataValue('registrationClosedDate');
     },
   })
-  registrationClosed!: boolean;
+  declare registrationClosed: boolean;
 
   @Column({
     type: DataType.VIRTUAL,
@@ -66,7 +66,7 @@ export class Event extends Model {
       );
     },
   })
-  registrationOpen!: boolean;
+  declare registrationOpen: boolean;
 
   @Column({
     type: DataType.VIRTUAL,
@@ -74,11 +74,11 @@ export class Event extends Model {
       return Date.now() > this.getDataValue('projectClosedDate');
     },
   })
-  projectClosed!: boolean;
+  declare projectClosed: boolean;
 
   @Column
-  maxFileSize!: number;
+  declare maxFileSize: number;
 
   @Column
-  event_title!: string;
+  declare event_title: string;
 }

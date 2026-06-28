@@ -12,15 +12,15 @@ import { BaseEventModel } from './base_event.model.js';
 @Table
 export class TshirtGroupTranslation extends BaseEventModel {
   @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
-  language!: string;
+  declare language: string;
 
   @Column(DataType.STRING(250))
-  description!: string;
+  declare description: string;
 
   @BelongsTo(() => TshirtGroup)
-  group!: TshirtGroup;
+  declare group: TshirtGroup;
 
   @ForeignKey(() => TshirtGroup)
   @Column
-  groupId!: number;
+  declare groupId: number;
 }
