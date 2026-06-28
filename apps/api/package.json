@@ -7,10 +7,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "nest build",
+    "build": "npx tsc -p ./tsconfig.build.json",
     "start": "nest start",
     "start:dev": "nest start --watch",
-    "seed-db": "npx nestjs-command event:init"
+    "seed-db": "node ./dist/cli event:init"
   },
   "author": "",
   "license": "ISC",
@@ -38,6 +38,7 @@
     "@types/jest": "^30.0.0",
     "@types/mocha": "^10.0.10",
     "@types/nodemailer": "^8.0.1",
+    "@types/passport": "^1.0.17",
     "jest": "^30.4.2",
     "supertest": "^7.2.2"
   }
