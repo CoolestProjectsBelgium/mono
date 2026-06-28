@@ -8,8 +8,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "nest build",
-    "seed-db": "npx nestjs-command event:init",
-    "start:dev": "nest start --watch"
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "seed-db": "npx nestjs-command event:init"
   },
   "author": "",
   "license": "ISC",
