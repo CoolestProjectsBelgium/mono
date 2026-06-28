@@ -15,10 +15,10 @@ export class BaseEventModel<
 > extends Model<TModelAttributes, TCreationAttributes> {
   @ForeignKey(() => Event)
   @Column({ type: DataType.INTEGER, allowNull: false })
-  eventId!: number;
+  declare eventId: number;
 
   @BelongsTo(() => Event)
-  event!: Event;
+  declare event: Event;
 
   /* TODO check if needed
   static setAdminEventScopes(eventId: number[], scopeprefix: string = 'event') {

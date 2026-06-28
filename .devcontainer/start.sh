@@ -11,10 +11,8 @@ npm run build --workspace=apps/api
 # load test db
 npm run seed-db --workspace=apps/api
 
-
 # Start Admin app
-cd apps/admin
-npm run run:dev &
+npm run run:dev  --workspace=apps/admin &
 
 # Start API backend
 #cd /apps/api

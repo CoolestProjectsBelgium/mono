@@ -3,14 +3,20 @@ version: '3.8'
 services:
   workspace:
     image: node:26
+    container_name: ${PROJECT_NAME:-coolestproject-dev}-workspace
 
     environment:
+      # Database configuration (admin & api)
       DB_DIALECT: mysql
       DB_HOST: db
       DB_PORT: 3306
       DB_NAME: coolestproject
       DB_USER: coolestproject
       DB_PASSWORD: Se84KCCCJlnfkdfv
+
+      # AdminJS configuration
+      ADMINJS_COOKIE_SECRET: nic2;To97Di\lF8zC'V{'[_
+      ADMINJS_PORT: 3000
 
     volumes:
       - ..:/workspace:cached
@@ -28,7 +34,7 @@ services:
 
   db:
     image: mysql:latest
-    container_name: ${PROJECT_NAME:-coolestproject}-db
+    container_name: ${PROJECT_NAME:-coolestproject-dev}-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: coolestproject

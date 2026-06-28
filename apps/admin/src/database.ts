@@ -30,7 +30,7 @@ export const sequelize = new Sequelize({
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     username: configService.get('DB_USER'),
-    password: configService.get('DB_PASS'),
+    password: configService.get('DB_PASSWORD'),
     database: configService.get('DB_NAME'),
     models: [Event, Award, Location, Project, VoteCategory, Account, EventTable, User, Voucher, ProjectTable, Tshirt, QuestionUser, Question, TshirtGroup, TshirtTranslation, QuestionTranslation, QuestionRegistration, Registration, TshirtGroupTranslation],
     logging: true,

@@ -4,12 +4,12 @@ import { BaseEventModel } from './base_event.model.js';
 @Table
 export class TshirtTranslation extends BaseEventModel {
   @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
-  language!: string;
+  declare language: string;
 
   @Column(DataType.STRING(250))
-  description!: string;
+  declare description: string;
 
   @ForeignKey(() => Tshirt)
   @Column
-  tshirtId!: number;
+  declare tshirtId: number;
 }

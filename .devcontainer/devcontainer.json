@@ -1,12 +1,10 @@
 {
   "name": "Backend Development Container",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-
-  "forwardPorts": [3000, 3001],
-
+  "dockerComposeFile": [
+    "docker-compose.yml"
+  ],
+  "workspaceFolder": "/workspace",
+  "service": "workspace",
   "postCreateCommand": "npm install",
-
   "postStartCommand": ".devcontainer/start.sh"
 }
