@@ -1,9 +1,9 @@
-version: '3.8'
-
 services:
   workspace:
-    image: node:26
     container_name: ${PROJECT_NAME:-coolestproject-dev}-workspace
+    build:
+      context: .
+      dockerfile: Dockerfile
 
     environment:
       # Database configuration (admin & api)
@@ -66,10 +66,10 @@ services:
     container_name: ${PROJECT_NAME:-coolestproject-dev}-proxy
     volumes:
     - ./proxy_templates:/etc/nginx/templates
+    - ./certs:/etc/nginx/certs/
     ports:
     - "8080:80"
-    environment:
-    - NGINX_PORT=80
+    - "8443:443"
 
 volumes:
   db-data:

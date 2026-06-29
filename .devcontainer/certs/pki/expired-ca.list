@@ -1,0 +1,86 @@
+# Easy-RSA expired CA certificate list:
+# =====================================
+
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            26:50:d6:01:1c:3e:0f:7d:d8:61:0f:3e:0f:c3:e0:67:1d:95:88:4a
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=CoolestProjects BE Test
+        Validity
+            Not Before: Feb  2 17:25:48 2021 GMT
+            Not After : Jan 31 17:25:48 2031 GMT
+        Subject: CN=CoolestProjects BE Test
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:96:19:a2:d6:2b:af:10:4b:e1:05:08:69:52:f1:
+                    e0:40:d4:89:73:ab:72:d4:52:59:d3:33:0f:04:97:
+                    1a:bc:9d:73:31:62:dd:4e:f7:1e:55:42:84:84:8a:
+                    fc:19:d5:3a:65:fe:99:55:67:4d:b5:e4:d4:ca:cc:
+                    e1:57:d1:56:ee:6c:57:89:bd:54:ad:80:c7:79:67:
+                    c0:c3:66:f2:9a:15:37:83:03:26:ee:58:8e:62:9b:
+                    82:54:7c:82:ff:7a:8c:63:ef:df:d2:57:70:16:ed:
+                    07:0d:c7:c5:65:26:d7:d5:41:12:ae:94:e8:02:c7:
+                    91:8b:f4:a7:32:cc:f5:5d:e4:8f:9b:f6:57:6f:bb:
+                    45:fe:1d:1d:e3:99:a8:2d:d4:90:51:01:5a:ce:60:
+                    f9:98:78:2f:19:6f:7f:50:54:cd:9f:ee:52:aa:7f:
+                    25:aa:b6:b6:f1:f0:5a:d2:9b:22:2f:5d:2c:27:af:
+                    c5:71:05:53:d7:4a:b0:7d:2e:8d:61:e5:7b:31:58:
+                    1e:0f:87:33:09:99:67:ed:81:8f:d4:f8:77:da:7c:
+                    37:a5:7d:4a:1d:41:3f:be:ef:8d:1d:75:86:c6:a8:
+                    c6:37:9b:69:9d:25:ed:fd:e1:99:7e:86:6a:9b:66:
+                    01:81:62:1d:48:98:18:62:3e:86:2c:a0:ea:1c:4f:
+                    b5:47
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                17:B2:BF:0B:7B:BC:FC:51:64:57:6C:16:81:9B:F5:D7:EA:8E:08:A1
+            X509v3 Authority Key Identifier: 
+                keyid:17:B2:BF:0B:7B:BC:FC:51:64:57:6C:16:81:9B:F5:D7:EA:8E:08:A1
+                DirName:/CN=CoolestProjects BE Test
+                serial:26:50:D6:01:1C:3E:0F:7D:D8:61:0F:3E:0F:C3:E0:67:1D:95:88:4A
+            X509v3 Basic Constraints: 
+                CA:TRUE
+            X509v3 Key Usage: 
+                Certificate Sign, CRL Sign
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        39:b2:2f:2a:24:e8:18:0c:01:93:2d:9f:50:fc:6b:34:7d:35:
+        e7:47:d4:e3:27:f6:36:6a:0a:a8:dc:e3:c4:ed:20:1b:33:df:
+        d7:91:ec:b0:fe:44:54:c0:70:42:2f:d0:9e:cf:af:c9:8c:d2:
+        77:03:e7:3a:62:62:c0:05:16:3c:24:28:b6:28:8b:43:40:1c:
+        8b:e4:6d:3a:00:49:ec:10:65:fa:70:ab:01:0a:85:a2:c1:21:
+        39:a2:ca:51:e2:4c:48:f2:ec:92:ce:da:14:42:33:44:bd:70:
+        37:9e:02:b6:5d:92:3f:c5:d9:37:24:79:f9:ad:74:5e:79:b8:
+        df:6d:14:77:e4:19:31:7e:68:cd:f1:ca:5e:3f:26:06:85:33:
+        e6:c6:a0:1a:2b:7f:1d:89:0f:4e:99:78:46:ba:61:ba:db:c8:
+        06:14:39:73:50:a9:c9:a1:5b:d0:70:60:15:d1:13:c2:3f:50:
+        87:26:a7:26:53:5b:dd:e9:45:64:0f:f4:6d:f5:04:e9:de:97:
+        6a:1a:ed:35:96:13:2e:28:6c:ec:ef:8f:5a:e5:fa:a3:f2:ee:
+        7d:35:71:4b:69:fe:65:79:a6:70:e9:cf:d1:6b:05:1b:ad:e7:
+        c7:80:1c:28:01:2c:93:ae:81:93:1a:df:cc:96:0b:c9:5b:2d:
+        56:89:eb:5e
+-----BEGIN CERTIFICATE-----
+MIIDbzCCAlegAwIBAgIUJlDWARw+D33YYQ8+D8PgZx2ViEowDQYJKoZIhvcNAQEL
+BQAwIjEgMB4GA1UEAwwXQ29vbGVzdFByb2plY3RzIEJFIFRlc3QwHhcNMjEwMjAy
+MTcyNTQ4WhcNMzEwMTMxMTcyNTQ4WjAiMSAwHgYDVQQDDBdDb29sZXN0UHJvamVj
+dHMgQkUgVGVzdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJYZotYr
+rxBL4QUIaVLx4EDUiXOrctRSWdMzDwSXGrydczFi3U73HlVChISK/BnVOmX+mVVn
+TbXk1MrM4VfRVu5sV4m9VK2Ax3lnwMNm8poVN4MDJu5YjmKbglR8gv96jGPv39JX
+cBbtBw3HxWUm19VBEq6U6ALHkYv0pzLM9V3kj5v2V2+7Rf4dHeOZqC3UkFEBWs5g
++Zh4Lxlvf1BUzZ/uUqp/Jaq2tvHwWtKbIi9dLCevxXEFU9dKsH0ujWHlezFYHg+H
+MwmZZ+2Bj9T4d9p8N6V9Sh1BP77vjR11hsaoxjebaZ0l7f3hmX6GaptmAYFiHUiY
+GGI+hiyg6hxPtUcCAwEAAaOBnDCBmTAdBgNVHQ4EFgQUF7K/C3u8/FFkV2wWgZv1
+1+qOCKEwXQYDVR0jBFYwVIAUF7K/C3u8/FFkV2wWgZv11+qOCKGhJqQkMCIxIDAe
+BgNVBAMMF0Nvb2xlc3RQcm9qZWN0cyBCRSBUZXN0ghQmUNYBHD4PfdhhDz4Pw+Bn
+HZWISjAMBgNVHRMEBTADAQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOC
+AQEAObIvKiToGAwBky2fUPxrNH0150fU4yf2NmoKqNzjxO0gGzPf15HssP5EVMBw
+Qi/Qns+vyYzSdwPnOmJiwAUWPCQotiiLQ0Aci+RtOgBJ7BBl+nCrAQqFosEhOaLK
+UeJMSPLsks7aFEIzRL1wN54Ctl2SP8XZNyR5+a10Xnm4320Ud+QZMX5ozfHKXj8m
+BoUz5sagGit/HYkPTpl4RrphutvIBhQ5c1CpyaFb0HBgFdETwj9QhyanJlNb3elF
+ZA/0bfUE6d6XahrtNZYTLihs7O+PWuX6o/LufTVxS2n+ZXmmcOnP0WsFG63nx4Ac
+KAEsk66BkxrfzJYLyVstVonrXg==
+-----END CERTIFICATE-----

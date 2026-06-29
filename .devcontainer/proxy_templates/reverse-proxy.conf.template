@@ -1,39 +1,115 @@
 
-    resolver 127.0.0.11 valid=30s; # Docker internal DNS
+resolver 127.0.0.11 valid=30s; # Docker internal DNS
 
-    map $host $target_port {
-        hostnames; 
+# admin.coolestprojects.localhost        3000
+# api.coolestprojects.localhost          3001
+# eventguide.coolestprojects.localhost   3002
+# presentation.coolestprojects.localhost 3003
+# registration.coolestprojects.localhost 3004
+# voting.coolestprojects.localhost       3005
 
-        admin.coolestprojects.localhost        3000;
-        eventguide.coolestprojects.localhost   3002;
-        presentation.coolestprojects.localhost 3003;
-        registration.coolestprojects.localhost 3004;
-        voting.coolestprojects.localhost       3005;
-        api.coolestprojects.localhost          3001;
-        
-        default       "";
+# folder structure for certs
+# private etc/nginx/certs/pki/private/<hostname>.key
+# public  etc/nginx/certs/pki/issued/<hostname>.crt
+
+server {
+    listen 80;
+    server_name .coolestprojects.localhost;
+    return 301 https://$host:8443$request_uri;
+}
+
+# admin.coolestprojects.localhost (3000)
+server {
+    listen 443 ssl;
+    server_name admin.coolestprojects.localhost;
+    ssl_certificate     /etc/nginx/certs/pki/issued/admin.coolestprojects.localhost.crt;
+    ssl_certificate_key /etc/nginx/certs/pki/private/admin.coolestprojects.localhost.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    location / {
+        proxy_pass http://workspace:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
     }
+}
 
-    server {
-        listen ${NGINX_PORT};
-        server_name .coolestprojects.localhost;
-
-        location / {
-            if ($target_port = "") {
-                return 404 "Error: The local hostname $http_host is not mapped.";
-            }
-
-            proxy_pass http://workspace:$target_port;
-            
-            # Forwarding headers using native variables
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            
-            # WebSocket and Live Reload support (Vite, Webpack HMR)
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-        }
+# api.coolestprojects.localhost (3001)
+server {
+    listen 443 ssl;
+    server_name api.coolestprojects.localhost;
+    ssl_certificate     /etc/nginx/certs/pki/issued/api.coolestprojects.localhost.crt;
+    ssl_certificate_key /etc/nginx/certs/pki/private/api.coolestprojects.localhost.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    location / {
+        proxy_pass http://workspace:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
     }
+}
+
+# eventguide.coolestprojects.localhost (3002)
+server {
+    listen 443 ssl;
+    server_name eventguide.coolestprojects.localhost;
+    ssl_certificate     /etc/nginx/certs/pki/issued/eventguide.coolestprojects.localhost.crt;
+    ssl_certificate_key /etc/nginx/certs/pki/private/eventguide.coolestprojects.localhost.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    location / {
+        proxy_pass http://workspace:3002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+
+# presentation.coolestprojects.localhost (3003)
+server {
+    listen 443 ssl;
+    server_name presentation.coolestprojects.localhost;
+    ssl_certificate     /etc/nginx/certs/pki/issued/presentation.coolestprojects.localhost.crt;
+    ssl_certificate_key /etc/nginx/certs/pki/private/presentation.coolestprojects.localhost.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    location / {
+        proxy_pass http://workspace:3003;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+
+# registration.coolestprojects.localhost (3004)
+server {
+    listen 443 ssl;
+    server_name registration.coolestprojects.localhost;
+    ssl_certificate     /etc/nginx/certs/pki/issued/registration.coolestprojects.localhost.crt;
+    ssl_certificate_key /etc/nginx/certs/pki/private/registration.coolestprojects.localhost.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    location / {
+        proxy_pass http://workspace:3004;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+
+# voting.coolestprojects.localhost (3005)
+server {
+    listen 443 ssl;
+    server_name voting.coolestprojects.localhost;
+    ssl_certificate     /etc/nginx/certs/pki/issued/voting.coolestprojects.localhost.crt;
+    ssl_certificate_key /etc/nginx/certs/pki/private/voting.coolestprojects.localhost.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    location / {
+        proxy_pass http://workspace:3005;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
