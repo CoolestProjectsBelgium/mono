@@ -1,0 +1,39 @@
+
+    resolver 127.0.0.11 valid=30s; # Docker internal DNS
+
+    map $host $target_port {
+        hostnames; 
+
+        admin.coolestprojects.localhost        3000;
+        eventguide.coolestprojects.localhost   3002;
+        presentation.coolestprojects.localhost 3003;
+        registration.coolestprojects.localhost 3004;
+        voting.coolestprojects.localhost       3005;
+        api.coolestprojects.localhost          3001;
+        
+        default       "";
+    }
+
+    server {
+        listen ${NGINX_PORT};
+        server_name .coolestprojects.localhost;
+
+        location / {
+            if ($target_port = "") {
+                return 404 "Error: The local hostname $http_host is not mapped.";
+            }
+
+            proxy_pass http://workspace:$target_port;
+            
+            # Forwarding headers using native variables
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # WebSocket and Live Reload support (Vite, Webpack HMR)
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+    }
