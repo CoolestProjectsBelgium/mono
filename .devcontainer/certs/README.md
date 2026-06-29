@@ -8,8 +8,9 @@ You need to add the ca.crt file to your browsers trust store.
 
 easyrsa init-pki
 easyrsa build-ca
-easyrsa build-server-full backend.coolestprojects.localhost nopass
-easyrsa build-server-full app.coolestprojects.localhost nopass
-easyrsa build-server-full azure.coolestprojects.localhost nopass
+easyrsa build-server-full api.coolestprojects.localhost nopass
+easyrsa build-server-full registration.coolestprojects.localhost nopass
 easyrsa build-server-full voting.coolestprojects.localhost nopass
-easyrsa build-server-full screen.coolestprojects.localhost nopass
+easyrsa build-server-full eventguide.coolestprojects.localhost nopass
+easyrsa build-server-full admin.coolestprojects.localhost nopass
+easyrsa build-server-full presentation.coolestprojects.localhost nopass
