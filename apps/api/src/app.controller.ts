@@ -34,14 +34,6 @@ export class AppController {
   @Get('settings')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   getSettings(@Info() info: InfoDto): Promise<SettingDto> {
-    try {
-      return this.appService.getSettings(info);
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-      throw new HttpException(
-        'Internal server error.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return this.appService.getSettings(info);
   }
 }
