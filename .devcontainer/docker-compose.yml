@@ -19,8 +19,9 @@ services:
       ADMINJS_PORT: 3000
 
       #API config
-      JWT_KEY: U"l!p@@{An31_1dJ60zb6|3
+      JWT_KEY: U\"l!p@@{An31_1dJ60zb6|3
       API_PORT: 3001
+      VOTING_KEY: "cEc.#8Pc5^H26OBxKLMKsM"
 
     volumes:
       - ..:/workspace:cached

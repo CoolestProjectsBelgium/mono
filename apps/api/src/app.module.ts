@@ -26,7 +26,6 @@ import { TshirtGroupTranslation } from '@coolestprojects/database';
 import { TshirtTranslation } from '@coolestprojects/database';
 import { QuestionTranslation } from '@coolestprojects/database';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-//import { AzureBlobService } from './azureblob/azureblob.service';
 import { TokensService } from './tokens/tokens.service';
 import { Voucher } from '@coolestprojects/database';
 import { AzureBlob } from '@coolestprojects/database';
@@ -40,14 +39,14 @@ import { Account } from '@coolestprojects/database';
 import { Award } from '@coolestprojects/database';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BackgroundService } from './background/background.service';
-//import { AdminModule } from './admin/admin.module';
-//import { CliModule } from './cli/cli.module';
 import { EventService } from './event/event.service';
 import { EmailTemplate } from '@coolestprojects/database';
 import { ParticipantService } from './participant/participant.service';
 import { ProjectinfoService } from './projectinfo/projectinfo.service';
 import { InfoInterceptor } from './info.interceptor';
 import { AuthModule } from './auth/auth.module';
+import { VotingController } from './voting/voting.controller';
+import { VotingService } from './voting/voting.service';
 
 @Module({
   imports: [
@@ -55,10 +54,11 @@ import { AuthModule } from './auth/auth.module';
     ConfigModule.forRoot({
       isGlobal: true, // Makes the config available globally
     }),
+    AuthModule,
     //AdminModule.register(1),
 
     SequelizeModule.forRootAsync({
-      imports: [AuthModule, ConfigModule], // Import ConfigModule to access ConfigService
+      imports: [ConfigModule], // Import ConfigModule to access ConfigService
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
@@ -97,7 +97,7 @@ import { AuthModule } from './auth/auth.module';
             VoteCategory,
             Account,
             Award,
-            EmailTemplate,
+            EmailTemplate
           ],
         };
       },
@@ -121,9 +121,9 @@ import { AuthModule } from './auth/auth.module';
       Location,
       EventTable,
       ProjectTable,
+      Vote,
+      VoteCategory
     ]),
-    //AdminModule,
-    //CliModule,
   ],
   controllers: [
     AppController,
@@ -133,18 +133,19 @@ import { AuthModule } from './auth/auth.module';
     AttachmentController,
     ParticipantController,
     LoginController,
+    VotingController,
   ],
   providers: [
     { provide: 'APP_INTERCEPTOR', useClass: InfoInterceptor },
     AppService,
     RegistrationService,
     MailerService,
-    //AzureBlobService,
     TokensService,
     BackgroundService,
     EventService,
     ParticipantService,
     ProjectinfoService,
+    VotingService
   ],
   exports: [],
 })
