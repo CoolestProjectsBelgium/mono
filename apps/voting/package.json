@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-    "dependencies": {
+  "dependencies": {
     "@nuxtjs/auth-next": "5.0.0-1648802546.c9880dc",
     "@nuxtjs/axios": "^5.13.6",
     "@nuxtjs/pwa": "^3.3.5",
@@ -32,8 +32,7 @@
     "eslint-plugin-nuxt": "^4.0.0",
     "eslint-plugin-vue": "^9.6.0",
     "jest": "^29.1.2",
-    "ts-jest": "^29.0.3",
-    "vue-jest": "^3.0.7"
+    "ts-jest": "^29.0.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
