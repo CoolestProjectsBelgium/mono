@@ -6,7 +6,7 @@ import { Account } from '@coolestprojects/database';
 
 @Injectable()
 export class JwtVotingStrategy extends PassportStrategy(Strategy, 'voting') {
-  constructor(@InjectModel(Account) private readonly accountModel: typeof Account) {
+  constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.VOTING_KEY!,

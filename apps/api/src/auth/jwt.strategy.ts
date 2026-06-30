@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { env } from 'process';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from '@coolestprojects/database'; // Adjust the import path as per your project structure
+import { User } from '@coolestprojects/database';
 import { RegistrationService } from '../registration/registration.service';
 
 @Injectable()
