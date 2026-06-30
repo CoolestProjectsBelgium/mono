@@ -47,6 +47,10 @@ import { InfoInterceptor } from './info.interceptor';
 import { AuthModule } from './auth/auth.module';
 import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
+import { EventguideController } from './eventguide/eventguide.controller';
+import { PresentationController } from './presentation/presentation.controller';
+import { PresentationService } from './presentation/presentation.service';
+import { EventguideService } from './eventguide/eventguide.service';
 
 @Module({
   imports: [
@@ -134,6 +138,8 @@ import { VotingService } from './voting/voting.service';
     ParticipantController,
     LoginController,
     VotingController,
+    EventguideController,
+    PresentationController,
   ],
   providers: [
     { provide: 'APP_INTERCEPTOR', useClass: InfoInterceptor },
@@ -145,7 +151,9 @@ import { VotingService } from './voting/voting.service';
     EventService,
     ParticipantService,
     ProjectinfoService,
-    VotingService
+    VotingService,
+    PresentationService,
+    EventguideService
   ],
   exports: [],
 })
