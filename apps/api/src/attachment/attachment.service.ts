@@ -99,7 +99,11 @@ export class AttachmentService {
       include: [
         {
           model: Attachment,
-          where: { projectId: project.id },
+          where: {
+            projectId: project.id,
+            confirmed: false,
+            internal: false,
+          },
           required: true,
         },
       ],

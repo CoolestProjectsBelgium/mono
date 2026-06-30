@@ -62,12 +62,8 @@ export function useAttachments() {
       return false
     }
 
-    const azureUrl = attachment.url
-    const sas = await getValidSasForBlob(azureUrl)
-    if (!sas) return false
-
     const pipeline = newPipeline(new AnonymousCredential())
-    const blockBlobClient = new BlockBlobClient(`${azureUrl}${sas}`, pipeline)
+    const blockBlobClient = new BlockBlobClient(attachment.url, pipeline)
 
     await blockBlobClient.uploadData(file, {
       maxSingleShotSize: 4 * 1024 * 1024,

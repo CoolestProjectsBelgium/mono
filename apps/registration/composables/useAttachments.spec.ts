@@ -1,9 +1,25 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { callComposable } from '~/tests/composable-utils'
 import { mockFetch } from '~/tests/setup'
 
+const mockUploadData = vi.fn().mockResolvedValue(undefined)
+let capturedBlobUrl = ''
+
+vi.mock('@azure/storage-blob', () => ({
+  AnonymousCredential: vi.fn(),
+  BlockBlobClient: vi.fn().mockImplementation((url: string) => {
+    capturedBlobUrl = url
+    return { uploadData: mockUploadData }
+  }),
+  newPipeline: vi.fn(),
+}))
+
 describe('useAttachments SAS cache', () => {
-  beforeEach(() => mockFetch.mockReset())
+  beforeEach(() => {
+    mockFetch.mockReset()
+    mockUploadData.mockClear()
+    capturedBlobUrl = ''
+  })
 
   it('isSasStillValid returns false for expired SAS', async () => {
     const { isSasStillValid } = await callComposable(() => useAttachments())
@@ -15,6 +31,21 @@ describe('useAttachments SAS cache', () => {
     const { isSasStillValid } = await callComposable(() => useAttachments())
     const future = new Date(Date.now() + 10 * 60 * 1000).toISOString()
     expect(isSasStillValid(`?se=${encodeURIComponent(future)}&sv=2021`)).toBe(true)
+  })
+
+  it('uploadFile uses createAttachment URL without fetching a second SAS', async () => {
+    const future = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+    const blobUrl = `https://blob.test/container/file.mp4?se=${encodeURIComponent(future)}&sv=2021`
+    mockFetch.mockResolvedValue({ url: blobUrl })
+
+    const { uploadFile } = await callComposable(() => useAttachments())
+    const file = new File(['content'], 'file.mp4', { type: 'video/mp4' })
+    const ok = await uploadFile(file)
+
+    expect(ok).toBe(true)
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(capturedBlobUrl).toBe(blobUrl)
+    expect(capturedBlobUrl.match(/\?/g)).toHaveLength(1)
   })
 
   it('getValidSasForBlob caches SAS', async () => {

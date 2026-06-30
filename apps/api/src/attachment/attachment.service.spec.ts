@@ -122,6 +122,40 @@ describe('AttachmentService', () => {
     });
   });
 
+  describe('getAttachmentSAS', () => {
+    it('throws when attachment not found', async () => {
+      mockProjectModel.findOne.mockResolvedValue({ id: 1 });
+      mockAzureBlobModel.findOne.mockResolvedValue(null);
+
+      await expect(service.getAttachmentSAS('missing.mp4', 1)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('only issues SAS for unconfirmed, non-internal attachments', async () => {
+      mockProjectModel.findOne.mockResolvedValue({ id: 1 });
+      mockAzureBlobModel.findOne.mockResolvedValue({
+        container_name: 'container',
+      });
+
+      await service.getAttachmentSAS('file.mp4', 1);
+
+      expect(mockAzureBlobModel.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: [
+            expect.objectContaining({
+              where: {
+                projectId: 1,
+                confirmed: false,
+                internal: false,
+              },
+            }),
+          ],
+        }),
+      );
+    });
+  });
+
   describe('deleteAttachment', () => {
     it('throws when attachment not found', async () => {
       mockProjectModel.findOne.mockResolvedValue({ id: 1 });
