@@ -65,11 +65,14 @@ export class MailerService {
     await createTransport({
       host: env.SMTP_HOST,
       port: parseInt(env.SMTP_PORT || '587', 10),
-      //secure: env.SMTP_SECURE === 'true',
-      auth: {
-        user: env.SMTP_USER,
-        pass: env.SMTP_PASS,
-      },
+      ...(env.SMTP_USER
+        ? {
+            auth: {
+              user: env.SMTP_USER,
+              pass: env.SMTP_PASS,
+            },
+          }
+        : {}),
     } as SMTPTransport.Options).sendMail({
       from: env.SMTP_FROM,
       to,
@@ -84,15 +87,18 @@ export class MailerService {
     if (!event) {
       throw new Error('Event not found');
     }
-    
+
+    const email = user.getDataValue('email') ?? user.email;
+    const emailGuardian = user.getDataValue('email_guardian') ?? user.email_guardian;
+    const language = user.getDataValue('language') ?? user.language ?? 'en';
     const to = [
-      user.email,
-      ...(user.email_guardian ? [user.email_guardian] : []),
+      email,
+      ...(emailGuardian ? [emailGuardian] : []),
     ].join(',');
     const context = { event, user, token };
     await this.sendMail(
       MailTemplates.registration,
-      user.language,
+      language,
       event,
       to,
       context,
@@ -104,6 +110,7 @@ export class MailerService {
       throw new Error('Event not found');
     }
 
+    const language = user.language ?? 'en';
     const to = [
       user.email,
       ...(user.email_guardian ? [user.email_guardian] : []),
@@ -111,7 +118,7 @@ export class MailerService {
     const context = { event, user };
     await this.sendMail(
       MailTemplates.waiting,
-      user.language,
+      language,
       event,
       to,
       context,
@@ -119,6 +126,30 @@ export class MailerService {
   }
 
   async welcomeMailOwner(user: User) {
+    const eventId = user.getDataValue('eventId') ?? user.eventId;
+    const event = await this.eventModel.findByPk(eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
+    const email = user.getDataValue('email') ?? user.email;
+    const emailGuardian = user.getDataValue('email_guardian') ?? user.email_guardian;
+    const language = user.getDataValue('language') ?? user.language ?? 'en';
+    const to = [
+      email,
+      ...(emailGuardian ? [emailGuardian] : []),
+    ].join(',');
+    const context = { event, user };
+    await this.sendMail(
+      MailTemplates.activation,
+      language,
+      event,
+      to,
+      context,
+    );
+  }
+
+  async loginMail(user: User, token: string) {
     const event = await this.eventModel.findByPk(user.eventId);
     if (!event) {
       throw new Error('Event not found');
@@ -128,7 +159,7 @@ export class MailerService {
       user.email,
       ...(user.email_guardian ? [user.email_guardian] : []),
     ].join(',');
-    const context = { event, user };
+    const context = { event, user, token };
     await this.sendMail(
       MailTemplates.activation,
       user.language,

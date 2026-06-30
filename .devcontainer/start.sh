@@ -20,7 +20,7 @@ npm run start:dev --workspace=apps/api &
 # Start Static apps
 npm run start:dev --workspace=apps/eventguide -- -p 3002 &
 npm run start:dev --workspace=apps/presentation -- -p 3003 &
-npm run start:dev --workspace=apps/registration -- -p 3004 &
+npm run dev --workspace=apps/registration -- --port 3004 --host 0.0.0.0 &
 npm run start:dev --workspace=apps/voting -- -p 3005 &
 
 # Keep container running

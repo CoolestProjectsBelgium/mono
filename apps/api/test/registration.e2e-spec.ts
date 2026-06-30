@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { InfoInterceptor } from '../src/info.interceptor';
@@ -32,12 +33,11 @@ describe('RegistrationController (e2e)', () => {
         imports: [AppModule],
         providers: [],
       })
-        .overrideInterceptor(InfoInterceptor)
+        .overrideProvider(APP_INTERCEPTOR)
         .useValue(mockInterceptor)
         .compile();
 
       app = moduleFixture.createNestApplication();
-      app.useGlobalInterceptors(mockInterceptor);
       await app.init();
     },
     1 * 60 * 1000,
@@ -57,7 +57,7 @@ describe('RegistrationController (e2e)', () => {
       .post('/registration')
       .send({
         user: {
-          email: 'test@test.be',
+          email: `test-${Date.now()}@test.be`,
           firstname: 'John',
           lastname: 'Doe',
           address: {
@@ -70,7 +70,7 @@ describe('RegistrationController (e2e)', () => {
           general_questions: [],
           mandatory_approvals: [3],
           language: 'en',
-          year: 2010,
+          year: 2012,
           month: 5,
           t_size: 1, // kid_3-4
           via: '',
@@ -96,7 +96,7 @@ describe('RegistrationController (e2e)', () => {
     // check if mail was sent
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: 'test@test.be,test1@test.be',
+        to: expect.stringMatching(/test-\d+@test\.be,test1@test\.be/),
         subject: expect.stringContaining('Registration Confirmation'),
       }),
     );
@@ -120,7 +120,7 @@ describe('RegistrationController (e2e)', () => {
 
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: 'test@test.be,test1@test.be',
+        to: expect.stringMatching(/test-\d+@test\.be,test1@test\.be/),
         subject: expect.stringContaining('Registration Activation'),
       }),
     );

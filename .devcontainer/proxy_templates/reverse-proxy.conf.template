@@ -1,5 +1,12 @@
+resolver 127.0.0.11 valid=30s ipv6=off;
 
-resolver 127.0.0.11 valid=30s; # Docker internal DNS
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# Browsers often open http://host:8443; port 8443 is TLS — redirect to https.
+error_page 497 =301 https://$http_host$request_uri;
 
 # admin.coolestprojects.localhost        3000
 # api.coolestprojects.localhost          3001
@@ -7,10 +14,9 @@ resolver 127.0.0.11 valid=30s; # Docker internal DNS
 # presentation.coolestprojects.localhost 3003
 # registration.coolestprojects.localhost 3004
 # voting.coolestprojects.localhost       3005
-
-# folder structure for certs
-# private etc/nginx/certs/pki/private/<hostname>.key
-# public  etc/nginx/certs/pki/issued/<hostname>.crt
+#
+# Use variable proxy_pass so nginx resolves Docker service names at request
+# time (avoids "host not found in upstream" when proxy starts before workspace).
 
 server {
     listen 80;
@@ -26,7 +32,8 @@ server {
     ssl_certificate_key /etc/nginx/certs/pki/private/admin.coolestprojects.localhost.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     location / {
-        proxy_pass http://workspace:3000;
+        set $upstream_host workspace;
+        proxy_pass http://$upstream_host:3000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -42,7 +49,8 @@ server {
     ssl_certificate_key /etc/nginx/certs/pki/private/api.coolestprojects.localhost.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     location / {
-        proxy_pass http://workspace:3001;
+        set $upstream_host workspace;
+        proxy_pass http://$upstream_host:3001;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -58,7 +66,8 @@ server {
     ssl_certificate_key /etc/nginx/certs/pki/private/eventguide.coolestprojects.localhost.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     location / {
-        proxy_pass http://workspace:3002;
+        set $upstream_host workspace;
+        proxy_pass http://$upstream_host:3002;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -74,7 +83,8 @@ server {
     ssl_certificate_key /etc/nginx/certs/pki/private/presentation.coolestprojects.localhost.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     location / {
-        proxy_pass http://workspace:3003;
+        set $upstream_host workspace;
+        proxy_pass http://$upstream_host:3003;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -89,12 +99,28 @@ server {
     ssl_certificate     /etc/nginx/certs/pki/issued/registration.coolestprojects.localhost.crt;
     ssl_certificate_key /etc/nginx/certs/pki/private/registration.coolestprojects.localhost.key;
     ssl_protocols TLSv1.2 TLSv1.3;
-    location / {
-        proxy_pass http://workspace:3004;
+
+    # Same-origin API proxy — avoids a separate TLS trust step for api.* in the browser.
+    location /_api/ {
+        set $upstream_host workspace;
+        rewrite ^/_api/(.*)$ /$1 break;
+        proxy_pass http://$upstream_host:3001;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
+    }
+
+    location / {
+        set $upstream_host workspace;
+        proxy_pass http://$upstream_host:3004;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
     }
 }
 
@@ -106,7 +132,8 @@ server {
     ssl_certificate_key /etc/nginx/certs/pki/private/voting.coolestprojects.localhost.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     location / {
-        proxy_pass http://workspace:3005;
+        set $upstream_host workspace;
+        proxy_pass http://$upstream_host:3005;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

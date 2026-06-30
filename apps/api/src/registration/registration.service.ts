@@ -89,7 +89,7 @@ export class RegistrationService {
       email_guardian: createRegistrationDto.user.email_guardian,
       via: createRegistrationDto.user.via,
       medical: createRegistrationDto.user.medical,
-      tshirt: createRegistrationDto.user.t_size,
+      tshirtId: createRegistrationDto.user.t_size,
       birthmonth: new Date(
         createRegistrationDto.user.year,
         createRegistrationDto.user.month,
@@ -162,19 +162,21 @@ export class RegistrationService {
       registration.waiting_list = true;
     }
 
-    const r = await this.registrationModel.create(registration, {
+    const { questions, ...registrationData } = registration;
+
+    const r = await this.registrationModel.create(registrationData, {
       transaction,
     });
 
     // map the questions to the registration (verify if questions exist for the event)
-    const questions = await this.questionModel.findAll({
+    const questionRecords = await this.questionModel.findAll({
       where: {
-        id: registration.questions.map((q) => q.questionId),
+        id: questions.map((q) => q.questionId),
         eventId: info.currentEvent,
       },
     });
     await this.questionRegistrationModel.bulkCreate(
-      questions.map((q) => {
+      questionRecords.map((q) => {
         return {
           questionId: q.id,
           registrationId: r.id,
@@ -191,21 +193,29 @@ export class RegistrationService {
       throw new Error('Transaction commit failed: ' + error);
     }
 
-    // send mails
-    if (registration.waiting_list) {
-      await this.mailerService.waitingListMail(r);
-    } else {
-      const token = this.tokenService.generateRegistrationToken(r.id);
-      await this.mailerService.registrationMail(r, token);
+    const savedRegistration = await this.registrationModel.findByPk(r.id);
+    if (!savedRegistration) {
+      throw new Error('Registration not found after create');
     }
 
-    return r;
+    // send mails
+    if (registration.waiting_list) {
+      await this.mailerService.waitingListMail(savedRegistration);
+    } else {
+      const token = this.tokenService.generateRegistrationToken(savedRegistration.id);
+      await this.mailerService.registrationMail(savedRegistration, token);
+    }
+
+    return savedRegistration;
   }
 
   async activateRegistration(registrationID: number): Promise<User> {
 
     // update everything in a transaction
     const transaction = await this.sequelize.transaction();
+    let user: User;
+    let joinedViaVoucher = false;
+
     try {
       const r = await this.registrationModel.findOne({
         where: { id: registrationID },
@@ -217,7 +227,9 @@ export class RegistrationService {
         throw new Error('Registration not found');
       }
 
-      const e = await this.eventModel.findByPk(r.eventId, {
+      const reg = r.get({ plain: true }) as Registration;
+
+      const e = await this.eventModel.findByPk(reg.eventId, {
         attributes: ['id', 'maxVoucher'],
         transaction,
       });
@@ -232,43 +244,44 @@ export class RegistrationService {
         lock: transaction.LOCK.UPDATE,
       });
 
-      const user = await this.userModel.create(
+      user = await this.userModel.create(
         {
-          eventId: r.eventId,
+          eventId: reg.eventId,
 
           //user
-          language: r.language,
-          email: r.email,
-          gsm: r.gsm,
-          firstname: r.firstname,
-          lastname: r.lastname,
-          sex: r.sex,
-          birthmonth: r.birthmonth,
-          tshirtId: r.tshirtId,
-          via: r.via,
-          medical: r.medical,
-          internalinfo: r.internalinfo,
+          language: reg.language,
+          email: reg.email,
+          gsm: reg.gsm,
+          firstname: reg.firstname,
+          lastname: reg.lastname,
+          sex: reg.sex,
+          birthmonth: reg.birthmonth,
+          tshirtId: reg.tshirtId,
+          via: reg.via,
+          medical: reg.medical,
+          internalinfo: reg.internalinfo,
 
           //address
-          postalcode: r.postalcode,
-          municipality_name: r.municipality_name,
-          street: r.street,
-          house_number: r.house_number,
-          box_number: r.box_number,
+          postalcode: reg.postalcode,
+          municipality_name: reg.municipality_name,
+          street: reg.street,
+          house_number: reg.house_number,
+          box_number: reg.box_number,
 
           //guardian
-          gsm_guardian: r.gsm_guardian,
-          email_guardian: r.email_guardian,
+          gsm_guardian: reg.gsm_guardian,
+          email_guardian: reg.email_guardian,
         },
         { transaction },
       );
 
-      if (r.project_code) {
+      if (reg.project_code) {
+        joinedViaVoucher = true;
         // link user to project via voucher
         const voucher = await this.voucherModel.findOne({
           where: {
-            eventId: r.eventId,
-            voucherGuid: r.project_code,
+            eventId: reg.eventId,
+            voucherGuid: reg.project_code,
             participantId: null,
           },
           transaction,
@@ -282,11 +295,11 @@ export class RegistrationService {
         // create project for user
         await this.projectModel.create(
           {
-            name: r.project_name,
-            description: r.project_descr,
-            type: r.project_type,
-            language: r.project_lang,
-            eventId: r.eventId,
+            name: reg.project_name,
+            description: reg.project_descr,
+            type: reg.project_type,
+            language: reg.project_lang,
+            eventId: reg.eventId,
             maxVoucher: e.maxVoucher,
             ownerId: user.id,
           },
@@ -296,10 +309,11 @@ export class RegistrationService {
 
       await this.questionUser.bulkCreate(
         q.map((question) => {
+          const qr = question.get({ plain: true });
           return {
-            questionId: question.questionId,
+            questionId: qr.questionId,
             userId: user.id,
-            eventId: question.eventId,
+            eventId: qr.eventId,
           };
         }),
         { transaction },
@@ -317,20 +331,20 @@ export class RegistrationService {
       });
 
       await transaction.commit();
-
-      // send confirmation mail
-      if (r.project_code) {
-        await this.mailerService.welcomeMailCoWorker();
-        await this.mailerService.notifyProjectOwner();
-      } else {
-        await this.mailerService.welcomeMailOwner(user);
-      }
-
-      return user;
     } catch (error) {
       await transaction.rollback();
       throw new Error('Transaction commit failed: ' + error);
     }
+
+    // send confirmation mail (outside transaction)
+    if (joinedViaVoucher) {
+      await this.mailerService.welcomeMailCoWorker();
+      await this.mailerService.notifyProjectOwner();
+    } else {
+      await this.mailerService.welcomeMailOwner(user);
+    }
+
+    return user;
   }
 
   private async validate(event: Event, registration: any) {
@@ -338,12 +352,14 @@ export class RegistrationService {
     const mandatoryQuestions = await this.questionModel.findAll({
       attributes: ['id'],
       where: {
-        EventId: event.id,
+        eventId: event.id,
         mandatory: true,
       },
     });
 
-    const answeredQuestionIds = registration.questions.map((q: { questionId: any; }) => q.questionId);
+    const answeredQuestionIds = registration.questions.map(
+      (q: { questionId: string | number }) => Number(q.questionId),
+    );
     const missingMandatory = mandatoryQuestions.filter(
       (q) => !answeredQuestionIds.includes(q.id),
     );
@@ -353,8 +369,9 @@ export class RegistrationService {
     }
 
     // check date of birth
-    const minBirthDate = new Date(event.officialStartDate);
-    const maxBirthDate = new Date(event.officialStartDate);
+    const eventDate = new Date(event.officialStartDate);
+    const minBirthDate = new Date(eventDate);
+    const maxBirthDate = new Date(eventDate);
 
     minBirthDate.setFullYear(minBirthDate.getFullYear() - event.minAge);
     maxBirthDate.setFullYear(maxBirthDate.getFullYear() - event.maxAge - 1);
@@ -369,11 +386,9 @@ export class RegistrationService {
     }
 
     // check guardian age
-    const guardianRequiredDate = event.officialStartDate;
-    guardianRequiredDate.setFullYear(
-      guardianRequiredDate.getFullYear() - event.minGuardianAge,
-    );
-    const guardianRequired = guardianRequiredDate < registration.birthmonth;
+    const guardianCutoff = new Date(eventDate);
+    guardianCutoff.setFullYear(guardianCutoff.getFullYear() - event.minGuardianAge);
+    const guardianRequired = guardianCutoff < registration.birthmonth;
 
     //guardian is required
     if (

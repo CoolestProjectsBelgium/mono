@@ -14,14 +14,29 @@ services:
       DB_USER: coolestproject
       DB_PASSWORD: Se84KCCCJlnfkdfv
 
+      DB_HOST_TEST: db_test
+      DB_PORT_TEST: 3306
+      DB_NAME_TEST: coolestproject_test
+      DB_USER_TEST: coolestproject_test
+      DB_PASSWORD_TEST: Se84KCCCJlnfkdfv_test
+
       # AdminJS configuration
       ADMINJS_COOKIE_SECRET: nic2;To97Di\lF8zC'V{'[_
       ADMINJS_PORT: 3000
 
-      #API config
+      # API config
       JWT_KEY: U\"l!p@@{An31_1dJ60zb6|3
       API_PORT: 3001
       VOTING_KEY: "cEc.#8Pc5^H26OBxKLMKsM"
+
+      # Azure Blob (Azurite in dev)
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+
+      NUXT_PUBLIC_API_BASE: /_api
+
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_FROM: noreply@coolestprojects.localhost
 
     volumes:
       - ..:/workspace:cached
@@ -40,6 +55,8 @@ services:
 
     depends_on:
       - db
+      - db_test
+      - azurite
 
   db:
     image: mysql:latest
@@ -53,6 +70,36 @@ services:
     volumes:
       - db-data:/var/lib/mysql
 
+  db_test:
+    image: mysql:latest
+    container_name: ${PROJECT_NAME:-coolestproject-dev}-db_test
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: coolestproject_test
+      MYSQL_DATABASE: coolestproject_test
+      MYSQL_USER: coolestproject_test
+      MYSQL_PASSWORD: Se84KCCCJlnfkdfv_test
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-test-data:/var/lib/mysql
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: ${PROJECT_NAME:-coolestproject-dev}-azurite
+    restart: unless-stopped
+    ports:
+      - "10000:10000"
+    volumes:
+      - azurite-data:/data
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: ${PROJECT_NAME:-coolestproject-dev}-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
   phpmyadmin:
     container_name: ${PROJECT_NAME:-coolestproject-dev}-phpadmin
     image: phpmyadmin
@@ -63,14 +110,19 @@ services:
       - PMA_ARBITRARY=1
 
   proxy:
-    image: nginx
+    image: nginx:alpine
     container_name: ${PROJECT_NAME:-coolestproject-dev}-proxy
+    restart: unless-stopped
     volumes:
-    - ./proxy_templates:/etc/nginx/templates
-    - ./certs:/etc/nginx/certs/
+      - ./proxy_templates:/etc/nginx/templates:ro
+      - ./certs:/etc/nginx/certs:ro
     ports:
-    - "8080:80"
-    - "8443:443"
+      - "8080:80"
+      - "8443:443"
+    depends_on:
+      - workspace
 
 volumes:
   db-data:
+  db-test-data:
+  azurite-data:

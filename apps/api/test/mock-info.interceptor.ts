@@ -23,6 +23,10 @@ export class MockInfoInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
+    const headerLang = request.acceptsLanguages?.('fr', 'nl', 'en');
+    if (headerLang) {
+      this.info.language = headerLang;
+    }
     request['info'] = this.info;
     return next.handle();
   }

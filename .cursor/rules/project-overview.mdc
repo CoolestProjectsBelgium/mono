@@ -9,18 +9,25 @@ Event registration platform. Read `AGENTS.md` at repo root for full architecture
 
 ## Layout
 
-- `backend/` — npm workspaces: `apps/api` (NestJS), `apps/admin` (AdminJS), `packages/database` (Sequelize models)
-- `frontend/` — Nuxt 3 registration SPA (Tailwind, Pinia, magic-link login)
-- `configuration/` — Traefik TLS; do not modify certs unless asked
-- `docker-compose.yml` — local dev stack; frontend at `app.coolestprojects.localhost:1234`
+- `apps/api` — NestJS REST API (@coolestprojects/api)
+- `apps/admin` — AdminJS (@coolestprojects/admin)
+- `apps/registration` — Nuxt 3 registration SPA (Tailwind, Pinia, magic-link login)
+- `apps/voting`, `apps/eventguide`, `apps/presentation` — stubs
+- `packages/database` — Sequelize models (@coolestprojects/database)
+- `.devcontainer/` — nginx TLS proxy, docker-compose, start.sh
 
 ## Key rules
 
-- Add/edit Sequelize models in `backend/packages/database/src/models/`, export from `index.ts`, register in `app.module.ts`
+- Add/edit Sequelize models in `packages/database/src/models/`, export from `index.ts`, register in `apps/api/src/app.module.ts`
 - Rebuild database package after model changes: `npm run build --workspace=@coolestprojects/database`
 - Business logic belongs in `*.service.ts`; DTOs in `dto/`; controllers stay thin
 - Active event context comes from `InfoInterceptor` — use `@Info()` decorator in controllers
 - Use workspace flag for scripts: `npm run <script> -w @coolestprojects/api`
 - Never commit `.env`, `dist/`, or `node_modules/`
-- Voting app (`voting/`) is planned but not present in this repo yet
-- Frontend API gaps documented in `frontend/MISSING_APIS.md`
+- Registration API notes in `apps/registration/MISSING_APIS.md`
+
+## Local URLs (devcontainer)
+
+- Registration SPA: `https://registration.coolestprojects.localhost:8443` (API calls use same-origin `/_api` proxy)
+- API (direct): `https://api.coolestprojects.localhost:8443`
+- Admin: `https://admin.coolestprojects.localhost:8443`

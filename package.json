@@ -4,7 +4,10 @@
   "description": "Monorepo for coolestprojects apps and packages",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm test --workspace=@coolestprojects/registration && npm test --workspace=@coolestprojects/api",
+    "test:registration": "npm test --workspace=@coolestprojects/registration",
+    "test:api": "npm test --workspace=@coolestprojects/api",
+    "test:e2e": "npm run test:e2e --workspace=@coolestprojects/api"
   },
   "keywords": [],
   "author": "",
@@ -28,5 +31,8 @@
   },
   "dependencies": {
     "@nestjs/cli": "^11.0.23"
+  },
+  "devDependencies": {
+    "vite": "^6.4.3"
   }
 }

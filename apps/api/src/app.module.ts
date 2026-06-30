@@ -5,7 +5,9 @@ import { RegistrationService } from './registration/registration.service';
 import { RegistrationController } from './registration/registration.controller';
 import { ProjectinfoController } from './projectinfo/projectinfo.controller';
 import { UserinfoController } from './userinfo/userinfo.controller';
+import { UserinfoService } from './userinfo/userinfo.service';
 import { AttachmentController } from './attachment/attachment.controller';
+import { AttachmentService } from './attachment/attachment.service';
 import { ParticipantController } from './participant/participant.controller';
 import { LoginController } from './login/login.controller';
 import { MailerService } from './mailer/mailer.service';
@@ -47,6 +49,7 @@ import { InfoInterceptor } from './info.interceptor';
 import { AuthModule } from './auth/auth.module';
 import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
+import { AzureBlobService } from './azureblob/azureblob.service';
 
 @Module({
   imports: [
@@ -121,6 +124,8 @@ import { VotingService } from './voting/voting.service';
       Location,
       EventTable,
       ProjectTable,
+      Attachment,
+      AzureBlob,
       Vote,
       VoteCategory
     ]),
@@ -145,7 +150,10 @@ import { VotingService } from './voting/voting.service';
     EventService,
     ParticipantService,
     ProjectinfoService,
-    VotingService
+    VotingService,
+    UserinfoService,
+    AttachmentService,
+    AzureBlobService,
   ],
   exports: [],
 })

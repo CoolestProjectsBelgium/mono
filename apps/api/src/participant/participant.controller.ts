@@ -1,21 +1,57 @@
-import { Controller, Delete, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Post,
+  UseGuards,
+  Request,
+  UseInterceptors,
+  Param,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ApiResponse, ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { ParticipantService } from './participant.service';
+import { ParticipantDto } from '../dto/participant.dto';
+import { UserCookieInterceptor } from '../user-cookie.interceptor';
 
 @Controller('participant')
 @ApiTags('participant')
 @ApiCookieAuth()
 export class ParticipantController {
+  constructor(private readonly participantService: ParticipantService) {}
+
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async createParticipant() {
-    return null; //this.registrationService.createParticipant();
+  async createParticipant(
+    @Request() req: { user: { id: number } },
+  ): Promise<ParticipantDto> {
+    const voucher = await this.participantService.generateParticipantVoucher(
+      req.user.id,
+    );
+    return {
+      id: voucher.id,
+      name: voucher.voucherGuid,
+      self: false,
+    };
   }
+
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async deleteParticipant(id: number) {
-    return null; //this.registrationService.createParticipant();
+  async deleteParticipant(
+    @Request() req: { user: { id: number } },
+    @Param('id') id: string,
+  ) {
+    const removed = await this.participantService.removeParticipant(
+      req.user.id,
+      Number(id),
+    );
+    if (!removed) {
+      throw new ForbiddenException('Cannot remove participant');
+    }
+    return { success: true };
   }
 }

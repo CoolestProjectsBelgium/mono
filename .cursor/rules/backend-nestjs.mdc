@@ -1,6 +1,6 @@
 ---
 description: NestJS backend patterns for Coolest Projects API
-globs: backend/**/*.ts
+globs: apps/api/**/*.ts
 alwaysApply: false
 ---
 
@@ -18,16 +18,16 @@ import { User, Event } from '@coolestprojects/database';
 
 ## Patterns
 
-- Register new models in both `SequelizeModule.forRootAsync({ models: [...] })` and `forFeature([...])` in `app.module.ts`
-- DTOs live in `backend/apps/api/src/dto/` with Swagger decorators
-- Auth: JWT via `AuthModule`; protect routes with Passport guards
+- Register new models in both `SequelizeModule.forRootAsync({ models: [...] })` and `forFeature([...])` in `apps/api/src/app.module.ts`
+- DTOs live in `apps/api/src/dto/` with Swagger decorators
+- Auth: JWT via `AuthModule`; protect routes with `AuthGuard('jwt-cookiecombo')` + `UserCookieInterceptor`
 - File uploads: `AttachmentService` + `AzureBlobService`; SAS tokens for client-side upload
 - Email: `MailerService` renders `EmailTemplate` records with Handlebars
 
 ## Testing
 
 - Unit: `*.spec.ts` next to source; `npm run test -w @coolestprojects/api`
-- E2E: `backend/apps/api/test/`; uses `DB_*_TEST` env vars; `npm run test:e2e -w @coolestprojects/api`
+- E2E: `apps/api/test/`; uses `DB_*_TEST` env vars; `npm run test:e2e -w @coolestprojects/api`
 
 ## Database package exports
 

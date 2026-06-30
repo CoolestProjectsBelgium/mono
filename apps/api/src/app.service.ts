@@ -38,6 +38,7 @@ export class AppService {
       include: [
         {
           model: QuestionTranslation,
+          as: 'translations',
           where: { language: info.language },
           attributes: ['description', 'positive', 'negative'],
         },
@@ -46,12 +47,18 @@ export class AppService {
       where: { eventId: info.currentEvent, mandatory: { [Op.not]: true } },
     });
     return questions.map((question) => {
+      const q = question.get({ plain: true }) as {
+        id: number;
+        name: string;
+        translations: { description: string; positive: string; negative: string }[];
+      };
+      const translation = q.translations[0];
       return {
-        id: question.id,
-        name: question.name,
-        description: question.translations[0].description,
-        positive: question.translations[0].positive,
-        negative: question.translations[0].negative,
+        id: q.id,
+        name: q.name,
+        description: translation.description,
+        positive: translation.positive,
+        negative: translation.negative,
       };
     });
   }
@@ -61,6 +68,7 @@ export class AppService {
       include: [
         {
           model: QuestionTranslation,
+          as: 'translations',
           where: { language: info.language },
           attributes: ['description'],
         },
@@ -69,10 +77,16 @@ export class AppService {
       where: { eventId: info.currentEvent, mandatory: true },
     });
     return approvals.map((question) => {
+      const q = question.get({ plain: true }) as {
+        id: number;
+        name: string;
+        translations: { description: string }[];
+      };
+      const translation = q.translations[0];
       return {
-        id: question.id,
-        name: question.name,
-        description: question.translations[0].description,
+        id: q.id,
+        name: q.name,
+        description: translation.description,
       };
     });
   }
@@ -82,9 +96,11 @@ export class AppService {
       include: [
         {
           model: Tshirt,
+          as: 'tshirts',
           include: [
             {
               model: TshirtTranslation,
+              as: 'translations',
               where: { language: info.language },
               attributes: ['description'],
             },
@@ -93,17 +109,22 @@ export class AppService {
         },
         {
           model: TshirtGroupTranslation,
+          as: 'translations',
           where: { language: info.language },
           attributes: ['description'],
         },
       ],
-      attributes: [],
+      attributes: ['id', 'name'],
       where: { eventId: info.currentEvent },
     });
     return groups.map((group) => {
+      const g = group.get({ plain: true }) as {
+        translations: { description: string }[];
+        tshirts: { id: number; translations: { description: string }[] }[];
+      };
       return {
-        group: group.translations[0].description,
-        items: group.tshirts.map((tshirt) => {
+        group: g.translations[0].description,
+        items: g.tshirts.map((tshirt) => {
           return {
             id: tshirt.id,
             name: tshirt.translations[0].description,

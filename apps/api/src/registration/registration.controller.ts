@@ -21,7 +21,12 @@ export class RegistrationController {
       await this.registrationService.create(info, createRegistrationDto);
     } catch (error) {
       console.error('Error during registration:', error);
-      throw new HttpException('Internal server error.', HttpStatus.INTERNAL_SERVER_ERROR);  
+      const message =
+        error instanceof Error ? error.message : 'Internal server error.';
+      const status = message === 'Internal server error.'
+        ? HttpStatus.INTERNAL_SERVER_ERROR
+        : HttpStatus.BAD_REQUEST;
+      throw new HttpException(message, status);
     }
   }
 }

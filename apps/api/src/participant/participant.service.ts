@@ -41,4 +41,26 @@ export class ParticipantService {
   private generateUniqueToken(): string {
     return crypto.randomUUID();
   }
+
+  public async removeParticipant(
+    ownerUserId: number,
+    participantUserId: number,
+  ): Promise<boolean> {
+    const project = await this.projectModel.findOne({
+      where: { ownerId: ownerUserId },
+    });
+    if (!project) {
+      return false;
+    }
+
+    const voucher = await this.voucherModel.findOne({
+      where: { projectId: project.id, participantId: participantUserId },
+    });
+    if (!voucher) {
+      return false;
+    }
+
+    await voucher.update({ participantId: null });
+    return true;
+  }
 }

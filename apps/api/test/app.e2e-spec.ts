@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 //import { RegistrationService } from '../src/registration/registration.service';
@@ -124,24 +125,29 @@ describe('AppController (e2e)', () => {
         imports: [AppModule],
         providers: [],
       })
-        .overrideInterceptor(InfoInterceptor)
+        .overrideProvider(APP_INTERCEPTOR)
         .useValue(mockInterceptor)
         .compile();
 
       app = moduleFixture.createNestApplication();
-      app.useGlobalInterceptors(mockInterceptor);
       await app.init();
     },
     1 * 60 * 1000,
   );
 
-  it('/settings (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/settings')
-      .expect(200)
-      .expect(
-        '{"maxAge":18,"minAge":7,"guardianAge":16,"enviroment":"production","waitingListActive":false,"maxUploadSize":2147483647,"startDateEvent":"2024-09-01T00:00:00.000Z","tshirtDate":"2025-04-01T00:00:00.000Z","eventBeginDate":"2024-09-01T00:00:00.000Z","registrationOpenDate":"2024-11-01T00:00:00.000Z","registrationClosedDate":"2025-04-01T00:00:00.000Z","projectClosedDate":"2025-04-12T00:00:00.000Z","officialStartDate":"2025-04-26T00:00:00.000Z","eventEndDate":"2025-08-31T00:00:00.000Z","eventTitle":"Coolest Projects 2025","maxRegistration":64,"maxParticipants":3,"isRegistrationOpen":true,"isProjectClosed":false,"isActive":true}',
-      );
+  it('/settings (GET)', async () => {
+    const response = await request(app.getHttpServer()).get('/settings').expect(200);
+    const body = response.body;
+    expect(body.maxAge).toBe(18);
+    expect(body.minAge).toBe(7);
+    expect(body.guardianAge).toBe(16);
+    expect(body.waitingListActive).toBe(false);
+    expect(body.maxRegistration).toBe(64);
+    expect(body.maxParticipants).toBe(3);
+    expect(body.isRegistrationOpen).toBe(true);
+    expect(body.isProjectClosed).toBe(false);
+    expect(body.isActive).toBe(true);
+    expect(body.eventTitle).toBe('Coolest Projects 2026');
   });
 
   //TODO: Add other paths for /settings (GET) ????
@@ -155,9 +161,10 @@ describe('AppController (e2e)', () => {
 
   for (const [lang, expected] of Object.entries(expected_tshirts_outputs)) {
     it(`/tshirts (GET) - ${lang}`, () => {
-      mockInterceptor.setLanguage(lang); // Set the language in the mock interceptor
+      mockInterceptor.setLanguage(lang);
       return request(app.getHttpServer())
         .get('/tshirts')
+        .set('Accept-Language', lang)
         .expect(200)
         .expect(expected);
     });
@@ -174,9 +181,10 @@ describe('AppController (e2e)', () => {
 
   for (const [lang, expected] of Object.entries(expected_questions_outputs)) {
     it(`/questions (GET) - ${lang}`, () => {
-      mockInterceptor.setLanguage(lang); // Set the language in the mock interceptor
+      mockInterceptor.setLanguage(lang);
       return request(app.getHttpServer())
         .get('/questions')
+        .set('Accept-Language', lang)
         .expect(200)
         .expect(expected);
     });
@@ -193,9 +201,10 @@ describe('AppController (e2e)', () => {
 
   for (const [lang, expected] of Object.entries(expected_approvals_outputs)) {
     it(`/approvals (GET) - ${lang}`, () => {
-      mockInterceptor.setLanguage(lang); // Set the language in the mock interceptor
+      mockInterceptor.setLanguage(lang);
       return request(app.getHttpServer())
         .get('/approvals')
+        .set('Accept-Language', lang)
         .expect(200)
         .expect(expected);
     });

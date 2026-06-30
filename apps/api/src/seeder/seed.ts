@@ -21,6 +21,20 @@ export async function seedDatabase(
   emailTemplateModel: typeof EmailTemplate,
   tshirtTranslationModel: typeof TshirtTranslation,
 ) {
+  const now = new Date();
+  const eventBeginDate = new Date(now);
+  eventBeginDate.setMonth(eventBeginDate.getMonth() - 1);
+  const eventEndDate = new Date(now);
+  eventEndDate.setMonth(eventEndDate.getMonth() + 6);
+  const registrationOpenDate = new Date(now);
+  registrationOpenDate.setMonth(registrationOpenDate.getMonth() - 1);
+  const registrationClosedDate = new Date(now);
+  registrationClosedDate.setMonth(registrationClosedDate.getMonth() + 3);
+  const projectClosedDate = new Date(now);
+  projectClosedDate.setMonth(projectClosedDate.getMonth() + 4);
+  const officialStartDate = new Date(now);
+  officialStartDate.setMonth(officialStartDate.getMonth() + 5);
+
   const event = await eventModel.create({
     azure_storage_container: 'coolestproject25',
     minAge: 7,
@@ -28,14 +42,14 @@ export async function seedDatabase(
     minGuardianAge: 16,
     maxRegistration: 64,
     maxVoucher: 3,
-    eventBeginDate: new Date('2024-09-01T00:00:00'),
-    registrationOpenDate: new Date('2024-11-01T00:00:00'),
-    registrationClosedDate: new Date('2025-04-01T00:00:00'),
-    projectClosedDate: new Date('2025-04-12T00:00:00'),
-    officialStartDate: new Date('2025-04-26T00:00:00'),
-    eventEndDate: new Date('2025-08-31T00:00:00'),
+    eventBeginDate,
+    registrationOpenDate,
+    registrationClosedDate,
+    projectClosedDate,
+    officialStartDate,
+    eventEndDate,
     maxFileSize: 2147483647,
-    event_title: 'Coolest Projects 2025',
+    event_title: 'Coolest Projects 2026',
   });
 
   const groups = await tshirtGroupModel.bulkCreate([
