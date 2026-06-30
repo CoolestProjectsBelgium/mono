@@ -1,0 +1,26 @@
+---
+description: Coolest Projects monorepo overview and conventions
+alwaysApply: true
+---
+
+# Coolest Projects Monorepo
+
+Event registration platform. Read `AGENTS.md` at repo root for full architecture.
+
+## Layout
+
+- `backend/` — npm workspaces: `apps/api` (NestJS), `apps/admin` (AdminJS), `packages/database` (Sequelize models)
+- `frontend/` — Nuxt 3 registration SPA (Tailwind, Pinia, magic-link login)
+- `configuration/` — Traefik TLS; do not modify certs unless asked
+- `docker-compose.yml` — local dev stack; frontend at `app.coolestprojects.localhost:1234`
+
+## Key rules
+
+- Add/edit Sequelize models in `backend/packages/database/src/models/`, export from `index.ts`, register in `app.module.ts`
+- Rebuild database package after model changes: `npm run build --workspace=@coolestprojects/database`
+- Business logic belongs in `*.service.ts`; DTOs in `dto/`; controllers stay thin
+- Active event context comes from `InfoInterceptor` — use `@Info()` decorator in controllers
+- Use workspace flag for scripts: `npm run <script> -w @coolestprojects/api`
+- Never commit `.env`, `dist/`, or `node_modules/`
+- Voting app (`voting/`) is planned but not present in this repo yet
+- Frontend API gaps documented in `frontend/MISSING_APIS.md`
