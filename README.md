@@ -67,7 +67,7 @@ All apps are served over HTTPS on port **8443** via the nginx proxy.
 | https://eventguide.coolestprojects.localhost:8443 | Event guide (stub) |
 | https://presentation.coolestprojects.localhost:8443 | Presentation (stub) |
 | https://voting.coolestprojects.localhost:8443 | Voting (stub) |
-| http://localhost:8025 | Mailhog (captured emails) |
+| http://localhost:18025 | Mailhog (captured emails; host port 18025 on Windows) |
 | http://localhost:3006 | phpMyAdmin |
 
 The registration app calls the API through a same-origin proxy at `/_api` (configured via `NUXT_PUBLIC_API_BASE`), so participants only need to trust the registration hostname.

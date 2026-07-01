@@ -54,7 +54,10 @@ export class RegistrationService {
       },
     });
     if (emailUserFound > 0) {
-      this.mailerService.emailExistsMail(createRegistrationDto.user);
+      await this.mailerService.emailExistsMail(
+        createRegistrationDto.user,
+        info.currentEvent,
+      );
       return;
     }
 
@@ -65,7 +68,10 @@ export class RegistrationService {
       },
     });
     if (emailRegistrationFound > 0) {
-      this.mailerService.emailExistsMail(createRegistrationDto.user);
+      await this.mailerService.emailExistsMail(
+        createRegistrationDto.user,
+        info.currentEvent,
+      );
       return;
     }
 
@@ -210,6 +216,7 @@ export class RegistrationService {
     const transaction = await this.sequelize.transaction();
     let user: User;
     let joinedViaVoucher = false;
+    let coworkerProjectId: number | null = null;
 
     try {
       const r = await this.registrationModel.findOne({
@@ -286,6 +293,7 @@ export class RegistrationService {
           throw new Error('Voucher not found or already used');
         }
         await voucher.update({ participantId: user.id }, { transaction });
+        coworkerProjectId = voucher.projectId;
       } else {
         // create project for user
         await this.projectModel.create(
@@ -332,11 +340,22 @@ export class RegistrationService {
     }
 
     // send confirmation mail (outside transaction)
+    const loginToken = this.tokenService.generateLoginToken(user.id);
     if (joinedViaVoucher) {
-      await this.mailerService.welcomeMailCoWorker();
+      const project = await this.projectModel.findByPk(coworkerProjectId!);
+      if (!project) {
+        throw new Error('Project not found for co-worker welcome mail');
+      }
+      await this.mailerService.welcomeMailCoWorker(user, project, loginToken);
       await this.mailerService.notifyProjectOwner();
     } else {
-      await this.mailerService.welcomeMailOwner(user);
+      const project = await this.projectModel.findOne({
+        where: { ownerId: user.id, eventId: user.eventId },
+      });
+      if (!project) {
+        throw new Error('Project not found for owner welcome mail');
+      }
+      await this.mailerService.welcomeMailOwner(user, project, loginToken);
     }
 
     return user;

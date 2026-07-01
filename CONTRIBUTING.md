@@ -96,7 +96,7 @@ npm test -w @coolestprojects/registration         # registration Vitest
 
 | Tool | URL / access |
 |------|--------------|
-| Mailhog | http://localhost:8025 — view magic-link and notification emails |
+| Mailhog | http://localhost:18025 — view magic-link and notification emails |
 | phpMyAdmin | http://localhost:3006 — inspect MySQL (host: `db`, user: `coolestproject`) |
 | Azurite | Blob endpoint on port 10000 — attachment storage in dev |
 

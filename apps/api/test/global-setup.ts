@@ -26,6 +26,11 @@ export default async () => {
   process.env.DB_PASSWORD = process.env.DB_PASSWORD_TEST;
   process.env.JWT_KEY = process.env.JWT_KEY ?? 'test-jwt-key';
   process.env.VOTING_KEY = process.env.VOTING_KEY ?? 'test-voting-key';
+  process.env.REGISTRATION_URL =
+    process.env.REGISTRATION_URL ??
+    'https://registration.coolestprojects.localhost:8443';
+  process.env.WEBSITE_URL =
+    process.env.WEBSITE_URL ?? 'https://coolestprojects.be';
 
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],

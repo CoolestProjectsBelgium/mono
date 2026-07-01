@@ -37,6 +37,8 @@ services:
       SMTP_HOST: mailhog
       SMTP_PORT: 1025
       SMTP_FROM: noreply@coolestprojects.localhost
+      REGISTRATION_URL: https://registration.coolestprojects.localhost:8443
+      WEBSITE_URL: https://coolestprojects.be
 
     volumes:
       - ..:/workspace:cached

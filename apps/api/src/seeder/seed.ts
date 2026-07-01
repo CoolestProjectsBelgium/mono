@@ -8,6 +8,7 @@ import { QuestionTranslation } from '@coolestprojects/database';
 import { Location } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
+import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 
 export async function seedDatabase(
   eventModel: typeof Event,
@@ -832,55 +833,9 @@ export async function seedDatabase(
     },
   ]);
 
-  await emailTemplateModel.bulkCreate([
-    {
-      eventId: event.id,
-      template: 'registration',
-      language: 'en',
-      contentPlain: 'Thank you for registering for the event. {{token}}',
-      contentRich: '<p>Thank you for registering for the event.</p>',
-      subject: 'Registration Confirmation',
-    },
-    {
-      eventId: event.id,
-      template: 'registration',
-      language: 'nl',
-      contentPlain: 'Bedankt voor uw registratie voor het evenement. {{token}}',
-      contentRich: '<p>Bedankt voor uw registratie voor het evenement.</p>',
-      subject: 'Bevestiging van registratie',
-    },
-    {
-      eventId: event.id,
-      template: 'registration',
-      language: 'fr',
-      contentPlain: 'Merci de vous être inscrit à l’événement. {{token}}',
-      contentRich: '<p>Merci de vous être inscrit à l’événement.</p>',
-      subject: 'Confirmation d’inscription',
-    },
-
-    {
-      eventId: event.id,
-      template: 'activation',
-      language: 'en',
-      contentPlain: 'Thank you for activating your registration',
-      contentRich: '<p>Thank you for activating your registration.</p>',
-      subject: 'Registration Activation',
-    },
-    {
-      eventId: event.id,
-      template: 'activation',
-      language: 'nl',
-      contentPlain: 'Bedankt voor het activeren van uw registratie',
-      contentRich: 'Bedankt voor het activeren van uw registratie.',
-      subject: 'Activatie van registratie',
-    },
-    {
-      eventId: event.id,
-      template: 'activation',
-      language: 'fr',
-      contentPlain: 'Merci d’avoir activé votre inscription',
-      contentRich: '<p>Merci d’avoir activé votre inscription.</p>',
-      subject: 'Activation de l’inscription',
-    },
-  ]);
+  await emailTemplateModel.bulkCreate(
+    buildSeedEmailTemplates(event.id) as unknown as Parameters<
+      typeof emailTemplateModel.bulkCreate
+    >[0],
+  );
 }

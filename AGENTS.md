@@ -34,7 +34,7 @@ Open the repo in the dev container (`.devcontainer/docker-compose.yml`).
 
 `postStartCommand` runs `.devcontainer/start.sh` which seeds the DB and starts all apps.
 
-Supporting services: MySQL (`db`, `db_test`), Azurite, Mailhog (SMTP 1025, UI 8025), phpMyAdmin (3006), nginx TLS proxy (`proxy` on ports 8080/8443).
+Supporting services: MySQL (`db`, `db_test`), Azurite, Mailhog (SMTP 11025, UI 18025 on host — internal 1025/8025), phpMyAdmin (3006), nginx TLS proxy (`proxy` on ports 8080/8443).
 
 ## Workspace commands
 

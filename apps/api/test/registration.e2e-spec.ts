@@ -97,18 +97,21 @@ describe('RegistrationController (e2e)', () => {
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: expect.stringMatching(/test-\d+@test\.be,test1@test\.be/),
-        subject: expect.stringContaining('Registration Confirmation'),
+        subject: expect.stringContaining('Coolest Projects'),
       }),
     );
 
-    // get the registration token from the acitivation mail
-    const jwtRegex = /eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g;
-    const matches = sendMailMock.mock.calls[0][0].text.match(jwtRegex);
-    expect(matches).not.toBeNull();
+    const firstMail = sendMailMock.mock.calls[0][0];
+    expect(firstMail.text).toContain('/login?token=');
+    expect(firstMail.html).toContain('/login?token=');
+
+    const tokenMatch = firstMail.text.match(/login\?token=([^"\s]+)/);
+    expect(tokenMatch).not.toBeNull();
+    const token = decodeURIComponent(tokenMatch![1]);
 
     response = await request(app.getHttpServer())
       .get('/projectinfo')
-      .set('Authorization', matches[0])
+      .set('Authorization', token)
       .set('Accept-Language', 'en-US'); //TODO test all
 
     expect(response.status).toBe(200);
@@ -121,7 +124,75 @@ describe('RegistrationController (e2e)', () => {
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: expect.stringMatching(/test-\d+@test\.be,test1@test\.be/),
-        subject: expect.stringContaining('Registration Activation'),
+        subject: expect.stringContaining('Coolest Projects'),
+      }),
+    );
+  });
+
+  it('duplicate registration sends emailExists mail', async () => {
+    mockInterceptor.setInfo({
+      currentEvent: 1,
+      language: 'en',
+      closed: false,
+      current: true,
+      projectClosed: false,
+      registrationOpen: true,
+    });
+
+    const email = `dup-${Date.now()}@test.be`;
+    const payload = {
+      user: {
+        email,
+        firstname: 'Dup',
+        lastname: 'User',
+        address: {
+          postalcode: 1000,
+          municipality_name: 'Bruxelles',
+          street: 'Test Street',
+          house_number: '1',
+          box_number: 'A',
+        },
+        general_questions: [],
+        mandatory_approvals: [3],
+        language: 'en',
+        year: 2012,
+        month: 5,
+        t_size: 1,
+        via: '',
+        medical: '',
+        email_guardian: '',
+        gsm_guardian: '',
+        gsm: '1234567890',
+        sex: 'x',
+      },
+      project: {
+        own_project: {
+          project_name: 'Dup Project',
+          project_descr: 'Dup',
+          project_type: 'test',
+          project_lang: 'en',
+        },
+      },
+    };
+
+    sendMailMock.mockClear();
+    const first = await request(app.getHttpServer())
+      .post('/registration')
+      .send(payload)
+      .set('Accept-Language', 'en-US');
+    expect(first.status).toBe(201);
+
+    sendMailMock.mockClear();
+    const second = await request(app.getHttpServer())
+      .post('/registration')
+      .send(payload)
+      .set('Accept-Language', 'en-US');
+    expect(second.status).toBe(201);
+
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: email,
+        subject: expect.stringContaining('Coolest Projects'),
       }),
     );
   });
@@ -178,7 +249,7 @@ describe('RegistrationController (e2e)', () => {
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: expect.stringMatching(/adult-\d+@test\.be/),
-        subject: expect.stringContaining('Registration Confirmation'),
+        subject: expect.stringContaining('Coolest Projects'),
       }),
     );
   });
