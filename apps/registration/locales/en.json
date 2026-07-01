@@ -59,6 +59,8 @@
   "label_Achternaam:": "Last name",
   "label_Email adres:": "Email address",
   "label_mobiel nummer (+32):": "Mobile number (+32)",
+  "label_postalcode": "Postal code / municipality",
+  "placeholder_postalcode": "Search by postal code or municipality",
   "label_Geboortejaar:": "Birth year",
   "label_Geboortemaand:": "Birth month",
   "birthDateLegend": "Date of birth",
@@ -96,11 +98,27 @@
   "footer": { "organizedBy": "Organized by" },
   "apiError": "{message}",
   "validation_guardianRequired": "Parent/guardian email and phone are required for participants under 16.",
+  "validation_guardianNotAllowed": "Guardian details cannot be filled in for participants 16 or older.",
   "validation_birthMonth": "Please select a birth month.",
   "validation_mandatoryApprovals": "Please agree to the mandatory approvals.",
   "validation_formIncomplete": "Please fill in all required fields.",
   "validation_projectIncomplete": "Please fill in all project details.",
   "validation_tokenRequired": "Please enter a valid project token.",
+  "validation_email": "Please enter a valid email address.",
+  "validation_firstname": "Please enter your first name.",
+  "validation_lastname": "Please enter your last name.",
+  "validation_gsm": "Please enter a valid Belgian mobile number.",
+  "validation_postalcode": "Please select a valid postal code and municipality.",
+  "validation_year": "Please select a valid birth year.",
+  "validation_sex": "Please select your gender.",
+  "validation_t_size": "Please select a T-shirt size.",
+  "validation_projectName": "Please enter a project name.",
+  "validation_projectDescr": "Please enter a project description.",
+  "validation_projectType": "Please describe the hardware/software you used.",
+  "validation_projectLang": "Please select a presentation language.",
+  "validation_generalQuestion": "Please answer this question.",
+  "validation_uploadTooLarge": "This file is too large. Maximum size is {maxSize}.",
+  "validation_uploadInvalidType": "Only video and image files are allowed.",
   "apiUnavailable": {
     "title": "Feature temporarily unavailable",
     "default": "The backend is not fully configured for this action yet.",
@@ -113,5 +131,5 @@
     "linkExpired": "The login link has expired or is invalid."
   },
   "noProject": { "message": "You don't have a project yet. Create one or join an existing project." },
-  "upload": { "leaveWarning": "Upload in progress — do not leave this page." }
+  "upload": { "leaveWarning": "Upload in progress — do not leave this page.", "leaveConfirm": "Upload in progress. Leave anyway?" }
 }

@@ -13,6 +13,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { InjectModel } from '@nestjs/sequelize';
 import { Voucher } from '@coolestprojects/database';
 import { QuestionUser } from '@coolestprojects/database';
+import { validateAddress } from '../geo/postal-codes';
 
 @Injectable()
 export class RegistrationService {
@@ -439,5 +440,7 @@ export class RegistrationService {
         'Project name, description, type and language are required when no project code is provided.',
       );
     }
+
+    validateAddress(registration.postalcode, registration.municipality_name);
   }
 }

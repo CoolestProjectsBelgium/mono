@@ -59,6 +59,8 @@
   "label_Achternaam:": "Nom",
   "label_Email adres:": "Adresse mail",
   "label_mobiel nummer (+32):": "Numéro de mobile (+32)",
+  "label_postalcode": "Code postal / commune",
+  "placeholder_postalcode": "Rechercher par code postal ou commune",
   "label_Geboortejaar:": "Année de naissance",
   "label_Geboortemaand:": "Mois de naissance",
   "birthDateLegend": "Date de naissance",
@@ -96,11 +98,27 @@
   "footer": { "organizedBy": "Organisé par" },
   "apiError": "{message}",
   "validation_guardianRequired": "L'e-mail et le numéro de mobile du parent/tuteur sont obligatoires pour les participant·e·s de moins de 16 ans.",
+  "validation_guardianNotAllowed": "Les coordonnées du parent/tuteur ne peuvent pas être renseignées pour les participant·e·s de 16 ans ou plus.",
   "validation_birthMonth": "Choisis un mois de naissance.",
   "validation_mandatoryApprovals": "Accepte les validations obligatoires.",
   "validation_formIncomplete": "Remplis tous les champs obligatoires.",
   "validation_projectIncomplete": "Remplis toutes les informations du projet.",
   "validation_tokenRequired": "Entre un token de projet valide.",
+  "validation_email": "Entre une adresse e-mail valide.",
+  "validation_firstname": "Entre ton prénom.",
+  "validation_lastname": "Entre ton nom.",
+  "validation_gsm": "Entre un numéro de mobile belge valide.",
+  "validation_postalcode": "Choisis un code postal et une commune valides.",
+  "validation_year": "Choisis une année de naissance valide.",
+  "validation_sex": "Choisis ton genre.",
+  "validation_t_size": "Choisis une taille de T-shirt.",
+  "validation_projectName": "Entre un nom de projet.",
+  "validation_projectDescr": "Entre une description du projet.",
+  "validation_projectType": "Décris le matériel/logiciel utilisé.",
+  "validation_projectLang": "Choisis une langue de présentation.",
+  "validation_generalQuestion": "Réponds à cette question.",
+  "validation_uploadTooLarge": "Ce fichier est trop volumineux. Taille maximale : {maxSize}.",
+  "validation_uploadInvalidType": "Seuls les fichiers vidéo et image sont autorisés.",
   "apiUnavailable": {
     "title": "Fonction temporairement indisponible",
     "default": "Le backend n'est pas encore configuré pour cette action.",
@@ -113,5 +131,5 @@
     "linkExpired": "Le lien de connexion a expiré ou est invalide."
   },
   "noProject": { "message": "Tu n'as pas encore de projet." },
-  "upload": { "leaveWarning": "Envoi en cours — ne quitte pas cette page." }
+  "upload": { "leaveWarning": "Envoi en cours — ne quitte pas cette page.", "leaveConfirm": "Envoi en cours. Quitter quand même la page ?" }
 }

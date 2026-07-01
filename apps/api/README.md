@@ -1,98 +1,72 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# @coolestprojects/api
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS REST API for the Coolest Projects platform — participant registration, authentication, project management, file attachments, and voting endpoints.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Quick start
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+From the monorepo root (inside the dev container):
 
 ```bash
-$ npm install
+npm run build -w @coolestprojects/database
+npm run build -w @coolestprojects/api
+npm run start:dev -w @coolestprojects/api
 ```
 
-## Compile and run the project
+- Direct: https://api.coolestprojects.localhost:8443
+- Swagger UI: https://api.coolestprojects.localhost:8443/api
 
-```bash
-# development
-$ npm run start
+## Scripts
 
-# watch mode
-$ npm run start:dev
+| Script | Description |
+|--------|-------------|
+| `npm run start:dev -w @coolestprojects/api` | Watch mode |
+| `npm run build -w @coolestprojects/api` | Compile TypeScript |
+| `npm run seed-db -w @coolestprojects/api` | Seed development database (`event:init` CLI) |
+| `npm test -w @coolestprojects/api` | Unit tests (Jest) |
+| `npm run test:e2e -w @coolestprojects/api` | E2e tests (uses `db_test`) |
 
-# production mode
-$ npm run start:prod
+## Project structure
+
+```
+src/
+├── auth/           # JWT and voting passport strategies
+├── attachment/     # File upload and SAS token endpoints
+├── login/          # Magic-link login, logout
+├── registration/   # Event registration submission
+├── userinfo/       # Participant profile CRUD
+├── projectinfo/    # Project CRUD
+├── participant/    # Co-participant invites
+├── voting/         # Vote and category endpoints
+├── event/          # Event service
+├── mailer/         # Handlebars email rendering
+├── azureblob/      # Azure Blob Storage integration
+├── dto/            # Request/response DTOs with Swagger decorators
+├── cli/            # nestjs-command CLI (database seeding)
+└── app.module.ts   # Root module — register Sequelize models here
 ```
 
-## Run tests
+## Key patterns
 
-```bash
-# unit tests
-$ npm run test
+- **Models**: imported from `@coolestprojects/database`; registered in `app.module.ts`.
+- **Event context**: `InfoInterceptor` resolves the active event; inject with `@Info()` in controllers.
+- **Auth**: `AuthGuard('jwt-cookiecombo')` + `UserCookieInterceptor` for cookie-based JWT sessions.
+- **CORS**: allows `*.coolestprojects.localhost` and `localhost` origins with credentials.
 
-# e2e tests
-$ npm run test:e2e
+## Environment variables
 
-# test coverage
-$ npm run test:cov
-```
+Set automatically in the dev container. See [README.md](../../README.md#environment-variables) for the full list.
 
-## Deployment
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `API_PORT` | `3001` | Listen port |
+| `JWT_KEY` | — | JWT signing and cookie parser secret |
+| `DB_*` | — | MySQL connection |
+| `DB_*_TEST` | — | MySQL for e2e tests |
+| `AZURE_STORAGE_CONNECTION_STRING` | — | Blob storage |
+| `SMTP_HOST` / `SMTP_PORT` | `mailhog` / `1025` | Outbound email |
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Related docs
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [Registration API status](../registration/MISSING_APIS.md) — endpoints wired in the frontend
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — model and API conventions
+- [packages/database](../../packages/database) — shared Sequelize models

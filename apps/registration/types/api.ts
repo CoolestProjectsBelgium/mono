@@ -100,9 +100,8 @@ export interface TshirtDto {
 }
 
 export interface TshirtGroupDto {
-  id: number
-  name: string
-  tshirts: TshirtDto[]
+  group: string
+  items: TshirtDto[]
 }
 
 export interface QuestionDto {

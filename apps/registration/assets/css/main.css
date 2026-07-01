@@ -30,4 +30,12 @@
   .form-label {
     @apply mb-1 block text-sm font-medium text-gray-700;
   }
+
+  .form-input-error {
+    @apply border-red-500 focus:border-red-500 focus:ring-red-500;
+  }
+
+  .form-error-text {
+    @apply mt-1 text-sm text-red-600;
+  }
 }

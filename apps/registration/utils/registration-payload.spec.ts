@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { userFixture } from '~/fixtures/user'
-import { buildRegistrationPayload, type RegistrationFormState } from '~/utils/registration-payload'
+import {
+  buildRegistrationPayload,
+  hydrateRegistrationForm,
+  type RegistrationFormState,
+} from '~/utils/registration-payload'
 
 const baseForm: RegistrationFormState = {
   user: { ...userFixture },
@@ -13,6 +17,7 @@ const baseForm: RegistrationFormState = {
   },
   otherProject: { project_code: '' },
   mandatoryApprovals: ['1', '2'],
+  answeredGeneralQuestionIds: [],
 }
 
 describe('buildRegistrationPayload', () => {
@@ -37,5 +42,27 @@ describe('buildRegistrationPayload', () => {
     const payload = buildRegistrationPayload(form)
     expect(payload.project.other_project?.project_code).toBe('ABC123')
     expect(payload.project.own_project).toBeUndefined()
+  })
+})
+
+describe('hydrateRegistrationForm', () => {
+  it('adds address defaults to legacy persisted drafts', () => {
+    const hydrated = hydrateRegistrationForm({
+      user: {
+        email: 'saved@example.com',
+        firstname: 'Saved',
+        lastname: 'User',
+      } as RegistrationFormState['user'],
+      isOwnProject: true,
+    })
+
+    expect(hydrated.user.address).toEqual({
+      street: '',
+      house_number: '',
+      municipality_name: '',
+      box_number: '',
+      postalcode: 0,
+    })
+    expect(hydrated.user.email).toBe('saved@example.com')
   })
 })

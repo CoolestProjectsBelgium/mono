@@ -7,7 +7,7 @@
           :value="String(approval.id)"
           :checked="model.includes(String(approval.id))"
           class="mt-1"
-          @change="toggle(String(approval.id), ($event.target as HTMLInputElement).checked)"
+          @change="onToggle(String(approval.id), ($event.target as HTMLInputElement).checked)"
         />
         <span>
           <strong>{{ approval.name }}</strong>
@@ -15,6 +15,9 @@
         </span>
       </label>
     </div>
+    <p v-if="error" id="mandatory_approvals-error" class="form-error-text" role="alert">
+      {{ error }}
+    </p>
   </FormSection>
 </template>
 
@@ -23,11 +26,17 @@ import type { ApprovalDto } from '~/types/api'
 
 defineProps<{
   approvals: ApprovalDto[]
+  error?: string
+}>()
+
+const emit = defineEmits<{
+  'clear-error': []
 }>()
 
 const model = defineModel<string[]>({ required: true })
 
-function toggle(id: string, checked: boolean) {
+function onToggle(id: string, checked: boolean) {
+  emit('clear-error')
   if (checked) {
     model.value = [...model.value, id]
   }

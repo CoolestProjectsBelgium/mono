@@ -57,6 +57,7 @@ services:
       - db
       - db_test
       - azurite
+      - mailhog
 
   db:
     image: mysql:latest
@@ -96,9 +97,11 @@ services:
   mailhog:
     image: mailhog/mailhog
     container_name: ${PROJECT_NAME:-coolestproject-dev}-mailhog
+    restart: unless-stopped
+    # Host ports use 11025/18025 — Windows often blocks 1025/8025 (Hyper-V reserved range).
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "11025:1025"
+      - "18025:8025"
 
   phpmyadmin:
     container_name: ${PROJECT_NAME:-coolestproject-dev}-phpadmin

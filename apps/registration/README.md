@@ -1,75 +1,62 @@
-# Nuxt Minimal Starter
+# @coolestprojects/registration
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Nuxt 3 single-page application for Coolest Projects event registration. Supports Dutch, French, and English via `@nuxtjs/i18n`.
 
-## Setup
+## Quick start
 
-Make sure to install dependencies:
-
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+From the monorepo root (inside the dev container):
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+npm run dev -w @coolestprojects/registration
 ```
 
-## Production
+Open https://registration.coolestprojects.localhost:8443
 
-Build the application for production:
+The app proxies API requests to `/_api`, which nginx forwards to the NestJS API on port 3001.
 
-```bash
-# npm
-npm run build
+## Scripts
 
-# pnpm
-pnpm build
+| Script | Description |
+|--------|-------------|
+| `npm run dev -w @coolestprojects/registration` | Development server (port 3004) |
+| `npm run build -w @coolestprojects/registration` | Production build |
+| `npm run preview -w @coolestprojects/registration` | Preview production build |
+| `npm test -w @coolestprojects/registration` | Unit tests (Vitest) |
+| `npm run test:watch -w @coolestprojects/registration` | Vitest watch mode |
 
-# yarn
-yarn build
+## Tech stack
 
-# bun
-bun run build
+- **Nuxt 3** — SPA mode (`ssr: false`)
+- **Pinia** — state management
+- **Tailwind CSS** — styling via `@nuxtjs/tailwindcss`
+- **Zod** — client-side validation
+- **Vitest** + `@nuxt/test-utils` — unit tests
+
+## Project structure
+
+```
+apps/registration/
+├── components/       # Vue components
+├── composables/      # useApiClient.ts — typed API wrapper
+├── pages/            # Route pages
+├── stores/           # Pinia stores
+├── locales/          # i18n translation files (nl, fr, en)
+├── nuxt.config.ts
+└── MISSING_APIS.md   # API integration status
 ```
 
-Locally preview production build:
+## API client
 
-```bash
-# npm
-npm run preview
+All backend calls go through `composables/useApiClient.ts`. The runtime API base is set by `NUXT_PUBLIC_API_BASE` (defaults to `/_api` in the dev container).
 
-# pnpm
-pnpm preview
+For direct API access during debugging: https://api.coolestprojects.localhost:8443
 
-# yarn
-yarn preview
+## API integration status
 
-# bun
-bun run preview
-```
+See [MISSING_APIS.md](./MISSING_APIS.md) for wired endpoints, legacy path changes, and out-of-scope voting UI.
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Related docs
+
+- [apps/api](../api) — NestJS backend
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — frontend conventions
+- [README.md](../../README.md) — local URLs and environment

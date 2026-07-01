@@ -15,7 +15,7 @@ export default defineNuxtPlugin(() => {
   const draftSaved = localStorage.getItem('cp-registration-draft')
   if (draftSaved) {
     try {
-      draftStore.form = JSON.parse(draftSaved)
+      draftStore.form = hydrateRegistrationForm(JSON.parse(draftSaved))
     }
     catch { /* ignore corrupt storage */ }
   }

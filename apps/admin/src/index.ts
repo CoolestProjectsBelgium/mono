@@ -204,6 +204,10 @@ const start = async () => {
     }
   })
 
+  app.get('/', (_req, res) => {
+    res.redirect(admin.options.rootPath)
+  })
+
   app.use(admin.options.rootPath, adminRouter)
 
   app.listen(PORT, '0.0.0.0', () => {

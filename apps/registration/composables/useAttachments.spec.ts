@@ -40,9 +40,9 @@ describe('useAttachments SAS cache', () => {
 
     const { uploadFile } = await callComposable(() => useAttachments())
     const file = new File(['content'], 'file.mp4', { type: 'video/mp4' })
-    const ok = await uploadFile(file)
+    const result = await uploadFile(file)
 
-    expect(ok).toBe(true)
+    expect(result).toEqual({ ok: true })
     expect(mockFetch).toHaveBeenCalledTimes(1)
     expect(capturedBlobUrl).toBe(blobUrl)
     expect(capturedBlobUrl.match(/\?/g)).toHaveLength(1)
@@ -57,5 +57,21 @@ describe('useAttachments SAS cache', () => {
     const sas2 = await attachments.getValidSasForBlob(url)
     expect(sas1).toBe(sas2)
     expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('maps API file validation failure to tooLarge', async () => {
+    mockFetch.mockRejectedValue({
+      data: { statusCode: 400, message: 'File validation failed' },
+    })
+
+    const { uploadFile } = await callComposable(() => useAttachments())
+    const file = new File(['content'], 'file.mp4', { type: 'video/mp4' })
+    const result = await uploadFile(file)
+
+    expect(result).toEqual({
+      ok: false,
+      code: 'tooLarge',
+      message: 'File validation failed',
+    })
   })
 })

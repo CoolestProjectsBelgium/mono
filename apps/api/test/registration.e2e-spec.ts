@@ -62,7 +62,7 @@ describe('RegistrationController (e2e)', () => {
           lastname: 'Doe',
           address: {
             postalcode: 1000,
-            municipality_name: 'Test City',
+            municipality_name: 'Bruxelles',
             street: 'Test Street',
             house_number: '1',
             box_number: 'A',
@@ -132,7 +132,57 @@ describe('RegistrationController (e2e)', () => {
 
   it('register project participant to to old', () => {});
 
-  it('register project with incorrect data', () => {});
+  it('register project with incorrect data', async () => {
+    mockInterceptor.setInfo({
+      currentEvent: 1,
+      language: 'en',
+      closed: false,
+      current: true,
+      projectClosed: false,
+      registrationOpen: true,
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/registration')
+      .send({
+        user: {
+          email: `invalid-postal-${Date.now()}@test.be`,
+          firstname: 'John',
+          lastname: 'Doe',
+          address: {
+            postalcode: 0,
+            municipality_name: '',
+            street: '',
+            house_number: '',
+            box_number: '',
+          },
+          general_questions: [],
+          mandatory_approvals: [3],
+          language: 'en',
+          year: 2008,
+          month: 5,
+          t_size: 2,
+          via: '',
+          medical: '',
+          gsm_guardian: '',
+          email_guardian: '',
+          gsm: '0470123456',
+          sex: 'x',
+        },
+        project: {
+          own_project: {
+            project_name: 'Test Project',
+            project_descr: 'This is a test project',
+            project_type: 'test',
+            project_lang: 'en',
+          },
+        },
+      })
+      .set('Accept-Language', 'en-US');
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain('Postal code must be a valid Belgian postcode');
+  });
 
   it('register participant on project', () => {});
 

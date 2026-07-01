@@ -1,6 +1,11 @@
-import type { ApprovalDto, QuestionDto, RegistrationDto, TshirtGroupDto } from '~/types/api'
+import type { ApprovalDto, QuestionDto, TshirtGroupDto } from '~/types/api'
 import { buildRegistrationPayload, type RegistrationFormState } from '~/utils/registration-payload'
 import { getApiErrorMessage } from '~/utils/api-response'
+import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
+
+export type SubmitRegistrationResult =
+  | { ok: true }
+  | { ok: false, error?: string, fieldErrors?: Record<string, string> }
 
 export function useRegistration() {
   const { apiFetch } = useApiClient()
@@ -21,8 +26,8 @@ export function useRegistration() {
     return apiFetch<ApprovalDto[]>('/approvals', { headers: langHeaders() })
   }
 
-  async function submitRegistration(form: RegistrationFormState): Promise<{ ok: true } | { ok: false, error?: string }> {
-    const payload: RegistrationDto = buildRegistrationPayload(form)
+  async function submitRegistration(form: RegistrationFormState): Promise<SubmitRegistrationResult> {
+    const payload = buildRegistrationPayload(form)
     try {
       await apiFetch('/registration', {
         method: 'POST',
@@ -32,20 +37,11 @@ export function useRegistration() {
       return { ok: true }
     }
     catch (error) {
-      const message = localizeApiError(getApiErrorMessage(error))
-      notify('error', 'error_An error occurred', undefined, message)
-      return { ok: false, error: message }
+      const apiMessage = getApiErrorMessage(error)
+      const mapped = mapApiMessageToFieldErrors(apiMessage ?? '', t)
+      notify('error', 'error_An error occurred', undefined, mapped.message)
+      return { ok: false, error: mapped.message, fieldErrors: mapped.fieldErrors }
     }
-  }
-
-  function localizeApiError(message?: string): string | undefined {
-    if (!message) {
-      return undefined
-    }
-    if (/guardian/i.test(message)) {
-      return t('validation_guardianRequired')
-    }
-    return message
   }
 
   return {

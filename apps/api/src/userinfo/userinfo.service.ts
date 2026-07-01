@@ -6,6 +6,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
 import { UserDto } from '../dto/user.dto';
+import { validateAddress } from '../geo/postal-codes';
 
 @Injectable()
 export class UserinfoService {
@@ -56,6 +57,11 @@ export class UserinfoService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    validateAddress(
+      updateUserDto.address.postalcode,
+      updateUserDto.address.municipality_name,
+    );
 
     user.language = updateUserDto.language;
     user.email = updateUserDto.email;

@@ -59,6 +59,8 @@
   "label_Achternaam:": "Achternaam",
   "label_Email adres:": "E-mail adres",
   "label_mobiel nummer (+32):": "Mobiel nummer (+32) of vaste lijn",
+  "label_postalcode": "Postcode / gemeente",
+  "placeholder_postalcode": "Zoek op postcode of gemeente",
   "label_Geboortejaar:": "Geboortejaar",
   "label_Geboortemaand:": "Geboortemaand",
   "birthDateLegend": "Geboortedatum",
@@ -96,11 +98,27 @@
   "footer": { "organizedBy": "Georganiseerd door" },
   "apiError": "{message}",
   "validation_guardianRequired": "E-mailadres en mobiel nummer van ouders/voogd zijn verplicht voor deelnemers jonger dan 16 jaar.",
+  "validation_guardianNotAllowed": "Gegevens van ouders/voogd mogen niet ingevuld worden voor deelnemers van 16 jaar of ouder.",
   "validation_birthMonth": "Kies een geboortemaand.",
   "validation_mandatoryApprovals": "Ga akkoord met de verplichte toestemmingen.",
   "validation_formIncomplete": "Vul alle verplichte velden in.",
   "validation_projectIncomplete": "Vul alle projectgegevens in.",
   "validation_tokenRequired": "Voer een geldige projecttoken in.",
+  "validation_email": "Vul een geldig e-mailadres in.",
+  "validation_firstname": "Vul je voornaam in.",
+  "validation_lastname": "Vul je achternaam in.",
+  "validation_gsm": "Vul een geldig Belgisch mobiel nummer in.",
+  "validation_postalcode": "Kies een geldige postcode en gemeente.",
+  "validation_year": "Kies een geldig geboortejaar.",
+  "validation_sex": "Kies je geslacht.",
+  "validation_t_size": "Kies een T-shirtmaat.",
+  "validation_projectName": "Vul een projectnaam in.",
+  "validation_projectDescr": "Vul een projectomschrijving in.",
+  "validation_projectType": "Beschrijf de hardware/software die je gebruikte.",
+  "validation_projectLang": "Kies een presentatietaal.",
+  "validation_generalQuestion": "Beantwoord deze vraag.",
+  "validation_uploadTooLarge": "Dit bestand is te groot. Maximale grootte is {maxSize}.",
+  "validation_uploadInvalidType": "Alleen video- en afbeeldingsbestanden zijn toegestaan.",
   "apiUnavailable": {
     "title": "Functie tijdelijk niet beschikbaar",
     "default": "De backend is nog niet volledig geconfigureerd voor deze actie.",
@@ -113,5 +131,5 @@
     "linkExpired": "De loginlink is verlopen of ongeldig."
   },
   "noProject": { "message": "Je hebt nog geen project. Start er een of sluit je aan bij een bestaand project." },
-  "upload": { "leaveWarning": "Upload bezig — verlaat de pagina niet." }
+  "upload": { "leaveWarning": "Upload bezig — verlaat de pagina niet.", "leaveConfirm": "Upload bezig. Toch de pagina verlaten?" }
 }

@@ -4,9 +4,15 @@ import {
   newPipeline,
 } from '@azure/storage-blob'
 import type { AttachmentDto, SASToken } from '~/types/api'
-import { hasApiData } from '~/utils/api-response'
+import { getApiErrorMessage, hasApiData } from '~/utils/api-response'
 
 type SasCache = Record<string, string>
+
+export type UploadFileCode = 'tooLarge' | 'invalidType' | 'unavailable'
+
+export type UploadFileResult =
+  | { ok: true }
+  | { ok: false, code: UploadFileCode, message?: string }
 
 const SAS_CACHE_TTL_MS = 2 * 60 * 1000
 
@@ -56,29 +62,43 @@ export function useAttachments() {
   async function uploadFile(
     file: File,
     onProgress?: (percent: number) => void,
-  ): Promise<boolean> {
-    const attachment = await createAttachment(file.name, file.name, file.size)
-    if (!hasApiData(attachment) || !attachment.url) {
-      return false
+  ): Promise<UploadFileResult> {
+    try {
+      const attachment = await createAttachment(file.name, file.name, file.size)
+      if (!hasApiData(attachment) || !attachment.url) {
+        return { ok: false, code: 'unavailable' }
+      }
+
+      const pipeline = newPipeline(new AnonymousCredential())
+      const blockBlobClient = new BlockBlobClient(attachment.url, pipeline)
+
+      await blockBlobClient.uploadData(file, {
+        maxSingleShotSize: 4 * 1024 * 1024,
+        onProgress: ({ loadedBytes }) => {
+          if (onProgress) {
+            onProgress(Math.round((100 * loadedBytes) / file.size))
+          }
+        },
+      })
+      return { ok: true }
     }
-
-    const pipeline = newPipeline(new AnonymousCredential())
-    const blockBlobClient = new BlockBlobClient(attachment.url, pipeline)
-
-    await blockBlobClient.uploadData(file, {
-      maxSingleShotSize: 4 * 1024 * 1024,
-      onProgress: ({ loadedBytes }) => {
-        if (onProgress) {
-          onProgress(Math.round((100 * loadedBytes) / file.size))
-        }
-      },
-    })
-    return true
+    catch (error) {
+      const message = getApiErrorMessage(error) ?? ''
+      if (/file validation failed/i.test(message)) {
+        return { ok: false, code: 'tooLarge', message }
+      }
+      return { ok: false, code: 'unavailable', message }
+    }
   }
 
   async function deleteAttachment(id: string): Promise<boolean> {
-    await apiFetch<null>(`/attachments/${id}`, { method: 'DELETE' })
-    return true
+    try {
+      await apiFetch<null>(`/attachments/${id}`, { method: 'DELETE' })
+      return true
+    }
+    catch {
+      return false
+    }
   }
 
   return {

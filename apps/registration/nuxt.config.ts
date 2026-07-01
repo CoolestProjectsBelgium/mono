@@ -33,6 +33,12 @@ export default defineNuxtConfig({
   pinia: {
     storesDirs: ['./stores/**'],
   },
+  components: [
+    {
+      path: '~/components',
+      ignore: ['**/*.spec.ts'],
+    },
+  ],
   vite: {
     server: {
       allowedHosts: ['registration.coolestprojects.localhost'],

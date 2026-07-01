@@ -1,13 +1,15 @@
 <template>
   <div>
     <h1 class="text-3xl font-bold">{{ $t('titleReg') }}</h1>
-    <AlertBanner v-if="formError" variant="error" class="mt-4" :message="formError" />
+    <ValidationAlert :field-errors="fieldErrors" :api-message="formError" />
     <form class="mt-6 space-y-6" @submit.prevent="onSubmit" @reset.prevent="onReset">
       <UserForm
         v-model="draft.form.user"
         :tshirts="flatTshirts"
         :settings="settings"
         :show-guardian="showGuardian"
+        :errors="fieldErrors"
+        @clear-error="onClearError"
       />
       <FormSection :title="$t('Project')">
         <div class="flex flex-col gap-2">
@@ -21,14 +23,34 @@
           </label>
         </div>
       </FormSection>
-      <OwnProjectForm v-if="draft.form.isOwnProject" v-model="draft.form.ownProject" />
-      <OtherProjectForm v-else v-model="draft.form.otherProject" />
+      <OwnProjectForm
+        v-if="draft.form.isOwnProject"
+        v-model="draft.form.ownProject"
+        :errors="fieldErrors"
+        @clear-error="onClearError"
+      />
+      <OtherProjectForm
+        v-else
+        v-model="draft.form.otherProject"
+        :errors="fieldErrors"
+        @clear-error="onClearError"
+      />
       <GeneralQuestions
         v-if="questions?.length"
         v-model="draft.form.user.general_questions"
         :questions="questions"
+        :answered-ids="draft.form.answeredGeneralQuestionIds"
+        :errors="fieldErrors"
+        @answer="onGeneralQuestionAnswered"
+        @clear-error="onClearError"
       />
-      <MandatoryQuestions v-if="approvals" v-model="draft.form.mandatoryApprovals" :approvals="approvals" />
+      <MandatoryQuestions
+        v-if="approvals"
+        v-model="draft.form.mandatoryApprovals"
+        :approvals="approvals"
+        :error="fieldErrors.mandatory_approvals"
+        @clear-error="onClearError('mandatory_approvals')"
+      />
       <div class="flex gap-4">
         <CtaButton variant="primary" :disabled="loading" type="submit">
           {{ loading ? $t('pleaseWait') : $t('Ik schrijf me in') }}
@@ -42,26 +64,27 @@
 <script setup lang="ts">
 import type { ApprovalDto, QuestionDto, SettingDto, TshirtGroupDto } from '~/types/api'
 import { isGuardianRequired } from '~/utils/birth-date'
-import { createOwnProjectSchema, createOtherProjectSchema, createUserSchema } from '~/utils/validation/user'
+import { clearFieldError, scrollToFirstFieldError } from '~/utils/validation/map-field-errors'
+import { validateRegistrationForm } from '~/utils/validation/validate-registration'
 
 definePageMeta({ middleware: 'not-authenticated' })
 
 const route = useRoute()
 const { t } = useI18n()
-const { notify } = useNotification()
 const draft = useRegistrationDraftStore()
 const { fetchTshirts, fetchQuestions, fetchApprovals, submitRegistration } = useRegistration()
 const { fetchSettings } = useSettings()
 
 const loading = ref(false)
 const formError = ref<string | null>(null)
+const fieldErrors = ref<Record<string, string>>({})
 const tshirtGroups = ref<TshirtGroupDto[] | null>(null)
 const approvals = ref<ApprovalDto[] | null>(null)
 const questions = ref<QuestionDto[] | null>(null)
 const settings = ref<SettingDto | null>(null)
 
 const flatTshirts = computed(() =>
-  tshirtGroups.value?.flatMap(g => g.tshirts) ?? [],
+  tshirtGroups.value?.flatMap(g => g.items) ?? [],
 )
 
 const showGuardian = computed(() => {
@@ -96,18 +119,45 @@ onMounted(async () => {
   }
 })
 
+function onClearError(fieldKey: string) {
+  fieldErrors.value = clearFieldError(fieldErrors.value, fieldKey)
+}
+
+function onGeneralQuestionAnswered(id: string) {
+  draft.form.answeredGeneralQuestionIds ??= []
+  const normalized = String(id)
+  if (!draft.form.answeredGeneralQuestionIds.includes(normalized)) {
+    draft.form.answeredGeneralQuestionIds.push(normalized)
+  }
+}
+
 async function onSubmit() {
   loading.value = true
   formError.value = null
+  fieldErrors.value = {}
   draft.form.user.mandatory_approvals = [...draft.form.mandatoryApprovals]
   draft.form.user.email_guardian = draft.form.user.email_guardian?.trim() ?? ''
   draft.form.user.gsm_guardian = draft.form.user.gsm_guardian?.trim() ?? ''
 
-  const validationError = validateForm()
-  if (validationError) {
-    formError.value = validationError
-    notify('error', 'error_An error occurred', undefined, validationError)
-    scrollToGuardianIfNeeded(validationError)
+  if (!settings.value) {
+    formError.value = t('apiUnavailable.default')
+    loading.value = false
+    return
+  }
+
+  const questionIds = questions.value?.map(q => String(q.id)) ?? []
+  const errors = validateRegistrationForm(
+    draft.form,
+    settings.value,
+    approvals.value ?? [],
+    questionIds,
+    t,
+  )
+
+  if (errors) {
+    fieldErrors.value = errors
+    await nextTick()
+    scrollToFirstFieldError(errors, { mandatory_approvals: 'mandatory_approvals-error' })
     loading.value = false
     return
   }
@@ -117,75 +167,22 @@ async function onSubmit() {
     draft.reset()
   }
   else if (result.error) {
-    formError.value = result.error
-    scrollToGuardianIfNeeded(result.error)
+    if (result.fieldErrors && Object.keys(result.fieldErrors).length > 0) {
+      fieldErrors.value = result.fieldErrors
+      formError.value = null
+      scrollToFirstFieldError(result.fieldErrors, { mandatory_approvals: 'mandatory_approvals-error' })
+    }
+    else {
+      fieldErrors.value = {}
+      formError.value = result.error
+    }
   }
   loading.value = false
 }
 
-function scrollToGuardianIfNeeded(message: string) {
-  const guardianHint = t('validation_guardianRequired')
-  if (message !== guardianHint && !/guardian|ouders\/voogd|parent|tuteur/i.test(message)) {
-    return
-  }
-  document.getElementById('guardian-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-}
-
-function validateForm(): string | null {
-  if (!settings.value) {
-    return t('apiUnavailable.default')
-  }
-
-  const { year, month } = draft.form.user
-  if (isGuardianRequired(settings.value, year, month)) {
-    const email = draft.form.user.email_guardian?.trim() ?? ''
-    const gsm = draft.form.user.gsm_guardian?.trim() ?? ''
-    if (!email || !gsm) {
-      return t('validation_guardianRequired')
-    }
-  }
-
-  const userResult = createUserSchema({
-    minAge: settings.value.minAge,
-    maxAge: settings.value.maxAge,
-    guardianAge: settings.value.guardianAge,
-    officialStartDate: settings.value.officialStartDate,
-  }).safeParse({
-    ...draft.form.user,
-    mandatory_approvals: draft.form.mandatoryApprovals,
-  })
-
-  if (!userResult.success) {
-    const issue = userResult.error.issues[0]
-    if (issue?.path[0] === 'email_guardian' || issue?.path[0] === 'gsm_guardian') {
-      return t('validation_guardianRequired')
-    }
-    if (issue?.path[0] === 'month') {
-      return t('validation_birthMonth')
-    }
-    if (issue?.path[0] === 'mandatory_approvals') {
-      return t('validation_mandatoryApprovals')
-    }
-    return t('validation_formIncomplete')
-  }
-
-  if (draft.form.isOwnProject) {
-    const projectResult = createOwnProjectSchema().safeParse(draft.form.ownProject)
-    if (!projectResult.success) {
-      return t('validation_projectIncomplete')
-    }
-  }
-  else {
-    const projectResult = createOtherProjectSchema().safeParse(draft.form.otherProject)
-    if (!projectResult.success) {
-      return t('validation_tokenRequired')
-    }
-  }
-
-  return null
-}
-
 function onReset() {
   draft.reset()
+  fieldErrors.value = {}
+  formError.value = null
 }
 </script>

@@ -13,6 +13,8 @@ export interface RegistrationFormState {
     project_code: string
   }
   mandatoryApprovals: string[]
+  /** Question IDs the user has answered (yes or no). */
+  answeredGeneralQuestionIds: string[]
 }
 
 export function buildRegistrationPayload(form: RegistrationFormState): RegistrationDto {
@@ -57,12 +59,69 @@ export function createEmptyUser(): UserDto {
     email_guardian: '',
     via: '',
     medical: '',
-    address: {
-      street: '',
-      house_number: '',
-      municipality_name: '',
-      box_number: '',
-      postalcode: 0,
+    address: createEmptyAddress(),
+  }
+}
+
+export function createEmptyAddress(): UserDto['address'] {
+  return {
+    street: '',
+    house_number: '',
+    municipality_name: '',
+    box_number: '',
+    postalcode: 0,
+  }
+}
+
+/** Merge a persisted or partial draft with current defaults (e.g. new address fields). */
+export function hydrateRegistrationForm(
+  saved: Partial<RegistrationFormState> | null | undefined,
+): RegistrationFormState {
+  const defaults = createDefaultFormState()
+
+  if (!saved) {
+    return defaults
+  }
+
+  return {
+    ...defaults,
+    ...saved,
+    user: {
+      ...defaults.user,
+      ...saved.user,
+      address: {
+        ...defaults.user.address,
+        ...saved.user?.address,
+      },
     },
+    ownProject: {
+      ...defaults.ownProject,
+      ...saved.ownProject,
+    },
+    otherProject: {
+      ...defaults.otherProject,
+      ...saved.otherProject,
+    },
+    mandatoryApprovals: saved.mandatoryApprovals ?? defaults.mandatoryApprovals,
+    answeredGeneralQuestionIds:
+      saved.answeredGeneralQuestionIds ?? defaults.answeredGeneralQuestionIds,
+  }
+}
+
+function createDefaultFormState(): RegistrationFormState {
+  return {
+    user: createEmptyUser(),
+    isOwnProject: true,
+    ownProject: {
+      project_name: '',
+      project_descr: '',
+      project_type: '',
+      project_lang: 'nl',
+    },
+    otherProject: {
+      project_code: '',
+    },
+    mandatoryApprovals: [],
+    answeredGeneralQuestionIds: [],
   }
 }

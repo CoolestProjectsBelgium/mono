@@ -31,7 +31,7 @@ const sendMailMock = jest.fn().mockResolvedValue({});
           lastname: 'Doe',
           address: {
             postalcode: 1000,
-            municipality_name: 'Test City',
+            municipality_name: 'Bruxelles',
             street: 'Test Street',
             house_number: '1',
             box_number: 'A',
@@ -76,7 +76,7 @@ const sendMailMock = jest.fn().mockResolvedValue({});
           lastname: 'Doe',
           address: {
             postalcode: 1000,
-            municipality_name: 'Test City',
+            municipality_name: 'Bruxelles',
             street: 'Test Street',
             house_number: '1',
             box_number: 'A',
