@@ -41,20 +41,27 @@ onMounted(async () => {
   if (!token) return
 
   loading.value = true
-  const ok = await activateWithToken(token)
-  loading.value = false
-
-  if (ok) {
-    await navigateTo(localePath('/user'))
+  try {
+    const ok = await activateWithToken(token)
+    if (ok) {
+      await navigateTo(localePath('/user'))
+    }
+    else {
+      activationFailed.value = true
+    }
   }
-  else {
-    activationFailed.value = true
+  finally {
+    loading.value = false
   }
 })
 
 async function onSubmit() {
   loading.value = true
-  await requestMagicLink(email.value)
-  loading.value = false
+  try {
+    await requestMagicLink(email.value)
+  }
+  finally {
+    loading.value = false
+  }
 }
 </script>

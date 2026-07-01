@@ -214,16 +214,21 @@ export class MailerService {
   }
 
   async loginMail(user: User, token: string) {
-    const event = await this.eventModel.findByPk(user.eventId);
+    const eventId = user.getDataValue('eventId') ?? user.eventId;
+    const event = await this.eventModel.findByPk(eventId);
     if (!event) {
       throw new Error('Event not found');
     }
 
-    const to = this.formatRecipients(user.email, user.email_guardian);
+    const email = user.getDataValue('email') ?? user.email;
+    const emailGuardian =
+      user.getDataValue('email_guardian') ?? user.email_guardian;
+    const language = user.getDataValue('language') ?? user.language ?? 'en';
+    const to = this.formatRecipients(email, emailGuardian);
     const context = this.buildUserMailContext(user, event, token);
     await this.sendMail(
       MailTemplates.ask4Token,
-      user.language,
+      language,
       event,
       to,
       context,

@@ -14,6 +14,8 @@ Open https://registration.coolestprojects.localhost:8443
 
 The app proxies API requests to `/_api`, which nginx forwards to the NestJS API on port 3001.
 
+When opening the app directly at `http://localhost:3004` (without the nginx TLS proxy), the Vite dev server also proxies `/_api` to the API on port 3001.
+
 ## Scripts
 
 | Script | Description |

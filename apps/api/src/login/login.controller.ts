@@ -35,10 +35,11 @@ export class LoginController {
 
   private buildLoginDto(user: User): LoginDto {
     const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const language = user.getDataValue?.('language') ?? user.language ?? 'nl';
     return {
       api_key: '',
       expires,
-      language: user.language,
+      language,
     };
   }
 

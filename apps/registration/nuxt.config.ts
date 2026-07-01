@@ -42,6 +42,13 @@ export default defineNuxtConfig({
   vite: {
     server: {
       allowedHosts: ['registration.coolestprojects.localhost'],
+      proxy: {
+        '/_api': {
+          target: process.env.NUXT_DEV_API_PROXY || 'http://127.0.0.1:3001',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/_api/, ''),
+        },
+      },
       hmr: {
         protocol: 'wss',
         host: 'registration.coolestprojects.localhost',
