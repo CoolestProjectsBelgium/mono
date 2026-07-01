@@ -130,6 +130,12 @@
     "linkSent": "Si ton e-mail est connu, tu recevras un lien de connexion.",
     "linkExpired": "Le lien de connexion a expiré ou est invalide."
   },
+  "registrationSuccess": {
+    "title": "Vérifie ton e-mail",
+    "body": "Nous avons envoyé un lien de confirmation à {email}. Clique sur le lien dans cet e-mail pour continuer.",
+    "loginCta": "Connexion",
+    "homeCta": "Retour à la page d'accueil"
+  },
   "noProject": { "message": "Tu n'as pas encore de projet." },
   "upload": { "leaveWarning": "Envoi en cours — ne quitte pas cette page.", "leaveConfirm": "Envoi en cours. Quitter quand même la page ?" }
 }

@@ -130,6 +130,12 @@
     "linkSent": "If your email is known to us, you will receive a login link.",
     "linkExpired": "The login link has expired or is invalid."
   },
+  "registrationSuccess": {
+    "title": "Check your email",
+    "body": "We sent a confirmation link to {email}. Click the link in that email to continue.",
+    "loginCta": "Login",
+    "homeCta": "Back to homepage"
+  },
   "noProject": { "message": "You don't have a project yet. Create one or join an existing project." },
   "upload": { "leaveWarning": "Upload in progress — do not leave this page.", "leaveConfirm": "Upload in progress. Leave anyway?" }
 }

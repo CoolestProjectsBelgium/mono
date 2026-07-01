@@ -78,9 +78,15 @@ export class Registration extends BaseEventModel {
   @Column(DataType.STRING(2000))
   internalinfo!: string;
 
-  @IsEmail
-  @Column(DataType.STRING(254))
-  email_guardian!: string;
+  @Column({
+    type: DataType.STRING(254),
+    set(value: string | null) {
+      const trimmed = typeof value === 'string' ? value.trim() : value;
+      this.setDataValue('email_guardian', trimmed || null);
+    },
+    validate: { isEmail: true },
+  })
+  email_guardian!: string | null;
 
   @Column(DataType.UUID)
   project_code!: string;

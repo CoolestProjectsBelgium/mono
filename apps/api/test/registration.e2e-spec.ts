@@ -126,7 +126,62 @@ describe('RegistrationController (e2e)', () => {
     );
   });
 
-  it('register project without guardian', () => {});
+  it('register project without guardian', async () => {
+    mockInterceptor.setInfo({
+      currentEvent: 1,
+      language: 'en',
+      closed: false,
+      current: true,
+      projectClosed: false,
+      registrationOpen: true,
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/registration')
+      .send({
+        user: {
+          email: `adult-${Date.now()}@test.be`,
+          firstname: 'Jane',
+          lastname: 'Doe',
+          address: {
+            postalcode: 1000,
+            municipality_name: 'Bruxelles',
+            street: 'Test Street',
+            house_number: '1',
+            box_number: 'A',
+          },
+          general_questions: [],
+          mandatory_approvals: [3],
+          language: 'en',
+          year: 2008,
+          month: 5,
+          t_size: 3,
+          via: '',
+          medical: '',
+          email_guardian: '',
+          gsm_guardian: '',
+          gsm: '0470123456',
+          sex: 'x',
+        },
+        project: {
+          own_project: {
+            project_name: 'Adult Project',
+            project_descr: 'No guardian needed',
+            project_type: 'test',
+            project_lang: 'en',
+          },
+        },
+      })
+      .set('Accept-Language', 'en-US');
+
+    expect(response.status).toBe(201);
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: expect.stringMatching(/adult-\d+@test\.be/),
+        subject: expect.stringContaining('Registration Confirmation'),
+      }),
+    );
+  });
 
   it('register project participant to young', () => {});
 

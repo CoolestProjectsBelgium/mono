@@ -1,8 +1,14 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { userFixture } from '~/fixtures/user'
 import type { RegistrationFormState } from '~/utils/registration-payload'
 import { callComposable } from '~/tests/composable-utils'
 import { mockFetch } from '~/tests/setup'
+
+const notifyMock = vi.fn()
+
+vi.mock('~/composables/useNotification', () => ({
+  useNotification: () => ({ notify: notifyMock }),
+}))
 
 const form: RegistrationFormState = {
   user: { ...userFixture },
@@ -13,13 +19,17 @@ const form: RegistrationFormState = {
 }
 
 describe('useRegistration', () => {
-  beforeEach(() => mockFetch.mockReset())
+  beforeEach(() => {
+    mockFetch.mockReset()
+    notifyMock.mockReset()
+  })
 
   it('POST /registration with correct body', async () => {
     mockFetch.mockResolvedValue({})
     const { submitRegistration } = await callComposable(() => useRegistration())
     const ok = await submitRegistration(form)
     expect(ok).toEqual({ ok: true })
+    expect(notifyMock).not.toHaveBeenCalled()
     expect(mockFetch).toHaveBeenCalledWith('/registration', expect.objectContaining({
       method: 'POST',
       body: expect.objectContaining({

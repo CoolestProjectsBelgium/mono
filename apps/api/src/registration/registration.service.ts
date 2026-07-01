@@ -131,76 +131,70 @@ export class RegistrationService {
 
     await this.validate(event, registration);
 
-    // we want to make sure that the count, insert & waiting list logic is atomic
-    const transaction = await this.sequelize.transaction();
-
-    // lock registrations for the current event
-    await this.eventModel.findAll({
-      where: {
-        id: info.currentEvent,
-      },
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-
-    // count the projects in the event
-    const projectCount = await this.projectModel.count({
-      where: { eventId: event.id },
-      transaction,
-    });
-
-    // count the projects in the registration
-    const registrationProjectCount = await this.registrationModel.count({
-      where: { eventId: event.id, project_code: null },
-      transaction,
-    });
-
-    // check waiting list if project code is not filled, participant can always register
-    if (
-      !registration.project_code &&
-      projectCount + registrationProjectCount >= event.maxRegistration
-    ) {
-      registration.waiting_list = true;
-    }
-
     const { questions, ...registrationData } = registration;
 
-    const r = await this.registrationModel.create(registrationData, {
-      transaction,
-    });
-
-    // map the questions to the registration (verify if questions exist for the event)
     const questionRecords = await this.questionModel.findAll({
       where: {
         id: questions.map((q) => q.questionId),
         eventId: info.currentEvent,
       },
     });
-    await this.questionRegistrationModel.bulkCreate(
-      questionRecords.map((q) => {
-        return {
-          questionId: q.id,
-          registrationId: r.id,
-          eventId: q.eventId,
-        };
-      }),
-      { transaction },
+
+    // count, insert & waiting-list logic must be atomic; managed transaction rolls back on error
+    const { createdRegistration, waiting_list } =
+      await this.sequelize.transaction(async (transaction) => {
+        await this.eventModel.findAll({
+          where: {
+            id: info.currentEvent,
+          },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        const projectCount = await this.projectModel.count({
+          where: { eventId: event.id },
+          transaction,
+        });
+
+        const registrationProjectCount = await this.registrationModel.count({
+          where: { eventId: event.id, project_code: null },
+          transaction,
+        });
+
+        let waiting_list = false;
+        if (
+          !registration.project_code &&
+          projectCount + registrationProjectCount >= event.maxRegistration
+        ) {
+          waiting_list = true;
+        }
+
+        const createdRegistration = await this.registrationModel.create(
+          { ...registrationData, waiting_list },
+          { transaction },
+        );
+
+        await this.questionRegistrationModel.bulkCreate(
+          questionRecords.map((q) => ({
+            questionId: q.id,
+            registrationId: createdRegistration.id,
+            eventId: q.eventId,
+          })),
+          { transaction },
+        );
+
+        return { createdRegistration, waiting_list };
+      });
+
+    const savedRegistration = await this.registrationModel.findByPk(
+      createdRegistration.id,
     );
-
-    try {
-      await transaction.commit();
-    } catch (error) {
-      await transaction.rollback();
-      throw new Error('Transaction commit failed: ' + error);
-    }
-
-    const savedRegistration = await this.registrationModel.findByPk(r.id);
     if (!savedRegistration) {
       throw new Error('Registration not found after create');
     }
 
     // send mails
-    if (registration.waiting_list) {
+    if (waiting_list) {
       await this.mailerService.waitingListMail(savedRegistration);
     } else {
       const token = this.tokenService.generateRegistrationToken(savedRegistration.id);

@@ -33,7 +33,6 @@ export function useRegistration() {
         method: 'POST',
         body: payload,
       })
-      notify('success', 'message_successReg')
       return { ok: true }
     }
     catch (error) {
