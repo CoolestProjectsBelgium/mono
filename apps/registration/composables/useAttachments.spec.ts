@@ -5,6 +5,14 @@ import { mockFetch } from '~/tests/setup'
 const mockUploadData = vi.fn().mockResolvedValue(undefined)
 let capturedBlobUrl = ''
 
+vi.mock('~/utils/attachment-normalize', () => ({
+  normalizeUploadFile: vi.fn(async (file: File) => ({
+    file,
+    filename: file.name,
+    needsServerNormalize: false,
+  })),
+}))
+
 vi.mock('@azure/storage-blob', () => ({
   AnonymousCredential: vi.fn(),
   BlockBlobClient: vi.fn().mockImplementation((url: string) => {
@@ -35,15 +43,19 @@ describe('useAttachments SAS cache', () => {
 
   it('uploadFile uses createAttachment URL without fetching a second SAS', async () => {
     const future = new Date(Date.now() + 10 * 60 * 1000).toISOString()
-    const blobUrl = `https://registration.coolestprojects.localhost:8443/_blob/devstoreaccount1/container/file.mp4?se=${encodeURIComponent(future)}&sv=2021`
+    const blobUrl = `https://registration.coolestprojects.localhost:8443/_blob/devstoreaccount1/container/abc.mp4?se=${encodeURIComponent(future)}&sv=2021`
     mockFetch.mockResolvedValue({ url: blobUrl })
 
     const { uploadFile } = await callComposable(() => useAttachments())
     const file = new File(['content'], 'file.mp4', { type: 'video/mp4' })
     const result = await uploadFile(file)
 
-    expect(result).toEqual({ ok: true })
-    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(true)
+    expect(mockFetch).toHaveBeenCalledWith('/attachments', expect.any(Object))
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/attachments/abc.mp4/poster',
+      expect.objectContaining({ method: 'POST' }),
+    )
     expect(capturedBlobUrl).toBe(blobUrl)
     expect(capturedBlobUrl.match(/\?/g)).toHaveLength(1)
   })
@@ -88,6 +100,22 @@ describe('useAttachments SAS cache', () => {
       ok: false,
       code: 'tooLarge',
       message: 'File validation failed',
+    })
+  })
+
+  it('maps API attachment limit failure to tooMany', async () => {
+    mockFetch.mockRejectedValue({
+      data: { statusCode: 400, message: 'Maximum number of attachments reached' },
+    })
+
+    const { uploadFile } = await callComposable(() => useAttachments())
+    const file = new File(['content'], 'file.mp4', { type: 'video/mp4' })
+    const result = await uploadFile(file)
+
+    expect(result).toEqual({
+      ok: false,
+      code: 'tooMany',
+      message: 'Maximum number of attachments reached',
     })
   })
 })

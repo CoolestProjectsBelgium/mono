@@ -40,11 +40,12 @@ export interface AttachmentDto {
   id: string
   name: string
   url?: string | null
+  posterUrl?: string | null
   filename: string
   size: number
   confirmed: boolean
   exists: boolean
-  type: 'link' | 'movie'
+  type: 'link' | 'movie' | 'image'
 }
 
 export interface OwnProjectDto {
@@ -96,6 +97,7 @@ export interface SettingDto {
   isProjectClosed: boolean
   maxRegistration: number
   maxParticipants: number
+  maxAttachments: number
 }
 
 export interface TshirtDto {

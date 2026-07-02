@@ -50,6 +50,7 @@ import { AuthModule } from './auth/auth.module';
 import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
 import { AzureBlobService } from './azureblob/azureblob.service';
+import { VideoPosterService } from './attachment/video-poster.service';
 
 @Module({
   imports: [
@@ -154,6 +155,7 @@ import { AzureBlobService } from './azureblob/azureblob.service';
     UserinfoService,
     AttachmentService,
     AzureBlobService,
+    VideoPosterService,
   ],
   exports: [],
 })

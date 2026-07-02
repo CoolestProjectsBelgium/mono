@@ -19,4 +19,15 @@ SET @sql := IF(@exists = 0, 'ALTER TABLE Projects ADD COLUMN removedAt DATETIME 
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+SET @poster_exists := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'AzureBlobs'
+    AND COLUMN_NAME = 'poster_blob_name'
+);
+SET @poster_sql := IF(@poster_exists = 0, 'ALTER TABLE AzureBlobs ADD COLUMN poster_blob_name VARCHAR(255) NULL', 'SELECT 1');
+PREPARE poster_stmt FROM @poster_sql;
+EXECUTE poster_stmt;
+DEALLOCATE PREPARE poster_stmt;
 SQL

@@ -25,7 +25,7 @@ mockNuxtImport('navigateTo', () => navigateToMock)
 
 vi.mock('~/components/UploadAttachments.vue', () => ({
   default: {
-    props: ['maxUploadSize'],
+    props: ['maxUploadSize', 'attachmentCount', 'maxAttachments'],
     emits: ['upload-start', 'upload-end', 'upload-success'],
     template: '<div data-testid="upload-form" />',
   },
@@ -33,7 +33,7 @@ vi.mock('~/components/UploadAttachments.vue', () => ({
 
 vi.mock('~/components/AttachmentList.vue', () => ({
   default: {
-    props: ['attachments', 'disabled'],
+    props: ['attachments', 'maxAttachments', 'disabled'],
     emits: ['deleted'],
     template: '<div data-testid="attachment-list">{{ attachments.length }}</div>',
   },
@@ -66,7 +66,7 @@ describe('upload page', () => {
     fetchProjectMock.mockReset()
     fetchSettingsMock.mockReset()
     navigateToMock.mockReset()
-    fetchSettingsMock.mockResolvedValue({ maxUploadSize: 1024 })
+    fetchSettingsMock.mockResolvedValue({ maxUploadSize: 1024, maxAttachments: 10 })
   })
 
   it('redirects non-owners to project page', async () => {

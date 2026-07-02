@@ -4,6 +4,7 @@ import {
   Post,
   Param,
   Delete,
+  Patch,
   UseGuards,
   Request,
   UseInterceptors,
@@ -12,6 +13,7 @@ import { ApiResponse, ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AttachmentService } from './attachment.service';
 import { CreateAttachmentDto } from '../dto/create-attachment.dto';
+import { UpdateAttachmentDto } from '../dto/update-attachment.dto';
 import { SASToken } from '../dto/sas-token.dto';
 import { UserCookieInterceptor } from '../user-cookie.interceptor';
 
@@ -44,6 +46,41 @@ export class AttachmentController {
     @Param('name') name: string,
   ): Promise<SASToken> {
     return this.attachmentService.getAttachmentSAS(name, req.user.id);
+  }
+
+  @Post(':name/poster')
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async ensurePoster(
+    @Request() req: { user: { id: number } },
+    @Param('name') name: string,
+  ): Promise<void> {
+    return this.attachmentService.ensureVideoPoster(name, req.user.id);
+  }
+
+  @Post(':name/normalize')
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async normalizeVideo(
+    @Request() req: { user: { id: number } },
+    @Param('name') name: string,
+  ): Promise<void> {
+    return this.attachmentService.normalizeVideo(name, req.user.id);
+  }
+
+  @Patch(':name')
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async updateAttachment(
+    @Request() req: { user: { id: number } },
+    @Param('name') name: string,
+    @Body() updateAttachmentDto: UpdateAttachmentDto,
+  ): Promise<void> {
+    return this.attachmentService.updateAttachmentName(
+      name,
+      req.user.id,
+      updateAttachmentDto,
+    );
   }
 
   @Delete(':name')

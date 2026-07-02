@@ -17,6 +17,7 @@ import { Registration } from '@coolestprojects/database';
 import { User } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
 import { activeProjectWhere } from '@coolestprojects/database';
+import { MAX_PROJECT_ATTACHMENTS } from './attachment/attachment.constants';
 
 @Injectable()
 export class AppService {
@@ -180,6 +181,7 @@ export class AppService {
 
       maxRegistration: event.maxRegistration,
       maxParticipants: event.maxVoucher,
+      maxAttachments: MAX_PROJECT_ATTACHMENTS,
 
       // info object
       isRegistrationOpen: info.registrationOpen,

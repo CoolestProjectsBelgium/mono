@@ -10,6 +10,9 @@ export class AttachmentDto {
   @ApiProperty({ required: false })
   url?: string | null;
 
+  @ApiProperty({ required: false })
+  posterUrl?: string | null;
+
   @ApiProperty()
   filename!: string;
 
@@ -22,6 +25,6 @@ export class AttachmentDto {
   @ApiProperty()
   exists!: boolean;
 
-  @ApiProperty({ enum: ['link', 'movie'] })
+  @ApiProperty({ enum: ['link', 'movie', 'image'] })
   type!: string;
 }

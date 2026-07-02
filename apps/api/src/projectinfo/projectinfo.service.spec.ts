@@ -10,7 +10,11 @@ describe('ProjectinfoService', () => {
   let voucherModel: { findOne: jest.Mock; findAll: jest.Mock; count: jest.Mock };
   let userModel: { findByPk: jest.Mock };
   let attachmentModel: { findAll: jest.Mock };
-  let azureBlobService: { deleteBlob: jest.Mock };
+  let azureBlobService: {
+    deleteBlob: jest.Mock
+    checkBlobExists: jest.Mock
+    generateSAS: jest.Mock
+  }
 
   beforeEach(async () => {
     projectModel = {
@@ -37,7 +41,11 @@ describe('ProjectinfoService', () => {
         { provide: getModelToken(Attachment), useValue: attachmentModel = { findAll: jest.fn().mockResolvedValue([]) } },
         {
           provide: AzureBlobService,
-          useValue: azureBlobService = { deleteBlob: jest.fn() },
+          useValue: azureBlobService = {
+            deleteBlob: jest.fn(),
+            checkBlobExists: jest.fn().mockResolvedValue(true),
+            generateSAS: jest.fn().mockResolvedValue({ url: 'https://example.blob/file?sas=1' }),
+          },
         },
       ],
     }).compile();
@@ -74,6 +82,45 @@ describe('ProjectinfoService', () => {
         expect.objectContaining({ name: 'Alex', is_owner: true, self: false }),
       ],
     });
+  });
+
+  it('returns attachments with name and filename for owners', async () => {
+    projectModel.findOne.mockResolvedValue({
+      get: () => ({
+        id: 1,
+        ownerId: 9,
+        name: 'My project',
+        description: 'desc',
+        type: 'game',
+        language: 'nl',
+      }),
+    });
+    attachmentModel.findAll.mockResolvedValue([
+      {
+        get: () => ({
+          name: 'My clip',
+          filename: 'clip.mp4',
+          confirmed: false,
+          azureBlob: {
+            blob_name: 'uuid.mp4',
+            container_name: 'container',
+            size: 512,
+          },
+        }),
+      },
+    ]);
+
+    const result = await service.getProjectInfo(9);
+
+    expect(result.attachments).toEqual([
+      expect.objectContaining({
+        id: 'uuid.mp4',
+        name: 'My clip',
+        filename: 'clip.mp4',
+        exists: true,
+        type: 'movie',
+      }),
+    ]);
   });
 
   it('soft-deletes a project by setting removedAt', async () => {

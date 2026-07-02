@@ -17,6 +17,7 @@ import {
   mapParticipantsForProject,
   type VoucherInput,
 } from '../participant/participant.mapper';
+import { mapAttachmentRowToDto } from './attachment.mapper';
 
 @Injectable()
 export class ProjectinfoService {
@@ -41,7 +42,7 @@ export class ProjectinfoService {
 
     for (const attachment of attachments) {
       const a = attachment.get({ plain: true }) as Attachment & {
-        azureBlob?: AzureBlob;
+        azureBlob?: AzureBlob & { poster_blob_name?: string | null };
       };
       const blob = a.azureBlob;
       if (!blob) {
@@ -50,6 +51,7 @@ export class ProjectinfoService {
 
       let exists = false;
       let url: string | null = null;
+      let posterUrl: string | null = null;
 
       try {
         exists = await this.azureBlobService.checkBlobExists(
@@ -60,25 +62,33 @@ export class ProjectinfoService {
           const readSas = await this.azureBlobService.generateSAS(
             blob.blob_name,
             'r',
-            attachment.filename,
+            a.filename,
             blob.container_name,
           );
           url = readSas.url;
+
+          if (blob.poster_blob_name) {
+            const posterSas = await this.azureBlobService.generateSAS(
+              blob.poster_blob_name,
+              'r',
+              null,
+              blob.container_name,
+            );
+            posterUrl = posterSas.url;
+          }
         }
       } catch {
         exists = false;
       }
 
-      result.push({
-        id: blob.blob_name,
-        name: attachment.name,
-        url,
-        size: blob.size,
-        filename: attachment.filename,
-        confirmed: attachment.confirmed || false,
+      const dto = mapAttachmentRowToDto(a, {
         exists,
-        type: 'movie',
+        url,
+        posterUrl,
       });
+      if (dto) {
+        result.push(dto);
+      }
     }
 
     return result;

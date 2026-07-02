@@ -13,13 +13,19 @@ vi.mock('~/composables/useNotification', () => ({
 }))
 
 describe('UploadAttachments', () => {
+  const defaultProps = {
+    maxUploadSize: 1024,
+    attachmentCount: 0,
+    maxAttachments: 10,
+  }
+
   beforeEach(() => {
     uploadFile.mockReset()
   })
 
   it('shows inline error for oversized file without uploading', async () => {
     const wrapper = await mountSuspended(UploadAttachments, {
-      props: { maxUploadSize: 10 },
+      props: { ...defaultProps, maxUploadSize: 10 },
       global: {
         stubs: {
           FormSection: { template: '<div><slot /></div>', props: ['title'] },
@@ -41,7 +47,7 @@ describe('UploadAttachments', () => {
     uploadFile.mockResolvedValue({ ok: true })
 
     const wrapper = await mountSuspended(UploadAttachments, {
-      props: { maxUploadSize: 1024 },
+      props: defaultProps,
       global: {
         stubs: {
           FormSection: { template: '<div><slot /></div>', props: ['title'] },
@@ -55,6 +61,31 @@ describe('UploadAttachments', () => {
     await input.trigger('change')
     await wrapper.vm.$nextTick()
 
-    expect(uploadFile).toHaveBeenCalledWith(file, expect.any(Function))
+    expect(uploadFile).toHaveBeenCalledWith(
+      file,
+      expect.objectContaining({ displayName: 'clip.mp4' }),
+    )
+  })
+
+  it('blocks upload when attachment limit is reached', async () => {
+    const wrapper = await mountSuspended(UploadAttachments, {
+      props: { ...defaultProps, attachmentCount: 10 },
+      global: {
+        stubs: {
+          FormSection: { template: '<div><slot /></div>', props: ['title'] },
+        },
+      },
+    })
+
+    expect(wrapper.get('[data-testid="upload-limit-reached"]').exists()).toBe(true)
+    expect(wrapper.find('input[type="file"]').attributes('disabled')).toBeDefined()
+
+    const file = new File(['ok'], 'clip.mp4', { type: 'video/mp4' })
+    const input = wrapper.find('input[type="file"]')
+    Object.defineProperty(input.element, 'files', { value: [file] })
+    await input.trigger('change')
+    await wrapper.vm.$nextTick()
+
+    expect(uploadFile).not.toHaveBeenCalled()
   })
 })

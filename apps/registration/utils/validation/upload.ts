@@ -1,19 +1,22 @@
+import { classifyUploadFile } from '../attachment-normalize'
+
 export type UploadValidationCode = 'tooLarge' | 'invalidType'
 
 export type UploadValidationResult =
   | { ok: true }
   | { ok: false, code: UploadValidationCode }
 
-const ALLOWED_TYPE_PREFIXES = ['video/', 'image/']
-
 export function isAllowedUploadMimeType(type: string): boolean {
-  return ALLOWED_TYPE_PREFIXES.some(prefix => type.startsWith(prefix))
+  return type.startsWith('video/') || type.startsWith('image/')
 }
 
 export function validateUploadFile(
   file: File,
   options: { maxUploadSize: number },
 ): UploadValidationResult {
+  if (classifyUploadFile(file) === 'rejected') {
+    return { ok: false, code: 'invalidType' }
+  }
   if (!isAllowedUploadMimeType(file.type)) {
     return { ok: false, code: 'invalidType' }
   }

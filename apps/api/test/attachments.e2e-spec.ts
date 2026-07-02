@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import request from 'supertest';
+import cookieParser from 'cookie-parser';
 import { AppModule } from '../src/app.module';
 import { MockInfoInterceptor } from './mock-info.interceptor';
 import { AzureBlobService } from '../src/azureblob/azureblob.service';
@@ -57,6 +58,7 @@ describe('Attachments (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser(process.env.JWT_KEY ?? 'test-secret'));
     await app.init();
 
     tokensService = moduleFixture.get(TokensService);
@@ -124,6 +126,8 @@ describe('Attachments (e2e)', () => {
     expect(projectinfoResponse.body.attachments).toHaveLength(1);
     expect(projectinfoResponse.body.attachments[0].exists).toBe(true);
     expect(projectinfoResponse.body.attachments[0].url).toContain(blobName);
+    expect(projectinfoResponse.body.attachments[0].name).toBe('test movie');
+    expect(projectinfoResponse.body.attachments[0].filename).toBe('test.mp4');
 
     const deleteResponse = await request(app.getHttpServer())
       .delete(`/attachments/${blobName}`)

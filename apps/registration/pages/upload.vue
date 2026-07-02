@@ -1,75 +1,79 @@
-<template>
-  <div>
-    <h1 class="text-3xl font-bold">{{ $t('Upload Movie') }}</h1>
-    <UploadAttachments
-      v-if="settings"
-      ref="uploadRef"
-      :max-upload-size="settings.maxUploadSize"
-      class="mt-6"
-      @upload-start="uploading = true"
-      @upload-end="uploading = false"
-      @upload-success="onUploadSuccess"
-    />
-    <p v-else class="mt-6 text-gray-500">{{ $t('pleaseWait') }}</p>
-    <p v-if="uploading" class="mt-4 text-amber-700" role="alert">
-      {{ $t('upload.leaveWarning') }}
-    </p>
-    <AttachmentList
-      v-if="settings"
-      :attachments="attachments"
-      :disabled="uploading"
-      class="mt-6"
-      @deleted="refreshAttachments"
-    />
-  </div>
-</template>
-
-<script setup lang="ts">
-import type { AttachmentDto, ProjectDto, SettingDto } from '~/types/api'
-import { isProjectOwner as checkIsProjectOwner } from '~/utils/project-routing'
-
-definePageMeta({ middleware: 'authenticated' })
-
-const { t } = useI18n()
-const localePath = useLocalePath()
-const { fetchSettings } = useSettings()
-const { fetchProject } = useProjectinfo()
-
-const uploading = ref(false)
-const uploadRef = ref<{ uploading: boolean } | null>(null)
-const settings = ref<SettingDto | null>(null)
-const project = ref<ProjectDto | null>(null)
-
-const attachments = computed<AttachmentDto[]>(() => project.value?.attachments ?? [])
-
-async function refreshAttachments() {
-  project.value = await fetchProject()
-}
-
-onMounted(async () => {
-  const [fetchedProject, fetchedSettings] = await Promise.all([
-    fetchProject(),
-    fetchSettings(),
-  ])
-  if (!checkIsProjectOwner(fetchedProject)) {
-    await navigateTo(localePath('/project'))
-    return
-  }
-  project.value = fetchedProject
-  settings.value = fetchedSettings
-})
-
-async function onUploadSuccess() {
-  await refreshAttachments()
-}
-
-onBeforeRouteLeave((_to, _from, next) => {
-  if (uploading.value) {
-    const leave = window.confirm(t('upload.leaveConfirm'))
-    next(leave)
-  }
-  else {
-    next()
-  }
-})
-</script>
+<template>
+  <div>
+    <h1 class="text-3xl font-bold">{{ $t('Upload Movie') }}</h1>
+    <UploadAttachments
+      v-if="settings"
+      ref="uploadRef"
+      :max-upload-size="settings.maxUploadSize"
+      :attachment-count="attachments.length"
+      :max-attachments="settings.maxAttachments"
+      class="mt-6"
+      @upload-start="uploading = true"
+      @upload-end="uploading = false"
+      @upload-success="onUploadSuccess"
+    />
+    <p v-else class="mt-6 text-gray-500">{{ $t('pleaseWait') }}</p>
+    <p v-if="uploading" class="mt-4 text-amber-700" role="alert">
+      {{ $t('upload.leaveWarning') }}
+    </p>
+    <AttachmentList
+      v-if="settings"
+      :attachments="attachments"
+      :max-attachments="settings.maxAttachments"
+      :disabled="uploading"
+      class="mt-6"
+      @deleted="refreshAttachments"
+      @renamed="refreshAttachments"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { AttachmentDto, ProjectDto, SettingDto } from '~/types/api'
+import { isProjectOwner as checkIsProjectOwner } from '~/utils/project-routing'
+
+definePageMeta({ middleware: 'authenticated' })
+
+const { t } = useI18n()
+const localePath = useLocalePath()
+const { fetchSettings } = useSettings()
+const { fetchProject } = useProjectinfo()
+
+const uploading = ref(false)
+const uploadRef = ref<{ uploading: boolean } | null>(null)
+const settings = ref<SettingDto | null>(null)
+const project = ref<ProjectDto | null>(null)
+
+const attachments = computed<AttachmentDto[]>(() => project.value?.attachments ?? [])
+
+async function refreshAttachments() {
+  project.value = await fetchProject()
+}
+
+onMounted(async () => {
+  const [fetchedProject, fetchedSettings] = await Promise.all([
+    fetchProject(),
+    fetchSettings(),
+  ])
+  if (!checkIsProjectOwner(fetchedProject)) {
+    await navigateTo(localePath('/project'))
+    return
+  }
+  project.value = fetchedProject
+  settings.value = fetchedSettings
+})
+
+async function onUploadSuccess() {
+  await refreshAttachments()
+}
+
+onBeforeRouteLeave((_to, _from, next) => {
+  if (uploading.value) {
+    const leave = window.confirm(t('upload.leaveConfirm'))
+    next(leave)
+  }
+  else {
+    next()
+  }
+})
+</script>

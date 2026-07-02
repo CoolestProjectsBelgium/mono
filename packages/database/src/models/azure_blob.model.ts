@@ -1,4 +1,4 @@
-import { Column, Table, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import { Column, Table, ForeignKey, BelongsTo, DataType } from 'sequelize-typescript';
 import { Attachment } from './attachment.model.js';
 import { BaseEventModel } from './base_event.model.js';
 
@@ -12,6 +12,9 @@ export class AzureBlob extends BaseEventModel {
 
   @Column
   size!: number;
+
+  @Column({ type: DataType.STRING(255), allowNull: true })
+  poster_blob_name?: string | null;
 
   @ForeignKey(() => Attachment)
   @Column

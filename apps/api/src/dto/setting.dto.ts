@@ -19,4 +19,5 @@ export class SettingDto {
     isProjectClosed!: boolean;
     maxRegistration!: number;
     maxParticipants!: number;
+    maxAttachments!: number;
 }

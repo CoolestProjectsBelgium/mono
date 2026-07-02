@@ -3,6 +3,7 @@ import { getModelToken, getConnectionToken } from '@nestjs/sequelize';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { AttachmentService } from './attachment.service';
 import { AzureBlobService } from '../azureblob/azureblob.service';
+import { VideoPosterService } from './video-poster.service';
 import {
   Project,
   Event,
@@ -34,6 +35,13 @@ describe('AttachmentService', () => {
   const mockAttachmentModel = {
     create: jest.fn(),
     destroy: jest.fn(),
+    update: jest.fn(),
+    count: jest.fn().mockResolvedValue(0),
+  };
+
+  const mockVideoPosterService = {
+    ensurePoster: jest.fn(),
+    normalizeVideo: jest.fn(),
   };
 
   const mockAzureBlobModel = {
@@ -56,6 +64,7 @@ describe('AttachmentService', () => {
         { provide: getModelToken(Attachment), useValue: mockAttachmentModel },
         { provide: getModelToken(AzureBlob), useValue: mockAzureBlobModel },
         { provide: getConnectionToken(), useValue: mockSequelize },
+        { provide: VideoPosterService, useValue: mockVideoPosterService },
       ],
     }).compile();
 
@@ -85,10 +94,38 @@ describe('AttachmentService', () => {
         maxFileSize: 50,
         azure_storage_container: 'container',
       });
+      mockAttachmentModel.count.mockResolvedValue(0);
 
       await expect(
         service.createAttachment(
           { name: 'test', filename: 'test.mp4', size: 100 },
+          1,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws when attachment limit is reached', async () => {
+      mockProjectModel.findOne.mockResolvedValue({ id: 1, eventId: 1 });
+      mockEventModel.findByPk.mockResolvedValue({
+        id: 1,
+        maxFileSize: 1000,
+        azure_storage_container: 'container',
+      });
+      mockAttachmentModel.count.mockResolvedValue(10);
+
+      await expect(
+        service.createAttachment(
+          { name: 'test', filename: 'test.jpg', size: 100 },
+          1,
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(mockAttachmentModel.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects non-canonical filename extensions', async () => {
+      await expect(
+        service.createAttachment(
+          { name: 'test', filename: 'test.mov', size: 100 },
           1,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -101,6 +138,7 @@ describe('AttachmentService', () => {
         maxFileSize: 1000,
         azure_storage_container: 'container',
       });
+      mockAttachmentModel.count.mockResolvedValue(9);
       mockAttachmentModel.create.mockResolvedValue({ id: 1 });
 
       const result = await service.createAttachment(
@@ -136,6 +174,7 @@ describe('AttachmentService', () => {
       mockProjectModel.findOne.mockResolvedValue({ id: 1 });
       mockAzureBlobModel.findOne.mockResolvedValue({
         container_name: 'container',
+        getDataValue: jest.fn().mockReturnValue('container'),
       });
 
       await service.getAttachmentSAS('file.mp4', 1);
@@ -156,6 +195,25 @@ describe('AttachmentService', () => {
     });
   });
 
+  describe('updateAttachmentName', () => {
+    it('updates attachment display name', async () => {
+      mockProjectModel.findOne.mockResolvedValue({ id: 1 });
+      mockAzureBlobModel.findOne.mockResolvedValue({
+        get: jest.fn().mockReturnValue({
+          attachmentId: 5,
+          attachment: { id: 5 },
+        }),
+      });
+
+      await service.updateAttachmentName('file.mp4', 1, { name: 'New label' });
+
+      expect(mockAttachmentModel.update).toHaveBeenCalledWith(
+        { name: 'New label' },
+        { where: { id: 5 } },
+      );
+    });
+  });
+
   describe('deleteAttachment', () => {
     it('throws when attachment not found', async () => {
       mockProjectModel.findOne.mockResolvedValue({ id: 1 });
@@ -166,22 +224,29 @@ describe('AttachmentService', () => {
       );
     });
 
-    it('deletes attachment and blob', async () => {
+    it('deletes azure blob row, storage blob, then attachment', async () => {
+      const destroyAzureBlob = jest.fn().mockResolvedValue(undefined);
       mockProjectModel.findOne.mockResolvedValue({ id: 1 });
       mockAzureBlobModel.findOne.mockResolvedValue({
         attachmentId: 5,
         container_name: 'container',
+        destroy: destroyAzureBlob,
+        get: jest.fn().mockReturnValue({
+          attachmentId: 5,
+          container_name: 'container',
+        }),
       });
 
       await service.deleteAttachment('file.mp4', 1);
 
-      expect(mockAttachmentModel.destroy).toHaveBeenCalledWith({
-        where: { id: 5 },
-      });
+      expect(destroyAzureBlob).toHaveBeenCalled();
       expect(mockAzureBlobService.deleteBlob).toHaveBeenCalledWith(
         'file.mp4',
         'container',
       );
+      expect(mockAttachmentModel.destroy).toHaveBeenCalledWith({
+        where: { id: 5 },
+      });
     });
   });
 });

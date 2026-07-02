@@ -6,12 +6,14 @@ import type { AttachmentDto } from '~/types/api'
 
 const deleteAttachment = vi.fn()
 const getDownloadUrl = vi.fn()
+const renameAttachment = vi.fn()
 const notify = vi.fn()
 
 vi.mock('~/composables/useAttachments', () => ({
   useAttachments: () => ({
     deleteAttachment,
     getDownloadUrl,
+    renameAttachment,
   }),
 }))
 
@@ -46,13 +48,14 @@ describe('AttachmentList', () => {
   beforeEach(() => {
     deleteAttachment.mockReset()
     getDownloadUrl.mockReset()
+    renameAttachment.mockReset()
     notify.mockReset()
     vi.stubGlobal('open', vi.fn())
   })
 
   it('shows empty state when there are no attachments', async () => {
     const wrapper = await mountSuspended(AttachmentList, {
-      props: { attachments: [] },
+      props: { attachments: [], maxAttachments: 10 },
       global: {
         stubs: {
           FormSection: { template: '<div><slot /></div>', props: ['title'] },
@@ -63,9 +66,9 @@ describe('AttachmentList', () => {
     expect(wrapper.get('[data-testid="attachments-empty"]').exists()).toBe(true)
   })
 
-  it('renders attachment rows', async () => {
+  it('renders attachment rows with preview column', async () => {
     const wrapper = await mountSuspended(AttachmentList, {
-      props: { attachments: [sampleAttachment] },
+      props: { attachments: [sampleAttachment], maxAttachments: 10 },
       global: {
         stubs: {
           FormSection: { template: '<div><slot /></div>', props: ['title'] },
@@ -75,13 +78,14 @@ describe('AttachmentList', () => {
 
     expect(wrapper.findAll('[data-testid="attachment-row"]')).toHaveLength(1)
     expect(wrapper.text()).toContain('clip.mp4')
-    expect(wrapper.find('[data-testid="attachment-download"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="attachment-preview"]').exists()).toBe(true)
   })
 
   it('shows orphaned badge when exists is false', async () => {
     const wrapper = await mountSuspended(AttachmentList, {
       props: {
         attachments: [{ ...sampleAttachment, exists: false, url: null }],
+        maxAttachments: 10,
       },
       global: {
         stubs: {
@@ -97,7 +101,7 @@ describe('AttachmentList', () => {
   it('deletes an attachment after confirmation', async () => {
     deleteAttachment.mockResolvedValue(true)
     const wrapper = await mountSuspended(AttachmentList, {
-      props: { attachments: [sampleAttachment] },
+      props: { attachments: [sampleAttachment], maxAttachments: 10 },
       global: {
         stubs: {
           FormSection: { template: '<div><slot /></div>', props: ['title'] },
@@ -114,13 +118,11 @@ describe('AttachmentList', () => {
     expect(notify).toHaveBeenCalledWith('success', 'message_successChange')
   })
 
-  it('opens download URL in a new tab', async () => {
+  it('opens lightbox from download button', async () => {
     getDownloadUrl.mockResolvedValue('https://example.test/blob/uuid-1.mp4?sas=1')
-    const openMock = vi.fn()
-    vi.stubGlobal('open', openMock)
 
     const wrapper = await mountSuspended(AttachmentList, {
-      props: { attachments: [sampleAttachment] },
+      props: { attachments: [sampleAttachment], maxAttachments: 10 },
       global: {
         stubs: {
           FormSection: { template: '<div><slot /></div>', props: ['title'] },
@@ -129,13 +131,29 @@ describe('AttachmentList', () => {
     })
 
     await wrapper.get('[data-testid="attachment-download"]').trigger('click')
-    await wrapper.vm.$nextTick()
-    await vi.waitFor(() => {
-      expect(openMock).toHaveBeenCalledWith(
-        'https://example.test/blob/uuid-1.mp4?sas=1',
-        '_blank',
-        'noopener,noreferrer',
-      )
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="attachment-lightbox"]').exists()).toBe(true)
+  })
+
+  it('renames an attachment inline', async () => {
+    renameAttachment.mockResolvedValue(true)
+    const wrapper = await mountSuspended(AttachmentList, {
+      props: { attachments: [sampleAttachment], maxAttachments: 10 },
+      global: {
+        stubs: {
+          FormSection: { template: '<div><slot /></div>', props: ['title'] },
+        },
+      },
     })
+
+    await wrapper.get('[data-testid="attachment-rename-start"]').trigger('click')
+    await flushPromises()
+    await wrapper.get('[data-testid="attachment-rename-input"]').setValue('Renamed clip')
+    await flushPromises()
+    await wrapper.get('[data-testid="attachment-rename-save"]').trigger('click')
+    await flushPromises()
+
+    expect(renameAttachment).toHaveBeenCalledWith('uuid-1.mp4', 'Renamed clip')
   })
 })

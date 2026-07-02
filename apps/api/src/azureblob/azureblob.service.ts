@@ -5,6 +5,7 @@ import {
   BlobSASPermissions,
 } from '@azure/storage-blob';
 import { ConfigService } from '@nestjs/config';
+import { createReadStream, promises as fs } from 'node:fs';
 import { SASToken } from '../dto/sas-token.dto';
 import { rewriteBlobUrlForClient } from './rewrite-blob-url';
 
@@ -139,5 +140,27 @@ export class AzureBlobService {
     }
 
     await blobServiceClient.setProperties({ cors: corsRules });
+  }
+
+  async downloadBlobToFile(
+    blobName: string,
+    containerName: string,
+    destinationPath: string,
+  ): Promise<void> {
+    const blockBlobClient = await this.getBlobClient(blobName, containerName);
+    const buffer = await blockBlobClient.downloadToBuffer();
+    await fs.writeFile(destinationPath, buffer);
+  }
+
+  async uploadFileToBlob(
+    blobName: string,
+    containerName: string,
+    sourcePath: string,
+    contentType: string,
+  ): Promise<void> {
+    const blockBlobClient = await this.getBlobClient(blobName, containerName);
+    await blockBlobClient.uploadStream(createReadStream(sourcePath), undefined, undefined, {
+      blobHTTPHeaders: { blobContentType: contentType },
+    });
   }
 }

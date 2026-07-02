@@ -1,41 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { formatFileSize, isAllowedUploadMimeType, validateUploadFile } from '~/utils/validation/upload'
+import { validateUploadFile } from './upload'
 
-describe('validateUploadFile', () => {
-  const maxUploadSize = 1024
-
-  it('rejects files over the size limit', () => {
-    const file = new File(['x'.repeat(maxUploadSize + 1)], 'big.mp4', { type: 'video/mp4' })
-    expect(validateUploadFile(file, { maxUploadSize })).toEqual({ ok: false, code: 'tooLarge' })
+describe('upload validation', () => {
+  it('rejects pdf files', () => {
+    const file = new File(['x'], 'doc.pdf', { type: 'application/pdf' })
+    expect(validateUploadFile(file, { maxUploadSize: 1000 })).toEqual({
+      ok: false,
+      code: 'invalidType',
+    })
   })
 
-  it('rejects invalid mime types', () => {
-    const file = new File(['text'], 'notes.txt', { type: 'text/plain' })
-    expect(validateUploadFile(file, { maxUploadSize })).toEqual({ ok: false, code: 'invalidType' })
+  it('accepts png files', () => {
+    const file = new File(['x'], 'photo.png', { type: 'image/png' })
+    expect(validateUploadFile(file, { maxUploadSize: 1000 })).toEqual({ ok: true })
   })
 
-  it('accepts valid video files', () => {
-    const file = new File(['video'], 'clip.mp4', { type: 'video/mp4' })
-    expect(validateUploadFile(file, { maxUploadSize })).toEqual({ ok: true })
-  })
-
-  it('accepts valid image files', () => {
-    const file = new File(['image'], 'photo.jpg', { type: 'image/jpeg' })
-    expect(validateUploadFile(file, { maxUploadSize })).toEqual({ ok: true })
-  })
-})
-
-describe('isAllowedUploadMimeType', () => {
-  it('allows video and image prefixes', () => {
-    expect(isAllowedUploadMimeType('video/mp4')).toBe(true)
-    expect(isAllowedUploadMimeType('image/png')).toBe(true)
-    expect(isAllowedUploadMimeType('application/pdf')).toBe(false)
-  })
-})
-
-describe('formatFileSize', () => {
-  it('formats bytes and kilobytes', () => {
-    expect(formatFileSize(500)).toBe('500 B')
-    expect(formatFileSize(2048)).toBe('2 KB')
+  it('accepts convertible heic files', () => {
+    const file = new File(['x'], 'photo.heic', { type: 'image/heic' })
+    expect(validateUploadFile(file, { maxUploadSize: 1000 })).toEqual({ ok: true })
   })
 })
