@@ -139,6 +139,21 @@
   },
   "noProject": { "message": "Je hebt nog geen project. Start er een of sluit je aan bij een bestaand project." },
   "upload": { "leaveWarning": "Upload bezig — verlaat de pagina niet.", "leaveConfirm": "Upload bezig. Toch de pagina verlaten?" },
+  "attachments": {
+    "title": "Geüploade bestanden",
+    "empty": "Nog geen bestanden geüpload.",
+    "columnName": "Naam",
+    "columnFilename": "Bestandsnaam",
+    "columnSize": "Grootte",
+    "columnStatus": "Status",
+    "statusReady": "Beschikbaar",
+    "statusOrphaned": "Bestand ontbreekt",
+    "download": "Openen",
+    "delete": "Verwijderen",
+    "deleteTitle": "Bestand verwijderen",
+    "deleteMessage": "\"{filename}\" verwijderen?",
+    "deleteConfirm": "Verwijderen"
+  },
   "participantPending": "Uitnodiging open",
   "participantStatusLabel": "Status",
   "participantStatusPending": "Token nog niet gebruikt",
@@ -160,5 +175,11 @@
     "title": "Dit project verlaten?",
     "confirm": "Je verlaat \"{projectName}\". De eigenaar ziet opnieuw een open uitnodigingsplek. Je kan daarna je eigen project starten of aan een ander project deelnemen.",
     "confirmButton": "Project verlaten"
+  },
+  "deleteProject": {
+    "button": "Project verwijderen",
+    "title": "Dit project verwijderen?",
+    "confirm": "Weet je zeker dat je \"{projectName}\" wilt verwijderen? Het project wordt verborgen in de registratie. Je gegevens blijven bewaard en kunnen door een beheerder worden hersteld.",
+    "confirmButton": "Project verwijderen"
   }
 }

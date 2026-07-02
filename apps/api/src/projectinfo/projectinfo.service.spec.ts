@@ -7,8 +7,10 @@ import { AzureBlobService } from '../azureblob/azureblob.service';
 describe('ProjectinfoService', () => {
   let service: ProjectinfoService;
   let projectModel: { findOne: jest.Mock; findByPk: jest.Mock };
-  let voucherModel: { findOne: jest.Mock; findAll: jest.Mock };
+  let voucherModel: { findOne: jest.Mock; findAll: jest.Mock; count: jest.Mock };
   let userModel: { findByPk: jest.Mock };
+  let attachmentModel: { findAll: jest.Mock };
+  let azureBlobService: { deleteBlob: jest.Mock };
 
   beforeEach(async () => {
     projectModel = {
@@ -18,6 +20,7 @@ describe('ProjectinfoService', () => {
     voucherModel = {
       findOne: jest.fn(),
       findAll: jest.fn().mockResolvedValue([]),
+      count: jest.fn().mockResolvedValue(0),
     };
     userModel = {
       findByPk: jest.fn().mockResolvedValue({
@@ -31,10 +34,10 @@ describe('ProjectinfoService', () => {
         { provide: getModelToken(Project), useValue: projectModel },
         { provide: getModelToken(Voucher), useValue: voucherModel },
         { provide: getModelToken(User), useValue: userModel },
-        { provide: getModelToken(Attachment), useValue: { findAll: jest.fn().mockResolvedValue([]) } },
+        { provide: getModelToken(Attachment), useValue: attachmentModel = { findAll: jest.fn().mockResolvedValue([]) } },
         {
           provide: AzureBlobService,
-          useValue: {},
+          useValue: azureBlobService = { deleteBlob: jest.fn() },
         },
       ],
     }).compile();
@@ -47,7 +50,7 @@ describe('ProjectinfoService', () => {
     voucherModel.findOne.mockResolvedValue({
       getDataValue: (key: string) => (key === 'projectId' ? 7 : undefined),
     });
-    projectModel.findByPk.mockResolvedValue({
+    projectModel.findOne.mockResolvedValueOnce({
       get: () => ({
         id: 7,
         ownerId: 1,
@@ -60,7 +63,9 @@ describe('ProjectinfoService', () => {
 
     const result = await service.getProjectInfo(42);
 
-    expect(projectModel.findByPk).toHaveBeenCalledWith(7);
+    expect(projectModel.findOne).toHaveBeenCalledWith({
+      where: { id: 7, removedAt: null },
+    });
     expect(result.is_owner).toBe(false);
     expect(result.own_project).toMatchObject({
       project_id: '7',
@@ -69,5 +74,22 @@ describe('ProjectinfoService', () => {
         expect.objectContaining({ name: 'Alex', is_owner: true, self: false }),
       ],
     });
+  });
+
+  it('soft-deletes a project by setting removedAt', async () => {
+    const save = jest.fn().mockResolvedValue(undefined);
+    const project = {
+      id: 3,
+      removedAt: null as Date | null,
+      save,
+    };
+    projectModel.findOne.mockResolvedValue(project);
+    voucherModel.count.mockResolvedValue(0);
+
+    await service.deleteProject(9);
+
+    expect(project.removedAt).toBeInstanceOf(Date);
+    expect(save).toHaveBeenCalled();
+    expect(azureBlobService.deleteBlob).not.toHaveBeenCalled();
   });
 });

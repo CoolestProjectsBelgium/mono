@@ -7,11 +7,13 @@ import type { ProjectDto } from '~/types/api'
 const {
   fetchProjectMock,
   leaveProjectMock,
+  deleteProjectMock,
   navigateToMock,
   notifyMock,
 } = vi.hoisted(() => ({
   fetchProjectMock: vi.fn(),
   leaveProjectMock: vi.fn(),
+  deleteProjectMock: vi.fn(),
   navigateToMock: vi.fn(),
   notifyMock: vi.fn(),
 }))
@@ -20,7 +22,7 @@ vi.mock('~/composables/useProjectinfo', () => ({
   useProjectinfo: () => ({
     fetchProject: fetchProjectMock,
     updateProject: vi.fn(),
-    deleteProject: vi.fn(),
+    deleteProject: deleteProjectMock,
   }),
 }))
 
@@ -75,8 +77,8 @@ vi.mock('~/components/ConfirmDialog.vue', () => ({
     props: ['open', 'title', 'message', 'confirmLabel', 'cancelLabel', 'loading'],
     emits: ['confirm', 'update:open'],
     template: `
-      <div v-if="open" data-testid="leave-dialog">
-        <button data-testid="confirm-leave" @click="$emit('confirm')">{{ confirmLabel }}</button>
+      <div v-if="open" :data-testid="title === 'deleteProject.title' ? 'delete-dialog' : 'leave-dialog'">
+        <button data-testid="confirm-dialog" @click="$emit('confirm')">{{ confirmLabel }}</button>
       </div>
     `,
   },
@@ -148,10 +150,60 @@ describe('project page coworker leave', () => {
     })
 
     await wrapper.get('[data-testid="leave-project-button"]').trigger('click')
-    await wrapper.get('[data-testid="confirm-leave"]').trigger('click')
+    await wrapper.get('[data-testid="confirm-dialog"]').trigger('click')
 
     await vi.waitFor(() => {
       expect(leaveProjectMock).toHaveBeenCalled()
+      expect(navigateToMock).toHaveBeenCalledWith('/no_project')
+      expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
+    })
+  })
+})
+
+const ownerProject: ProjectDto = {
+  is_owner: true,
+  own_project: {
+    project_id: '1',
+    project_name: 'My project',
+    project_descr: 'Description',
+    project_type: 'game',
+    project_lang: 'nl',
+    delete_possible: true,
+    participants: [],
+  },
+}
+
+describe('project page owner delete', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    fetchProjectMock.mockReset()
+    deleteProjectMock.mockReset()
+    navigateToMock.mockReset()
+    notifyMock.mockReset()
+    fetchProjectMock.mockResolvedValue(ownerProject)
+    deleteProjectMock.mockResolvedValue(true)
+    navigateToMock.mockResolvedValue(undefined)
+  })
+
+  it('shows delete button with action label', async () => {
+    const wrapper = await mountSuspended(ProjectPage)
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-testid="delete-project-button"]').exists()).toBe(true)
+      expect(wrapper.get('[data-testid="delete-project-button"]').text()).not.toContain('wordt verwijderd')
+    })
+  })
+
+  it('deletes project after confirmation', async () => {
+    const wrapper = await mountSuspended(ProjectPage)
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-testid="delete-project-button"]').exists()).toBe(true)
+    })
+
+    await wrapper.get('[data-testid="delete-project-button"]').trigger('click')
+    await wrapper.get('[data-testid="confirm-dialog"]').trigger('click')
+
+    await vi.waitFor(() => {
+      expect(deleteProjectMock).toHaveBeenCalled()
       expect(navigateToMock).toHaveBeenCalledWith('/no_project')
       expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
     })

@@ -7,6 +7,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Project } from '@coolestprojects/database';
 import { Voucher } from '@coolestprojects/database';
+import { activeProjectWhere } from '@coolestprojects/database';
 
 @Injectable()
 export class ParticipantService {
@@ -21,7 +22,7 @@ export class ParticipantService {
     userOwnerId: number,
   ): Promise<Voucher> {
     const project = await this.projectModel.findOne({
-      where: { ownerId: userOwnerId },
+      where: activeProjectWhere({ ownerId: userOwnerId }),
       attributes: ['id', 'eventId', 'maxVoucher'],
     });
     if (!project) {
@@ -53,7 +54,7 @@ export class ParticipantService {
     voucherId: number,
   ): Promise<boolean> {
     const project = await this.projectModel.findOne({
-      where: { ownerId: ownerUserId },
+      where: activeProjectWhere({ ownerId: ownerUserId }),
     });
     if (!project) {
       return false;
@@ -77,7 +78,7 @@ export class ParticipantService {
 
   public async leaveProject(userId: number): Promise<void> {
     const ownedProject = await this.projectModel.findOne({
-      where: { ownerId: userId },
+      where: activeProjectWhere({ ownerId: userId }),
       attributes: ['id'],
     });
     if (ownedProject) {

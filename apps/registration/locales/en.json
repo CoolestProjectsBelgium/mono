@@ -139,6 +139,21 @@
   },
   "noProject": { "message": "You don't have a project yet. Create one or join an existing project." },
   "upload": { "leaveWarning": "Upload in progress — do not leave this page.", "leaveConfirm": "Upload in progress. Leave anyway?" },
+  "attachments": {
+    "title": "Uploaded files",
+    "empty": "No files uploaded yet.",
+    "columnName": "Name",
+    "columnFilename": "Filename",
+    "columnSize": "Size",
+    "columnStatus": "Status",
+    "statusReady": "Available",
+    "statusOrphaned": "File missing",
+    "download": "Open",
+    "delete": "Delete",
+    "deleteTitle": "Delete file",
+    "deleteMessage": "Delete \"{filename}\"?",
+    "deleteConfirm": "Delete"
+  },
   "participantPending": "Invitation pending",
   "participantStatusLabel": "Status",
   "participantStatusPending": "Token not yet used",
@@ -160,5 +175,11 @@
     "title": "Leave this project?",
     "confirm": "You will leave \"{projectName}\". The owner will see an open invitation slot again. You can create your own project or join another.",
     "confirmButton": "Leave project"
+  },
+  "deleteProject": {
+    "button": "Delete project",
+    "title": "Delete this project?",
+    "confirm": "Are you sure you want to remove \"{projectName}\"? The project will be hidden from registration. Your data is kept and may be restored by an administrator.",
+    "confirmButton": "Delete project"
   }
 }

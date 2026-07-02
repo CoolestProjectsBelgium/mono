@@ -31,6 +31,8 @@ services:
 
       # Azure Blob (Azurite in dev)
       AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      AZURE_BLOB_PUBLIC_BASE_URL: https://registration.coolestprojects.localhost:8443/_blob
+      URL: https://registration.coolestprojects.localhost:8443
 
       NUXT_PUBLIC_API_BASE: /_api
 
@@ -100,6 +102,8 @@ services:
       - "10000:10000"
     volumes:
       - azurite-data:/data
+    # @azure/storage-blob 12.33+ sends x-ms-version 2026-06-06; Azurite 3.35 rejects it without this flag.
+    command: ["azurite", "--blobHost", "0.0.0.0", "--location", "/data", "--skipApiVersionCheck"]
 
   mailhog:
     image: mailhog/mailhog

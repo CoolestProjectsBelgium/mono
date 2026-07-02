@@ -35,7 +35,7 @@ describe('useAttachments SAS cache', () => {
 
   it('uploadFile uses createAttachment URL without fetching a second SAS', async () => {
     const future = new Date(Date.now() + 10 * 60 * 1000).toISOString()
-    const blobUrl = `https://blob.test/container/file.mp4?se=${encodeURIComponent(future)}&sv=2021`
+    const blobUrl = `https://registration.coolestprojects.localhost:8443/_blob/devstoreaccount1/container/file.mp4?se=${encodeURIComponent(future)}&sv=2021`
     mockFetch.mockResolvedValue({ url: blobUrl })
 
     const { uploadFile } = await callComposable(() => useAttachments())
@@ -46,6 +46,22 @@ describe('useAttachments SAS cache', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1)
     expect(capturedBlobUrl).toBe(blobUrl)
     expect(capturedBlobUrl.match(/\?/g)).toHaveLength(1)
+  })
+
+  it('deleteAttachment returns true on success', async () => {
+    mockFetch.mockResolvedValue(null)
+    const { deleteAttachment } = await callComposable(() => useAttachments())
+    await expect(deleteAttachment('blob-id.mp4')).resolves.toBe(true)
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/attachments/blob-id.mp4',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('deleteAttachment returns false on failure', async () => {
+    mockFetch.mockRejectedValue(new Error('fail'))
+    const { deleteAttachment } = await callComposable(() => useAttachments())
+    await expect(deleteAttachment('blob-id.mp4')).resolves.toBe(false)
   })
 
   it('getValidSasForBlob caches SAS', async () => {

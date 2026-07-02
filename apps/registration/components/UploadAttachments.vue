@@ -49,6 +49,7 @@ const fieldError = ref<string | null>(null)
 const emit = defineEmits<{
   'upload-start': []
   'upload-end': []
+  'upload-success': []
 }>()
 
 function uploadErrorMessage(code: 'tooLarge' | 'invalidType'): string {
@@ -90,6 +91,7 @@ async function onFileSelect(event: Event) {
     }
     else {
       notify('success', 'MovieRec')
+      emit('upload-success')
     }
   }
   finally {

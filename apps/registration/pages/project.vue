@@ -34,10 +34,20 @@
       <div class="mt-6 flex gap-4">
         <CtaButton variant="primary" @click="onSave">{{ $t('Aanpassen') }}</CtaButton>
         <NuxtLink :to="localePath('/upload')" class="btn-primary">{{ $t('Upload Movie') }}</NuxtLink>
-        <CtaButton v-if="project.own_project.delete_possible" variant="cta" @click="onDelete">
-          {{ $t('Project wordt verwijderd') }}
+        <CtaButton v-if="project.own_project.delete_possible" variant="cta" data-testid="delete-project-button" @click="showDeleteDialog = true">
+          {{ $t('deleteProject.button') }}
         </CtaButton>
       </div>
+      <ConfirmDialog
+        v-model:open="showDeleteDialog"
+        :title="$t('deleteProject.title')"
+        :message="$t('deleteProject.confirm', { projectName: project.own_project.project_name })"
+        :confirm-label="$t('deleteProject.confirmButton')"
+        :cancel-label="$t('Cancel')"
+        :please-wait-label="$t('pleaseWait')"
+        :loading="deletingProject"
+        @confirm="onDeleteProject"
+      />
     </template>
     <template v-else-if="project?.own_project" data-testid="project-coworker-view">
       <p class="mt-4 text-gray-600">{{ $t('medeProject') }}</p>
@@ -141,6 +151,8 @@ const addingParticipant = ref(false)
 const removingParticipantId = ref<number | null>(null)
 const showLeaveDialog = ref(false)
 const leavingProject = ref(false)
+const showDeleteDialog = ref(false)
+const deletingProject = ref(false)
 const fieldErrors = ref<Record<string, string>>({})
 const formError = ref<string | null>(null)
 
@@ -236,9 +248,25 @@ async function onSave() {
   }
 }
 
-async function onDelete() {
-  await deleteProject()
-  await navigateTo(localePath('/no_project'))
+async function onDeleteProject() {
+  if (deletingProject.value) {
+    return
+  }
+
+  deletingProject.value = true
+  try {
+    await deleteProject()
+    showDeleteDialog.value = false
+    notify('success', 'message_successChange')
+    await navigateTo(localePath('/no_project'))
+  }
+  catch (error) {
+    const message = getApiErrorMessage(error) ?? t('error_An error occurred')
+    notify('error', 'error_An error occurred', undefined, message)
+  }
+  finally {
+    deletingProject.value = false
+  }
 }
 
 async function onAddParticipant() {

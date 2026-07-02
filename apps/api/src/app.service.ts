@@ -16,6 +16,7 @@ import { SettingDto } from './dto/setting.dto';
 import { Registration } from '@coolestprojects/database';
 import { User } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
+import { activeProjectWhere } from '@coolestprojects/database';
 
 @Injectable()
 export class AppService {
@@ -144,7 +145,7 @@ export class AppService {
     }
 
     const projectCount = await this.projectModel.count({
-      where: { eventId: event.id },
+      where: activeProjectWhere({ eventId: event.id }),
     });
 
     //keep in sync with registration validation logic

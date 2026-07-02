@@ -139,6 +139,21 @@
   },
   "noProject": { "message": "Tu n'as pas encore de projet." },
   "upload": { "leaveWarning": "Envoi en cours — ne quitte pas cette page.", "leaveConfirm": "Envoi en cours. Quitter quand même la page ?" },
+  "attachments": {
+    "title": "Fichiers envoyés",
+    "empty": "Aucun fichier envoyé pour l'instant.",
+    "columnName": "Nom",
+    "columnFilename": "Nom du fichier",
+    "columnSize": "Taille",
+    "columnStatus": "Statut",
+    "statusReady": "Disponible",
+    "statusOrphaned": "Fichier manquant",
+    "download": "Ouvrir",
+    "delete": "Supprimer",
+    "deleteTitle": "Supprimer le fichier",
+    "deleteMessage": "Supprimer « {filename} » ?",
+    "deleteConfirm": "Supprimer"
+  },
   "participantPending": "Invitation en attente",
   "participantStatusLabel": "Statut",
   "participantStatusPending": "Token pas encore utilisé",
@@ -160,5 +175,11 @@
     "title": "Quitter ce projet ?",
     "confirm": "Tu quittes « {projectName} ». Le ou la propriétaire verra à nouveau une place d'invitation ouverte. Tu pourras ensuite créer ton propre projet ou rejoindre un autre projet.",
     "confirmButton": "Quitter le projet"
+  },
+  "deleteProject": {
+    "button": "Supprimer le projet",
+    "title": "Supprimer ce projet ?",
+    "confirm": "Es-tu sûr·e de vouloir supprimer « {projectName} » ? Le projet sera masqué dans l'inscription. Tes données sont conservées et pourront être restaurées par un administrateur.",
+    "confirmButton": "Supprimer le projet"
   }
 }

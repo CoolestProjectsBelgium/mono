@@ -1,4 +1,5 @@
 export * from './models/certificate.model';
+export * from './active-project.js';
 export * from './models/project.model';
 export * from './models/question.model';
 export * from './models/question_user.model';

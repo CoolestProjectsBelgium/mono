@@ -14,6 +14,8 @@ echo "Rebuilding shared packages..."
 npm run build --workspace=@coolestprojects/database
 npm run build --workspace=@coolestprojects/api
 
+bash "$ROOT/scripts/dev/migrate-db.sh"
+
 echo "Restarting dev servers..."
 bash "$ROOT/scripts/dev/restart-api.sh"
 bash "$ROOT/scripts/dev/restart-registration.sh"

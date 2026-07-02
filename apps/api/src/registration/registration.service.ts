@@ -8,6 +8,7 @@ import { MailerService } from '../mailer/mailer.service';
 import { Question } from '@coolestprojects/database';
 import { TokensService } from '../tokens/tokens.service';
 import { Project } from '@coolestprojects/database';
+import { activeProjectWhere } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
 import { Sequelize } from 'sequelize-typescript';
 import { InjectModel } from '@nestjs/sequelize';
@@ -160,7 +161,7 @@ export class RegistrationService {
         });
 
         const projectCount = await this.projectModel.count({
-          where: { eventId: event.id },
+          where: activeProjectWhere({ eventId: event.id }),
           transaction,
         });
 
@@ -345,7 +346,9 @@ export class RegistrationService {
     try {
       const loginToken = this.tokenService.generateLoginToken(user.id);
       if (joinedViaVoucher) {
-        const project = await this.projectModel.findByPk(coworkerProjectId!);
+        const project = await this.projectModel.findOne({
+          where: activeProjectWhere({ id: coworkerProjectId! }),
+        });
         if (!project) {
           throw new Error('Project not found for co-worker welcome mail');
         }
@@ -353,10 +356,10 @@ export class RegistrationService {
         await this.mailerService.notifyProjectOwner();
       } else {
         const project = await this.projectModel.findOne({
-          where: {
+          where: activeProjectWhere({
             ownerId: user.id,
             eventId: user.getDataValue('eventId') as number,
-          },
+          }),
         });
         if (!project) {
           throw new Error('Project not found for owner welcome mail');

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Account, Event, Vote, Project, VoteCategory, EventTable } from '@coolestprojects/database';
+import { Account, Event, Vote, Project, VoteCategory, EventTable, activeProjectWhere } from '@coolestprojects/database';
 import { Sequelize } from 'sequelize-typescript';
 import { InjectModel } from '@nestjs/sequelize';
 import { Op } from 'sequelize';
@@ -67,7 +67,7 @@ export class VotingService {
 
         const randomProject = await this.projectModel.findOne({
             limit: 1,
-            where: {
+            where: activeProjectWhere({
                 id: {
                     [Op.and]: {
                         [Op.notIn]: Sequelize.literal(
@@ -78,7 +78,7 @@ export class VotingService {
                 },
                 eventId: activeEvent.id,
                 project_lang: { [Op.in]: languages },
-            },
+            }),
             include: [{ model: this.eventTableModel, required: true }],
             attributes: {
                 include: [

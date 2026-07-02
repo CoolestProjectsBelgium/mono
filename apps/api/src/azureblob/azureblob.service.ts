@@ -6,6 +6,7 @@ import {
 } from '@azure/storage-blob';
 import { ConfigService } from '@nestjs/config';
 import { SASToken } from '../dto/sas-token.dto';
+import { rewriteBlobUrlForClient } from './rewrite-blob-url';
 
 @Injectable()
 export class AzureBlobService {
@@ -19,6 +20,14 @@ export class AzureBlobService {
 
   private getDefaultContainer(): string | undefined {
     return this.configService.get<string>('AZURE_STORAGE_CONTAINER');
+  }
+
+  private getPublicBaseUrl(): string | undefined {
+    return this.configService.get<string>('AZURE_BLOB_PUBLIC_BASE_URL');
+  }
+
+  private rewriteUrlForClient(url: string): string {
+    return rewriteBlobUrlForClient(url, this.getPublicBaseUrl());
   }
 
   private async getBlobServiceInstance(): Promise<BlobServiceClient> {
@@ -64,7 +73,9 @@ export class AzureBlobService {
       config.contentDisposition = `attachment; filename="${filename}"`;
     }
 
-    const url = await blockBlobClient.generateSasUrl(config);
+    const url = this.rewriteUrlForClient(
+      await blockBlobClient.generateSasUrl(config),
+    );
 
     return { url, expiresOn, startsOn };
   }

@@ -6,6 +6,7 @@ import {
   Project,
   User,
   Voucher,
+  activeProjectWhere,
 } from '@coolestprojects/database';
 import { ProjectDto } from '../dto/project.dto';
 import { AttachmentDto } from '../dto/attachment.dto';
@@ -134,7 +135,9 @@ export class ProjectinfoService {
   public async getProjectInfo(userId: number): Promise<ProjectDto> {
     let project: Project | null;
     let isOwner = true;
-    project = await this.projectModel.findOne({ where: { ownerId: userId } });
+    project = await this.projectModel.findOne({
+      where: activeProjectWhere({ ownerId: userId }),
+    });
     if (!project) {
       const voucher = await this.voucherModel.findOne({
         where: { participantId: userId },
@@ -143,7 +146,9 @@ export class ProjectinfoService {
         throw new Error('Project not found for user');
       }
       const projectId = voucher.getDataValue('projectId') as number;
-      project = await this.projectModel.findByPk(projectId);
+      project = await this.projectModel.findOne({
+        where: activeProjectWhere({ id: projectId }),
+      });
       if (!project) {
         throw new Error('Project not found for user');
       }
@@ -178,7 +183,7 @@ export class ProjectinfoService {
     createProjectDto: ProjectDto,
   ): Promise<ProjectDto> {
     const existingProject = await this.projectModel.findOne({
-      where: { ownerId: userId },
+      where: activeProjectWhere({ ownerId: userId }),
     });
     if (existingProject) {
       throw new Error('User already has a project');
@@ -212,7 +217,7 @@ export class ProjectinfoService {
     updateProjectDto: ProjectDto,
   ): Promise<ProjectDto> {
     const project = await this.projectModel.findOne({
-      where: { ownerId: userId },
+      where: activeProjectWhere({ ownerId: userId }),
     });
     if (!project) {
       throw new Error('Project not found for user');
@@ -240,7 +245,7 @@ export class ProjectinfoService {
 
   public async deleteProject(userId: number): Promise<void> {
     const project = await this.projectModel.findOne({
-      where: { ownerId: userId },
+      where: activeProjectWhere({ ownerId: userId }),
     });
     if (!project) {
       throw new Error('Project not found for user');
@@ -253,21 +258,7 @@ export class ProjectinfoService {
       throw new Error('Cannot delete project with associated vouchers');
     }
 
-    const attachments = await this.attachmentModel.findAll({
-      where: { projectId: project.id },
-      include: [AzureBlob],
-    });
-
-    for (const attachment of attachments) {
-      const blob = attachment.azureBlob;
-      if (blob) {
-        await this.azureBlobService.deleteBlob(
-          blob.blob_name,
-          blob.container_name,
-        );
-      }
-    }
-
-    await project.destroy();
+    project.removedAt = new Date();
+    await project.save();
   }
 }

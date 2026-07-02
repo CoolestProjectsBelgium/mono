@@ -41,6 +41,9 @@ export class Project extends BaseEventModel {
   @Column
   maxVoucher!: number;
 
+  @Column({ type: DataType.DATE, allowNull: true })
+  removedAt!: Date | null;
+
   public getOwner!: BelongsToGetAssociationMixin<User>;
   public getVouchers!: HasManyGetAssociationsMixin<Voucher>;
 }

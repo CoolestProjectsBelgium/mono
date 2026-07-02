@@ -52,8 +52,8 @@ export function useAttachments() {
     name: string,
     filename: string,
     size: number,
-  ): Promise<AttachmentDto | null> {
-    return apiFetch<AttachmentDto>('/attachments', {
+  ): Promise<SASToken | null> {
+    return apiFetch<SASToken>('/attachments', {
       method: 'POST',
       body: { name, filename, size },
     })
@@ -64,13 +64,13 @@ export function useAttachments() {
     onProgress?: (percent: number) => void,
   ): Promise<UploadFileResult> {
     try {
-      const attachment = await createAttachment(file.name, file.name, file.size)
-      if (!hasApiData(attachment) || !attachment.url) {
+      const sasToken = await createAttachment(file.name, file.name, file.size)
+      if (!hasApiData(sasToken) || !sasToken.url) {
         return { ok: false, code: 'unavailable' }
       }
 
       const pipeline = newPipeline(new AnonymousCredential())
-      const blockBlobClient = new BlockBlobClient(attachment.url, pipeline)
+      const blockBlobClient = new BlockBlobClient(sasToken.url, pipeline)
 
       await blockBlobClient.uploadData(file, {
         maxSingleShotSize: 4 * 1024 * 1024,
@@ -101,12 +101,25 @@ export function useAttachments() {
     }
   }
 
+  async function getDownloadUrl(attachment: AttachmentDto): Promise<string | null> {
+    if (!attachment.exists) {
+      return null
+    }
+    if (attachment.url) {
+      return attachment.url
+    }
+    const baseUrl = `https://blob.local/${attachment.id}`
+    const sas = await getValidSasForBlob(baseUrl)
+    return sas ? `${baseUrl.split('?')[0]}${sas}` : null
+  }
+
   return {
     getValidSasForBlob,
     isSasStillValid,
     createAttachment,
     uploadFile,
     deleteAttachment,
+    getDownloadUrl,
     _sasCache: sasCache,
   }
 }

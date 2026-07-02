@@ -20,6 +20,9 @@ npm run build --workspace=@coolestprojects/database
 # build the api cli (seed-db runs dist/cli)
 npm run build --workspace=apps/api
 
+# patch existing dev schema before seed / API start
+bash "$ROOT/scripts/dev/migrate-db.sh"
+
 # load test db
 npm run seed-db --workspace=apps/api
 

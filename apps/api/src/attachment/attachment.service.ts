@@ -9,6 +9,7 @@ import {
   AzureBlob,
   Event,
   Project,
+  activeProjectWhere,
 } from '@coolestprojects/database';
 import { Sequelize } from 'sequelize-typescript';
 import { randomUUID } from 'crypto';
@@ -33,7 +34,7 @@ export class AttachmentService {
   ): Promise<SASToken> {
     return this.sequelize.transaction(async () => {
       const project = await this.projectModel.findOne({
-        where: { ownerId: userId },
+        where: activeProjectWhere({ ownerId: userId }),
       });
       if (!project) {
         throw new NotFoundException('No project found');
@@ -87,7 +88,7 @@ export class AttachmentService {
 
   async getAttachmentSAS(name: string, userId: number): Promise<SASToken> {
     const project = await this.projectModel.findOne({
-      where: { ownerId: userId },
+      where: activeProjectWhere({ ownerId: userId }),
       attributes: ['id'],
     });
     if (!project) {
@@ -124,7 +125,7 @@ export class AttachmentService {
   async deleteAttachment(name: string, userId: number): Promise<void> {
     await this.sequelize.transaction(async () => {
       const project = await this.projectModel.findOne({
-        where: { ownerId: userId },
+        where: activeProjectWhere({ ownerId: userId }),
         attributes: ['id'],
       });
       if (!project) {
