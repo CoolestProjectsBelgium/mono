@@ -11,6 +11,17 @@ describe('participant.mapper', () => {
       id: 1,
       name: 'Alex',
       self: true,
+      is_owner: true,
+      status: 'registered',
+    });
+  });
+
+  it('marks owner as not self when viewed by a co-participant', () => {
+    expect(mapOwnerToParticipant({ id: 1, firstname: 'Alex' }, 5)).toEqual({
+      id: 1,
+      name: 'Alex',
+      self: false,
+      is_owner: true,
       status: 'registered',
     });
   });
@@ -26,6 +37,7 @@ describe('participant.mapper', () => {
       id: 10,
       name: '',
       self: false,
+      is_owner: false,
       status: 'pending',
       token: 'abc-123',
     });
@@ -43,6 +55,27 @@ describe('participant.mapper', () => {
       id: 11,
       name: 'Sam',
       self: false,
+      is_owner: false,
+      status: 'registered',
+    });
+  });
+
+  it('marks registered voucher as self for the current co-participant', () => {
+    expect(
+      mapVoucherToParticipant(
+        {
+          id: 11,
+          voucherGuid: 'def-456',
+          participantId: 5,
+          participant: { firstname: 'Sam' },
+        },
+        5,
+      ),
+    ).toEqual({
+      id: 11,
+      name: 'Sam',
+      self: true,
+      is_owner: false,
       status: 'registered',
     });
   });
@@ -66,6 +99,7 @@ describe('participant.mapper', () => {
     );
 
     expect(participants).toHaveLength(3);
+    expect(participants[0].is_owner).toBe(true);
     expect(participants[0].self).toBe(true);
     expect(participants[1].status).toBe('pending');
     expect(participants[2].name).toBe('Sam');

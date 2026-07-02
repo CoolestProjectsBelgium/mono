@@ -8,6 +8,7 @@ describe('ProjectinfoService', () => {
   let service: ProjectinfoService;
   let projectModel: { findOne: jest.Mock; findByPk: jest.Mock };
   let voucherModel: { findOne: jest.Mock; findAll: jest.Mock };
+  let userModel: { findByPk: jest.Mock };
 
   beforeEach(async () => {
     projectModel = {
@@ -16,7 +17,12 @@ describe('ProjectinfoService', () => {
     };
     voucherModel = {
       findOne: jest.fn(),
-      findAll: jest.fn(),
+      findAll: jest.fn().mockResolvedValue([]),
+    };
+    userModel = {
+      findByPk: jest.fn().mockResolvedValue({
+        getDataValue: (key: string) => (key === 'id' ? 1 : 'Alex'),
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -24,7 +30,7 @@ describe('ProjectinfoService', () => {
         ProjectinfoService,
         { provide: getModelToken(Project), useValue: projectModel },
         { provide: getModelToken(Voucher), useValue: voucherModel },
-        { provide: getModelToken(User), useValue: { findByPk: jest.fn() } },
+        { provide: getModelToken(User), useValue: userModel },
         { provide: getModelToken(Attachment), useValue: { findAll: jest.fn().mockResolvedValue([]) } },
         {
           provide: AzureBlobService,
@@ -44,6 +50,7 @@ describe('ProjectinfoService', () => {
     projectModel.findByPk.mockResolvedValue({
       get: () => ({
         id: 7,
+        ownerId: 1,
         name: 'Team project',
         description: 'Built together',
         type: 'game',
@@ -58,6 +65,9 @@ describe('ProjectinfoService', () => {
     expect(result.own_project).toMatchObject({
       project_id: '7',
       project_name: 'Team project',
+      participants: [
+        expect.objectContaining({ name: 'Alex', is_owner: true, self: false }),
+      ],
     });
   });
 });

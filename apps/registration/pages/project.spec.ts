@@ -82,6 +82,13 @@ vi.mock('~/components/ConfirmDialog.vue', () => ({
   },
 }))
 
+vi.mock('~/components/FormSection.vue', () => ({
+  default: {
+    props: ['title'],
+    template: '<section><h2>{{ title }}</h2><slot /></section>',
+  },
+}))
+
 mockNuxtImport('navigateTo', () => navigateToMock)
 mockNuxtImport('useLocalePath', () => () => (path: string) => path)
 mockNuxtImport('useI18n', () => () => ({
@@ -96,6 +103,11 @@ const coworkerProject: ProjectDto = {
     project_descr: 'Built together',
     project_type: 'game',
     project_lang: 'nl',
+    participants: [
+      { id: 1, name: 'Alex', self: false, is_owner: true, status: 'registered' },
+      { id: 11, name: 'Sam', self: true, is_owner: false, status: 'registered' },
+      { id: 10, name: '', self: false, is_owner: false, status: 'pending' },
+    ],
   },
 }
 
@@ -115,6 +127,17 @@ describe('project page coworker leave', () => {
     const wrapper = await mountSuspended(ProjectPage)
     await vi.waitFor(() => {
       expect(wrapper.get('[data-testid="leave-project-button"]').exists()).toBe(true)
+    })
+  })
+
+  it('shows owner-only notice and participant list for coworkers', async () => {
+    const wrapper = await mountSuspended(ProjectPage)
+    await vi.waitFor(() => {
+      expect(wrapper.text()).toContain('Alleen de projecteigenaar kan de projectinstellingen aanpassen')
+      expect(wrapper.text()).toContain('Alex')
+      expect(wrapper.text()).toContain('Projecteigenaar')
+      expect(wrapper.text()).toContain('Sam')
+      expect(wrapper.text()).toContain('Jij')
     })
   })
 

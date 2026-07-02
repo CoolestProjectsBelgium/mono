@@ -86,6 +86,7 @@ export class ProjectinfoService {
   private async getParticipantsForProject(
     projectId: number,
     ownerId: number,
+    currentUserId: number,
   ) {
     const owner = await this.userModel.findByPk(ownerId, {
       attributes: ['id', 'firstname'],
@@ -124,6 +125,7 @@ export class ProjectinfoService {
           firstname: owner.getDataValue('firstname') as string,
         },
         voucherInputs,
+        currentUserId,
       ),
       delete_possible: canDeleteProject(voucherInputs),
     };
@@ -150,9 +152,11 @@ export class ProjectinfoService {
 
     const p = project.get({ plain: true });
     const attachments = await this.getAttachmentsForProject(p.id);
-    const participantInfo = isOwner
-      ? await this.getParticipantsForProject(p.id, userId)
-      : null;
+    const participantInfo = await this.getParticipantsForProject(
+      p.id,
+      p.ownerId,
+      userId,
+    );
 
     return {
       is_owner: isOwner,
@@ -162,12 +166,8 @@ export class ProjectinfoService {
         project_descr: p.description,
         project_type: p.type,
         project_lang: p.language,
-        ...(participantInfo
-          ? {
-              participants: participantInfo.participants,
-              delete_possible: participantInfo.delete_possible,
-            }
-          : {}),
+        participants: participantInfo.participants,
+        ...(isOwner ? { delete_possible: participantInfo.delete_possible } : {}),
       },
       attachments,
     };

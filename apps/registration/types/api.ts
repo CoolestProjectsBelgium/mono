@@ -31,6 +31,7 @@ export interface ParticipantDto {
   id: number
   name: string
   self: boolean
+  is_owner?: boolean
   status: 'registered' | 'pending'
   token?: string
 }

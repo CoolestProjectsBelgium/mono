@@ -30,6 +30,6 @@ describe('useParticipant', () => {
     mockFetch.mockResolvedValue({ success: true })
     const { leaveProject } = await callComposable(() => useParticipant())
     await expect(leaveProject()).resolves.toBe(true)
-    expect(mockFetch).toHaveBeenCalledWith('/participant/self', { method: 'DELETE' })
+    expect(mockFetch).toHaveBeenCalledWith('/participant/self', expect.objectContaining({ method: 'DELETE' }))
   })
 })

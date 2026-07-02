@@ -1,37 +1,47 @@
 <template>
-  <dialog
-    ref="dialogEl"
-    class="w-full max-w-md rounded-lg border-0 p-0 shadow-xl backdrop:bg-black/50"
-    role="alertdialog"
-    :aria-labelledby="titleId"
-    :aria-describedby="messageId"
-    @cancel.prevent="onCancel"
-    @close="onDialogClose"
+  <div
+    v-if="open"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    data-testid="confirm-dialog"
   >
-    <div class="p-6">
-      <h2 :id="titleId" class="text-lg font-semibold">{{ title }}</h2>
-      <p :id="messageId" class="mt-3 text-gray-600">{{ message }}</p>
-      <div class="mt-6 flex justify-end gap-3">
-        <button
-          type="button"
-          class="btn-primary"
-          :disabled="loading"
-          @click="onCancel"
-        >
-          {{ cancelLabel }}
-        </button>
-        <button
-          type="button"
-          class="btn-cta"
-          :disabled="loading"
-          data-testid="confirm-dialog-confirm"
-          @click="onConfirm"
-        >
-          {{ loading ? pleaseWaitLabel : confirmLabel }}
-        </button>
+      <button
+        type="button"
+        class="absolute inset-0 bg-black/50"
+        aria-label="Close dialog"
+        :disabled="loading"
+        @click="onCancel"
+      />
+      <div
+        class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        role="alertdialog"
+        :aria-labelledby="titleId"
+        :aria-describedby="messageId"
+        @click.stop
+      >
+        <h2 :id="titleId" class="text-lg font-semibold">{{ title }}</h2>
+        <p :id="messageId" class="mt-3 text-gray-600">{{ message }}</p>
+        <div class="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            class="btn-primary"
+            :disabled="loading"
+            data-testid="confirm-dialog-cancel"
+            @click="onCancel"
+          >
+            {{ cancelLabel }}
+          </button>
+          <button
+            type="button"
+            class="btn-cta"
+            :disabled="loading"
+            data-testid="confirm-dialog-confirm"
+            @click="onConfirm"
+          >
+            {{ loading ? pleaseWaitLabel : confirmLabel }}
+          </button>
+        </div>
       </div>
     </div>
-  </dialog>
 </template>
 
 <script setup lang="ts">
@@ -51,21 +61,8 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
-const dialogEl = ref<HTMLDialogElement | null>(null)
 const titleId = useId()
 const messageId = useId()
-
-watch(() => props.open, (isOpen) => {
-  if (!import.meta.client || !dialogEl.value) {
-    return
-  }
-  if (isOpen && !dialogEl.value.open) {
-    dialogEl.value.showModal()
-  }
-  else if (!isOpen && dialogEl.value.open) {
-    dialogEl.value.close()
-  }
-})
 
 function onConfirm() {
   if (props.loading) {
@@ -80,11 +77,5 @@ function onCancel() {
   }
   emit('update:open', false)
   emit('cancel')
-}
-
-function onDialogClose() {
-  if (props.open) {
-    emit('update:open', false)
-  }
 }
 </script>

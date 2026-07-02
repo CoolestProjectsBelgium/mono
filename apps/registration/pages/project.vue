@@ -41,6 +41,7 @@
     </template>
     <template v-else-if="project?.own_project" data-testid="project-coworker-view">
       <p class="mt-4 text-gray-600">{{ $t('medeProject') }}</p>
+      <p class="mt-2 text-gray-600">{{ $t('medeProjectOwnerOnly') }}</p>
       <dl class="mt-6 grid gap-4">
         <div>
           <dt class="form-label">{{ $t('label_Projectnaam:') }}</dt>
@@ -59,6 +60,36 @@
           <dd class="mt-1">{{ $t(languageLabelKey(project.own_project.project_lang)) }}</dd>
         </div>
       </dl>
+      <FormSection
+        v-if="coworkerParticipants.length"
+        :title="$t('participants')"
+        class="mt-6"
+      >
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="border-b">
+              <th class="py-2">{{ $t('label_Voornaam:') }}</th>
+              <th class="py-2">{{ $t('participantRoleLabel') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="participant in coworkerParticipants"
+              :key="participant.id"
+              class="border-b"
+            >
+              <td class="py-2">
+                {{ participant.status === 'pending' ? $t('participantPending') : participant.name }}
+              </td>
+              <td class="py-2 text-gray-600">
+                <span v-if="participant.is_owner">{{ $t('participantOwner') }}</span>
+                <span v-else-if="participant.self">{{ $t('participantYou') }}</span>
+                <span v-else-if="participant.status === 'pending'">{{ $t('participantStatusPending') }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </FormSection>
       <div class="mt-6">
         <CtaButton
           variant="cta"
@@ -118,6 +149,10 @@ const coParticipantCount = computed(() =>
 )
 
 const isProjectOwner = computed(() => checkIsProjectOwner(project.value))
+
+const coworkerParticipants = computed(() =>
+  project.value?.own_project?.participants ?? [],
+)
 
 function languageLabelKey(lang: 'nl' | 'fr' | 'en') {
   return ({ nl: 'Nederlands', fr: 'Frans', en: 'Engels' } as const)[lang]
