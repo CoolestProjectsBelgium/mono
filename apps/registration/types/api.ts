@@ -31,6 +31,8 @@ export interface ParticipantDto {
   id: number
   name: string
   self: boolean
+  status: 'registered' | 'pending'
+  token?: string
 }
 
 export interface AttachmentDto {
@@ -53,7 +55,6 @@ export interface OwnProjectDto {
   participants?: ParticipantDto[]
   attachments?: AttachmentDto[]
   delete_possible?: boolean
-  own_project?: boolean
 }
 
 export interface OtherProjectDto {
@@ -61,6 +62,8 @@ export interface OtherProjectDto {
 }
 
 export interface ProjectDto {
+  /** True when the logged-in user created this project (not a voucher co-worker). */
+  is_owner?: boolean
   own_project?: OwnProjectDto
   other_project?: OtherProjectDto
   attachments?: AttachmentDto[]

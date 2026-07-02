@@ -137,5 +137,24 @@
     "homeCta": "Terug naar de startpagina"
   },
   "noProject": { "message": "Je hebt nog geen project. Start er een of sluit je aan bij een bestaand project." },
-  "upload": { "leaveWarning": "Upload bezig — verlaat de pagina niet.", "leaveConfirm": "Upload bezig. Toch de pagina verlaten?" }
+  "upload": { "leaveWarning": "Upload bezig — verlaat de pagina niet.", "leaveConfirm": "Upload bezig. Toch de pagina verlaten?" },
+  "participantPending": "Uitnodiging open",
+  "participantStatusLabel": "Status",
+  "participantStatusPending": "Token nog niet gebruikt",
+  "participantStatusRegistered": "Geregistreerd",
+  "participantCopyLink": "Link kopiëren",
+  "participantMailLink": "Versturen via e-mail",
+  "participantCopySuccess": "Uitnodigingslink gekopieerd.",
+  "participantCopyFailed": "Link kopiëren is mislukt.",
+  "participantAdded": "Uitnodiging aangemaakt.",
+  "participantMailSubject": "Uitnodiging voor project {projectName}",
+  "participantMailBody": "Je bent uitgenodigd om mee te werken aan het project \"{projectName}\".\n\nRegistreer via deze link:\n{url}",
+  "participantRemoveConfirmPending": "Weet je zeker dat je deze open uitnodiging wilt verwijderen? De token kan daarna niet meer gebruikt worden.",
+  "participantRemoveConfirmRegistered": "Weet je zeker dat je {name} wilt loskoppelen van dit project? De plek wordt opnieuw een open uitnodiging.",
+  "leaveProject": {
+    "button": "Project verlaten",
+    "title": "Dit project verlaten?",
+    "confirm": "Je verlaat \"{projectName}\". De eigenaar ziet opnieuw een open uitnodigingsplek. Je kan daarna je eigen project starten of aan een ander project deelnemen.",
+    "confirmButton": "Project verlaten"
+  }
 }

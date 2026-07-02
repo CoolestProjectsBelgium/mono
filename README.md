@@ -70,6 +70,8 @@ All apps are served over HTTPS on port **8443** via the nginx proxy.
 | http://localhost:18025 | Mailhog (captured emails; host port 18025 on Windows) |
 | http://localhost:3006 | phpMyAdmin |
 
+**Admin login (dev only):** email `admin`, password `admin` — hardcoded in [`apps/admin/src/index.ts`](apps/admin/src/index.ts) for local development.
+
 The registration app calls the API through a same-origin proxy at `/_api` (configured via `NUXT_PUBLIC_API_BASE`), so participants only need to trust the registration hostname.
 
 ## Common commands

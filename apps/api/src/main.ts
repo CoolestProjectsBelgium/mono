@@ -7,6 +7,9 @@ import { env } from 'process';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Behind nginx TLS proxy in dev/prod — needed for secure cookies and X-Forwarded-Proto.
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   app.enableCors({
     origin: (
       origin: string | undefined,

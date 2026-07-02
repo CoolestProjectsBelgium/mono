@@ -6,5 +6,10 @@
     "noEmit": false,
   },
   "include": ["src"],
+  "watchOptions": {
+    "watchFile": "dynamicPriorityPolling",
+    "watchDirectory": "dynamicPriorityPolling",
+    "fallbackPolling": "dynamicPriority"
+  },
   "exclude": ["**/*.spec.ts", "**/*.test.ts"]
 }

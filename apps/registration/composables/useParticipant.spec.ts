@@ -13,9 +13,23 @@ describe('useParticipant', () => {
   })
 
   it('non-null POST returns ready state', async () => {
-    mockFetch.mockResolvedValue({ id: 1, name: 'Invite', self: false })
-    const { generateInviteToken, hasInviteToken } = await callComposable(() => useParticipant())
+    mockFetch.mockResolvedValue({
+      id: 1,
+      name: '',
+      self: false,
+      status: 'pending',
+      token: 'invite-token',
+    })
+    const { generateInviteToken, hasInviteToken, isPendingParticipant } = await callComposable(() => useParticipant())
     const result = await generateInviteToken()
     expect(hasInviteToken(result)).toBe(true)
+    expect(isPendingParticipant(result!)).toBe(true)
+  })
+
+  it('DELETE /participant/self returns success', async () => {
+    mockFetch.mockResolvedValue({ success: true })
+    const { leaveProject } = await callComposable(() => useParticipant())
+    await expect(leaveProject()).resolves.toBe(true)
+    expect(mockFetch).toHaveBeenCalledWith('/participant/self', { method: 'DELETE' })
   })
 })

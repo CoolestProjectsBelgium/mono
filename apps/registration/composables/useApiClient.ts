@@ -14,6 +14,7 @@ export class ApiError extends Error {
 export function useApiClient() {
   const config = useRuntimeConfig()
   const nuxtApp = useNuxtApp()
+  const route = useRoute()
 
   function getAcceptLanguage(): string {
     const i18n = nuxtApp.$i18n as { locale?: { value: string } } | undefined
@@ -57,7 +58,9 @@ export function useApiClient() {
       if (statusCode === 401) {
         const authStore = useAuthStore()
         authStore.clearSession()
-        if (import.meta.client) {
+        // Do not redirect while activating a magic link — that strips ?token= from the URL.
+        const onMagicLinkPage = path === '/login' || Boolean(route.query.token)
+        if (import.meta.client && !onMagicLinkPage) {
           await navigateTo('/login')
         }
       }

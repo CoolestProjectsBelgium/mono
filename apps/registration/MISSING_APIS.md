@@ -7,7 +7,9 @@
 - POST /login/logout — clears session cookie
 - GET/PATCH/DELETE /userinfo — profile CRUD
 - POST /participant — generates invite voucher token
-- DELETE /participant/:id — removes co-participant from project
+- DELETE /participant/:id — removes co-participant voucher (destroys pending invite or detaches registered participant)
+- DELETE /participant/self — coworker leaves project (detaches own voucher, slot becomes open invite again)
+- GET /projectinfo — includes `own_project.participants` for project owners (owner + voucher rows with `status` and optional `token`)
 - GET/POST/PATCH/DELETE /projectinfo
 - POST/DELETE /attachments, POST /attachments/:name/sas
 - GET /settings, /tshirts, /questions, /approvals; POST /registration

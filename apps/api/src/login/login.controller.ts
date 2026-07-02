@@ -81,7 +81,7 @@ export class LoginController {
   @ApiCookieAuth()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('jwt');
+    res.clearCookie('jwt', { signed: true, path: '/' });
     return { success: true };
   }
 

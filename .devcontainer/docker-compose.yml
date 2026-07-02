@@ -40,6 +40,11 @@ services:
       REGISTRATION_URL: https://registration.coolestprojects.localhost:8443
       WEBSITE_URL: https://coolestprojects.be
 
+      # Reliable file watching on Docker bind mounts (Windows/macOS hosts).
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
+      WATCHPACK_POLLING: "true"
+
     volumes:
       - ..:/workspace:cached
 

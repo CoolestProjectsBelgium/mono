@@ -2,40 +2,39 @@
   <div>
     <h1 class="text-3xl font-bold">{{ $t('titleUser') }}</h1>
     <ValidationAlert :field-errors="fieldErrors" :api-message="formError" />
+    <p v-if="loading" data-testid="profile-loading" class="mt-4 text-gray-500">{{ $t('pleaseWait') }}</p>
     <ApiUnavailableBanner
-      v-if="profileState === 'unavailable'"
+      v-else-if="loadError || profileState === 'unavailable'"
       message-key="apiUnavailable.userinfo"
       class="mt-4"
     />
-    <template v-else-if="user">
+    <template v-else-if="profile">
       <UserForm
-        v-model="user"
+        v-model="profile"
+        :tshirts="flatTshirts"
         :settings="settings"
-        :disabled="profileState === 'unavailable'"
         :errors="fieldErrors"
         class="mt-6"
         @clear-error="onClearError"
       />
       <div class="mt-6 flex gap-4">
-        <CtaButton variant="primary" :disabled="profileState === 'unavailable'" @click="onSave">
+        <CtaButton variant="primary" @click="onSave">
           {{ $t('Aanpassen') }}
         </CtaButton>
         <CtaButton
-          v-if="user.delete_possible"
+          v-if="profile.delete_possible"
           variant="cta"
-          :disabled="profileState === 'unavailable'"
           @click="onDelete"
         >
           {{ $t('Delete') }}
         </CtaButton>
       </div>
     </template>
-    <p v-else class="mt-4 text-gray-500">{{ $t('pleaseWait') }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { SettingDto, UserDto } from '~/types/api'
+import type { SettingDto, TshirtGroupDto, UserDto } from '~/types/api'
 import { clearFieldError, mapZodIssuesToFieldErrors, scrollToFirstFieldError } from '~/utils/validation/map-field-errors'
 import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createUserProfileSchema } from '~/utils/validation/user'
@@ -46,16 +45,42 @@ definePageMeta({ middleware: 'authenticated' })
 const { t } = useI18n()
 const { fetchUser, updateUser, deleteUser, getProfileState } = useUserinfo()
 const { fetchSettings } = useSettings()
+const { fetchTshirts } = useRegistration()
 const { notify } = useNotification()
 
-const user = ref<UserDto | null>(null)
+const profile = ref<UserDto | null>(null)
 const settings = ref<SettingDto | null>(null)
+const tshirtGroups = ref<TshirtGroupDto[] | null>(null)
+const loading = ref(true)
+const loadError = ref(false)
 const fieldErrors = ref<Record<string, string>>({})
 const formError = ref<string | null>(null)
-const profileState = computed(() => getProfileState(user.value))
+const profileState = computed(() => getProfileState(profile.value))
+const flatTshirts = computed(() => tshirtGroups.value?.flatMap(g => g.items) ?? [])
 
 onMounted(async () => {
-  ;[user.value, settings.value] = await Promise.all([fetchUser(), fetchSettings()])
+  loading.value = true
+  loadError.value = false
+  try {
+    const [fetchedUser, fetchedSettings, fetchedTshirts] = await Promise.all([
+      fetchUser(),
+      fetchSettings(),
+      fetchTshirts(),
+    ])
+    profile.value = fetchedUser
+    settings.value = fetchedSettings
+    tshirtGroups.value = fetchedTshirts
+    if (!fetchedUser) {
+      loadError.value = true
+    }
+  }
+  catch {
+    loadError.value = true
+    profile.value = null
+  }
+  finally {
+    loading.value = false
+  }
 })
 
 function onClearError(fieldKey: string) {
@@ -63,7 +88,7 @@ function onClearError(fieldKey: string) {
 }
 
 async function onSave() {
-  if (!user.value || !settings.value) return
+  if (!profile.value || !settings.value) return
 
   formError.value = null
   fieldErrors.value = {}
@@ -73,7 +98,7 @@ async function onSave() {
     maxAge: settings.value.maxAge,
     guardianAge: settings.value.guardianAge,
     officialStartDate: settings.value.officialStartDate,
-  }).safeParse(user.value)
+  }).safeParse(profile.value)
 
   if (!result.success) {
     fieldErrors.value = mapZodIssuesToFieldErrors(result.error.issues, t)
@@ -82,9 +107,9 @@ async function onSave() {
   }
 
   try {
-    const updated = await updateUser(user.value)
+    const updated = await updateUser(profile.value)
     if (updated) {
-      user.value = updated
+      profile.value = updated
       notify('success', 'message_successChange')
     }
   }

@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Project } from '@coolestprojects/database';
 import { Voucher } from '@coolestprojects/database';
@@ -20,14 +25,14 @@ export class ParticipantService {
       attributes: ['id', 'eventId', 'maxVoucher'],
     });
     if (!project) {
-      throw new Error('Project not found for the given user owner ID');
+      throw new NotFoundException('Project not found for the given user owner ID');
     }
 
     const totalVouchers = await this.voucherModel.count({
       where: { projectId: project.id },
     });
     if (totalVouchers >= project.maxVoucher) {
-      throw new Error(
+      throw new BadRequestException(
         'Maximum number of participants reached for this project',
       );
     }
@@ -38,13 +43,14 @@ export class ParticipantService {
       voucherGuid: this.generateUniqueToken(),
     });
   }
+
   private generateUniqueToken(): string {
     return crypto.randomUUID();
   }
 
   public async removeParticipant(
     ownerUserId: number,
-    participantUserId: number,
+    voucherId: number,
   ): Promise<boolean> {
     const project = await this.projectModel.findOne({
       where: { ownerId: ownerUserId },
@@ -54,13 +60,37 @@ export class ParticipantService {
     }
 
     const voucher = await this.voucherModel.findOne({
-      where: { projectId: project.id, participantId: participantUserId },
+      where: { projectId: project.id, id: voucherId },
     });
     if (!voucher) {
       return false;
     }
 
-    await voucher.update({ participantId: null });
+    if (voucher.participantId == null) {
+      await voucher.destroy();
+    } else {
+      await voucher.update({ participantId: null });
+    }
+
     return true;
+  }
+
+  public async leaveProject(userId: number): Promise<void> {
+    const ownedProject = await this.projectModel.findOne({
+      where: { ownerId: userId },
+      attributes: ['id'],
+    });
+    if (ownedProject) {
+      throw new ForbiddenException('Project owners cannot leave their project');
+    }
+
+    const voucher = await this.voucherModel.findOne({
+      where: { participantId: userId },
+    });
+    if (!voucher) {
+      throw new NotFoundException('No project membership found');
+    }
+
+    await voucher.update({ participantId: null });
   }
 }

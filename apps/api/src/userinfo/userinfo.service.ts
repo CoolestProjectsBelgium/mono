@@ -14,32 +14,41 @@ export class UserinfoService {
     @InjectModel(User) private readonly userModel: typeof User,
   ) {}
 
+  private readField<T>(user: User, key: keyof User): T {
+    const fromDataValues =
+      typeof user.getDataValue === 'function'
+        ? user.getDataValue(key as string)
+        : undefined;
+    return (fromDataValues ?? user[key]) as T;
+  }
+
   mapUserToDto(user: User): UserDto {
-    const birth = user.birthmonth ? new Date(user.birthmonth) : null;
+    const birthmonth = this.readField<Date | null>(user, 'birthmonth');
+    const birth = birthmonth ? new Date(birthmonth) : null;
     return {
       id: user.id,
-      language: user.language,
-      email: user.email,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      sex: user.sex,
-      gsm: user.gsm,
+      language: this.readField(user, 'language'),
+      email: this.readField(user, 'email'),
+      firstname: this.readField(user, 'firstname'),
+      lastname: this.readField(user, 'lastname'),
+      sex: this.readField(user, 'sex'),
+      gsm: this.readField(user, 'gsm'),
       general_questions: [],
       mandatory_approvals: [],
       year: birth ? birth.getFullYear() : 0,
       month: birth ? birth.getMonth() : -1,
-      t_size: user.tshirtId,
-      gsm_guardian: user.gsm_guardian ?? '',
-      email_guardian: user.email_guardian ?? '',
-      via: user.via ?? '',
-      medical: user.medical ?? '',
+      t_size: this.readField(user, 'tshirtId'),
+      gsm_guardian: this.readField(user, 'gsm_guardian') ?? '',
+      email_guardian: this.readField(user, 'email_guardian') ?? '',
+      via: this.readField(user, 'via') ?? '',
+      medical: this.readField(user, 'medical') ?? '',
       delete_possible: true,
       address: {
-        street: user.street ?? '',
-        house_number: user.house_number ?? '',
-        municipality_name: user.municipality_name ?? '',
-        box_number: user.box_number ?? '',
-        postalcode: user.postalcode ?? 0,
+        street: this.readField(user, 'street') ?? '',
+        house_number: this.readField(user, 'house_number') ?? '',
+        municipality_name: this.readField(user, 'municipality_name') ?? '',
+        box_number: this.readField(user, 'box_number') ?? '',
+        postalcode: this.readField(user, 'postalcode') ?? 0,
       },
     };
   }

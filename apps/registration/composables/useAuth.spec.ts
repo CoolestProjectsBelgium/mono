@@ -23,6 +23,17 @@ describe('useAuth', () => {
     }))
   })
 
+  it('requestMagicLink does not set session before activation', async () => {
+    mockFetch.mockResolvedValue({
+      expires: '2099-01-01T00:00:00.000Z',
+      language: 'nl',
+      api_key: '',
+    })
+    const { requestMagicLink } = await callComposable(() => useAuth(), pinia)
+    await requestMagicLink('test@example.com')
+    expect(useAuthStore(pinia).isLoggedIn).toBe(false)
+  })
+
   it('activateWithToken POSTs { jwt } to /login', async () => {
     mockFetch.mockResolvedValue({ expires: '2099-01-01T00:00:00.000Z', language: 'nl', api_key: 'x' })
     const { activateWithToken } = await callComposable(() => useAuth(), pinia)

@@ -18,18 +18,29 @@
 
 <script setup lang="ts">
 import type { SettingDto } from '~/types/api'
+import { isProjectOwner as checkIsProjectOwner } from '~/utils/project-routing'
 
 definePageMeta({ middleware: 'authenticated' })
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const { fetchSettings } = useSettings()
+const { fetchProject } = useProjectinfo()
 
 const uploading = ref(false)
 const uploadRef = ref<{ uploading: boolean } | null>(null)
 const settings = ref<SettingDto | null>(null)
 
 onMounted(async () => {
-  settings.value = await fetchSettings()
+  const [fetchedProject, fetchedSettings] = await Promise.all([
+    fetchProject(),
+    fetchSettings(),
+  ])
+  if (!checkIsProjectOwner(fetchedProject)) {
+    await navigateTo(localePath('/project'))
+    return
+  }
+  settings.value = fetchedSettings
 })
 
 onBeforeRouteLeave((_to, _from, next) => {

@@ -4,18 +4,25 @@ import {
   Attachment,
   AzureBlob,
   Project,
+  User,
   Voucher,
 } from '@coolestprojects/database';
 import { ProjectDto } from '../dto/project.dto';
 import { AttachmentDto } from '../dto/attachment.dto';
 import { Op } from 'sequelize';
 import { AzureBlobService } from '../azureblob/azureblob.service';
+import {
+  canDeleteProject,
+  mapParticipantsForProject,
+  type VoucherInput,
+} from '../participant/participant.mapper';
 
 @Injectable()
 export class ProjectinfoService {
   public constructor(
     @InjectModel(Project) private readonly projectModel: typeof Project,
     @InjectModel(Voucher) private readonly voucherModel: typeof Voucher,
+    @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(Attachment)
     private readonly attachmentModel: typeof Attachment,
     private readonly azureBlobService: AzureBlobService,
@@ -76,6 +83,52 @@ export class ProjectinfoService {
     return result;
   }
 
+  private async getParticipantsForProject(
+    projectId: number,
+    ownerId: number,
+  ) {
+    const owner = await this.userModel.findByPk(ownerId, {
+      attributes: ['id', 'firstname'],
+    });
+    if (!owner) {
+      return { participants: [], delete_possible: true };
+    }
+
+    const vouchers = await this.voucherModel.findAll({
+      where: { projectId },
+      include: [
+        {
+          model: User,
+          as: 'participant',
+          attributes: ['firstname'],
+          required: false,
+        },
+      ],
+      order: [['id', 'ASC']],
+    });
+
+    const voucherInputs: VoucherInput[] = vouchers.map((voucher) => {
+      const plain = voucher.get({ plain: true }) as VoucherInput;
+      return {
+        id: plain.id,
+        voucherGuid: plain.voucherGuid,
+        participantId: plain.participantId,
+        participant: plain.participant,
+      };
+    });
+
+    return {
+      participants: mapParticipantsForProject(
+        {
+          id: owner.getDataValue('id') as number,
+          firstname: owner.getDataValue('firstname') as string,
+        },
+        voucherInputs,
+      ),
+      delete_possible: canDeleteProject(voucherInputs),
+    };
+  }
+
   public async getProjectInfo(userId: number): Promise<ProjectDto> {
     let project: Project | null;
     let isOwner = true;
@@ -84,8 +137,11 @@ export class ProjectinfoService {
       const voucher = await this.voucherModel.findOne({
         where: { participantId: userId },
       });
-      project = voucher ? await voucher.getProject() : null;
-
+      if (!voucher) {
+        throw new Error('Project not found for user');
+      }
+      const projectId = voucher.getDataValue('projectId') as number;
+      project = await this.projectModel.findByPk(projectId);
       if (!project) {
         throw new Error('Project not found for user');
       }
@@ -94,15 +150,24 @@ export class ProjectinfoService {
 
     const p = project.get({ plain: true });
     const attachments = await this.getAttachmentsForProject(p.id);
+    const participantInfo = isOwner
+      ? await this.getParticipantsForProject(p.id, userId)
+      : null;
 
     return {
+      is_owner: isOwner,
       own_project: {
         project_id: String(p.id),
         project_name: p.name,
         project_descr: p.description,
         project_type: p.type,
         project_lang: p.language,
-        own_project: isOwner,
+        ...(participantInfo
+          ? {
+              participants: participantInfo.participants,
+              delete_possible: participantInfo.delete_possible,
+            }
+          : {}),
       },
       attachments,
     };
@@ -131,6 +196,7 @@ export class ProjectinfoService {
     });
     const created = project.get({ plain: true });
     return {
+      is_owner: true,
       own_project: {
         project_id: String(created.id),
         project_name: created.name,
@@ -161,6 +227,7 @@ export class ProjectinfoService {
     await project.save();
     const updated = project.get({ plain: true });
     return {
+      is_owner: true,
       own_project: {
         project_id: String(updated.id),
         project_name: updated.name,

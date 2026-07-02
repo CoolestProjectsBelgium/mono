@@ -137,5 +137,24 @@
     "homeCta": "Retour à la page d'accueil"
   },
   "noProject": { "message": "Tu n'as pas encore de projet." },
-  "upload": { "leaveWarning": "Envoi en cours — ne quitte pas cette page.", "leaveConfirm": "Envoi en cours. Quitter quand même la page ?" }
+  "upload": { "leaveWarning": "Envoi en cours — ne quitte pas cette page.", "leaveConfirm": "Envoi en cours. Quitter quand même la page ?" },
+  "participantPending": "Invitation en attente",
+  "participantStatusLabel": "Statut",
+  "participantStatusPending": "Token pas encore utilisé",
+  "participantStatusRegistered": "Inscrit·e",
+  "participantCopyLink": "Copier le lien",
+  "participantMailLink": "Envoyer par e-mail",
+  "participantCopySuccess": "Lien d'invitation copié.",
+  "participantCopyFailed": "Impossible de copier le lien.",
+  "participantAdded": "Invitation créée.",
+  "participantMailSubject": "Invitation au projet {projectName}",
+  "participantMailBody": "Tu es invité·e à collaborer au projet \"{projectName}\".\n\nInscris-toi via ce lien :\n{url}",
+  "participantRemoveConfirmPending": "Es-tu sûr·e de vouloir supprimer cette invitation ouverte ? Le token ne pourra plus être utilisé.",
+  "participantRemoveConfirmRegistered": "Es-tu sûr·e de vouloir délier {name} de ce projet ? La place redeviendra une invitation ouverte.",
+  "leaveProject": {
+    "button": "Quitter le projet",
+    "title": "Quitter ce projet ?",
+    "confirm": "Tu quittes « {projectName} ». Le ou la propriétaire verra à nouveau une place d'invitation ouverte. Tu pourras ensuite créer ton propre projet ou rejoindre un autre projet.",
+    "confirmButton": "Quitter le projet"
+  }
 }

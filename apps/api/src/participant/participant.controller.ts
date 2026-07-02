@@ -13,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ParticipantService } from './participant.service';
 import { ParticipantDto } from '../dto/participant.dto';
 import { UserCookieInterceptor } from '../user-cookie.interceptor';
+import { mapVoucherToParticipant } from './participant.mapper';
 
 @Controller('participant')
 @ApiTags('participant')
@@ -30,11 +31,21 @@ export class ParticipantController {
     const voucher = await this.participantService.generateParticipantVoucher(
       req.user.id,
     );
-    return {
+    return mapVoucherToParticipant({
       id: voucher.id,
-      name: voucher.voucherGuid,
-      self: false,
-    };
+      voucherGuid: voucher.getDataValue('voucherGuid') as string,
+      participantId: voucher.getDataValue('participantId') as number | null,
+      participant: null,
+    });
+  }
+
+  @Delete('self')
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  async leaveProject(@Request() req: { user: { id: number } }) {
+    await this.participantService.leaveProject(req.user.id);
+    return { success: true };
   }
 
   @Delete(':id')

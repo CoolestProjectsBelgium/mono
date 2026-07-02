@@ -9,13 +9,10 @@ export function useAuth() {
   async function requestMagicLink(email: string): Promise<boolean> {
     const body: LoginMailDto = { email }
     try {
-      const response = await apiFetch<LoginDto | null>('/login/mailToken', {
+      await apiFetch<LoginDto | null>('/login/mailToken', {
         method: 'POST',
         body,
       })
-      if (hasApiData(response)) {
-        authStore.setExpires(response.expires)
-      }
       notify('success', 'login.linkSent')
       return true
     }

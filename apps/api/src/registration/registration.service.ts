@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Registration } from '@coolestprojects/database';
 import { InfoDto } from '../dto/info.dto';
@@ -17,6 +17,8 @@ import { validateAddress } from '../geo/postal-codes';
 
 @Injectable()
 export class RegistrationService {
+  private readonly logger = new Logger(RegistrationService.name);
+
   constructor(
     private mailerService: MailerService,
     private tokenService: TokensService,
@@ -293,7 +295,7 @@ export class RegistrationService {
           throw new Error('Voucher not found or already used');
         }
         await voucher.update({ participantId: user.id }, { transaction });
-        coworkerProjectId = voucher.projectId;
+        coworkerProjectId = voucher.getDataValue('projectId') as number;
       } else {
         // create project for user
         await this.projectModel.create(
@@ -339,23 +341,33 @@ export class RegistrationService {
       throw new Error('Transaction commit failed: ' + error);
     }
 
-    // send confirmation mail (outside transaction)
-    const loginToken = this.tokenService.generateLoginToken(user.id);
-    if (joinedViaVoucher) {
-      const project = await this.projectModel.findByPk(coworkerProjectId!);
-      if (!project) {
-        throw new Error('Project not found for co-worker welcome mail');
+    // send confirmation mail (outside transaction; must not fail activation)
+    try {
+      const loginToken = this.tokenService.generateLoginToken(user.id);
+      if (joinedViaVoucher) {
+        const project = await this.projectModel.findByPk(coworkerProjectId!);
+        if (!project) {
+          throw new Error('Project not found for co-worker welcome mail');
+        }
+        await this.mailerService.welcomeMailCoWorker(user, project, loginToken);
+        await this.mailerService.notifyProjectOwner();
+      } else {
+        const project = await this.projectModel.findOne({
+          where: {
+            ownerId: user.id,
+            eventId: user.getDataValue('eventId') as number,
+          },
+        });
+        if (!project) {
+          throw new Error('Project not found for owner welcome mail');
+        }
+        await this.mailerService.welcomeMailOwner(user, project, loginToken);
       }
-      await this.mailerService.welcomeMailCoWorker(user, project, loginToken);
-      await this.mailerService.notifyProjectOwner();
-    } else {
-      const project = await this.projectModel.findOne({
-        where: { ownerId: user.id, eventId: user.eventId },
-      });
-      if (!project) {
-        throw new Error('Project not found for owner welcome mail');
-      }
-      await this.mailerService.welcomeMailOwner(user, project, loginToken);
+    } catch (error) {
+      this.logger.error(
+        `Welcome mail failed after activating registration ${registrationID}`,
+        error instanceof Error ? error.stack : String(error),
+      );
     }
 
     return user;

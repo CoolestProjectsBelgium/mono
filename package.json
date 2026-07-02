@@ -7,7 +7,10 @@
     "test": "npm test --workspace=@coolestprojects/registration && npm test --workspace=@coolestprojects/api",
     "test:registration": "npm test --workspace=@coolestprojects/registration",
     "test:api": "npm test --workspace=@coolestprojects/api",
-    "test:e2e": "npm run test:e2e --workspace=@coolestprojects/api"
+    "test:e2e": "npm run test:e2e --workspace=@coolestprojects/api",
+    "dev:reload": "bash scripts/dev/reload.sh",
+    "dev:restart:api": "bash scripts/dev/restart-api.sh",
+    "dev:restart:registration": "bash scripts/dev/restart-registration.sh"
   },
   "keywords": [],
   "author": "",

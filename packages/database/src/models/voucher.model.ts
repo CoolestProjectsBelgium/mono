@@ -21,8 +21,8 @@ export class Voucher extends BaseEventModel {
   project!: Project;
 
   @ForeignKey(() => User)
-  @Column({ allowNull: true })
-  participantId!: number;
+  @Column({ type: DataType.INTEGER, allowNull: true })
+  participantId!: number | null;
 
   @BelongsTo(() => User)
   participant!: User;

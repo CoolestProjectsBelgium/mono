@@ -1,5 +1,43 @@
 import { describe, expect, it } from 'vitest'
-import { resolveProjectRoute } from '~/utils/project-routing'
+import { isProjectOwner, resolveProjectRoute } from '~/utils/project-routing'
+
+describe('isProjectOwner', () => {
+  it('is true when top-level is_owner is true', () => {
+    expect(isProjectOwner({
+      is_owner: true,
+      own_project: {
+        project_name: 'P',
+        project_descr: '',
+        project_type: '',
+        project_lang: 'nl',
+      },
+    })).toBe(true)
+  })
+
+  it('is false for co-workers', () => {
+    expect(isProjectOwner({
+      is_owner: false,
+      own_project: {
+        project_name: 'P',
+        project_descr: '',
+        project_type: '',
+        project_lang: 'nl',
+      },
+    })).toBe(false)
+  })
+
+  it('is false when is_owner is missing', () => {
+    expect(isProjectOwner({
+      own_project: {
+        project_name: 'P',
+        project_descr: '',
+        project_type: '',
+        project_lang: 'nl',
+        participants: [],
+      },
+    })).toBe(false)
+  })
+})
 
 describe('resolveProjectRoute', () => {
   it('redirects to no_project when null', () => {

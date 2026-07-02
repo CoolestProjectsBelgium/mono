@@ -42,6 +42,10 @@ export default defineNuxtConfig({
   vite: {
     server: {
       allowedHosts: ['registration.coolestprojects.localhost'],
+      watch: {
+        usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
+        interval: Number(process.env.CHOKIDAR_INTERVAL || 1000),
+      },
       proxy: {
         '/_api': {
           target: process.env.NUXT_DEV_API_PROXY || 'http://127.0.0.1:3001',

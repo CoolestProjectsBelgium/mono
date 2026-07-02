@@ -24,6 +24,7 @@ Event registration platform. Read `AGENTS.md` at repo root for full architecture
 - Active event context comes from `InfoInterceptor` — use `@Info()` decorator in controllers
 - Use workspace flag for scripts: `npm run <script> -w @coolestprojects/api`
 - Never commit `.env`, `dist/`, or `node_modules/`
+- After API or registration code changes in dev, run `npm run dev:reload` in the devcontainer if the browser still shows old behavior (rebuilds + restarts API and registration).
 - Registration API notes in `apps/registration/MISSING_APIS.md`
 
 ## Local URLs (devcontainer)

@@ -5,6 +5,11 @@
     "rootDir": "./src",
   },
   "include": ["src/**/*.ts"],
+  "watchOptions": {
+    "watchFile": "dynamicPriorityPolling",
+    "watchDirectory": "dynamicPriorityPolling",
+    "fallbackPolling": "dynamicPriority"
+  },
    "exclude": [
     "node_modules",
     "dist",

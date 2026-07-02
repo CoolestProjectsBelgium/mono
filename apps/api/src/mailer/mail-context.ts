@@ -16,6 +16,14 @@ export function buildLoginUrl(
   return `${baseUrlWithLanguage(baseUrl, language)}/login?token=${encodeURIComponent(token)}`;
 }
 
+export function buildRegistrationInviteUrl(
+  baseUrl: string,
+  language: string,
+  token: string,
+): string {
+  return `${baseUrlWithLanguage(baseUrl, language)}/registration?token=${encodeURIComponent(token)}`;
+}
+
 export function eventYear(event: Event): number {
   return new Date(event.officialStartDate).getFullYear();
 }

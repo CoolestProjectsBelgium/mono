@@ -4,11 +4,11 @@ import {
   ForeignKey,
   BelongsTo,
   DataType,
-  BelongsToMany
+  HasMany,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { BaseEventModel } from './base_event.model';
-import { BelongsToGetAssociationMixin, HasManyHasAssociationMixin, BelongsToManyGetAssociationsMixin } from 'sequelize';
+import { BelongsToGetAssociationMixin, HasManyGetAssociationsMixin } from 'sequelize';
 import { Voucher } from './voucher.model';
 
 @Table
@@ -35,12 +35,12 @@ export class Project extends BaseEventModel {
   @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
   language!: string;
   
-  @BelongsToMany(() => User, () => Voucher)
-  participants!: User[];
+  @HasMany(() => Voucher)
+  vouchers!: Voucher[];
 
   @Column
   maxVoucher!: number;
 
   public getOwner!: BelongsToGetAssociationMixin<User>;
-  public getParticipants!: BelongsToManyGetAssociationsMixin<User>;
+  public getVouchers!: HasManyGetAssociationsMixin<Voucher>;
 }

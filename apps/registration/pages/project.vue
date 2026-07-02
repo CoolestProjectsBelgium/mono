@@ -6,7 +6,13 @@
       :api-message="formError"
       summary-key="validation_projectIncomplete"
     />
-    <template v-if="project?.own_project">
+    <p v-if="loading" data-testid="project-loading" class="mt-4 text-gray-500">{{ $t('pleaseWait') }}</p>
+    <ApiUnavailableBanner
+      v-else-if="loadError"
+      message-key="apiUnavailable.default"
+      class="mt-4"
+    />
+    <template v-else-if="isProjectOwner" data-testid="project-owner-view">
       <OwnProjectForm
         v-model="ownProjectForm"
         :errors="fieldErrors"
@@ -16,9 +22,14 @@
       <OwnParticipants
         :participants="project.own_project.participants ?? []"
         :invite-unavailable="inviteUnavailable"
+        :adding="addingParticipant"
+        :add-disabled="addParticipantDisabled"
+        :removing-participant-id="removingParticipantId"
         class="mt-6"
         @add="onAddParticipant"
         @remove="onRemoveParticipant"
+        @copy="onCopyInvite"
+        @mail="onMailInvite"
       />
       <div class="mt-6 flex gap-4">
         <CtaButton variant="primary" @click="onSave">{{ $t('Aanpassen') }}</CtaButton>
@@ -28,32 +39,93 @@
         </CtaButton>
       </div>
     </template>
-    <template v-else-if="project?.other_project">
-      <p class="mt-4">{{ $t('medeProject') }}: {{ project.other_project.project_code }}</p>
+    <template v-else-if="project?.own_project" data-testid="project-coworker-view">
+      <p class="mt-4 text-gray-600">{{ $t('medeProject') }}</p>
+      <dl class="mt-6 grid gap-4">
+        <div>
+          <dt class="form-label">{{ $t('label_Projectnaam:') }}</dt>
+          <dd class="mt-1">{{ project.own_project.project_name }}</dd>
+        </div>
+        <div>
+          <dt class="form-label">{{ $t('label_Omschrijving:') }}</dt>
+          <dd class="mt-1 whitespace-pre-wrap">{{ project.own_project.project_descr }}</dd>
+        </div>
+        <div>
+          <dt class="form-label">{{ $t('label_Project_Type') }}</dt>
+          <dd class="mt-1 whitespace-pre-wrap">{{ project.own_project.project_type }}</dd>
+        </div>
+        <div>
+          <dt class="form-label">{{ $t('description_taalJury') }}</dt>
+          <dd class="mt-1">{{ $t(languageLabelKey(project.own_project.project_lang)) }}</dd>
+        </div>
+      </dl>
+      <div class="mt-6">
+        <CtaButton
+          variant="cta"
+          data-testid="leave-project-button"
+          :disabled="leavingProject"
+          @click="showLeaveDialog = true"
+        >
+          {{ $t('leaveProject.button') }}
+        </CtaButton>
+      </div>
+      <ConfirmDialog
+        v-model:open="showLeaveDialog"
+        :title="$t('leaveProject.title')"
+        :message="$t('leaveProject.confirm', { projectName: project.own_project.project_name })"
+        :confirm-label="$t('leaveProject.confirmButton')"
+        :cancel-label="$t('Cancel')"
+        :please-wait-label="$t('pleaseWait')"
+        :loading="leavingProject"
+        @confirm="onLeaveProject"
+      />
     </template>
-    <p v-else class="mt-4">{{ $t('pleaseWait') }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ProjectDto } from '~/types/api'
+import type { ProjectDto, SettingDto, ParticipantDto } from '~/types/api'
 import { clearFieldError, mapZodIssuesToFieldErrors, scrollToFirstFieldError } from '~/utils/validation/map-field-errors'
 import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createOwnProjectSchema } from '~/utils/validation/user'
 import { getApiErrorMessage } from '~/utils/api-response'
+import { getParticipantRemoveConfirm } from '~/utils/participant-remove'
+import { isProjectOwner as checkIsProjectOwner } from '~/utils/project-routing'
 
 definePageMeta({ middleware: 'authenticated' })
 
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { fetchProject, updateProject, deleteProject } = useProjectinfo()
-const { generateInviteToken, removeParticipant } = useParticipant()
+const { generateInviteToken, removeParticipant, leaveProject, copyInviteUrl, openInviteMailto } = useParticipant()
+const { fetchSettings } = useSettings()
 const { notify } = useNotification()
 
 const project = ref<ProjectDto | null>(null)
+const settings = ref<SettingDto | null>(null)
+const loading = ref(true)
+const loadError = ref(false)
 const inviteUnavailable = ref(false)
+const addingParticipant = ref(false)
+const removingParticipantId = ref<number | null>(null)
+const showLeaveDialog = ref(false)
+const leavingProject = ref(false)
 const fieldErrors = ref<Record<string, string>>({})
 const formError = ref<string | null>(null)
+
+const coParticipantCount = computed(() =>
+  (project.value?.own_project?.participants ?? []).filter(participant => !participant.self).length,
+)
+
+const isProjectOwner = computed(() => checkIsProjectOwner(project.value))
+
+function languageLabelKey(lang: 'nl' | 'fr' | 'en') {
+  return ({ nl: 'Nederlands', fr: 'Frans', en: 'Engels' } as const)[lang]
+}
+
+const addParticipantDisabled = computed(() =>
+  settings.value != null && coParticipantCount.value >= settings.value.maxParticipants,
+)
 
 const ownProjectForm = computed({
   get: () => ({
@@ -70,9 +142,25 @@ const ownProjectForm = computed({
 })
 
 onMounted(async () => {
-  project.value = await fetchProject()
-  if (!project.value?.own_project && !project.value?.other_project) {
-    await navigateTo(localePath('/no_project'))
+  loading.value = true
+  loadError.value = false
+  try {
+    const [fetchedProject, fetchedSettings] = await Promise.all([
+      fetchProject(),
+      fetchSettings(),
+    ])
+    project.value = fetchedProject
+    settings.value = fetchedSettings
+    if (!fetchedProject?.own_project && !fetchedProject?.other_project) {
+      await navigateTo(localePath('/no_project'))
+    }
+  }
+  catch {
+    loadError.value = true
+    project.value = null
+  }
+  finally {
+    loading.value = false
   }
 })
 
@@ -81,7 +169,7 @@ function onClearError(fieldKey: string) {
 }
 
 async function onSave() {
-  if (!project.value?.own_project) return
+  if (!isProjectOwner.value || !project.value?.own_project) return
 
   formError.value = null
   fieldErrors.value = {}
@@ -119,16 +207,83 @@ async function onDelete() {
 }
 
 async function onAddParticipant() {
-  const token = await generateInviteToken()
-  if (!token) {
-    inviteUnavailable.value = true
+  if (addingParticipant.value || addParticipantDisabled.value) {
     return
   }
-  project.value = await fetchProject()
+
+  addingParticipant.value = true
+  inviteUnavailable.value = false
+  try {
+    const participant = await generateInviteToken()
+    if (!participant) {
+      inviteUnavailable.value = true
+      return
+    }
+    project.value = await fetchProject()
+    notify('success', 'participantAdded')
+  }
+  catch (error) {
+    const message = getApiErrorMessage(error) ?? t('error_An error occurred')
+    notify('error', 'error_An error occurred', undefined, message)
+  }
+  finally {
+    addingParticipant.value = false
+  }
 }
 
-async function onRemoveParticipant(id: number) {
-  await removeParticipant(id)
-  project.value = await fetchProject()
+async function onRemoveParticipant(participant: ParticipantDto) {
+  if (removingParticipantId.value != null) {
+    return
+  }
+
+  if (import.meta.client) {
+    const { key, params } = getParticipantRemoveConfirm(participant)
+    if (!window.confirm(t(key, params))) {
+      return
+    }
+  }
+
+  removingParticipantId.value = participant.id
+  try {
+    await removeParticipant(participant.id)
+    project.value = await fetchProject()
+    notify('success', 'message_successChange')
+  }
+  catch (error) {
+    const message = getApiErrorMessage(error) ?? t('error_An error occurred')
+    notify('error', 'error_An error occurred', undefined, message)
+  }
+  finally {
+    removingParticipantId.value = null
+  }
+}
+
+async function onCopyInvite(token: string) {
+  await copyInviteUrl(token)
+}
+
+function onMailInvite(token: string) {
+  openInviteMailto(token, project.value?.own_project?.project_name)
+}
+
+async function onLeaveProject() {
+  if (leavingProject.value) {
+    return
+  }
+
+  leavingProject.value = true
+  try {
+    await leaveProject()
+    showLeaveDialog.value = false
+    notify('success', 'message_successChange')
+    await navigateTo(localePath('/no_project'))
+  }
+  catch (error) {
+    const message = getApiErrorMessage(error) ?? t('error_An error occurred')
+    notify('error', 'error_An error occurred', undefined, message)
+  }
+  finally {
+    leavingProject.value = false
+  }
 }
 </script>
