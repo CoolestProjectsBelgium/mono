@@ -27,6 +27,7 @@
     "esbuild@0.28.1": true
   },
   "dependencies": {
-    "@nestjs/cli": "^11.0.23"
+    "@nestjs/cli": "^11.0.23",
+    "unstorage": "^1.10.2"
   }
 }

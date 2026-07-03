@@ -1,44 +1,119 @@
 <template>
-  <div>
+  <div class="min-h-screen bg-slate-950 text-gray-100 flex flex-col">
     <NavBar />
-    <b-container fluid>
-      <b-form-group class="p-3">
-        <b-form-checkbox-group
-          id="checkbox-group-1"
-          v-model="selected"
-          size="lg"
-          stacked
-          :options="languages"
-          value-field="id"
-          text-field="text"
-          name="flavour-1"
-        />
-      </b-form-group>
-      <b-button variant="primary" size="lg" block @click="set_languages">
-        Select
-      </b-button>
-    </b-container>
+    <main class="flex-grow flex items-center justify-center p-4">
+      <div class="w-full max-w-md">
+        <UCard
+          class="border border-gray-800 bg-slate-900/40 backdrop-blur shadow-2xl transition-all duration-300 hover:border-gray-700/80"
+        >
+          <template #header>
+            <div class="text-center">
+              <UIcon name="i-heroicons-language" class="h-10 w-10 text-primary-400 mb-2" />
+              <h2 class="text-2xl font-bold text-white tracking-tight">
+                Preferred Languages
+              </h2>
+              <p class="text-sm text-gray-400 mt-1">
+                Select the languages you would like to filter and review.
+              </p>
+            </div>
+          </template>
+
+          <div v-if="languages.length" class="space-y-3 py-2">
+            <label
+              v-for="lang in languages"
+              :key="lang.id"
+              class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all duration-150 select-none"
+              :class="[
+                selected.includes(lang.id)
+                  ? 'bg-primary-950/20 border-primary-500/80 shadow-md shadow-primary-950/10'
+                  : 'bg-slate-950/40 border-gray-800 hover:border-gray-700/80'
+              ]"
+            >
+              <UCheckbox
+                :model-value="selected.includes(lang.id)"
+                color="primary"
+                class="pointer-events-none"
+                @update:model-value="toggleLanguage(lang.id)"
+              />
+              <div class="flex-grow">
+                <p class="font-semibold text-gray-200" :class="{ 'text-primary-400': selected.includes(lang.id) }">
+                  {{ lang.text }}
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Loading state placeholder -->
+          <div v-else class="space-y-3 py-2">
+            <USkeleton v-for="i in 3" :key="i" class="h-[60px] w-full bg-slate-800" />
+          </div>
+
+          <template #footer>
+            <UButton
+              color="primary"
+              size="lg"
+              block
+              :disabled="selected.length === 0"
+              class="font-bold tracking-wider hover:scale-[1.01] active:scale-[0.99] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="setLanguages"
+            >
+              Confirm Selection
+            </UButton>
+          </template>
+        </UCard>
+      </div>
+    </main>
   </div>
 </template>
 
-<script>
-export default {
-  data () {
-    return {
-      languages: [],
-      selected: this.$store.state.localStorage.languages
-    }
-  },
-  async fetch () {
-    this.languages = await this.$axios.$get('/voting/languages')
-  },
-  computed: {
-  },
-  methods: {
-    set_languages () {
-      this.$store.commit('localStorage/updateLanguages', this.selected)
-      this.$router.push('/')
-    }
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useLanguageStore } from '~/stores/language'
+
+interface Language {
+  id: number
+  text: string
+}
+
+const languageStore = useLanguageStore()
+const toast = useToast()
+const languages = ref<Language[]>([])
+const selected = ref<number[]>([...languageStore.languages])
+
+const toggleLanguage = (id: number) => {
+  const index = selected.value.indexOf(id)
+  if (index === -1) {
+    selected.value.push(id)
+  } else {
+    selected.value.splice(index, 1)
   }
+}
+
+const setLanguages = () => {
+  if (selected.value.length === 0) {
+    toast.add({
+      title: 'Selection Required',
+      description: 'Please select at least one language to continue.',
+      color: 'amber',
+      icon: 'i-heroicons-exclamation-triangle'
+    })
+    return
+  }
+
+  languageStore.updateLanguages(selected.value)
+  navigateTo('/')
+}
+
+// Fetch languages on setup
+try {
+  languages.value = await useApiFetch<Language[]>('/voting/languages')
+} catch (error) {
+  console.error('Failed to load languages:', error)
+  toast.add({
+    title: 'Error loading languages',
+    description: 'Could not connect to the API server.',
+    color: 'red',
+    icon: 'i-heroicons-exclamation-circle'
+  })
 }
 </script>
