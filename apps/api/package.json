@@ -17,6 +17,8 @@
   "description": "API for Coolest Projects",
   "dependencies": {
     "@azure/storage-blob": "^12.33.0",
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/core": "^11.1.27",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.27",
@@ -30,10 +32,12 @@
     "nestjs": "^0.0.1",
     "nestjs-command": "^3.1.5",
     "nodemailer": "^9.0.1",
+    "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-jwt-cookiecombo": "^1.0.5",
     "passport-local": "^1.0.0",
-    "puppeteer": "^25.2.1"
+    "puppeteer": "^25.2.1",
+    "sequelize": "^6.37.8"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.23",
