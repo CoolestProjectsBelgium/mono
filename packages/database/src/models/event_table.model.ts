@@ -1,5 +1,4 @@
 import { Project } from './project.model';
-import { ProjectTable } from './project_table.model';
 import { Location } from './location.model';
 import {
   Column,
@@ -7,14 +6,19 @@ import {
   ForeignKey,
   BelongsTo,
   DataType,
-  BelongsToMany,
 } from 'sequelize-typescript';
 import { BaseEventModel } from './base_event.model.js';
+import { BelongsToGetAssociationMixin } from 'sequelize';
+
 
 @Table({ tableName: 'Tables' })
 export class EventTable extends BaseEventModel {
-  @BelongsToMany(() => Project, () => ProjectTable)
-  declare table: EventTable;
+  @BelongsTo(() => Project)
+  declare project: Project;
+
+  @ForeignKey(() => Project)
+  @Column
+  declare projectId: number;
 
   @Column
   declare name: string;
@@ -31,4 +35,6 @@ export class EventTable extends BaseEventModel {
 
   @BelongsTo(() => Location)
   declare location: Location;
+
+  public getProject!: BelongsToGetAssociationMixin<Project>;
 }

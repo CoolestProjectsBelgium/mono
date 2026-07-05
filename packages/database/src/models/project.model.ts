@@ -5,13 +5,15 @@ import {
   BelongsTo,
   DataType,
   BelongsToMany,
-  HasMany
+  HasMany,
+  HasOne
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { BaseEventModel } from './base_event.model';
-import { BelongsToGetAssociationMixin, HasManyHasAssociationMixin, BelongsToManyGetAssociationsMixin } from 'sequelize';
+import { BelongsToGetAssociationMixin, HasManyHasAssociationMixin, BelongsToManyGetAssociationsMixin, HasOneGetAssociationMixin } from 'sequelize';
 import { Voucher } from './voucher.model';
 import { Attachment } from './attachment.model';
+import { EventTable } from './event_table.model';
 
 @Table
 export class Project extends BaseEventModel {
@@ -46,8 +48,12 @@ export class Project extends BaseEventModel {
   @Column
   maxVoucher!: number;
 
+  @HasOne(() => EventTable)
+  table!: EventTable;
+
   public getOwner!: BelongsToGetAssociationMixin<User>;
   public getParticipants!: BelongsToManyGetAssociationsMixin<User>;
   public getAttachments!: HasManyHasAssociationMixin<Attachment, number>;
+  public getTable!: HasOneGetAssociationMixin<EventTable>;
 
 }
