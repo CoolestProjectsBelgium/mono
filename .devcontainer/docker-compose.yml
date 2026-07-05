@@ -27,6 +27,8 @@ services:
       UPLOAD_ROOT: /tmp/uploads
       FILE_SIGN_SECRET: "cxc.#8Pc5^H26465BxKLxKsv"
       APACHE_SECRET: "cEc.#8Pc5^zzH26OBccLMKsdM"
+      FILE_BASE_URL: "https://register.coolestproject.com/files"
+      FILE_SIGNATURE_EXPIRATION: 300
 
     volumes:
       - ..:/workspace:cached

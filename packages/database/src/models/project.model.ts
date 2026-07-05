@@ -10,7 +10,7 @@ import {
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { BaseEventModel } from './base_event.model';
-import { BelongsToGetAssociationMixin, HasManyHasAssociationMixin, BelongsToManyGetAssociationsMixin, HasOneGetAssociationMixin } from 'sequelize';
+import { BelongsToGetAssociationMixin,HasManyGetAssociationsMixin, BelongsToManyGetAssociationsMixin, HasOneGetAssociationMixin } from 'sequelize';
 import { Voucher } from './voucher.model';
 import { Attachment } from './attachment.model';
 import { EventTable } from './event_table.model';
@@ -53,7 +53,6 @@ export class Project extends BaseEventModel {
 
   public getOwner!: BelongsToGetAssociationMixin<User>;
   public getParticipants!: BelongsToManyGetAssociationsMixin<User>;
-  public getAttachments!: HasManyHasAssociationMixin<Attachment, number>;
+  public getAttachments!: HasManyGetAssociationsMixin<Attachment>;
   public getTable!: HasOneGetAssociationMixin<EventTable>;
-
 }

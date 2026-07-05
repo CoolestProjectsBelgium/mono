@@ -3,14 +3,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import * as crypto from 'crypto';
 import { Strategy } from 'passport-custom';
 
-function verifySignature(secret: string, signature: string, path: string, expiry: Date): boolean {
+export function verifySignature(secret: string, signature: string, path: string, expiry: Date): boolean {
   const hmac = crypto.createHmac('sha256', secret);
   hmac.update(`${path}:${expiry.getTime()}`);
   const expectedSignature = hmac.digest('hex');
   return expectedSignature === signature;
 }
 
-function generateSignature(secret: string, path: string, expiry: Date): string {
+export function generateSignature(secret: string, path: string, expiry: Date): string {
   const hmac = crypto.createHmac('sha256', secret);
   hmac.update(`${path}:${expiry.getTime()}`);
   return hmac.digest('hex');

@@ -4,7 +4,7 @@ import { Project } from '@coolestprojects/database';
 import { ProjectDto } from '../dto/project.dto';
 import { Voucher } from '@coolestprojects/database';
 import { Op } from 'sequelize';
-
+import { generateSignature } from '../auth/file-sign.strategy';
 
 @Injectable()
 export class ProjectinfoService {
@@ -13,6 +13,11 @@ export class ProjectinfoService {
         @InjectModel(Project) private readonly projectModel: typeof Project,
         @InjectModel(Voucher) private readonly voucherModel: typeof Voucher
     ) { }
+
+    private getAttachmentUrl(filename: string): string {
+        const expirationTime = new Date(Date.now() + parseInt(process.env.FILE_SIGNATURE_EXPIRATION || '300') * 1000);
+        return process.env.ATTACHMENT_BASE_URL + '/' + filename + '?sig=' + generateSignature(process.env.FILE_SIGN_SECRET!, filename, expirationTime) + '&exp=' + expirationTime.getTime();
+    }
 
     public async getProjectInfo(userId: number): Promise<ProjectDto> {
         let project: Project | null | undefined;
@@ -37,7 +42,9 @@ export class ProjectinfoService {
             }
         }
 
-        // TODO check format
+        const attachments = await project.getAttachments();
+
+        //TODO check if we dont want a different DTO
         return {
             own_project: {
                 project_id: project.id,
@@ -45,6 +52,15 @@ export class ProjectinfoService {
                 project_descr: project.description,
                 project_type: project.type,
                 project_lang: project.language,
+                attachments: attachments.map((attachment) => ({
+                    id: attachment.id,
+                    name: attachment.name,
+                    filename: attachment.filename,
+                    size: attachment.size,
+                    confirmed: attachment.confirmed,
+                    exists: true,
+                    url: this.getAttachmentUrl(attachment.filename),
+                })),
             }
         }
     }
@@ -55,7 +71,7 @@ export class ProjectinfoService {
         if (existingProject) {
             throw new Error('User already has a project');
         }
-        if(createProjectDto.own_project == null){
+        if (createProjectDto.own_project == null) {
             throw new Error("Project Creation Failed");
         }
         const project = await this.projectModel.create({
@@ -80,7 +96,7 @@ export class ProjectinfoService {
         if (!project) {
             throw new Error('Project not found for user');
         }
-        if(!updateProjectDto.own_project){
+        if (!updateProjectDto.own_project) {
             throw new Error('Data not provided');
         }
         project.name = updateProjectDto.own_project.project_name;
