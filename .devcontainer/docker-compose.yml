@@ -23,6 +23,11 @@ services:
       API_PORT: 3001
       VOTING_KEY: "cEc.#8Pc5^H26OBxKLMKsM"
 
+      # file configuration
+      UPLOAD_ROOT: /tmp/uploads
+      FILE_SIGN_SECRET: "cxc.#8Pc5^H26465BxKLxKsv"
+      APACHE_SECRET: "cEc.#8Pc5^zzH26OBccLMKsdM"
+
     volumes:
       - ..:/workspace:cached
 

@@ -10,8 +10,24 @@ export class FileUploadService {
   public constructor(
     @InjectModel(Project) private readonly projectModel: typeof Project,
     @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment,
-    @InjectModel(User) private readonly userModel: typeof User,
   ) { }
+
+  async checkFileAccessAllowed(userId: number, filePath: string): Promise<void> {
+    const project = await this.projectModel.findOne({ where: { ownerId: userId }, include: [Event] });
+    if (!project) {
+      throw new Error('Owner not found');
+    }
+
+    const expectedPath = path.join(
+      process.env.UPLOAD_ROOT!,
+      project.event.folderName,
+      `project_${project.id}`,
+    );
+
+    if (!filePath.startsWith(expectedPath)) {
+      throw new Error('Unauthorized access to file');
+    }
+  }
 
   async saveFile(
     userId: number,
