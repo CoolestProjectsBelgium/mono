@@ -13,7 +13,6 @@ export * from './models/registration.model';
 export * from './models/tshirt_group_translation.model';
 export * from './models/account.model';
 export * from './models/event_table.model';
-export * from './models/project_table.model';
 export * from './models/event.model';
 export * from './models/award.model';
 export * from './models/attachment.model';
