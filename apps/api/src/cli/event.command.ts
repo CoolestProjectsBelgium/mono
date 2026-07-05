@@ -7,7 +7,6 @@ import { TshirtGroupTranslation } from '@coolestprojects/database';
 import { TshirtTranslation } from '@coolestprojects/database';
 import { Question } from '@coolestprojects/database';
 import { QuestionTranslation } from '@coolestprojects/database';
-import { Location } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
 import { RegistrationService } from '../registration/registration.service';
@@ -33,8 +32,6 @@ export class EventCommand {
     private readonly tshirtGroupTranslationModel: typeof TshirtGroupTranslation,
     @InjectModel(TshirtTranslation)
     private readonly tshirtTranslationModel: typeof TshirtTranslation,
-    @InjectModel(Location)
-    private readonly locationModel: typeof Location,
     @InjectModel(EventTable)
     private readonly eventTableModel: typeof EventTable,
     @InjectModel(EmailTemplate)
@@ -56,7 +53,6 @@ export class EventCommand {
       this.questionTranslationModel,
       this.tshirtModel,
       this.tshirtGroupTranslationModel,
-      this.locationModel,
       this.eventTableModel,
       this.emailTemplateModel,
       this.tshirtTranslationModel,

@@ -17,8 +17,6 @@ export * from './models/event.model';
 export * from './models/award.model';
 export * from './models/attachment.model';
 export * from './models/email_template.model';
-export * from './models/location.model';
-export * from './models/email_template.model';
 export * from './models/vote.model';
 export * from './models/vote_category.model';
 export * from './models/message.model';

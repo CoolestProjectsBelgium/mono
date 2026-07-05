@@ -126,6 +126,9 @@ export class ProjectinfoService {
         if (vouchersInUse > 0) {
             throw new Error('Cannot delete project with associated vouchers');
         }
+
+        //TODO delete all attachments associated with the project
+
         await project.destroy();
     }
 }
