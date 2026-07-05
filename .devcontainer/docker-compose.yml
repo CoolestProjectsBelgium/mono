@@ -71,10 +71,12 @@ services:
       - PMA_ARBITRARY=1
 
   proxy:
-    image: httpd:latest
+    build:
+      context: .
+      dockerfile: DockerfileProxy
     container_name: ${PROJECT_NAME:-coolestproject-dev}-proxy
     volumes:
-    - ./proxy_templates/httpd.conf:/usr/local/apache2/conf/httpd.conf
+    - ./proxy_templates/proxy.conf:/usr/local/apache2/conf/extra/proxy.conf
     - ./certs:/etc/apache2/certs/
     - files-data:/tmp/files
     ports:
