@@ -7,6 +7,7 @@ import { Question } from '@coolestprojects/database';
 import { QuestionTranslation } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
+import { Account } from '@coolestprojects/database';
 
 export async function seedDatabase(
   eventModel: typeof Event,
@@ -18,9 +19,10 @@ export async function seedDatabase(
   eventTableModel: typeof EventTable,
   emailTemplateModel: typeof EmailTemplate,
   tshirtTranslationModel: typeof TshirtTranslation,
+  accountModel: typeof Account
 ) {
   const event = await eventModel.create({
-    floorplanPath: 'floorplan_active.svg',  
+    floorplanPath: 'floorplan_active.svg',
     minAge: 7,
     maxAge: 18,
     minGuardianAge: 16,
@@ -28,12 +30,12 @@ export async function seedDatabase(
     maxVoucher: 3,
     eventBeginDate: new Date().setDate(new Date().getDate() - 100),
     registrationOpenDate: new Date().setDate(new Date().getDate() - 90),
-    registrationClosedDate: new Date().setDate(new Date().getDate() +10),
+    registrationClosedDate: new Date().setDate(new Date().getDate() + 10),
     projectClosedDate: new Date().setDate(new Date().getDate() - 20),
     officialStartDate: new Date().setDate(new Date().getDate() - 30),
     eventEndDate: new Date().setDate(new Date().getDate() - 40),
     maxFileSize: 2147483647,
-    allowedMimeTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",  
+    allowedMimeTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",
     eventTitle: 'Coolest Projects Active Event',
   });
 
@@ -804,6 +806,24 @@ export async function seedDatabase(
       contentPlain: 'Merci d’avoir activé votre inscription',
       contentRich: '<p>Merci d’avoir activé votre inscription.</p>',
       subject: 'Activation de l’inscription',
+    },
+  ]);
+
+  await accountModel.bulkCreate([
+    {
+      email: 'admin',
+      password: accountModel.hashPassword('admin'),
+      account_type: 'admin',
+    },
+    {
+      email: 'superadmin',
+      password: accountModel.hashPassword('superadmin'),
+      account_type: 'super_admin',
+    },
+    {
+      email: 'jury',
+      password: accountModel.hashPassword('jury'),
+      account_type: 'jury',
     },
   ]);
 }

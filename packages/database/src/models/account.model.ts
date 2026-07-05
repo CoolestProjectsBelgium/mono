@@ -1,18 +1,24 @@
 import { Column, Model, Table, DataType } from 'sequelize-typescript';
-import { compareSync } from 'bcrypt';
+import { InferAttributes, InferCreationAttributes } from 'sequelize';
+import { compareSync, hashSync } from 'bcrypt';
 
 @Table
-export class Account extends Model<Account> {
+export class Account extends Model<InferAttributes<Account>, InferCreationAttributes<Account>> {
   @Column
-  email!: string;
+  declare email: string;
 
   @Column
-  password!: string;
+  declare password: string;
 
   @Column(DataType.ENUM('super_admin', 'admin', 'jury'))
-  account_type!: string;
+  declare account_type: 'super_admin' | 'admin' | 'jury';
 
   verifyPassword(password: string) {
     return compareSync(password, this.password);
+  }
+
+  static hashPassword(password: string) {
+    const hashedPassword = hashSync(password, 12);
+    return hashedPassword;
   }
 }

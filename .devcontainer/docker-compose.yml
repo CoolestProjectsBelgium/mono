@@ -70,14 +70,18 @@ services:
       - PMA_ARBITRARY=1
 
   proxy:
-    image: nginx
+    image: httpd:latest
     container_name: ${PROJECT_NAME:-coolestproject-dev}-proxy
     volumes:
-    - ./proxy_templates:/etc/nginx/templates
-    - ./certs:/etc/nginx/certs/
+    - ./proxy_templates/httpd.conf:/usr/local/apache2/conf/httpd.conf
+
+    - ./certs:/etc/apache2/certs/
     ports:
     - "8080:80"
     - "8443:443"
+
+    environment:
+      APACHE_SECRET: "cEc.#8Pc5^zzH26OBccLMKsdM"
 
 volumes:
   db-data:

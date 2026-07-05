@@ -9,11 +9,9 @@ import { Question } from '@coolestprojects/database';
 import { QuestionTranslation } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
-import { RegistrationService } from '../registration/registration.service';
-import { TokensService } from '../tokens/tokens.service';
 import { InjectModel } from '@nestjs/sequelize';
-import { ParticipantService } from '../participant/participant.service';
 import { seedDatabase } from '../seeder/seed';
+import { Account } from '@coolestprojects/database';
 
 @Injectable()
 export class EventCommand {
@@ -36,9 +34,8 @@ export class EventCommand {
     private readonly eventTableModel: typeof EventTable,
     @InjectModel(EmailTemplate)
     private readonly emailTemplateModel: typeof EmailTemplate,
-    private readonly registrationService: RegistrationService,
-    private readonly participantService: ParticipantService,
-    private readonly tokenService: TokensService,
+    @InjectModel(Account)
+    private readonly accountModel: typeof Account,
   ) { }
 
   @Command({
@@ -56,6 +53,7 @@ export class EventCommand {
       this.eventTableModel,
       this.emailTemplateModel,
       this.tshirtTranslationModel,
+      this.accountModel,
     );
 
     //trigger project creation / user

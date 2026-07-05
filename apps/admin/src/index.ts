@@ -7,6 +7,7 @@ import * as AdminJSSequelize from '@adminjs/sequelize'
 import {
   sequelize,
 } from './database.js'
+import { Account } from '@coolestprojects/database'
 
 // roles: superadmin (can access everything), 
 // admin (can access resources of the selected event), can update their own password
@@ -165,12 +166,17 @@ const start = async () => {
 
 
   const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-    cookiePassword: process.env.ADMINJS_COOKIE_SECRET || 'default-secret-password',
+    cookiePassword: process.env.ADMINJS_COOKIE_SECRET!,
     cookieName: 'adminjs',
     authenticate: async (email, password, context) => {
       const eventId = ((context?.req as unknown) as Request & { fields?: Record<string, any> })?.fields?.event
-      if (email === 'admin' && password === 'admin') {
-        return { email: 'admin', eventId, role: 'admin' }
+      const account = await sequelize.models.Account.findOne({ where: { email, eventId } }) as Account | null; 
+
+      if(account){
+        const isPasswordValid = account.verifyPassword(password)
+        if (isPasswordValid) {
+          return { email: account.email, eventId, role: account.account_type }
+        }
       }
       return null
     },
