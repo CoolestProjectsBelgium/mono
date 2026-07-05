@@ -170,7 +170,7 @@ const start = async () => {
     cookieName: 'adminjs',
     authenticate: async (email, password, context) => {
       const eventId = ((context?.req as unknown) as Request & { fields?: Record<string, any> })?.fields?.event
-      const account = await sequelize.models.Account.findOne({ where: { email, eventId } }) as Account | null; 
+      const account = await sequelize.models.Account.findOne({ where: { email } }) as Account | null; 
 
       if(account){
         const isPasswordValid = account.verifyPassword(password)
