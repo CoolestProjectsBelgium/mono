@@ -32,6 +32,7 @@ services:
 
     volumes:
       - ..:/workspace:cached
+      - files-data:/tmp/files
 
     working_dir: /workspace
 
@@ -74,8 +75,8 @@ services:
     container_name: ${PROJECT_NAME:-coolestproject-dev}-proxy
     volumes:
     - ./proxy_templates/httpd.conf:/usr/local/apache2/conf/httpd.conf
-
     - ./certs:/etc/apache2/certs/
+    - files-data:/tmp/files
     ports:
     - "8080:80"
     - "8443:443"
@@ -85,3 +86,4 @@ services:
 
 volumes:
   db-data:
+  files-data:
