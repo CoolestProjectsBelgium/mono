@@ -1,0 +1,6 @@
+FROM httpd:latest
+
+COPY proxy_templates/proxy.conf /usr/local/apache2/conf/extra/proxy.conf
+
+RUN echo "Include conf/extra/proxy.conf" \
+    >> /usr/local/apache2/conf/httpd.conf
