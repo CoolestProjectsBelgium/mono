@@ -21,8 +21,8 @@ export class Attachment extends BaseEventModel {
   @Column
   internal!: boolean;
 
-  @Column(DataType.STRING(255))
-  filename!: string;
+  @Column(DataType.STRING(4096))
+  filepath!: string;
 
   @Column(DataType.STRING(50))
   name!: string;
