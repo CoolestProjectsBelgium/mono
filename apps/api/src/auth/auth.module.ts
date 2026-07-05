@@ -3,7 +3,6 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtVotingStrategy } from './jwt-voting.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
-import { env } from 'process';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Account, User } from '@coolestprojects/database';
 import { RegistrationService } from '../registration/registration.service';
@@ -17,6 +16,7 @@ import { Voucher } from '@coolestprojects/database';
 import { Question } from '@coolestprojects/database';
 import { QuestionUser } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
+import { FileSignatureStrategy } from './file-sign.strategy';
 
 export const VOTING_JWT = Symbol('VOTING_JWT');
 export const AUTH_JWT = Symbol('AUTH_JWT');
@@ -24,7 +24,7 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Voucher, Question, QuestionUser, QuestionRegistration, Account]), // Import User model for JWT validation
+    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Voucher, Question, QuestionUser, QuestionRegistration, Account]),
   ],
   providers: [{
     provide: AUTH_JWT,
@@ -44,7 +44,7 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
       },
     }
     ),
-  }, MailerService, TokensService, RegistrationService, JwtStrategy, JwtVotingStrategy], //SAMLStrategy later, needed for admin part
+  }, MailerService, TokensService, RegistrationService, JwtStrategy, JwtVotingStrategy, FileSignatureStrategy],
   exports: [AUTH_JWT, VOTING_JWT],
 })
 export class AuthModule { }
