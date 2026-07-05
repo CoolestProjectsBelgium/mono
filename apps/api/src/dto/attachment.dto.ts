@@ -7,6 +7,5 @@ export class AttachmentDto {
   size!: number;
   confirmed!: boolean;
   exists!: boolean;
-  @ApiProperty({ enum: ['link', 'movie']})
-  type!: string;
+  url!: string;
 }
