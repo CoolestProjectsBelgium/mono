@@ -2,6 +2,11 @@ import { Column, Model, Table, DataType } from 'sequelize-typescript';
 
 @Table
 export class Event extends Model {
+  @Column({
+    type: DataType.STRING(200),
+    allowNull: false,
+  })
+  declare floorplanPath: string;
   @Column(DataType.STRING(200))
   declare folderName: string;
   @Column
