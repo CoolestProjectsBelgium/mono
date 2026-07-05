@@ -18,7 +18,6 @@ import { EventTable } from '@coolestprojects/database';
 import { Location } from '@coolestprojects/database';
 import { Message } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
-import { ProjectTable } from '@coolestprojects/database';
 import { Question } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
 import { QuestionTranslation } from '@coolestprojects/database';
@@ -70,7 +69,6 @@ import { EmailTemplate } from '@coolestprojects/database';
             TshirtTranslation,
             QuestionTranslation,
             EventTable,
-            ProjectTable,
             Voucher,
             Attachment,
             Certificate,
@@ -102,7 +100,6 @@ import { EmailTemplate } from '@coolestprojects/database';
       TshirtGroupTranslation,
       Location,
       EventTable,
-      ProjectTable,
     ]),
   ],
   providers: [
