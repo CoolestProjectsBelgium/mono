@@ -17,7 +17,8 @@ import {
     TshirtTranslation,
     User,
     VoteCategory,
-    Voucher
+    Voucher,
+    Attachment,
 } from '@coolestprojects/database'
 
 import { ConfigService } from '@nestjs/config'
@@ -32,7 +33,7 @@ export const sequelize = new Sequelize({
     username: configService.get('DB_USER'),
     password: configService.get('DB_PASSWORD'),
     database: configService.get('DB_NAME'),
-    models: [Event, Award, Location, Project, VoteCategory, Account, EventTable, User, Voucher, ProjectTable, Tshirt, QuestionUser, Question, TshirtGroup, TshirtTranslation, QuestionTranslation, QuestionRegistration, Registration, TshirtGroupTranslation],
+    models: [Event, Award, Location, Project, VoteCategory, Account, EventTable, User, Voucher, ProjectTable, Tshirt, QuestionUser, Question, TshirtGroup, TshirtTranslation, QuestionTranslation, QuestionRegistration, Registration, TshirtGroupTranslation, Attachment],
     logging: true,
 } as any)
 

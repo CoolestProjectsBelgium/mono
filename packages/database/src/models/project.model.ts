@@ -4,12 +4,14 @@ import {
   ForeignKey,
   BelongsTo,
   DataType,
-  BelongsToMany
+  BelongsToMany,
+  HasMany
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { BaseEventModel } from './base_event.model';
 import { BelongsToGetAssociationMixin, HasManyHasAssociationMixin, BelongsToManyGetAssociationsMixin } from 'sequelize';
 import { Voucher } from './voucher.model';
+import { Attachment } from './attachment.model';
 
 @Table
 export class Project extends BaseEventModel {
@@ -38,9 +40,14 @@ export class Project extends BaseEventModel {
   @BelongsToMany(() => User, () => Voucher)
   participants!: User[];
 
+  @HasMany(() => Attachment)
+  attachments!: Attachment[];
+
   @Column
   maxVoucher!: number;
 
   public getOwner!: BelongsToGetAssociationMixin<User>;
   public getParticipants!: BelongsToManyGetAssociationsMixin<User>;
+  public getAttachments!: HasManyHasAssociationMixin<Attachment, number>;
+
 }

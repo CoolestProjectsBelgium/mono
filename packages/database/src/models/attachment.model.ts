@@ -3,12 +3,11 @@ import {
   Table,
   ForeignKey,
   DataType,
-  HasOne,
+  BelongsTo,
 } from 'sequelize-typescript';
 import { Project } from './project.model.js';
-import { AzureBlob } from './azure_blob.model.js';
-import { Hyperlink } from './hyperlink.model.js';
 import { BaseEventModel } from './base_event.model.js';
+import { BelongsToGetAssociationMixin } from 'sequelize';
 
 @Table
 export class Attachment extends BaseEventModel {
@@ -28,9 +27,14 @@ export class Attachment extends BaseEventModel {
   @Column(DataType.STRING(50))
   name!: string;
 
-  @HasOne(() => AzureBlob)
-  azureBlob!: AzureBlob;
+  @BelongsTo(() => Project)
+  project!: Project;
 
-  @HasOne(() => Hyperlink)
-  hyperlink!: Hyperlink;
+  @Column(DataType.STRING(50))
+  mimetype!: string;
+
+  @Column(DataType.INTEGER)
+  size!: number;
+
+  public getProject!: BelongsToGetAssociationMixin<Project>;
 }

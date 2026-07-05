@@ -3,7 +3,7 @@ import { Column, Model, Table, DataType } from 'sequelize-typescript';
 @Table
 export class Event extends Model {
   @Column(DataType.STRING(200))
-  declare azure_storage_container: string;
+  declare folderName: string;
   @Column
   declare minAge: number;
   @Column
@@ -80,5 +80,11 @@ export class Event extends Model {
   declare maxFileSize: number;
 
   @Column
-  declare event_title: string;
+  declare eventTitle: string;
+
+  @Column({
+    type: DataType.JSON,
+    allowNull: false,
+  })
+  declare allowedMimeTypes: string[];
 }

@@ -12,11 +12,9 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Account } from '@coolestprojects/database';
 import { Attachment } from '@coolestprojects/database';
 import { Award } from '@coolestprojects/database';
-import { AzureBlob } from '@coolestprojects/database';
 import { Certificate } from '@coolestprojects/database';
 import { Event } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
-import { Hyperlink } from '@coolestprojects/database';
 import { Location } from '@coolestprojects/database';
 import { Message } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
@@ -74,9 +72,7 @@ import { EmailTemplate } from '@coolestprojects/database';
             EventTable,
             ProjectTable,
             Voucher,
-            AzureBlob,
             Attachment,
-            Hyperlink,
             Certificate,
             Message,
             Vote,
