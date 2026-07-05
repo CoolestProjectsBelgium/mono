@@ -20,7 +20,7 @@ export async function seedDatabase(
   tshirtTranslationModel: typeof TshirtTranslation,
 ) {
   const event = await eventModel.create({
-    folderName: 'coolestprojectsactive',
+    floorplanPath: 'floorplan_active.svg',  
     minAge: 7,
     maxAge: 18,
     minGuardianAge: 16,
@@ -33,7 +33,7 @@ export async function seedDatabase(
     officialStartDate: new Date().setDate(new Date().getDate() - 30),
     eventEndDate: new Date().setDate(new Date().getDate() - 40),
     maxFileSize: 2147483647,
-    allowedFileTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",  
+    allowedMimeTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",  
     eventTitle: 'Coolest Projects Active Event',
   });
 

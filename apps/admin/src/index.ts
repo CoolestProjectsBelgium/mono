@@ -187,13 +187,13 @@ const start = async () => {
   app.get('/api/events', async (req, res) => {
     try {
       const events = await sequelize.models.Event.findAll({
-        attributes: ['id', 'event_title', 'current'],
-        order: [['event_title', 'ASC']],
+        attributes: ['id', 'eventTitle', 'current'],
+        order: [['eventTitle', 'ASC']],
       })
       res.json(
         events.map((e: any) => ({
           value: String(e.id),
-          label: e.event_title,
+          label: e.eventTitle,
           isCurrent: e.current,
         }))
       )
