@@ -38,6 +38,9 @@ services:
 
     command: sleep infinity
 
+    links:
+      - "db:db"
+
     ports:
       - "3000:3000"
       - "3001:3001"
@@ -82,6 +85,9 @@ services:
     ports:
     - "8080:80"
     - "8443:443"
+
+    links:
+      - "workspace:workspace"
 
     environment:
       APACHE_SECRET: "cEc.#8Pc5^zzH26OBccLMKsdM"
