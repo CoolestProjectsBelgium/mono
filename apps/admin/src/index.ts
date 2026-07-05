@@ -3,6 +3,7 @@ import AdminJS, { ComponentLoader } from 'adminjs'
 import type { Request } from 'express'
 import express from 'express'
 import * as AdminJSSequelize from '@adminjs/sequelize'
+import passwordsFeature from '@adminjs/passwords'
 
 import {
   sequelize,
@@ -112,7 +113,18 @@ const start = async () => {
       handler: dashboardHandler,
     },
     resources: [
-      { resource: sequelize.models.Account },
+      {
+        resource: sequelize.models.Account,
+        options: {
+          properties: { encryptedPassword: { isVisible: false } },
+        },
+        features: [
+          passwordsFeature({
+            componentLoader,
+            hash: Account.hashPassword,
+          })
+        ]
+      },
       {
         resource: sequelize.models.Event, options: {
           actions: {
@@ -170,9 +182,9 @@ const start = async () => {
     cookieName: 'adminjs',
     authenticate: async (email, password, context) => {
       const eventId = ((context?.req as unknown) as Request & { fields?: Record<string, any> })?.fields?.event
-      const account = await sequelize.models.Account.findOne({ where: { email } }) as Account | null; 
+      const account = await sequelize.models.Account.findOne({ where: { email } }) as Account | null;
 
-      if(account){
+      if (account) {
         const isPasswordValid = account.verifyPassword(password)
         if (isPasswordValid) {
           return { email: account.email, eventId, role: account.account_type }
