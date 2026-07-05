@@ -3,9 +3,7 @@ import {
     Award,
     Event,
     EventTable,
-    Location,
     Project,
-    ProjectTable,
     Question,
     QuestionRegistration,
     QuestionTranslation,
@@ -33,7 +31,7 @@ export const sequelize = new Sequelize({
     username: configService.get('DB_USER'),
     password: configService.get('DB_PASSWORD'),
     database: configService.get('DB_NAME'),
-    models: [Event, Award, Location, Project, VoteCategory, Account, EventTable, User, Voucher, ProjectTable, Tshirt, QuestionUser, Question, TshirtGroup, TshirtTranslation, QuestionTranslation, QuestionRegistration, Registration, TshirtGroupTranslation, Attachment],
+    models: [Event, Award, Project, VoteCategory, Account, EventTable, User, Voucher, Tshirt, QuestionUser, Question, TshirtGroup, TshirtTranslation, QuestionTranslation, QuestionRegistration, Registration, TshirtGroupTranslation, Attachment],
     logging: true,
 } as any)
 

@@ -1,5 +1,4 @@
 import { Project } from './project.model';
-import { Location } from './location.model';
 import {
   Column,
   Table,
@@ -28,13 +27,6 @@ export class EventTable extends BaseEventModel {
 
   @Column
   declare maxPlaces: number;
-
-  @ForeignKey(() => Location)
-  @Column
-  declare locationId: number;
-
-  @BelongsTo(() => Location)
-  declare location: Location;
 
   public getProject!: BelongsToGetAssociationMixin<Project>;
 }

@@ -128,13 +128,11 @@ const start = async () => {
         }
       },
       { resource: sequelize.models.Award },
-      { resource: sequelize.models.Location },
       { resource: sequelize.models.Project },
       { resource: sequelize.models.VoteCategory },
       { resource: sequelize.models.EventTable },
       { resource: sequelize.models.User },
       { resource: sequelize.models.Voucher },
-      { resource: sequelize.models.ProjectTable },
       {
         resource: sequelize.models.Tshirt, options: {
           properties: {

@@ -18,7 +18,6 @@ import { Question } from '@coolestprojects/database';
 import { QuestionUser } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
-import { Location } from '@coolestprojects/database';
 import { Registration } from '@coolestprojects/database';
 import { TshirtGroup } from '@coolestprojects/database';
 import { TshirtGroupTranslation } from '@coolestprojects/database';
@@ -81,7 +80,6 @@ import { EventguideService } from './eventguide/eventguide.service';
             QuestionUser,
             QuestionRegistration,
             Project,
-            Location,
             TshirtGroup,
             TshirtGroupTranslation,
             TshirtTranslation,
@@ -116,7 +114,6 @@ import { EventguideService } from './eventguide/eventguide.service';
       Tshirt,
       TshirtTranslation,
       TshirtGroupTranslation,
-      Location,
       EventTable,
       Vote,
       VoteCategory,

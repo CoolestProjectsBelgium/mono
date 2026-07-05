@@ -15,7 +15,6 @@ import { Award } from '@coolestprojects/database';
 import { Certificate } from '@coolestprojects/database';
 import { Event } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
-import { Location } from '@coolestprojects/database';
 import { Message } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
 import { Question } from '@coolestprojects/database';
@@ -63,7 +62,6 @@ import { EmailTemplate } from '@coolestprojects/database';
             QuestionUser,
             QuestionRegistration,
             Project,
-            Location,
             TshirtGroup,
             TshirtGroupTranslation,
             TshirtTranslation,
