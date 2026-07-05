@@ -812,17 +812,17 @@ export async function seedDatabase(
   await accountModel.bulkCreate([
     {
       email: 'admin',
-      password: accountModel.hashPassword('admin'),
+      encryptedPassword: accountModel.hashPassword('admin'),
       account_type: 'admin',
     },
     {
       email: 'superadmin',
-      password: accountModel.hashPassword('superadmin'),
+      encryptedPassword: accountModel.hashPassword('superadmin'),
       account_type: 'super_admin',
     },
     {
       email: 'jury',
-      password: accountModel.hashPassword('jury'),
+      encryptedPassword: accountModel.hashPassword('jury'),
       account_type: 'jury',
     },
   ]);

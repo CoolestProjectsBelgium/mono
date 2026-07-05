@@ -8,13 +8,13 @@ export class Account extends Model<InferAttributes<Account>, InferCreationAttrib
   declare email: string;
 
   @Column
-  declare password: string;
+  declare encryptedPassword: string;
 
   @Column(DataType.ENUM('super_admin', 'admin', 'jury'))
   declare account_type: 'super_admin' | 'admin' | 'jury';
 
   verifyPassword(password: string) {
-    return compareSync(password, this.password);
+    return compareSync(password, this.encryptedPassword);
   }
 
   static hashPassword(password: string) {
