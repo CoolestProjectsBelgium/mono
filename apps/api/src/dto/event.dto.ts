@@ -11,6 +11,7 @@ export class EventDto {
   projectClosedDate!: Date;
   officialStartDate!: Date;
   eventEndDate!: Date;
-  event_title!: string;
+  eventTitle!: string;
   maxFileSize!: number;
+  allowedFileTypes!: string;
 }

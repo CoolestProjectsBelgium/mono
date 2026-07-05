@@ -12,7 +12,6 @@ export class EventService {
 
   async create(event: EventDto) {
     return await this.eventModel.create({
-      azure_storage_container: event.azureStorageContainer,
       minAge: event.minAge,
       maxAge: event.maxAge,
       minGuardianAge: event.minGuardianAge,
@@ -24,8 +23,9 @@ export class EventService {
       projectClosedDate: event.projectClosedDate,
       officialStartDate: event.officialStartDate,
       eventEndDate: event.eventEndDate,
-      event_title: event.event_title,
+      eventTitle: event.eventTitle,
       maxFileSize: event.maxFileSize,
+      allowedFileTypes: event.allowedFileTypes,
     });
   }
 }

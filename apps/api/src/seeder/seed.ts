@@ -22,7 +22,7 @@ export async function seedDatabase(
   tshirtTranslationModel: typeof TshirtTranslation,
 ) {
   const event = await eventModel.create({
-    azure_storage_container: 'coolestproject25',
+    folderName: 'coolestprojectsactive',
     minAge: 7,
     maxAge: 18,
     minGuardianAge: 16,
@@ -35,7 +35,8 @@ export async function seedDatabase(
     officialStartDate: new Date().setDate(new Date().getDate() - 30),
     eventEndDate: new Date().setDate(new Date().getDate() - 40),
     maxFileSize: 2147483647,
-    event_title: 'Coolest Projects Active Event',
+    allowedFileTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",  
+    eventTitle: 'Coolest Projects Active Event',
   });
 
   const groups = await tshirtGroupModel.bulkCreate([
