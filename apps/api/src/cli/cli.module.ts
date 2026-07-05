@@ -96,7 +96,6 @@ import { EmailTemplate } from '@coolestprojects/database';
       Tshirt,
       TshirtTranslation,
       TshirtGroupTranslation,
-      Location,
       EventTable,
     ]),
   ],
