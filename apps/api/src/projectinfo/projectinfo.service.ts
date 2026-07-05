@@ -14,9 +14,9 @@ export class ProjectinfoService {
         @InjectModel(Voucher) private readonly voucherModel: typeof Voucher
     ) { }
 
-    private getAttachmentUrl(filename: string): string {
+    private getAttachmentUrl(filepath: string): string {
         const expirationTime = new Date(Date.now() + parseInt(process.env.FILE_SIGNATURE_EXPIRATION || '300') * 1000);
-        return process.env.ATTACHMENT_BASE_URL + '/' + filename + '?sig=' + generateSignature(process.env.FILE_SIGN_SECRET!, filename, expirationTime) + '&exp=' + expirationTime.getTime();
+        return process.env.ATTACHMENT_BASE_URL + '/' + filepath + '?sig=' + generateSignature(process.env.FILE_SIGN_SECRET!, filepath, expirationTime) + '&exp=' + expirationTime.getTime();
     }
 
     public async getProjectInfo(userId: number): Promise<ProjectDto> {
@@ -55,11 +55,11 @@ export class ProjectinfoService {
                 attachments: attachments.map((attachment) => ({
                     id: attachment.id,
                     name: attachment.name,
-                    filename: attachment.filename,
+                    filename: attachment.filepath,
                     size: attachment.size,
                     confirmed: attachment.confirmed,
                     exists: true,
-                    url: this.getAttachmentUrl(attachment.filename),
+                    url: this.getAttachmentUrl(attachment.filepath),
                 })),
             }
         }

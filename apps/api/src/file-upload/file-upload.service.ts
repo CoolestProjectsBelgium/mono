@@ -12,27 +12,10 @@ export class FileUploadService {
     @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment,
   ) { }
 
-  async checkFileAccessAllowed(userId: number, filePath: string): Promise<void> {
-    const project = await this.projectModel.findOne({ where: { ownerId: userId }, include: [Event] });
-    if (!project) {
-      throw new Error('Owner not found');
-    }
-
-    const expectedPath = path.join(
-      process.env.UPLOAD_ROOT!,
-      project.event.folderName,
-      `project_${project.id}`,
-    );
-
-    if (!filePath.startsWith(expectedPath)) {
-      throw new Error('Unauthorized access to file');
-    }
-  }
-
   async saveFile(
     userId: number,
     file: MulterFile,
-  ) {
+  ): Promise<void> {
 
     if (!file.buffer) {
       throw new Error('File Error');
@@ -55,20 +38,21 @@ export class FileUploadService {
 
     mkdirSync(folderPath, { recursive: true });
 
-    const attachment = await this.attachmentModel.create({
+    const filename = crypto.randomUUID() + path.extname(file.originalname);
+    const filepath = path.join(folderPath, filename);
+
+    await fs.writeFile(filepath, file.buffer);
+
+    await this.attachmentModel.create({
       projectId: project.id,
       name: file.originalname,
       size: file.size,
       mimetype: file.mimetype,
-      filename: crypto.randomUUID() + path.extname(file.originalname),
+      filepath: filepath,
     });
-
-    const filepath = path.join(folderPath, attachment.filename);
-
-    await fs.writeFile(filepath, file.buffer);
   }
 
-  
+
   async deleteFile(userId: number, attachmentId: number): Promise<void> {
 
     const attachment = await this.attachmentModel.findByPk(attachmentId, {
@@ -83,14 +67,7 @@ export class FileUploadService {
       throw new Error('Unauthorized');
     }
 
-    const filepath = path.join(
-      process.env.UPLOAD_ROOT!,
-      attachment.project.event.folderName,
-      `project_${attachment.projectId}`,
-      attachment.filename,
-    );
-
-    await fs.unlink(filepath);
+    await fs.unlink(attachment.filepath);
 
     await attachment.destroy();
   }
