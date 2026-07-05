@@ -5,10 +5,10 @@ import { RegistrationService } from './registration/registration.service';
 import { RegistrationController } from './registration/registration.controller';
 import { ProjectinfoController } from './projectinfo/projectinfo.controller';
 import { UserinfoController } from './userinfo/userinfo.controller';
-import { AttachmentController } from './attachment/attachment.controller';
 import { ParticipantController } from './participant/participant.controller';
 import { LoginController } from './login/login.controller';
 import { MailerService } from './mailer/mailer.service';
+import { FileUploadService } from './file-upload/file-upload.service';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
 import { Event } from '@coolestprojects/database';
@@ -28,9 +28,7 @@ import { QuestionTranslation } from '@coolestprojects/database';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TokensService } from './tokens/tokens.service';
 import { Voucher } from '@coolestprojects/database';
-import { AzureBlob } from '@coolestprojects/database';
 import { Attachment } from '@coolestprojects/database';
-import { Hyperlink } from '@coolestprojects/database';
 import { Certificate } from '@coolestprojects/database';
 import { Message } from '@coolestprojects/database';
 import { Vote } from '@coolestprojects/database';
@@ -92,9 +90,7 @@ import { EventguideService } from './eventguide/eventguide.service';
             EventTable,
             ProjectTable,
             Voucher,
-            AzureBlob,
             Attachment,
-            Hyperlink,
             Certificate,
             Message,
             Vote,
@@ -126,7 +122,8 @@ import { EventguideService } from './eventguide/eventguide.service';
       EventTable,
       ProjectTable,
       Vote,
-      VoteCategory
+      VoteCategory,
+      Attachment,
     ]),
   ],
   controllers: [
@@ -134,7 +131,6 @@ import { EventguideService } from './eventguide/eventguide.service';
     RegistrationController,
     ProjectinfoController,
     UserinfoController,
-    AttachmentController,
     ParticipantController,
     LoginController,
     VotingController,
@@ -146,6 +142,7 @@ import { EventguideService } from './eventguide/eventguide.service';
     AppService,
     RegistrationService,
     MailerService,
+    FileUploadService,
     TokensService,
     BackgroundService,
     EventService,

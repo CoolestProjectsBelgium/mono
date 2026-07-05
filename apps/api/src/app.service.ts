@@ -154,7 +154,7 @@ export class AppService {
       projectClosedDate: event.projectClosedDate,
       officialStartDate: event.officialStartDate,
       eventEndDate: event.eventEndDate,
-      eventTitle: event.event_title,
+      eventTitle: event.eventTitle,
 
       maxRegistration: event.maxRegistration,
       maxParticipants: event.maxVoucher,

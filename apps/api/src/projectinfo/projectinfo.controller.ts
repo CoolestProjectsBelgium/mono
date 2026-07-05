@@ -1,22 +1,34 @@
-import { Controller, Get, Body, Post, Delete, Patch, UseGuards, Request, UseInterceptors } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
-import { ProjectDto } from '../dto/project.dto';
+import { Project, Event } from '@coolestprojects/database';
+import { Body, Controller, Delete, Get, HttpStatus, ParseFilePipeBuilder, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ProjectinfoService } from './projectinfo.service';
+import { InjectModel } from '@nestjs/sequelize';
+import { ApiCookieAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ProjectDto } from '../dto/project.dto';
+import { FileUploadService } from '../file-upload/file-upload.service';
+import { MulterFile } from '../file-upload/multer-file.type';
 import { UserCookieInterceptor } from '../user-cookie.interceptor';
+import { ProjectinfoService } from './projectinfo.service';
+import { FileValidationInterceptor } from '../file-upload/file-validation.interceptor';
+import { FileInterceptor } from '@nestjs/platform-express/multer';
+
 
 @Controller('projectinfo')
 @ApiTags('projectinfo')
 @ApiCookieAuth()
 export class ProjectinfoController {
-  constructor(private projectService: ProjectinfoService) {}
+  constructor(
+    private projectService: ProjectinfoService,
+    private fileUploadService: FileUploadService,
+    @InjectModel(Project) private readonly projectModel: typeof Project,
+    @InjectModel(Event) private readonly eventModel: typeof Event
+  ) { }
 
   @Get()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(UserCookieInterceptor)
   async getProject(@Request() req: any): Promise<ProjectDto> {
-    return this.projectService.getProjectInfo(req.user.id); 
+    return this.projectService.getProjectInfo(req.user.id);
   }
 
   @Post()
@@ -46,6 +58,24 @@ export class ProjectinfoController {
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(UserCookieInterceptor)
   async deleteProject(@Request() req: any,): Promise<void> {
-    return await this.projectService.deleteProject(req.user.id,);
+    return await this.projectService.deleteProject(req.user.id);
   }
+
+  @Post('upload')
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(
+    FileInterceptor('file'),
+    FileValidationInterceptor,
+  )
+  async uploadFile(
+    @UploadedFile()
+    file: MulterFile,
+    @Request() req: any,
+  ) {
+    await this.fileUploadService.saveFile(
+      req.user.id,
+      file
+    );
+  }
+
 }

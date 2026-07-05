@@ -13,7 +13,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "incremental": true,
-    "types": ["node", "jest"],
+    "types": ["node", "jest", "multer"],
     "outDir": "./dist",
   }
 }

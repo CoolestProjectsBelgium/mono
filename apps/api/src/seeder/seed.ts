@@ -28,14 +28,14 @@ export async function seedDatabase(
     minGuardianAge: 16,
     maxRegistration: 64,
     maxVoucher: 3,
-    eventBeginDate: new Date('2024-09-01T00:00:00'),
-    registrationOpenDate: new Date('2024-11-01T00:00:00'),
-    registrationClosedDate: new Date('2025-04-01T00:00:00'),
-    projectClosedDate: new Date('2025-04-12T00:00:00'),
-    officialStartDate: new Date('2025-04-26T00:00:00'),
-    eventEndDate: new Date('2025-08-31T00:00:00'),
+    eventBeginDate: new Date().setDate(new Date().getDate() - 100),
+    registrationOpenDate: new Date().setDate(new Date().getDate() - 90),
+    registrationClosedDate: new Date().setDate(new Date().getDate() +10),
+    projectClosedDate: new Date().setDate(new Date().getDate() - 20),
+    officialStartDate: new Date().setDate(new Date().getDate() - 30),
+    eventEndDate: new Date().setDate(new Date().getDate() - 40),
     maxFileSize: 2147483647,
-    event_title: 'Coolest Projects 2025',
+    event_title: 'Coolest Projects Active Event',
   });
 
   const groups = await tshirtGroupModel.bulkCreate([
