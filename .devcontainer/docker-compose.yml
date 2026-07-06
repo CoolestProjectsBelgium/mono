@@ -2,7 +2,7 @@ services:
   workspace:
     container_name: ${PROJECT_NAME:-coolestproject-dev}-workspace
     build:
-      context: .
+      context: ./dockerfile_workspace
       dockerfile: Dockerfile
 
     environment:
@@ -75,11 +75,10 @@ services:
 
   proxy:
     build:
-      context: .
-      dockerfile: DockerfileProxy
+      context: ./dockerfile_proxy
+      dockerfile: Dockerfile
     container_name: ${PROJECT_NAME:-coolestproject-dev}-proxy
     volumes:
-    - ./proxy_templates/proxy.conf:/usr/local/apache2/conf/extra/proxy.conf
     - ./certs:/etc/apache2/certs/
     - files-data:/tmp/files
     ports:
