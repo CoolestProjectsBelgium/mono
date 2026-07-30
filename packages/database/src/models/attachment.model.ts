@@ -36,5 +36,11 @@ export class Attachment extends BaseEventModel {
   @Column(DataType.INTEGER)
   size!: number;
 
+  @Column(DataType.STRING(4096))
+  thumbnailPath!: string;
+
+  @Column(DataType.STRING(4096))
+  bigThumbnailPath!: string;
+
   public getProject!: BelongsToGetAssociationMixin<Project>;
 }

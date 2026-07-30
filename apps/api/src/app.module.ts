@@ -1,52 +1,31 @@
+import { Account, Attachment, Award, Certificate, EmailTemplate, Event, EventTable, Message, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Registration, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Vote, VoteCategory, Voucher } from '@coolestprojects/database';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SequelizeModule } from '@nestjs/sequelize';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { RegistrationService } from './registration/registration.service';
-import { RegistrationController } from './registration/registration.controller';
-import { ProjectinfoController } from './projectinfo/projectinfo.controller';
-import { UserinfoController } from './userinfo/userinfo.controller';
-import { ParticipantController } from './participant/participant.controller';
-import { LoginController } from './login/login.controller';
-import { MailerService } from './mailer/mailer.service';
-import { FileUploadService } from './file-upload/file-upload.service';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { User } from '@coolestprojects/database';
-import { Event } from '@coolestprojects/database';
-import { Tshirt } from '@coolestprojects/database';
-import { EventTable } from '@coolestprojects/database';
-import { Question } from '@coolestprojects/database';
-import { QuestionUser } from '@coolestprojects/database';
-import { QuestionRegistration } from '@coolestprojects/database';
-import { Project } from '@coolestprojects/database';
-import { Registration } from '@coolestprojects/database';
-import { TshirtGroup } from '@coolestprojects/database';
-import { TshirtGroupTranslation } from '@coolestprojects/database';
-import { TshirtTranslation } from '@coolestprojects/database';
-import { QuestionTranslation } from '@coolestprojects/database';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TokensService } from './tokens/tokens.service';
-import { Voucher } from '@coolestprojects/database';
-import { Attachment } from '@coolestprojects/database';
-import { Certificate } from '@coolestprojects/database';
-import { Message } from '@coolestprojects/database';
-import { Vote } from '@coolestprojects/database';
-import { VoteCategory } from '@coolestprojects/database';
-import { Account } from '@coolestprojects/database';
-import { Award } from '@coolestprojects/database';
-import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from './auth/auth.module';
 import { BackgroundService } from './background/background.service';
 import { EventService } from './event/event.service';
-import { EmailTemplate } from '@coolestprojects/database';
-import { ParticipantService } from './participant/participant.service';
-import { ProjectinfoService } from './projectinfo/projectinfo.service';
-import { InfoInterceptor } from './info.interceptor';
-import { AuthModule } from './auth/auth.module';
-import { VotingController } from './voting/voting.controller';
-import { VotingService } from './voting/voting.service';
 import { EventguideController } from './eventguide/eventguide.controller';
+import { EventguideService } from './eventguide/eventguide.service';
+import { FileUploadService } from './file-upload/file-upload.service';
+import { InfoInterceptor } from './info.interceptor';
+import { LoginController } from './login/login.controller';
+import { MailerService } from './mailer/mailer.service';
+import { ParticipantController } from './participant/participant.controller';
+import { ParticipantService } from './participant/participant.service';
 import { PresentationController } from './presentation/presentation.controller';
 import { PresentationService } from './presentation/presentation.service';
-import { EventguideService } from './eventguide/eventguide.service';
+import { ProjectinfoController } from './projectinfo/projectinfo.controller';
+import { ProjectinfoService } from './projectinfo/projectinfo.service';
+import { RegistrationController } from './registration/registration.controller';
+import { RegistrationService } from './registration/registration.service';
+import { TokensService } from './tokens/tokens.service';
+import { UserinfoController } from './userinfo/userinfo.controller';
+import { VotingController } from './voting/voting.controller';
+import { VotingService } from './voting/voting.service';
 
 @Module({
   imports: [
@@ -73,6 +52,7 @@ import { EventguideService } from './eventguide/eventguide.service';
           //sync: { force: true },
           models: [
             Event,
+            UserProject,
             User,
             Registration,
             Tshirt,
@@ -103,6 +83,7 @@ import { EventguideService } from './eventguide/eventguide.service';
       Question,
       Event,
       Registration,
+      UserProject,
       User,
       Project,
       QuestionRegistration,
@@ -117,7 +98,7 @@ import { EventguideService } from './eventguide/eventguide.service';
       EventTable,
       Vote,
       VoteCategory,
-      Attachment,
+      Attachment
     ]),
   ],
   controllers: [
@@ -148,4 +129,4 @@ import { EventguideService } from './eventguide/eventguide.service';
   ],
   exports: [],
 })
-export class AppModule {}
+export class AppModule { }

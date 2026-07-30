@@ -1,4 +1,3 @@
-import { Event } from './event.model.js';
 import { TshirtGroup } from './tshirt_group.model.js';
 import {
   Column,
