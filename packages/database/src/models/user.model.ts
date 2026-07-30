@@ -14,6 +14,7 @@ import { Question } from './question.model';
 import { QuestionUser } from './question_user.model';
 import { Tshirt } from './tshirt.model';
 import { BaseEventModel } from './base_event.model';
+import { UserProject } from './user_project.model';
 
 @Table
 export class User extends BaseEventModel {
@@ -24,11 +25,11 @@ export class User extends BaseEventModel {
   @BelongsTo(() => Tshirt)
   tshirt!: Tshirt;
 
-  @HasOne(() => Project)
-  project!: Project;
-
   @BelongsToMany(() => Question, () => QuestionUser)
   questions!: Question[];
+
+  @BelongsToMany(() => Project, { through: () => UserProject })
+  projects!: Project[];
 
   @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })
   language!: string;
@@ -43,17 +44,6 @@ export class User extends BaseEventModel {
     },
   })
   postalcode!: number;
-
-  @Column(DataType.STRING(30))
-  municipality_name!: string;
-
-  @Column(DataType.STRING(100))
-  street!: string;
-
-  @Column(DataType.STRING(20))
-  house_number!: string;
-  @Column(DataType.STRING(20))
-  box_number!: string;
 
   @IsEmail
   @Index({ name: 'email-event-unique-user', unique: true })

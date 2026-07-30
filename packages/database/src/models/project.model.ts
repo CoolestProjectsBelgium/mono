@@ -2,7 +2,6 @@ import {
   Column,
   Table,
   ForeignKey,
-  BelongsTo,
   DataType,
   BelongsToMany,
   HasMany,
@@ -10,10 +9,11 @@ import {
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { BaseEventModel } from './base_event.model';
-import { BelongsToGetAssociationMixin,HasManyGetAssociationsMixin, BelongsToManyGetAssociationsMixin, HasOneGetAssociationMixin } from 'sequelize';
+import { HasManyGetAssociationsMixin, BelongsToManyGetAssociationsMixin, HasOneGetAssociationMixin } from 'sequelize';
 import { Voucher } from './voucher.model';
 import { Attachment } from './attachment.model';
 import { EventTable } from './event_table.model';
+import { UserProject } from './user_project.model';
 
 @Table
 export class Project extends BaseEventModel {
@@ -21,8 +21,8 @@ export class Project extends BaseEventModel {
   @Column
   ownerId!: number;
 
-  @BelongsTo(() => User)
-  owner!: User;
+  @BelongsToMany(() => User, { through: () => UserProject, as: 'members', })
+  members!: Array<User & { membership: UserProject }>;
 
   @Column
   name!: string;
@@ -51,7 +51,19 @@ export class Project extends BaseEventModel {
   @HasOne(() => EventTable)
   table!: EventTable;
 
-  public getOwner!: BelongsToGetAssociationMixin<User>;
+  async getOwner(): Promise<User | null> {
+    const [owner] = await this.getParticipants({
+      // @ts-ignore - Sequelize types omit 'through' on mixin options
+      through: {
+        where: {
+          isOwner: true,
+        },
+      },
+      limit: 1,
+    });
+
+    return owner ?? null;
+  }
   public getParticipants!: BelongsToManyGetAssociationsMixin<User>;
   public getAttachments!: HasManyGetAssociationsMixin<Attachment>;
   public getTable!: HasOneGetAssociationMixin<EventTable>;

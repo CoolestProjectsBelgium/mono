@@ -5,10 +5,10 @@ import { Readable } from 'stream';
 
 @Injectable()
 export class PresentationService {
-    async generateSlideDeck(){
+    async generateSlideDeck() {
 
         const test = [
-            { "type": "loopProjects", "view": "project-detail"  },
+            { "type": "loopProjects", "view": "project-detail" },
             { "type": "sponsor" },
             { "type": "map" }
         ]
