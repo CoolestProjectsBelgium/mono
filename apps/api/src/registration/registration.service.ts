@@ -10,7 +10,7 @@ import { TokensService } from '../tokens/tokens.service';
 import { Project } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
 import { Sequelize } from 'sequelize-typescript';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { QuestionUser } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
 
@@ -19,6 +19,7 @@ export class RegistrationService {
   constructor(
     private mailerService: MailerService,
     private tokenService: TokensService,
+    @InjectConnection()
     private readonly sequelize: Sequelize,
     @InjectModel(Event)
     private readonly eventModel: typeof Event,

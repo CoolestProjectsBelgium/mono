@@ -9,7 +9,6 @@ import {
   IsEmail,
   Index,
 } from 'sequelize-typescript';
-import { Event } from './event.model';
 import { Question } from './question.model';
 import { QuestionRegistration } from './question_registration.model';
 import { Tshirt } from './tshirt.model';

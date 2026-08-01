@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserDto } from '../dto/user.dto';
 import { Template } from 'handlebars';
 import * as Handlebars from 'handlebars';
-import { EmailTemplate } from '@coolestprojects/database';
+import { EmailTemplate, MailTemplates } from '@coolestprojects/database';
 import { createTransport } from 'nodemailer';
 import { env } from 'process';
 import { Registration } from '@coolestprojects/database';
@@ -10,20 +10,6 @@ import { Event } from '@coolestprojects/database';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-
-export enum MailTemplates {
-  registration = 'registration',
-  waiting = 'waiting',
-  welcomeOwner = 'welcomeOwner',
-  welcomeCoWorker = 'welcomeCoWorker',
-  delete = 'delete',
-  warningNoProject = 'warningNoProject',
-  deadlineApproaching = 'deadlineApproaching',
-  waitingMail = 'waitingMail',
-  activation = 'activation',
-  ask4Token = 'ask4Token',
-  emailExists = 'emailExists',
-}
 
 @Injectable()
 export class MailerService {
