@@ -1,68 +1,79 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Project } from '@coolestprojects/database';
 import { ProjectDto } from '../dto/project.dto';
 import { Op } from 'sequelize';
-import { generateSignature } from '../auth/file-sign.strategy';
 import { UserProject } from '@coolestprojects/database';
+import { OwnProjectDto } from '../dto/own-project.dto';
+import { AttachmentDto } from '../dto/attachment.dto';
+import { createReadStream } from 'node:fs';
+import { Attachment } from '@coolestprojects/database';
+
 
 @Injectable()
 export class ProjectinfoService {
 
     public constructor(
         @InjectModel(Project) private readonly projectModel: typeof Project,
-        @InjectModel(UserProject) private readonly userProjectModel: typeof UserProject
+        @InjectModel(UserProject) private readonly userProjectModel: typeof UserProject,
+        @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment
     ) { }
 
-    private getAttachmentUrl(filepath: string): string {
-        const expirationTime = new Date(Date.now() + parseInt(process.env.FILE_SIGNATURE_EXPIRATION || '300') * 1000);
-        return process.env.ATTACHMENT_BASE_URL + '/' + filepath + '?sig=' + generateSignature(process.env.FILE_SIGN_SECRET!, filepath, expirationTime) + '&exp=' + expirationTime.getTime();
+    private async getThumbnail(attachmentId: number): Promise<StreamableFile> {
+        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId } });
+
+        if (!attachment) {
+            throw new Error('Attachment not found');
+        }
+
+        const file = createReadStream(attachment.thumbnailPath);
+        return new StreamableFile(file);
     }
 
-    public async getProjectInfo(userId: number): Promise<ProjectDto> {
-        let project: Project | null | undefined;
-        let isOwner = true;
-        // First, try to find the project where the user is the owner
-        project = await this.projectModel.findOne({ where: { ownerId: userId } });
-        if (!project) {
-            // If not found, check if the user is a participant
-            project = await (await this.userProjectModel.findOne({
-                where: { participantId: userId },
-            }))?.getProject();
+    private getThumbnailUrl(attachmentId: number): string {
+        return process.env.ATTACHMENT_BASE_URL + '/' + attachmentId;
+    }
 
-            if (!project) {
-                throw new Error('Project not found for user');
-            }
-            isOwner = false;
+    public async getProjectInfo(userId: number): Promise<OwnProjectDto> {
+        const userProject = await this.userProjectModel.findOne({ where: { user: userId } });
+
+        if (!userProject) {
+            throw new Error('User is not associated with any project');
         }
 
+        const project = await userProject.getProject();
         const participants = await project.getParticipants();
-        for (const participant of participants) {
-            if (participant.id === userId) {
-            }
+
+        return {
+            project_id: project.id,
+            project_name: project.name,
+            project_descr: project.description,
+            project_type: project.type,
+            project_lang: project.language,
+            is_owner : userProject.isOwner,
+            participants: participants.map(participant => ({
+                id: participant.id,
+                name: participant.firstname && ' ' && participant.lastname,
+                self: participant.id === userId
+            }))
+        };
+    }
+
+    public async getAttachments(userId: number): Promise<AttachmentDto[]> {
+        const userProject = await this.userProjectModel.findOne({ where: { user: userId } });
+
+        if (!userProject) {
+            throw new Error('User is not associated with any project');
         }
 
+        const project = await userProject.getProject();
         const attachments = await project.getAttachments();
 
-        //TODO check if we dont want a different DTO
-        return {
-            own_project: {
-                project_id: project.id,
-                project_name: project.name,
-                project_descr: project.description,
-                project_type: project.type,
-                project_lang: project.language,
-                attachments: attachments.map((attachment) => ({
-                    id: attachment.id,
-                    name: attachment.name,
-                    filename: attachment.filepath,
-                    size: attachment.size,
-                    confirmed: attachment.confirmed,
-                    exists: true,
-                    url: this.getAttachmentUrl(attachment.filepath),
-                })),
-            }
-        }
+        return attachments.map(attachment => ({
+            id: attachment.id,
+            name: attachment.name,
+            thumbnailUrl: this.getThumbnailUrl(attachment.id)
+        }));
     }
 
     public async createProject(userId: number, createProjectDto: ProjectDto): Promise<ProjectDto> {

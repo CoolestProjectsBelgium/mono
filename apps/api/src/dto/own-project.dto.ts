@@ -12,4 +12,5 @@ export class OwnProjectDto {
   participants?: ParticipantDto[];
   attachments?: AttachmentDto[];
   delete_possible?: boolean;
+  is_owner?: boolean;
 }
