@@ -281,7 +281,7 @@ export class RegistrationService {
         await voucher.update({ userId: user.id }, { transaction });
       } else {
         // create project for user
-        await this.projectModel.create(
+        const createdProject = await this.projectModel.create(
           {
             name: r.project_name,
             description: r.project_descr,
@@ -290,6 +290,15 @@ export class RegistrationService {
             eventId: r.eventId,
             maxVoucher: e.maxVoucher,
             ownerId: user.id,
+          },
+          { transaction },
+        );
+        await this.userProjectModel.create(
+          {
+            userId: user.id,
+            projectId: createdProject.id,
+            eventId: r.eventId,
+            isOwner: true,
           },
           { transaction },
         );
