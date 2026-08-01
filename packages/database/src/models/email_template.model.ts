@@ -1,4 +1,4 @@
-import { Column, Table, PrimaryKey, AutoIncrement } from 'sequelize-typescript';
+import { Column, Table, DataType } from 'sequelize-typescript';
 import { BaseEventModel } from './base_event.model.js';
 
 @Table
@@ -12,9 +12,9 @@ export class EmailTemplate extends BaseEventModel {
   @Column
   declare subject: string;
 
-  @Column
+  @Column(DataType.TEXT)
   declare contentPlain: string;
 
-  @Column
+  @Column(DataType.TEXT)
   declare contentRich: string;
 }

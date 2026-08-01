@@ -47,7 +47,7 @@ Key env vars (set in `.devcontainer/docker-compose.yml`): `DB_*`, `JWT_KEY`, `AP
 | `eventguide` | `EventguideController` | `EventguideService` | Event guide data |
 | `presentation` | `PresentationController` | `PresentationService` | Presentation data, generate |
 | `file-upload` | `FileUploadController` | `FileUploadService` | File auth check |
-| `mailer` | — | `MailerService` | Email sending |
+| `mailer` | — | `MailerService` | Email sending (templates seeded from `apps/api/src/mailer/seed-email-templates.ts`; local capture via MailHog — see [local-setup.md](../local-setup.md)) |
 | `tokens` | — | `TokensService` | Token helpers |
 | `background` | — | `BackgroundService` | Scheduled background work |
 | `event` | — | `EventService` | Event lifecycle |
@@ -64,6 +64,10 @@ Global: `InfoInterceptor` on all responses.
 ### Login / session
 
 `POST /login`, `POST /login/logout`, `POST /login/mailToken` → auth cookies/JWT via `AuthModule` and `TokensService`.
+
+### Email templates
+
+Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](../../apps/api/src/mailer/seed-email-templates.ts) and is inserted by `seedDatabase` in [`apps/api/src/seeder/seed.ts`](../../apps/api/src/seeder/seed.ts). After changing templates, rebuild the API and re-run `npm run seed-db --workspace=apps/api` on a fresh database (or replace `EmailTemplates` rows for the active event). In the Dev Container, captured mail appears at http://localhost:18025.
 
 ### Project management
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Registration } from '@coolestprojects/database';
 import { InfoDto } from '../dto/info.dto';
@@ -16,6 +16,8 @@ import { UserProject } from '@coolestprojects/database';
 
 @Injectable()
 export class RegistrationService {
+  private readonly logger = new Logger(RegistrationService.name);
+
   constructor(
     private mailerService: MailerService,
     private tokenService: TokensService,
@@ -53,7 +55,10 @@ export class RegistrationService {
       },
     });
     if (emailUserFound > 0) {
-      this.mailerService.emailExistsMail(createRegistrationDto.user);
+      await this.mailerService.emailExistsMail(
+        createRegistrationDto.user,
+        info.currentEvent,
+      );
       return;
     }
 
@@ -64,7 +69,10 @@ export class RegistrationService {
       },
     });
     if (emailRegistrationFound > 0) {
-      this.mailerService.emailExistsMail(createRegistrationDto.user);
+      await this.mailerService.emailExistsMail(
+        createRegistrationDto.user,
+        info.currentEvent,
+      );
       return;
     }
 
@@ -207,6 +215,10 @@ export class RegistrationService {
 
     // update everything in a transaction
     const transaction = await this.sequelize.transaction();
+    let user: User;
+    let joinedViaVoucher = false;
+    let coworkerProjectId: number | null = null;
+
     try {
       const r = await this.registrationModel.findOne({
         where: { id: registrationID },
@@ -233,7 +245,7 @@ export class RegistrationService {
         lock: transaction.LOCK.UPDATE,
       });
 
-      const user = await this.userModel.create(
+      user = await this.userModel.create(
         {
           eventId: r.eventId,
 
@@ -265,6 +277,7 @@ export class RegistrationService {
       );
 
       if (r.project_code) {
+        joinedViaVoucher = true;
         // link user to project via voucher
         const voucher = await this.userProjectModel.findOne({
           where: {
@@ -279,6 +292,7 @@ export class RegistrationService {
         if (!voucher) {
           throw new Error('Voucher not found or already used');
         }
+        coworkerProjectId = voucher.projectId;
         await voucher.update({ userId: user.id }, { transaction });
       } else {
         // create project for user
@@ -328,20 +342,41 @@ export class RegistrationService {
       });
 
       await transaction.commit();
-
-      // send confirmation mail
-      if (r.project_code) {
-        await this.mailerService.welcomeMailCoWorker();
-        await this.mailerService.notifyProjectOwner();
-      } else {
-        await this.mailerService.welcomeMailOwner(user);
-      }
-
-      return user;
     } catch (error) {
       await transaction.rollback();
       throw new Error('Transaction commit failed: ' + error);
     }
+
+    // send confirmation mail (outside transaction; must not fail activation)
+    try {
+      const loginToken = this.tokenService.generateLoginToken(user.id);
+      if (joinedViaVoucher) {
+        const project = await this.projectModel.findByPk(coworkerProjectId!);
+        if (!project) {
+          throw new Error('Project not found for co-worker welcome mail');
+        }
+        await this.mailerService.welcomeMailCoWorker(user, project, loginToken);
+        await this.mailerService.notifyProjectOwner();
+      } else {
+        const project = await this.projectModel.findOne({
+          where: {
+            ownerId: user.id,
+            eventId: user.eventId,
+          },
+        });
+        if (!project) {
+          throw new Error('Project not found for owner welcome mail');
+        }
+        await this.mailerService.welcomeMailOwner(user, project, loginToken);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Welcome mail failed after activating registration ${registrationID}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+
+    return user;
   }
 
   async unassignParticipant(userId: number, projectCode: string): Promise<void> {
