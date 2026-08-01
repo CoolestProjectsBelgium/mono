@@ -2,16 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Project } from '@coolestprojects/database';
 import { ProjectDto } from '../dto/project.dto';
-import { Voucher } from '@coolestprojects/database';
 import { Op } from 'sequelize';
 import { generateSignature } from '../auth/file-sign.strategy';
+import { UserProject } from '@coolestprojects/database';
 
 @Injectable()
 export class ProjectinfoService {
 
     public constructor(
         @InjectModel(Project) private readonly projectModel: typeof Project,
-        @InjectModel(Voucher) private readonly voucherModel: typeof Voucher
+        @InjectModel(UserProject) private readonly userProjectModel: typeof UserProject
     ) { }
 
     private getAttachmentUrl(filepath: string): string {
@@ -26,7 +26,7 @@ export class ProjectinfoService {
         project = await this.projectModel.findOne({ where: { ownerId: userId } });
         if (!project) {
             // If not found, check if the user is a participant
-            project = await (await this.voucherModel.findOne({
+            project = await (await this.userProjectModel.findOne({
                 where: { participantId: userId },
             }))?.getProject();
 
@@ -122,7 +122,7 @@ export class ProjectinfoService {
         }
 
         // Check if there are any vouchers associated with the project
-        const vouchersInUse = await this.voucherModel.count({ where: { projectId: project.id, participantId: { [Op.ne]: null } } });
+        const vouchersInUse = await this.projectModel.count({ where: { projectId: project.id, participantId: { [Op.ne]: null } } });
         if (vouchersInUse > 0) {
             throw new Error('Cannot delete project with associated vouchers');
         }

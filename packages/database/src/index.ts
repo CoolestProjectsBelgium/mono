@@ -3,7 +3,6 @@ export * from './models/project.model';
 export * from './models/question.model';
 export * from './models/question_user.model';
 export * from './models/user.model';
-export * from './models/voucher.model';
 export * from './models/tshirt.model';
 export * from './models/tshirt_group.model';
 export * from './models/tshirt_translation.model';

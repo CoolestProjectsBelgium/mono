@@ -26,6 +26,7 @@
     "@nestjs/sequelize": "^11.0.1",
     "@nestjs/swagger": "^11.4.4",
     "cookie-parser": "^1.4.7",
+    "csrf-csrf": "^4.0.3",
     "handlebars": "^4.7.9",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.22.5",
