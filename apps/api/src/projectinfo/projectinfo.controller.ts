@@ -10,6 +10,7 @@ import { UserCookieInterceptor } from '../user-cookie.interceptor';
 import { ProjectinfoService } from './projectinfo.service';
 import { FileValidationInterceptor } from '../file-upload/file-validation.interceptor';
 import { FileInterceptor } from '@nestjs/platform-express/multer';
+import { OwnProjectDto } from '../dto/own-project.dto';
 
 
 @Controller('projectinfo')
@@ -27,7 +28,7 @@ export class ProjectinfoController {
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(UserCookieInterceptor)
-  async getProject(@Request() req: any): Promise<ProjectDto> {
+  async getProject(@Request() req: any): Promise<OwnProjectDto> {
     return this.projectService.getProjectInfo(req.user.id);
   }
 
