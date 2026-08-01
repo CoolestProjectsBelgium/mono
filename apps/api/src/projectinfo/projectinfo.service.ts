@@ -140,4 +140,40 @@ export class ProjectinfoService {
         userProject.deletedAt = new Date();
         await userProject.save();
     }
+
+    public async generateVoucher(userId: number): Promise<void> {
+        const userProject = await this.userProjectModel.findOne({ where: { userId: userId, deletedAt: null, isOwner: true } });
+        if (!userProject) {
+            throw new Error('Project not found for user');
+        } 
+
+        const existingVouchers = await this.userProjectModel.count({ where: { projectId: userProject.projectId, deletedAt: null, isOwner: false, voucherGuid: { [Op.ne]: null } } });
+
+        const project = await userProject.getProject();
+        if(project.maxVoucher > existingVouchers) {
+            throw new Error('Maximum number of vouchers reached');
+        }
+
+        await this.userProjectModel.create({
+            userId: null,
+            projectId: userProject.projectId,
+            isOwner: false,
+            voucherGuid: crypto.randomUUID(),
+        });
+    }
+
+    public async deleteUnusedVoucher(userId: number, voucherGuid: string): Promise<void> {
+        const userProject = await this.userProjectModel.findOne({ where: { userId: userId, deletedAt: null, isOwner: true } });
+        if (!userProject) {
+            throw new Error('Project not found for user');
+        }
+
+        const voucher = await this.userProjectModel.findOne({ where: { projectId: userProject.projectId, deletedAt: null, isOwner: false, voucherGuid: voucherGuid, userId: null } });
+        if (!voucher) {
+            throw new Error('Voucher not found');
+        }
+
+        await voucher.destroy();
+    }
+
 }

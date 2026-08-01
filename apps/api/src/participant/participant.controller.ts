@@ -31,4 +31,5 @@ export class ParticipantController {
   ) {
     return this.registrationService.unassignParticipant(req.user.id, participantDto.project_code);
   }
+  
 }
