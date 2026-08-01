@@ -50,7 +50,6 @@ import { VotingService } from './voting/voting.service';
           //sync: { force: true },
           models: [
             Event,
-            UserProject,
             User,
             Registration,
             Tshirt,
@@ -70,7 +69,8 @@ import { VotingService } from './voting/voting.service';
             VoteCategory,
             Account,
             Award,
-            EmailTemplate
+            EmailTemplate,
+            UserProject
           ],
         };
       },

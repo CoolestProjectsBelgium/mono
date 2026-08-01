@@ -9,6 +9,7 @@ import { RegistrationService } from '../registration/registration.service';
 import { MailerService } from '../mailer/mailer.service';
 import { EmailTemplate } from '@coolestprojects/database';
 import { Event } from '@coolestprojects/database';
+import { UserProject } from '@coolestprojects/database';
 import { TokensService } from '../tokens/tokens.service';
 import { Project } from '@coolestprojects/database';
 import { Registration } from '@coolestprojects/database';
@@ -23,7 +24,7 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Question, QuestionUser, QuestionRegistration, Account]),
+    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Question, QuestionUser, QuestionRegistration, Account, UserProject]),
   ],
   providers: [{
     provide: AUTH_JWT,
