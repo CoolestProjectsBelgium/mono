@@ -1,9 +1,8 @@
 import { Project, Event } from '@coolestprojects/database';
-import { Body, Controller, Delete, Get, HttpStatus, ParseFilePipeBuilder, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors, Param } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { InjectModel } from '@nestjs/sequelize';
 import { ApiCookieAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ProjectDto } from '../dto/project.dto';
 import { FileUploadService } from '../file-upload/file-upload.service';
 import { MulterFile } from '../file-upload/multer-file.type';
 import { UserCookieInterceptor } from '../user-cookie.interceptor';
@@ -19,9 +18,7 @@ import { OwnProjectDto } from '../dto/own-project.dto';
 export class ProjectinfoController {
   constructor(
     private projectService: ProjectinfoService,
-    private fileUploadService: FileUploadService,
-    @InjectModel(Project) private readonly projectModel: typeof Project,
-    @InjectModel(Event) private readonly eventModel: typeof Event
+    private fileUploadService: FileUploadService
   ) { }
 
   @Get()
