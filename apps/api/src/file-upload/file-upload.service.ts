@@ -63,7 +63,7 @@ export class FileUploadService {
       throw new Error('Attachment not found');
     }
 
-    if (attachment.project.ownerId !== userId) {
+    if ((await attachment.project.getOwner())?.id !== userId) {
       throw new Error('Unauthorized');
     }
 

@@ -29,7 +29,6 @@ import { TshirtTranslation } from '@coolestprojects/database';
 import { User } from '@coolestprojects/database';
 import { Vote } from '@coolestprojects/database';
 import { VoteCategory } from '@coolestprojects/database';
-import { Voucher } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
 
@@ -69,7 +68,6 @@ import { UserProject } from '@coolestprojects/database';
             TshirtTranslation,
             QuestionTranslation,
             EventTable,
-            Voucher,
             Attachment,
             Certificate,
             Message,
@@ -93,7 +91,6 @@ import { UserProject } from '@coolestprojects/database';
       QuestionRegistration,
       EmailTemplate,
       Account,
-      Voucher,
       QuestionUser,
       QuestionTranslation,
       Tshirt,

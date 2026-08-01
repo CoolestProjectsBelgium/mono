@@ -28,7 +28,12 @@ export class User extends BaseEventModel {
   @BelongsToMany(() => Question, () => QuestionUser)
   questions!: Question[];
 
-  @BelongsToMany(() => Project, { through: () => UserProject })
+  @BelongsToMany(() => Project, {
+    through: { model: () => UserProject, unique: false },
+    foreignKey: { name: 'userId', allowNull: true },
+    otherKey: { name: 'projectId', allowNull: false },
+    constraints: false,
+  })
   projects!: Project[];
 
   @Column({ type: DataType.ENUM('nl', 'fr', 'en'), allowNull: false })

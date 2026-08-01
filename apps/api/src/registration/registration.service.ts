@@ -11,8 +11,8 @@ import { Project } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
 import { Sequelize } from 'sequelize-typescript';
 import { InjectModel } from '@nestjs/sequelize';
-import { Voucher } from '@coolestprojects/database';
 import { QuestionUser } from '@coolestprojects/database';
+import { UserProject } from '@coolestprojects/database';
 
 @Injectable()
 export class RegistrationService {
@@ -28,14 +28,14 @@ export class RegistrationService {
     private readonly registrationModel: typeof Registration,
     @InjectModel(User)
     private readonly userModel: typeof User,
-    @InjectModel(Voucher)
-    private readonly voucherModel: typeof Voucher,
     @InjectModel(Question)
     private readonly questionModel: typeof Question,
     @InjectModel(QuestionUser)
     private readonly questionUser: typeof QuestionUser,
     @InjectModel(QuestionRegistration)
     private readonly questionRegistrationModel: typeof QuestionRegistration,
+    @InjectModel(UserProject)
+    private readonly userProjectModel: typeof UserProject,
   ) { }
 
   async create(
@@ -265,11 +265,12 @@ export class RegistrationService {
 
       if (r.project_code) {
         // link user to project via voucher
-        const voucher = await this.voucherModel.findOne({
+        const voucher = await this.userProjectModel.findOne({
           where: {
             eventId: r.eventId,
             voucherGuid: r.project_code,
-            participantId: null,
+            userId: null,
+            deletedAt: null,
           },
           transaction,
           lock: transaction.LOCK.UPDATE,
@@ -277,7 +278,7 @@ export class RegistrationService {
         if (!voucher) {
           throw new Error('Voucher not found or already used');
         }
-        await voucher.update({ participantId: user.id }, { transaction });
+        await voucher.update({ userId: user.id }, { transaction });
       } else {
         // create project for user
         await this.projectModel.create(

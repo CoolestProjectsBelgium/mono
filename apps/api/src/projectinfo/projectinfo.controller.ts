@@ -32,7 +32,7 @@ export class ProjectinfoController {
   }
 
   @Post()
-  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiResponse({ status: 500, description: 'Internal  server error.' })
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(UserCookieInterceptor)
   async createProject(

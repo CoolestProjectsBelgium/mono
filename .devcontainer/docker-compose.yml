@@ -23,6 +23,8 @@ services:
       API_PORT: 3001
       VOTING_KEY: "cEc.#8Pc5^H26OBxKLMKsM"
 
+      CSRF_SECRET: "cEc.&1Pc5^zzH2xp8lmOBc(c)L6KsdM"
+
       # file configuration
       UPLOAD_ROOT: /tmp/uploads
       FILE_SIGN_SECRET: "cxc.#8Pc5^H26465BxKLxKsv"

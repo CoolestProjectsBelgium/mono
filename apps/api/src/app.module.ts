@@ -1,4 +1,4 @@
-import { Account, Attachment, Award, Certificate, EmailTemplate, Event, EventTable, Message, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Registration, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Vote, VoteCategory, Voucher } from '@coolestprojects/database';
+import { Account, Attachment, Award, Certificate, EmailTemplate, Event, EventTable, Message, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Registration, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Vote, VoteCategory } from '@coolestprojects/database';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -34,8 +34,6 @@ import { VotingService } from './voting/voting.service';
       isGlobal: true, // Makes the config available globally
     }),
     AuthModule,
-    //AdminModule.register(1),
-
     SequelizeModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule to access ConfigService
       inject: [ConfigService],
@@ -65,7 +63,6 @@ import { VotingService } from './voting/voting.service';
             TshirtTranslation,
             QuestionTranslation,
             EventTable,
-            Voucher,
             Attachment,
             Certificate,
             Message,
@@ -83,13 +80,12 @@ import { VotingService } from './voting/voting.service';
       Question,
       Event,
       Registration,
-      UserProject,
       User,
       Project,
+      UserProject,
       QuestionRegistration,
       EmailTemplate,
       Account,
-      Voucher,
       QuestionUser,
       QuestionTranslation,
       Tshirt,
@@ -101,7 +97,7 @@ import { VotingService } from './voting/voting.service';
       Attachment
     ]),
   ],
-  controllers: [
+  controllers: [ 
     AppController,
     RegistrationController,
     ProjectinfoController,
