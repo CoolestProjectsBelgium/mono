@@ -4,7 +4,7 @@ import { MulterFile } from './multer-file.type';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Project, Attachment, User, Event } from '@coolestprojects/database';
-import { sharp } from 'sharp';
+import sharp from 'sharp';
 
 @Injectable()
 export class FileUploadService {
@@ -14,7 +14,7 @@ export class FileUploadService {
   ) { }
 
   async generateThumbnail(file: MulterFile): Promise<Buffer> {
-    sharp.
+    return sharp(file.buffer).resize({ width: 200, height: 200, fit: 'cover' }).toFormat('webp').toBuffer();
   }
 
   async saveFile(
@@ -47,11 +47,9 @@ export class FileUploadService {
     const filepath = path.join(folderPath, filename);
 
     await fs.writeFile(filepath, file.buffer);
-
-    sharp(filepath)
-     .resize({ width: 200, height: 200, fit: 'cover' }) 
-     .toFormat('webp')
-     .toFile(path.join(folderPath, 'thumbnail_' + filename));
+    
+    const thumbnailBuffer = await this.generateThumbnail(file);
+    await fs.writeFile(path.join(folderPath, 'thumbnail_' + filename), thumbnailBuffer);
 
     await this.attachmentModel.create({
       projectId: project.id,
