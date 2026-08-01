@@ -65,6 +65,7 @@ Dev Container (`.devcontainer/`) runs:
 
 - `workspace` — Node dev environment, all apps
 - `db` — MySQL
+- `mailhog` — SMTP catcher; UI at http://localhost:18025
 - `phpmyadmin` — port 3006
 - `proxy` — TLS reverse proxy mapping `*.coolestprojects.localhost` → app ports
 

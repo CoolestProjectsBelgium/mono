@@ -31,11 +31,16 @@ After the Dev Container seeds the DB, use these accounts at https://admin.cooles
 | `admin` | `admin` | admin |
 | `jury` | `jury` | jury |
 
-## Local mail
+## Local mail (MailHog)
 
-`SMTP_HOST` is unset in the Dev Container by default. The API does not send real email; it logs each message to the API console (including activation / magic-link URLs) so registration and login flows still work.
+The Dev Container runs [MailHog](https://github.com/mailhog/MailHog) as the SMTP catcher. The API sends mail to `mailhog:1025`; open the UI to read captured messages (activation / magic-link emails, etc.):
 
-To send real mail locally, set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` (for example pointing at MailHog or another SMTP catcher). See [docs/local-setup.md](docs/local-setup.md).
+| What | URL / port |
+|------|------------|
+| MailHog UI | http://localhost:18025 |
+| SMTP (host) | `localhost:11025` |
+
+Host ports `18025` / `11025` avoid Windows Hyper-V reserved ranges (`8025` / `1025`). See [docs/local-setup.md](docs/local-setup.md).
 
 ## Containers
 
@@ -45,6 +50,7 @@ Dev Container services (see [docs/local-setup.md](docs/local-setup.md)):
 |---------|------|-------------|
 | `workspace` | Node apps | ports 3000–3005 |
 | `db` | MySQL | — |
+| `mailhog` | SMTP catcher + UI | http://localhost:18025 |
 | `phpmyadmin` | DB UI | http://localhost:3006 |
 | `proxy` | TLS reverse proxy | HTTP 8080 / HTTPS 8443 |
 
