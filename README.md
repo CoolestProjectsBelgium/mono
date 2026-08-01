@@ -21,6 +21,22 @@ Monorepo for the reworked Coolest Projects applications and shared packages.
 | `apps/presentation` | Presentation site | https://presentation.coolestprojects.localhost:8443 |
 | `packages/database` | Shared Sequelize models | — |
 
+## Admin login (local seed)
+
+After the Dev Container seeds the DB, use these accounts at https://admin.coolestprojects.localhost:8443:
+
+| Email | Password | Role |
+|-------|----------|------|
+| `superadmin` | `superadmin` | super_admin |
+| `admin` | `admin` | admin |
+| `jury` | `jury` | jury |
+
+## Local mail
+
+`SMTP_HOST` is unset in the Dev Container by default. The API does not send real email; it logs each message to the API console (including activation / magic-link URLs) so registration and login flows still work.
+
+To send real mail locally, set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` (for example pointing at MailHog or another SMTP catcher). See [docs/local-setup.md](docs/local-setup.md).
+
 ## Containers
 
 Dev Container services (see [docs/local-setup.md](docs/local-setup.md)):

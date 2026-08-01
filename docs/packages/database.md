@@ -74,6 +74,10 @@ Exports are listed in `packages/database/src/index.ts`.
 
 `Account` model used by AdminJS with role-based resource access in `apps/admin`.
 
+### TypeScript class fields
+
+`packages/database/tsconfig.json` sets `useDefineForClassFields: false` (ES2022 would otherwise default to `true`). Emitting real instance fields shadows sequelize-typescript getters — association access like `question.translations[0]` then returns `undefined` and catalog endpoints 500. Prefer `declare` on model properties when adding fields.
+
 ## Out of scope / unknowns
 
 - Migration files (API uses `synchronize: true` in dev — verify production strategy)
