@@ -100,4 +100,23 @@ export class ProjectinfoController {
     );
   }
 
+  @Post('participant')
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async createVoucher(
+    @Request() req: any,
+  ) {
+    return await this.projectService.generateVoucher(req.user.id);
+  }
+
+  @Delete('participant/:voucherGuid')
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async deleteVoucher(
+    @Request() req: any,
+    @Param('voucherGuid') voucherGuid: string,
+  ) {
+    return await this.projectService.deleteUnusedVoucher(req.user.id, voucherGuid);
+  }
+
 }
