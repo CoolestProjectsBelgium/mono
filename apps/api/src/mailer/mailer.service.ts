@@ -125,21 +125,37 @@ export class MailerService {
     const contentPlain = templatePlain(context);
     const contentSubject = templateSubject(context);
 
-    await createTransport({
-      host: env.SMTP_HOST,
-      port: parseInt(env.SMTP_PORT || '587', 10),
-      //secure: env.SMTP_SECURE === 'true',
-      auth: {
-        user: env.SMTP_USER,
-        pass: env.SMTP_PASS,
-      },
-    } as SMTPTransport.Options).sendMail({
-      from: env.SMTP_FROM,
-      to,
-      subject: contentSubject,
-      text: contentPlain,
-      html: contentRich,
-    });
+    // Local/dev without SMTP: log and succeed so registration/login flows work
+    if (!env.SMTP_HOST) {
+      console.warn(
+        `[mailer] SMTP_HOST unset — skipping send. to=${to} subject=${contentSubject}` +
+          (context?.url ? ` url=${context.url}` : ''),
+      );
+      return;
+    }
+
+    try {
+      await createTransport({
+        host: env.SMTP_HOST,
+        port: parseInt(env.SMTP_PORT || '587', 10),
+        auth: {
+          user: env.SMTP_USER,
+          pass: env.SMTP_PASS,
+        },
+      } as SMTPTransport.Options).sendMail({
+        from: env.SMTP_FROM,
+        to,
+        subject: contentSubject,
+        text: contentPlain,
+        html: contentRich,
+      });
+    } catch (error) {
+      console.error(`[mailer] Failed to send "${template}" to ${to}:`, error);
+      // Do not fail the calling business flow after DB work has committed
+      if (env.NODE_ENV === 'production') {
+        throw error;
+      }
+    }
   }
 
   async registrationMail(user: Registration, token: string) {

@@ -19,13 +19,17 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 | `apps/admin/src/components/` | Custom AdminJS components (`Login`, `Dashboard`) |
 | `npm run start:dev --workspace=apps/admin` | Dev server (port 3000 in Dev Container) |
 
-Local URL (via proxy): `https://admin.coolestprojects.localhost:8443`
+Local URL (via proxy): `https://admin.coolestprojects.localhost:8443` (redirects to `/admin`)
+
+Default seed logins (from API seeder): `superadmin` / `admin` / `jury` — passwords are set in `apps/api/src/seeder/seed.ts`.
 
 ## Talks to
 
 - `packages/database` — Sequelize models (direct DB access)
 - MySQL — same database as API
 - Does not call `apps/api` over HTTP
+
+Sequelize models registered in `apps/admin/src/database.ts` must include every association target (including through-models like `UserProject`). Omitting one crashes AdminJS boot with `X has not been defined`.
 
 ## Out of scope / unknowns
 

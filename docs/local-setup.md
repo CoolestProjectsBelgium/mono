@@ -60,6 +60,8 @@ Direct ports (inside/on workspace container):
 
 DB and app secrets are set in `docker-compose.yml` on the `workspace` service (`DB_*`, `JWT_KEY`, `ADMINJS_*`, `VOTING_KEY`, `FILE_*`, etc.). Do not commit production secrets; treat compose values as local-dev only.
 
+Mail: set `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` to enable real email. If `SMTP_HOST` is unset, the API logs the message (including activation URL) and skips sending so registration still succeeds locally.
+
 Voting app API base URL: `NUXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:3001` in `nuxt.config.ts`).
 
 ## Certificates
