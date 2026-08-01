@@ -135,14 +135,19 @@ export class MailerService {
     }
 
     try {
-      await createTransport({
+      const transportOptions: SMTPTransport.Options = {
         host: env.SMTP_HOST,
         port: parseInt(env.SMTP_PORT || '587', 10),
-        auth: {
+      };
+      // MailHog and other unauthenticated SMTP reject empty auth objects
+      if (env.SMTP_USER) {
+        transportOptions.auth = {
           user: env.SMTP_USER,
           pass: env.SMTP_PASS,
-        },
-      } as SMTPTransport.Options).sendMail({
+        };
+      }
+
+      await createTransport(transportOptions).sendMail({
         from: env.SMTP_FROM,
         to,
         subject: contentSubject,
