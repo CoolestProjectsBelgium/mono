@@ -334,6 +334,38 @@ export class RegistrationService {
     }
   }
 
+  async unassignParticipant(userId: number, projectCode: string): Promise<void> {
+    const project = await this.userProjectModel.findOne({
+      where: {
+        voucherGuid: projectCode,
+        userId: userId,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      throw new Error('Project not found or not assigned to user');
+    }
+
+    await project.update({ deletedAt: new Date() });
+  }
+
+  async assignParticipant(userId: number, projectCode: string): Promise<void> {
+    const project = await this.userProjectModel.findOne({
+      where: {
+        voucherGuid: projectCode,
+        userId: null,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      throw new Error('Project not found or already assigned');
+    }
+
+    await project.update({ userId: userId });
+  }
+
   private async validate(event: Event, registration: any) {
     // check if all mandatory questions are answered
     const mandatoryQuestions = await this.questionModel.findAll({
