@@ -38,8 +38,8 @@ export class ProjectinfoController {
   @UseInterceptors(UserCookieInterceptor)
   async createProject(
     @Request() req: any,
-    @Body() createProjectDto: ProjectDto,
-  ): Promise<ProjectDto> {
+    @Body() createProjectDto: OwnProjectDto,
+  ): Promise<OwnProjectDto> {
     return await this.projectService.createProject(req.user.id, createProjectDto);
   }
 
@@ -49,8 +49,8 @@ export class ProjectinfoController {
   @UseInterceptors(UserCookieInterceptor)
   async updateProject(
     @Request() req: any,
-    @Body() updateProjectDto: ProjectDto,
-  ): Promise<ProjectDto> {
+    @Body() updateProjectDto: OwnProjectDto,
+  ): Promise<OwnProjectDto> {
     return await this.projectService.updateProject(req.user.id, updateProjectDto);
   }
 

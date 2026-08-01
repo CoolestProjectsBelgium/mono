@@ -81,70 +81,63 @@ export class ProjectinfoService {
         }));
     }
 
-    public async createProject(userId: number, createProjectDto: ProjectDto): Promise<ProjectDto> {
+    public async createProject(userId: number, createProjectDto: OwnProjectDto): Promise<OwnProjectDto> {
         // Check if the user already has a project
-        const existingProject = await this.projectModel.findOne({ where: { ownerId: userId } });
+        const existingProject = await this.userProjectModel.findOne({ where: { userId: userId, deletedAt: null } });
         if (existingProject) {
             throw new Error('User already has a project');
         }
-        if (createProjectDto.own_project == null) {
-            throw new Error("Project Creation Failed");
-        }
+
         const project = await this.projectModel.create({
-            name: createProjectDto.own_project.project_name,
-            description: createProjectDto.own_project.project_descr,
-            type: createProjectDto.own_project.project_type,
-            language: createProjectDto.own_project.project_lang,
+            name: createProjectDto.project_name,
+            description: createProjectDto.project_descr,
+            type: createProjectDto.project_type,
+            language: createProjectDto.project_lang,
             ownerId: userId,
         });
         return {
-            own_project: {
-                project_id: project.id,
-                project_name: project.name,
-                project_descr: project.description,
-                project_type: project.type,
-                project_lang: project.language,
-            }
+            project_id: project.id,
+            project_name: project.name,
+            project_descr: project.description,
+            project_type: project.type,
+            project_lang: project.language,
+            
         };
     }
-    public async updateProject(userId: number, updateProjectDto: ProjectDto): Promise<ProjectDto> {
-        const project = await this.projectModel.findOne({ where: { ownerId: userId } });
-        if (!project) {
+    public async updateProject(userId: number, updateProjectDto: OwnProjectDto): Promise<OwnProjectDto> {
+        const userProject = await this.userProjectModel.findOne({ where: { userId: userId, deletedAt: null, isOwner: true } });
+        if (!userProject) {
             throw new Error('Project not found for user');
         }
-        if (!updateProjectDto.own_project) {
-            throw new Error('Data not provided');
-        }
-        project.name = updateProjectDto.own_project.project_name;
-        project.description = updateProjectDto.own_project.project_descr;
-        project.type = updateProjectDto.own_project.project_type;
-        project.language = updateProjectDto.own_project.project_lang;
+
+        const project = await userProject.getProject();
+        project.name = updateProjectDto.project_name;
+        project.description = updateProjectDto.project_descr;
+        project.type = updateProjectDto.project_type;
+        project.language = updateProjectDto.project_lang;
         await project.save();
         return {
-            own_project: {
-                project_id: project.id,
-                project_name: project.name,
-                project_descr: project.description,
-                project_type: project.type,
-                project_lang: project.language,
-            }
+            project_id: project.id,
+            project_name: project.name,
+            project_descr: project.description,
+            project_type: project.type,
+            project_lang: project.language, 
         };
     }
 
     public async deleteProject(userId: number): Promise<void> {
-        const project = await this.projectModel.findOne({ where: { ownerId: userId } });
-        if (!project) {
+        const userProject = await this.userProjectModel.findOne({ where: { userId: userId, deletedAt: null, isOwner: true } });
+        if (!userProject) {
             throw new Error('Project not found for user');
         }
-
+    
         // Check if there are any vouchers associated with the project
-        const vouchersInUse = await this.projectModel.count({ where: { projectId: project.id, participantId: { [Op.ne]: null } } });
+        const vouchersInUse = await this.userProjectModel.count({ where: { projectId: userProject.projectId, userId: { [Op.ne]: null }, deletedAt: null, isOwner: false, voucherGuid: { [Op.ne]: null } } });
         if (vouchersInUse > 0) {
             throw new Error('Cannot delete project with associated vouchers');
         }
 
-        //TODO delete all attachments associated with the project
-
-        await project.destroy();
+        userProject.deletedAt = new Date();
+        await userProject.save();
     }
 }
