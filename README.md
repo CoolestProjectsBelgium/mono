@@ -11,15 +11,26 @@ Monorepo for the reworked Coolest Projects applications and shared packages.
 
 ## Workspaces
 
-| Path | Description |
-|------|-------------|
-| `apps/api` | NestJS API |
-| `apps/admin` | AdminJS admin panel |
-| `apps/voting` | Nuxt voting UI |
-| `apps/registration` | Registration site |
-| `apps/eventguide` | Event guide site |
-| `apps/presentation` | Presentation site |
-| `packages/database` | Shared Sequelize models |
+| Path | Description | Local URL |
+|------|-------------|-----------|
+| `apps/api` | NestJS API | https://api.coolestprojects.localhost:8443 |
+| `apps/admin` | AdminJS admin panel | https://admin.coolestprojects.localhost:8443 |
+| `apps/voting` | Nuxt voting UI | https://voting.coolestprojects.localhost:8443 |
+| `apps/registration` | Registration site | https://registration.coolestprojects.localhost:8443 |
+| `apps/eventguide` | Event guide site | https://eventguide.coolestprojects.localhost:8443 |
+| `apps/presentation` | Presentation site | https://presentation.coolestprojects.localhost:8443 |
+| `packages/database` | Shared Sequelize models | — |
+
+## Containers
+
+Dev Container services (see [docs/local-setup.md](docs/local-setup.md)):
+
+| Service | Role | URL / ports |
+|---------|------|-------------|
+| `workspace` | Node apps | ports 3000–3005 |
+| `db` | MySQL | — |
+| `phpmyadmin` | DB UI | http://localhost:3006 |
+| `proxy` | TLS reverse proxy | HTTP 8080 / HTTPS 8443 |
 
 Install dependencies from the repo root:
 

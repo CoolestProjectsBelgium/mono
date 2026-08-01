@@ -10,6 +10,12 @@ import { Event } from '@coolestprojects/database';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import {
+  buildLoginUrl,
+  eventYear,
+  registrationAppUrl,
+  registrationWebsiteUrl,
+} from './mail-context';
 
 export enum MailTemplates {
   registration = 'registration',
@@ -33,6 +39,63 @@ export class MailerService {
     @InjectModel(EmailTemplate)
     private readonly emailTemplateModel: typeof EmailTemplate,
   ) { }
+
+  private buildRegistrationContext(
+    registration: Registration,
+    event: Event,
+    token?: string,
+  ) {
+    const language =
+      registration.getDataValue('language') ?? registration.language ?? 'en';
+    const year = eventYear(event);
+    const website = registrationWebsiteUrl();
+    const url = token
+      ? buildLoginUrl(registrationAppUrl(), language, token)
+      : undefined;
+
+    return {
+      event,
+      user: registration,
+      registration: {
+        firstname:
+          registration.getDataValue('firstname') ?? registration.firstname,
+        email_guardian:
+          registration.getDataValue('email_guardian') ??
+          registration.email_guardian,
+        year,
+      },
+      year,
+      website,
+      ...(token ? { token, url } : {}),
+    };
+  }
+
+  private buildUserMailContext(
+    user: User,
+    event: Event,
+    token: string,
+  ) {
+    const language = user.getDataValue('language') ?? user.language ?? 'en';
+    const year = eventYear(event);
+    const website = registrationWebsiteUrl();
+    const url = buildLoginUrl(registrationAppUrl(), language, token);
+
+    return {
+      event,
+      user,
+      year,
+      website,
+      token,
+      url,
+    };
+  }
+
+  private formatRecipients(
+    email: string,
+    emailGuardian?: string | null,
+  ): string {
+    return [email, ...(emailGuardian ? [emailGuardian] : [])].join(',');
+  }
 
   private async sendMail(
     template: string,
@@ -84,15 +147,16 @@ export class MailerService {
     if (!event) {
       throw new Error('Event not found');
     }
-    
-    const to = [
-      user.email,
-      ...(user.email_guardian ? [user.email_guardian] : []),
-    ].join(',');
-    const context = { event, user, token };
+
+    const email = user.getDataValue('email') ?? user.email;
+    const emailGuardian =
+      user.getDataValue('email_guardian') ?? user.email_guardian;
+    const language = user.getDataValue('language') ?? user.language ?? 'en';
+    const to = this.formatRecipients(email, emailGuardian);
+    const context = this.buildRegistrationContext(user, event, token);
     await this.sendMail(
       MailTemplates.registration,
-      user.language,
+      language,
       event,
       to,
       context,
@@ -124,14 +188,33 @@ export class MailerService {
       throw new Error('Event not found');
     }
 
-    const to = [
-      user.email,
-      ...(user.email_guardian ? [user.email_guardian] : []),
-    ].join(',');
+    const to = this.formatRecipients(user.email, user.email_guardian);
     const context = { event, user };
     await this.sendMail(
       MailTemplates.activation,
       user.language,
+      event,
+      to,
+      context,
+    );
+  }
+
+  async loginMail(user: User, token: string) {
+    const eventId = user.getDataValue('eventId') ?? user.eventId;
+    const event = await this.eventModel.findByPk(eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
+    const email = user.getDataValue('email') ?? user.email;
+    const emailGuardian =
+      user.getDataValue('email_guardian') ?? user.email_guardian;
+    const language = user.getDataValue('language') ?? user.language ?? 'en';
+    const to = this.formatRecipients(email, emailGuardian);
+    const context = this.buildUserMailContext(user, event, token);
+    await this.sendMail(
+      MailTemplates.ask4Token,
+      language,
       event,
       to,
       context,

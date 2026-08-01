@@ -27,7 +27,13 @@ export class UserCookieInterceptor implements NestInterceptor {
               this.tokensService.generateLoginToken(user.id),
               {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                signed: true,
+                path: '/',
+                secure:
+                  process.env.NODE_ENV === 'production' ||
+                  request.secure ||
+                  request.headers['x-forwarded-proto'] === 'https',
+                sameSite: 'lax',
                 maxAge: 7 * 24 * 60 * 60 * 1000,
               },
             );

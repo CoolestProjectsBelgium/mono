@@ -31,9 +31,10 @@ export async function seedDatabase(
     eventBeginDate: new Date().setDate(new Date().getDate() - 100),
     registrationOpenDate: new Date().setDate(new Date().getDate() - 90),
     registrationClosedDate: new Date().setDate(new Date().getDate() + 10),
-    projectClosedDate: new Date().setDate(new Date().getDate() - 20),
-    officialStartDate: new Date().setDate(new Date().getDate() - 30),
-    eventEndDate: new Date().setDate(new Date().getDate() - 40),
+    projectClosedDate: new Date().setDate(new Date().getDate() + 20),
+    officialStartDate: new Date().setDate(new Date().getDate() + 5),
+    // Must be in the future: InfoInterceptor requires eventBeginDate < now < eventEndDate
+    eventEndDate: new Date().setDate(new Date().getDate() + 40),
     maxFileSize: 2147483647,
     allowedMimeTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",
     eventTitle: 'Coolest Projects Active Event',
