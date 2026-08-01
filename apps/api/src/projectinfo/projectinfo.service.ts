@@ -1,5 +1,5 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectModel, InjectConnection } from '@nestjs/sequelize';
 import { Project } from '@coolestprojects/database';
 import { ProjectDto } from '../dto/project.dto';
 import { Op } from 'sequelize';
@@ -8,6 +8,7 @@ import { OwnProjectDto } from '../dto/own-project.dto';
 import { AttachmentDto } from '../dto/attachment.dto';
 import { createReadStream } from 'node:fs';
 import { Attachment } from '@coolestprojects/database';
+import { Sequelize } from 'sequelize-typescript';
 
 
 @Injectable()
@@ -16,7 +17,9 @@ export class ProjectinfoService {
     public constructor(
         @InjectModel(Project) private readonly projectModel: typeof Project,
         @InjectModel(UserProject) private readonly userProjectModel: typeof UserProject,
-        @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment
+        @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment,
+        @InjectConnection()
+        private readonly sequelize: Sequelize,
     ) { }
 
     public async getThumbnail(userId: number, attachmentId: number): Promise<StreamableFile> {
@@ -187,12 +190,44 @@ export class ProjectinfoService {
             throw new Error('New owner is not associated with the project');
         }
 
-        // Change ownership
-        userProject.isOwner = false;
-        await userProject.save();
+        // Create a transaction to ensure atomicity
+        const transaction = await this.sequelize.transaction();
 
-        newOwnerProject.isOwner = true;
-        await newOwnerProject.save();
+        try {
+            // Change ownership
+            userProject.deletedAt = new Date();
+            await userProject.save({ transaction });
+
+            newOwnerProject.deletedAt = new Date();
+            await newOwnerProject.save({ transaction });
+
+            this.userProjectModel.create({
+                userId: newOwnerId,
+                projectId: userProject.projectId,
+                isOwner: true,
+            }, { transaction });
+
+            this.userProjectModel.create({
+                userId: userId,
+                projectId: userProject.projectId,
+                isOwner: false,
+            }, { transaction });
+
+            // Change ownership
+            userProject.isOwner = false;
+            await userProject.save();
+
+            newOwnerProject.isOwner = true;
+            await newOwnerProject.save();
+
+            await transaction.commit();
+
+        }catch (error) {
+            await transaction.rollback();
+            throw new Error('Owner change failed');
+        }
+
+
     }
 
 }
