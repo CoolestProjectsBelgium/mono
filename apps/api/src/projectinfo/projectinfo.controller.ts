@@ -70,6 +70,14 @@ export class ProjectinfoController {
     return await this.projectService.getAttachments(req.user.id);
   }
 
+  @Get('attachments/:attachmentId')
+  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async getAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
+    return await this.projectService.getThumbnail(req.user.id, attachmentId);
+  }
+
   @Delete('attachments/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   @UseGuards(AuthGuard('jwt-cookiecombo'))

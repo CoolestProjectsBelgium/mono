@@ -19,8 +19,13 @@ export class ProjectinfoService {
         @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment
     ) { }
 
-    private async getThumbnail(attachmentId: number): Promise<StreamableFile> {
-        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId } });
+    public async getThumbnail(userId: number, attachmentId: number): Promise<StreamableFile> {
+        const userProject = await this.userProjectModel.findOne({ where: { user: userId, deletedAt: null } });
+        if (!userProject) {
+            throw new Error('User is not associated with any project');
+        }
+
+        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, projectId: userProject.projectId } });
 
         if (!attachment) {
             throw new Error('Attachment not found');
