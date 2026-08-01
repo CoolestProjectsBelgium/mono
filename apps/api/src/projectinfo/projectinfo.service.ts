@@ -176,4 +176,23 @@ export class ProjectinfoService {
         await voucher.destroy();
     }
 
+    public async changeProjectOwner(userId: number, newOwnerId: number): Promise<void> {
+        const userProject = await this.userProjectModel.findOne({ where: { userId: userId, deletedAt: null, isOwner: true } });
+        if (!userProject) {
+            throw new Error('Project not found for user');
+        }
+
+        const newOwnerProject = await this.userProjectModel.findOne({ where: { userId: newOwnerId, deletedAt: null, projectId: userProject.projectId, isOwner: false } });
+        if (!newOwnerProject) {
+            throw new Error('New owner is not associated with the project');
+        }
+
+        // Change ownership
+        userProject.isOwner = false;
+        await userProject.save();
+
+        newOwnerProject.isOwner = true;
+        await newOwnerProject.save();
+    }
+
 }

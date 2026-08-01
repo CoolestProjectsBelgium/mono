@@ -119,4 +119,14 @@ export class ProjectinfoController {
     return await this.projectService.deleteUnusedVoucher(req.user.id, voucherGuid);
   }
 
+  @Post('change-owner/:newOwnerId')
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async changeProjectOwner(
+    @Request() req: any,
+    @Param('newOwnerId') newOwnerId: number,
+  ) {
+    return await this.projectService.changeProjectOwner(req.user.id, newOwnerId);
+  } 
+
 }
