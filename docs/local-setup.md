@@ -23,6 +23,7 @@ Supported local development path: **VS Code / Cursor Dev Container**.
 |---------|------|
 | `workspace` | Node dev container, ports 3000–3005 |
 | `db` | MySQL (`coolestproject` database) |
+| `mailhog` | SMTP catcher; UI at http://localhost:18025 |
 | `phpmyadmin` | http://localhost:3006 |
 | `proxy` | TLS reverse proxy, ports 8080 (HTTP) / 8443 (HTTPS) |
 
@@ -40,6 +41,7 @@ HTTPS (recommended — matches cert setup):
 | Presentation | https://presentation.coolestprojects.localhost:8443 |
 | Registration | https://registration.coolestprojects.localhost:8443 |
 | Voting | https://voting.coolestprojects.localhost:8443 |
+| MailHog | http://localhost:18025 (captured emails; host port 18025 on Windows) |
 
 Proxy vhost config: [`.devcontainer/dockerfile_proxy/proxy_templates/proxy.conf`](../.devcontainer/dockerfile_proxy/proxy_templates/proxy.conf).
 
@@ -60,7 +62,7 @@ Direct ports (inside/on workspace container):
 
 DB and app secrets are set in `docker-compose.yml` on the `workspace` service (`DB_*`, `JWT_KEY`, `ADMINJS_*`, `VOTING_KEY`, `FILE_*`, etc.). Do not commit production secrets; treat compose values as local-dev only.
 
-Mail: set `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `SMTP_FROM` to enable real email. If `SMTP_HOST` is unset, the API logs the message (including activation URL) and skips sending so registration still succeeds locally.
+Mail: the Dev Container sets `SMTP_HOST=mailhog`, `SMTP_PORT=1025`, and `SMTP_FROM`. Captured mail appears in MailHog at http://localhost:18025 (SMTP on host port `11025`). If `SMTP_HOST` is unset, the API logs the message (including activation URL) and skips sending so registration still succeeds.
 
 Voting app API base URL: `NUXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:3001` in `nuxt.config.ts`).
 
