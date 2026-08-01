@@ -3,13 +3,13 @@ import * as path from 'path';
 import { MulterFile } from './multer-file.type';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Project, Attachment, User, Event } from '@coolestprojects/database';
+import { Attachment, Event, Project, UserProject } from '@coolestprojects/database';
 import sharp from 'sharp';
 
 @Injectable()
 export class FileUploadService {
   public constructor(
-    @InjectModel(Project) private readonly projectModel: typeof Project,
+    @InjectModel(UserProject) private readonly userProjectModel: typeof UserProject,
     @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment,
   ) { }
 
@@ -30,7 +30,7 @@ export class FileUploadService {
       throw new Error('UPLOAD_ROOT environment variable is not set');
     }
 
-    const project = await this.projectModel.findOne({ where: { ownerId: userId }, include: [Event] });
+    const project = await this.userProjectModel.findOne({ where: { id: userId, isOwner: true }, include: [Event, Project] });
     if (!project) {
       throw new Error('Owner not found');
     }
@@ -38,7 +38,7 @@ export class FileUploadService {
     const folderPath = path.join(
       process.env.UPLOAD_ROOT,
       project.event.folderName,
-      `project_${project.id}`,
+      `project_${project.project.id}`,
     );
 
     mkdirSync(folderPath, { recursive: true });
@@ -47,20 +47,19 @@ export class FileUploadService {
     const filepath = path.join(folderPath, filename);
 
     await fs.writeFile(filepath, file.buffer);
-    
+
     const thumbnailBuffer = await this.generateThumbnail(file);
-    await fs.writeFile(path.join(folderPath, 'thumbnail_' + filename), thumbnailBuffer);
+    const thumbnailName = 'thumbnail_' + filename;
+    await fs.writeFile(path.join(folderPath, thumbnailName), thumbnailBuffer);
 
     await this.attachmentModel.create({
-      projectId: project.id,
+      projectId: project.project.id,
       name: file.originalname,
       size: file.size,
       mimetype: file.mimetype,
       filepath: filepath,
-      thumbnailPath: path.join(folderPath, 'thumbnail_' + filename), // For simplicity, using the same file as thumbnail. In a real scenario, you might want to generate a thumbnail.
+      thumbnailPath: path.join(folderPath, thumbnailName),
     });
-
-
   }
 
 
@@ -79,6 +78,7 @@ export class FileUploadService {
     }
 
     await fs.unlink(attachment.filepath);
+    await fs.unlink(attachment.thumbnailPath);
 
     await attachment.destroy();
   }

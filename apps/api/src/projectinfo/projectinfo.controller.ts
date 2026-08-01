@@ -1,5 +1,5 @@
 import { Project, Event } from '@coolestprojects/database';
-import { Body, Controller, Delete, Get, HttpStatus, ParseFilePipeBuilder, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, ParseFilePipeBuilder, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { InjectModel } from '@nestjs/sequelize';
 import { ApiCookieAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -62,7 +62,23 @@ export class ProjectinfoController {
     return await this.projectService.deleteProject(req.user.id);
   }
 
-  @Post('upload')
+  @Get('attachments')
+  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async getAttachments(@Request() req: any) {
+    return await this.projectService.getAttachments(req.user.id);
+  }
+
+  @Delete('attachments/:attachmentId')
+  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseInterceptors(UserCookieInterceptor)
+  async deleteAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
+    return await this.fileUploadService.deleteFile(req.user.id, attachmentId);
+  }
+
+  @Post('attachments')
   @UseGuards(AuthGuard('jwt-cookiecombo'))
   @UseInterceptors(
     FileInterceptor('file'),
