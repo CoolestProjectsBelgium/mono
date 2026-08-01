@@ -1,0 +1,39 @@
+---
+description: Sequelize model conventions for packages/database
+globs: packages/database/**
+alwaysApply: false
+---
+
+# Database package
+
+Read [docs/packages/database.md](../../docs/packages/database.md) first.
+
+## Layout
+
+- One model per file in `packages/database/src/models/<name>.model.ts`
+- Export all public models from `packages/database/src/index.ts`
+- Build output goes to `dist/` — consumers import `@coolestprojects/database`
+
+## Model patterns
+
+- Event-scoped entities extend `BaseEventModel` (provides `eventId` FK + `event` relation)
+- Top-level models (`Event`, `Account`) extend Sequelize `Model` directly
+- Use `sequelize-typescript` decorators: `@Table`, `@Column`, `@ForeignKey`, `@BelongsTo`, etc.
+- Use `.js` extensions in model-to-model imports (ESM resolution), e.g. `'./user.model.js'`
+
+## Consumers
+
+- `apps/api` — registers models in Nest `SequelizeModule`
+- `apps/admin` — registers models in `apps/admin/src/database.ts` for AdminJS
+- Frontends do **not** import this package
+
+## After changes
+
+1. `npm run build --workspace=packages/database`
+2. Restart API/admin dev servers
+3. Update `docs/packages/database.md` model map if adding/removing models
+
+## Do not
+
+- Add NestJS or AdminJS code here — models only
+- Add API route logic or controllers

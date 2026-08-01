@@ -1,0 +1,42 @@
+---
+description: Nuxt 3 voting app conventions
+globs: apps/voting/**
+alwaysApply: false
+---
+
+# Voting (Nuxt 3)
+
+Read [docs/apps/voting.md](../../docs/apps/voting.md) first.
+
+## Layout
+
+- `pages/` — file-based routes
+- `stores/` — Pinia stores (e.g. `language.ts`)
+- `composables/` — shared Vue composables
+- `middleware/` — route middleware
+- `components/` — Vue SFCs
+- `nuxt.config.ts` — Nuxt config
+
+## Stack
+
+- Nuxt 3, Vue 3, TypeScript (ESM)
+- Pinia with `@pinia/nuxt` and persisted state (`@pinia-plugin-persistedstate/nuxt`)
+- Nuxt UI (`@nuxt/ui`)
+- Vitest for tests (`npm run test --workspace=apps/voting`)
+
+## API
+
+- SPA mode (`ssr: false` in `nuxt.config.ts`)
+- API base URL: `runtimeConfig.public.apiBaseURL` from `NUXT_PUBLIC_API_BASE_URL` (default `http://localhost:3001`)
+- Voting endpoints on API root (`/auth/login`, `/projects`, etc.) — see `VotingController`
+- Do **not** import `@coolestprojects/database`
+
+## Conventions
+
+- Use Pinia stores for client state that persists across routes
+- Call API via composables or stores — keep pages thin
+- Dev port 3005 in Dev Container; proxy at `voting.coolestprojects.localhost`
+
+## Tests
+
+- Vitest; colocate tests near the code they cover
