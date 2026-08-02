@@ -1,20 +1,20 @@
 import type { ParticipantDto } from '~/types/api'
 
 export type ParticipantRemoveConfirm = {
-  key: 'participantRemoveConfirmRegistered' | 'participantRemoveConfirmPending'
+  messageKey: 'participantRemove.confirmRegistered' | 'participantRemove.confirmPending'
   params: { name?: string }
 }
 
 export function getParticipantRemoveConfirm(participant: ParticipantDto): ParticipantRemoveConfirm {
   if (participant.status === 'registered' && participant.name) {
     return {
-      key: 'participantRemoveConfirmRegistered',
+      messageKey: 'participantRemove.confirmRegistered',
       params: { name: participant.name },
     }
   }
 
   return {
-    key: 'participantRemoveConfirmPending',
+    messageKey: 'participantRemove.confirmPending',
     params: {},
   }
 }

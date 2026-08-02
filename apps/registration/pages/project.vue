@@ -50,6 +50,16 @@
         :loading="deletingProject"
         @confirm="onDeleteProject"
       />
+      <ConfirmDialog
+        v-model:open="showRemoveParticipantDialog"
+        :title="$t('participantRemove.title')"
+        :message="removeParticipantMessage"
+        :confirm-label="$t('participantRemove.confirmButton')"
+        :cancel-label="$t('Cancel')"
+        :please-wait-label="$t('pleaseWait')"
+        :loading="removingParticipantId != null"
+        @confirm="onConfirmRemoveParticipant"
+      />
     </template>
     <template v-else-if="project?.own_project" data-testid="project-coworker-view">
       <p class="mt-4 text-gray-600">{{ $t('medeProject') }}</p>
@@ -156,6 +166,8 @@ const showLeaveDialog = ref(false)
 const leavingProject = ref(false)
 const showDeleteDialog = ref(false)
 const deletingProject = ref(false)
+const showRemoveParticipantDialog = ref(false)
+const participantToRemove = ref<ParticipantDto | null>(null)
 const fieldErrors = ref<Record<string, string>>({})
 const formError = ref<string | null>(null)
 
@@ -176,6 +188,14 @@ function languageLabelKey(lang: 'nl' | 'fr' | 'en') {
 const addParticipantDisabled = computed(() =>
   settings.value != null && coParticipantCount.value >= settings.value.maxParticipants,
 )
+
+const removeParticipantMessage = computed(() => {
+  if (!participantToRemove.value) {
+    return ''
+  }
+  const { messageKey, params } = getParticipantRemoveConfirm(participantToRemove.value)
+  return t(messageKey, params)
+})
 
 const ownProjectForm = ref({
   project_name: '',
@@ -320,22 +340,27 @@ async function onAddParticipant() {
   }
 }
 
-async function onRemoveParticipant(participant: ParticipantDto) {
+function onRemoveParticipant(participant: ParticipantDto) {
   if (removingParticipantId.value != null) {
     return
   }
 
-  if (import.meta.client) {
-    const { key, params } = getParticipantRemoveConfirm(participant)
-    if (!window.confirm(t(key, params))) {
-      return
-    }
+  participantToRemove.value = participant
+  showRemoveParticipantDialog.value = true
+}
+
+async function onConfirmRemoveParticipant() {
+  const participant = participantToRemove.value
+  if (!participant || removingParticipantId.value != null) {
+    return
   }
 
   removingParticipantId.value = participant.id
   try {
     await removeParticipant(participant)
     project.value = await fetchProject()
+    showRemoveParticipantDialog.value = false
+    participantToRemove.value = null
     notify('success', 'message_successChange')
   }
   catch (error) {

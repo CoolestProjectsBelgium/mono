@@ -310,14 +310,14 @@ export class ProjectinfoService {
                 deletedAt: null,
                 isOwner: false,
                 voucherGuid,
-                userId: null,
             },
         });
         if (!voucher) {
             throw new Error('Voucher not found');
         }
 
-        await voucher.destroy();
+        voucher.deletedAt = new Date();
+        await voucher.save();
     }
 
     public async changeProjectOwner(userId: number, newOwnerId: number): Promise<void> {

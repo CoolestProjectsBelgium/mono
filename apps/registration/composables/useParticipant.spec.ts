@@ -45,11 +45,39 @@ describe('useParticipant', () => {
       self: false,
       status: 'pending',
       token: 'invite-token',
-    })).resolves.toBe(true)
+    })).resolves.toBeUndefined()
     expect(mockFetch).toHaveBeenCalledWith(
       '/projectinfo/participant/invite-token',
       expect.objectContaining({ method: 'DELETE' }),
     )
+  })
+
+  it('removes registered participant via DELETE /projectinfo/participant/:token', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+      .mockResolvedValueOnce(null)
+    const { removeParticipant } = await callComposable(() => useParticipant())
+    await expect(removeParticipant({
+      id: 11,
+      name: 'Sam',
+      self: false,
+      status: 'registered',
+      token: 'voucher-guid',
+    })).resolves.toBeUndefined()
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/projectinfo/participant/voucher-guid',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('throws when removing participant without token', async () => {
+    const { removeParticipant } = await callComposable(() => useParticipant())
+    await expect(removeParticipant({
+      id: 11,
+      name: 'Sam',
+      self: false,
+      status: 'registered',
+    })).rejects.toThrow()
   })
 
   it('leaves project via DELETE /participant/:id with project_code', async () => {
@@ -61,18 +89,6 @@ describe('useParticipant', () => {
     expect(mockFetch).toHaveBeenCalledWith('/participant/9', expect.objectContaining({
       method: 'DELETE',
       body: { project_code: 'voucher-guid' },
-    }))
-  })
-
-  it('joins project via POST /participant', async () => {
-    mockFetch
-      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
-      .mockResolvedValueOnce(null)
-    const { joinProject } = await callComposable(() => useParticipant())
-    await expect(joinProject('invite-token')).resolves.toBe(true)
-    expect(mockFetch).toHaveBeenCalledWith('/participant', expect.objectContaining({
-      method: 'POST',
-      body: { project_code: 'invite-token' },
     }))
   })
 

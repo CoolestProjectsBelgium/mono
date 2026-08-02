@@ -201,8 +201,12 @@
   "participantAdded": "Invitation créée.",
   "participantMailSubject": "Invitation au projet {projectName}",
   "participantMailBody": "Tu es invité·e à collaborer au projet \"{projectName}\".\n\nInscris-toi via ce lien :\n{url}",
-  "participantRemoveConfirmPending": "Es-tu sûr·e de vouloir supprimer cette invitation ouverte ? Le token ne pourra plus être utilisé.",
-  "participantRemoveConfirmRegistered": "Es-tu sûr·e de vouloir délier {name} de ce projet ? La place redeviendra une invitation ouverte.",
+  "participantRemove": {
+    "title": "Supprimer le ou la participant·e ?",
+    "confirmPending": "Es-tu sûr·e de vouloir supprimer cette invitation ouverte ? Le token ne pourra plus être utilisé.",
+    "confirmRegistered": "Es-tu sûr·e de vouloir délier {name} de ce projet ?",
+    "confirmButton": "Supprimer"
+  },
   "leaveProject": {
     "button": "Quitter le projet",
     "title": "Quitter ce projet ?",

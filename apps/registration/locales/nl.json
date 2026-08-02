@@ -201,8 +201,12 @@
   "participantAdded": "Uitnodiging aangemaakt.",
   "participantMailSubject": "Uitnodiging voor project {projectName}",
   "participantMailBody": "Je bent uitgenodigd om mee te werken aan het project \"{projectName}\".\n\nRegistreer via deze link:\n{url}",
-  "participantRemoveConfirmPending": "Weet je zeker dat je deze open uitnodiging wilt verwijderen? De token kan daarna niet meer gebruikt worden.",
-  "participantRemoveConfirmRegistered": "Weet je zeker dat je {name} wilt loskoppelen van dit project? De plek wordt opnieuw een open uitnodiging.",
+  "participantRemove": {
+    "title": "Deelnemer verwijderen?",
+    "confirmPending": "Weet je zeker dat je deze open uitnodiging wilt verwijderen? De token kan daarna niet meer gebruikt worden.",
+    "confirmRegistered": "Weet je zeker dat je {name} wilt loskoppelen van dit project?",
+    "confirmButton": "Verwijderen"
+  },
   "leaveProject": {
     "button": "Project verlaten",
     "title": "Dit project verlaten?",

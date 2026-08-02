@@ -76,4 +76,30 @@ describe('ProjectinfoService vouchers', () => {
       'Maximum number of vouchers reached',
     );
   });
+
+  it('soft-deletes unused voucher when removing pending invite', async () => {
+    const save = jest.fn();
+    const voucher = { userId: null, deletedAt: null as Date | null, save };
+    userProjectModel.findOne
+      .mockResolvedValueOnce({ projectId: 10 })
+      .mockResolvedValueOnce(voucher);
+
+    await service.deleteUnusedVoucher(5, 'voucher-guid');
+
+    expect(voucher.deletedAt).toBeInstanceOf(Date);
+    expect(save).toHaveBeenCalled();
+  });
+
+  it('soft-deletes assigned participant voucher when owner removes registered co-participant', async () => {
+    const save = jest.fn();
+    const voucher = { userId: 42, deletedAt: null as Date | null, save };
+    userProjectModel.findOne
+      .mockResolvedValueOnce({ projectId: 10 })
+      .mockResolvedValueOnce(voucher);
+
+    await service.deleteUnusedVoucher(5, 'voucher-guid');
+
+    expect(voucher.deletedAt).toBeInstanceOf(Date);
+    expect(save).toHaveBeenCalled();
+  });
 });

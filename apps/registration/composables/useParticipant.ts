@@ -43,23 +43,14 @@ export function useParticipant() {
     }
   }
 
-  async function removeParticipant(participant: ParticipantDto): Promise<boolean> {
-    if (participant.status === 'pending' && participant.token) {
-      await apiFetch<null>(`/projectinfo/participant/${encodeURIComponent(participant.token)}`, {
-        method: 'DELETE',
-      })
-      return true
-    }
-
+  async function removeParticipant(participant: ParticipantDto): Promise<void> {
     if (!participant.token) {
-      return false
+      throw new Error(t('error_An error occurred'))
     }
 
-    await apiFetch<null>(`/participant/${participant.id}`, {
+    await apiFetch<null>(`/projectinfo/participant/${encodeURIComponent(participant.token)}`, {
       method: 'DELETE',
-      body: { project_code: participant.token },
     })
-    return true
   }
 
   async function joinProject(projectCode: string): Promise<boolean> {
