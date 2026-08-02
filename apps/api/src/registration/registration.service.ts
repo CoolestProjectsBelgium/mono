@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Registration } from '@coolestprojects/database';
 import { InfoDto } from '../dto/info.dto';
@@ -394,7 +394,14 @@ export class RegistrationService {
   }
 
   async assignParticipant(userId: number, projectCode: string): Promise<void> {
-    const project = await this.userProjectModel.findOne({
+    const existingMembership = await this.userProjectModel.findOne({
+      where: { userId, deletedAt: null },
+    });
+    if (existingMembership) {
+      throw new ConflictException('User already has a project');
+    }
+
+    const voucher = await this.userProjectModel.findOne({
       where: {
         voucherGuid: projectCode,
         userId: null,
@@ -402,11 +409,11 @@ export class RegistrationService {
       },
     });
 
-    if (!project) {
-      throw new Error('Project not found or already assigned');
+    if (!voucher) {
+      throw new NotFoundException('Project not found or already assigned');
     }
 
-    await project.update({ userId: userId });
+    await voucher.update({ userId });
   }
 
   private async validate(event: Event, registration: any) {
