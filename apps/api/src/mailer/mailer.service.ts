@@ -10,6 +10,7 @@ import { Event } from '@coolestprojects/database';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
+import { EmailLog } from '@coolestprojects/database';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import {
   buildLoginUrl,
@@ -27,6 +28,8 @@ export class MailerService {
     private readonly emailTemplateModel: typeof EmailTemplate,
     @InjectModel(Project)
     private readonly projectModel: typeof Project,
+    @InjectModel(EmailLog)
+    private readonly emailLogModel: typeof EmailLog,
   ) {}
 
   private buildRegistrationContext(
@@ -145,14 +148,29 @@ export class MailerService {
         };
       }
 
-      await createTransport(transportOptions).sendMail({
+      const result = await createTransport(transportOptions).sendMail({
         from: env.SMTP_FROM,
         to,
         subject: contentSubject,
         text: contentPlain,
         html: contentRich,
       });
+
+      this.emailLogModel.create({
+        template,
+        to,
+        messageId: result.messageId,
+        status: 'sent',
+      });
+
     } catch (error) {
+      this.emailLogModel.create({
+        template,
+        to,
+        messageId: '',
+        status: 'failed',
+        error: String(error),  
+      });
       console.error(`[mailer] Failed to send "${template}" to ${to}:`, error);
       if (env.NODE_ENV === 'production') {
         throw error;

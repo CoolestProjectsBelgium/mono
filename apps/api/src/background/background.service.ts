@@ -5,7 +5,7 @@ import { Cron } from '@nestjs/schedule';
 export class BackgroundService {
   private readonly logger = new Logger(BackgroundService.name);
 
-  @Cron('0 0 * * *')
+  @Cron('0 12 * * *') // Runs every day at noon
   handleCron() {
     this.logger.debug('Once a day');
     //TODO -> send reminders for missing project
