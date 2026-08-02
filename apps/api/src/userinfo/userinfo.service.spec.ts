@@ -55,4 +55,36 @@ describe('UserinfoService', () => {
     expect(dto.address.postalcode).toBe(1000);
     expect(dto.address.municipality_name).toBe('Brussel');
   });
+
+  it('stores null for empty guardian email on update', async () => {
+    await service.updateUser(1, {
+      id: 1,
+      language: 'nl',
+      email: 'test@example.com',
+      firstname: 'Test',
+      lastname: 'User',
+      sex: 'x',
+      gsm: '123',
+      general_questions: [],
+      mandatory_approvals: [],
+      year: 2010,
+      month: 5,
+      t_size: 2,
+      gsm_guardian: '',
+      email_guardian: '  ',
+      via: '',
+      medical: '',
+      delete_possible: true,
+      address: {
+        street: '',
+        house_number: '',
+        municipality_name: 'Brussel',
+        box_number: '',
+        postalcode: 1000,
+      },
+    });
+
+    expect(mockUser.email_guardian).toBeNull();
+    expect(mockUser.save).toHaveBeenCalled();
+  });
 });

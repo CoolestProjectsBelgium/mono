@@ -152,7 +152,8 @@ export class MailerService {
         html: contentRich,
       });
 
-      this.emailLogModel.create({
+      await this.logEmail({
+        eventId: event.id,
         template,
         to,
         messageId: result.messageId,
@@ -160,12 +161,13 @@ export class MailerService {
       });
 
     } catch (error) {
-      this.emailLogModel.create({
+      await this.logEmail({
+        eventId: event.id,
         template,
         to,
         messageId: '',
         status: 'failed',
-        error: String(error),  
+        error: String(error),
       });
       console.error('[mailer] Failed to send "%s" to %s:', template, to, error);
       if (env.NODE_ENV === 'production') {
@@ -285,4 +287,20 @@ export class MailerService {
   async activationMail() {}
   async ask4TokenMail() {}
   async notifyProjectOwner() {}
+
+  private async logEmail(entry: {
+    eventId: number
+    template: string
+    to: string
+    messageId: string
+    status: 'sent' | 'failed'
+    error?: string
+  }): Promise<void> {
+    try {
+      await this.emailLogModel.create(entry);
+    }
+    catch (logError) {
+      console.error('[mailer] Failed to log email:', logError);
+    }
+  }
 }

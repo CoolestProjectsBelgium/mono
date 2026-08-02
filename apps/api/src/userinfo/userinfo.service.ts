@@ -64,7 +64,8 @@ export class UserinfoService {
     user.gsm = updateUserDto.gsm;
     user.tshirtId = updateUserDto.t_size;
     user.gsm_guardian = updateUserDto.gsm_guardian;
-    user.email_guardian = updateUserDto.email_guardian;
+    // Empty string fails Sequelize @IsEmail; store null when absent (same as registration).
+    user.email_guardian = updateUserDto.email_guardian?.trim() || null;
     user.via = updateUserDto.via;
     user.medical = updateUserDto.medical;
     user.postalcode = updateUserDto.address.postalcode;
