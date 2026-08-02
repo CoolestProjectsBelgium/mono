@@ -100,7 +100,7 @@ export class RegistrationService {
         createRegistrationDto.user.email_guardian?.trim() || null,
       via: createRegistrationDto.user.via,
       medical: createRegistrationDto.user.medical,
-      tshirt: createRegistrationDto.user.t_size,
+      tshirtId: createRegistrationDto.user.t_size,
       birthmonth: new Date(
         createRegistrationDto.user.year,
         createRegistrationDto.user.month,
@@ -266,9 +266,6 @@ export class RegistrationService {
           //address
           postalcode: r.postalcode,
           municipality_name: r.municipality_name,
-          street: r.street,
-          house_number: r.house_number,
-          box_number: r.box_number,
 
           //guardian
           gsm_guardian: r.gsm_guardian,

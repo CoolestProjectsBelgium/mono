@@ -3,6 +3,7 @@ import { userFixture } from '~/fixtures/user'
 import {
   buildRegistrationPayload,
   hydrateRegistrationForm,
+  hydrateUserProfile,
   type RegistrationFormState,
 } from '~/utils/registration-payload'
 
@@ -64,5 +65,36 @@ describe('hydrateRegistrationForm', () => {
       postalcode: 0,
     })
     expect(hydrated.user.email).toBe('saved@example.com')
+  })
+})
+
+describe('hydrateUserProfile', () => {
+  it('adds address defaults to partial API user payloads', () => {
+    const hydrated = hydrateUserProfile({
+      email: 'saved@example.com',
+      postalcode: 2800,
+    } as Parameters<typeof hydrateUserProfile>[0])
+
+    expect(hydrated.address).toEqual({
+      street: '',
+      house_number: '',
+      municipality_name: '',
+      box_number: '',
+      postalcode: 0,
+    })
+    expect(hydrated.email).toBe('saved@example.com')
+  })
+
+  it('preserves nested address from the API', () => {
+    const hydrated = hydrateUserProfile({
+      ...userFixture,
+      address: {
+        ...userFixture.address,
+        postalcode: 2400,
+      },
+    })
+
+    expect(hydrated.address.postalcode).toBe(2400)
+    expect(hydrated.address.municipality_name).toBe(userFixture.address.municipality_name)
   })
 })

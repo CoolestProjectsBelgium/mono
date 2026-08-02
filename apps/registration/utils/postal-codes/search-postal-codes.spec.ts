@@ -3,6 +3,7 @@ import {
   formatPostalCodeOption,
   isValidPostalMunicipalityPair,
   normalizeSearchText,
+  resolvePostalCodeLabel,
   searchPostalCodes,
 } from '~/utils/postal-codes/search-postal-codes'
 
@@ -52,5 +53,12 @@ describe('isValidPostalMunicipalityPair', () => {
     expect(isValidPostalMunicipalityPair(2800, 'Antwerpen')).toBe(false)
     expect(isValidPostalMunicipalityPair(0, 'Mechelen')).toBe(false)
     expect(isValidPostalMunicipalityPair(2800, '')).toBe(false)
+  })
+})
+
+describe('resolvePostalCodeLabel', () => {
+  it('resolves label from postal code when municipality is missing', () => {
+    expect(resolvePostalCodeLabel(2800, '', 'nl')).toBe('2800')
+    expect(resolvePostalCodeLabel(2800, 'Mechelen', 'nl')).toContain('Mechelen')
   })
 })

@@ -33,7 +33,7 @@ Most domain models extend `BaseEventModel` (adds `eventId` FK to `Event`). `Even
 |-------|---------|------|
 | `Event` | `Model` | Event config, dates, limits, floorplan |
 | `Account` | — | Admin/staff accounts (AdminJS auth) |
-| `User` | `BaseEventModel` | Participant user |
+| `User` | `BaseEventModel` | Participant user (`postalcode`, `municipality_name`, `tshirtId`, profile fields) |
 | `Registration` | `BaseEventModel` | Registration record |
 | `Project` | `BaseEventModel` | Submitted project |
 | `UserProject` | `BaseEventModel` | User↔project link, voucher, owner flag |

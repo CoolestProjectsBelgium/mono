@@ -50,6 +50,9 @@ export class User extends BaseEventModel {
   })
   postalcode!: number;
 
+  @Column(DataType.STRING(30))
+  municipality_name!: string;
+
   @IsEmail
   @Index({ name: 'email-event-unique-user', unique: true })
   @Column(DataType.STRING(254))

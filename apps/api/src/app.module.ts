@@ -49,6 +49,8 @@ import { EmailLog } from '@coolestprojects/database';
           password: configService.get('DB_PASSWORD'),
           database: configService.get('DB_NAME'),
           synchronize: true,
+          // Add new model columns in local/dev without dropping data (synchronize alone only creates tables).
+          sync: process.env.NODE_ENV === 'production' ? undefined : { alter: true },
           autoLoadModels: true,
           //sync: { force: true },
           models: [

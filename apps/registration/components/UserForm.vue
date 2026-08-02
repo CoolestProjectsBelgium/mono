@@ -133,7 +133,9 @@
             @change="emit('clear-error', 't_size')"
           >
             <option :value="0">{{ $t('MakeChoice') }}</option>
-            <option v-for="shirt in tshirtOptions" :key="shirt.id" :value="shirt.id">{{ shirt.name }}</option>
+            <option v-for="shirt in tshirtOptions" :key="shirt.id" :value="shirt.id">
+              {{ formatTshirtLabel(shirt.name) }}
+            </option>
           </select>
         </template>
       </FormField>
@@ -209,7 +211,7 @@ const emit = defineEmits<{
   'clear-error': [fieldKey: string]
 }>()
 
-const { locale } = useI18n()
+const { locale, t, te } = useI18n()
 const { fetchSettings } = useSettings()
 const localSettings = ref<SettingDto | null>(null)
 
@@ -227,6 +229,10 @@ const guardianRequired = computed(() => {
 const showGuardianFields = computed(() => props.showGuardian ?? guardianRequired.value)
 
 const tshirtOptions = computed(() => props.tshirts ?? [])
+
+function formatTshirtLabel(name: string): string {
+  return te(name) ? t(name) : name
+}
 
 const yearOptions = computed(() => (ageBounds.value ? getEligibleYears(ageBounds.value) : []))
 

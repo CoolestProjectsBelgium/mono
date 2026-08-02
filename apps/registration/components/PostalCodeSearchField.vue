@@ -57,6 +57,7 @@ import type { PostalCodeEntry } from '~/utils/postal-codes/types'
 import {
   findPostalCodeEntry,
   formatPostalCodeOption,
+  resolvePostalCodeLabel,
   searchPostalCodes,
 } from '~/utils/postal-codes/search-postal-codes'
 
@@ -97,13 +98,11 @@ function isInputFocused(): boolean {
 }
 
 function selectedOptionLabel(): string {
-  if (model.value.postalcode <= 0 || !model.value.municipality_name) {
-    return ''
-  }
-  const entry = findPostalCodeEntry(model.value.postalcode, model.value.municipality_name)
-  return entry
-    ? formatPostalCodeOption(entry, locale.value as 'nl' | 'fr' | 'en')
-    : `${model.value.postalcode} ${model.value.municipality_name}`
+  return resolvePostalCodeLabel(
+    model.value.postalcode,
+    model.value.municipality_name,
+    locale.value as 'nl' | 'fr' | 'en',
+  )
 }
 
 function syncInputFromModel() {

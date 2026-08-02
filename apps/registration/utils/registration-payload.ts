@@ -73,6 +73,24 @@ export function createEmptyAddress(): UserDto['address'] {
   }
 }
 
+/** Merge API user payload with defaults (e.g. missing nested address). */
+export function hydrateUserProfile(
+  saved: Partial<UserDto> | null | undefined,
+): UserDto {
+  const defaults = createEmptyUser()
+  if (!saved) {
+    return defaults
+  }
+  return {
+    ...defaults,
+    ...saved,
+    address: {
+      ...defaults.address,
+      ...saved.address,
+    },
+  }
+}
+
 /** Merge a persisted or partial draft with current defaults (e.g. new address fields). */
 export function hydrateRegistrationForm(
   saved: Partial<RegistrationFormState> | null | undefined,

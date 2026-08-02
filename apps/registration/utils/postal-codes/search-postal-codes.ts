@@ -99,6 +99,34 @@ export function findPostalCodeEntry(
   })
 }
 
+export function findPostalCodeEntriesByCode(postalcode: number): PostalCodeEntry[] {
+  if (!postalcode || postalcode < 1000 || postalcode > 9999) {
+    return []
+  }
+  return postalCodes.filter(entry => entry.postalcode === postalcode)
+}
+
+export function resolvePostalCodeLabel(
+  postalcode: number,
+  municipalityName: string,
+  locale: PostalCodeLocale,
+): string {
+  if (postalcode <= 0) {
+    return ''
+  }
+  if (municipalityName) {
+    const entry = findPostalCodeEntry(postalcode, municipalityName)
+    return entry
+      ? formatPostalCodeOption(entry, locale)
+      : `${postalcode} ${municipalityName}`
+  }
+  const matches = findPostalCodeEntriesByCode(postalcode)
+  if (matches.length === 1) {
+    return formatPostalCodeOption(matches[0], locale)
+  }
+  return String(postalcode)
+}
+
 export function getAllPostalCodes(): PostalCodeEntry[] {
   return postalCodes
 }
