@@ -6,16 +6,17 @@ import { userFixture } from '~/fixtures/user'
 import { activeSettingsFixture } from '~/fixtures/settings'
 import UserPage from './user.vue'
 
-const { fetchUserMock, fetchSettingsMock, fetchTshirtsMock } = vi.hoisted(() => ({
+const { fetchUserMock, fetchSettingsMock, fetchTshirtsMock, updateUserMock } = vi.hoisted(() => ({
   fetchUserMock: vi.fn(),
   fetchSettingsMock: vi.fn(),
   fetchTshirtsMock: vi.fn(),
+  updateUserMock: vi.fn(),
 }))
 
 vi.mock('~/composables/useUserinfo', () => ({
   useUserinfo: () => ({
     fetchUser: fetchUserMock,
-    updateUser: vi.fn(),
+    updateUser: updateUserMock,
     deleteUser: vi.fn(),
     getProfileState: (user: unknown) => (user ? 'ready' : 'unavailable'),
   }),
@@ -126,5 +127,18 @@ describe('user page profile load', () => {
 
     expect(wrapper.get('[data-testid="unavailable-banner"]').text()).toBe('apiUnavailable.userinfo')
     expect(wrapper.find('#firstname').exists()).toBe(false)
+  })
+
+  it('does not submit when Enter is pressed in a text field', async () => {
+    fetchUserMock.mockResolvedValue(userFixture)
+    updateUserMock.mockReset()
+
+    const wrapper = await mountSuspended(UserPage)
+    await flushPromises()
+
+    await wrapper.find('#firstname').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(updateUserMock).not.toHaveBeenCalled()
   })
 })

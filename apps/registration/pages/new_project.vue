@@ -6,15 +6,16 @@
       :api-message="formError"
       summary-key="validation_projectIncomplete"
     />
-    <OwnProjectForm
-      v-model="form"
-      :errors="fieldErrors"
-      class="mt-6"
-      @clear-error="onClearError"
-    />
-    <CtaButton variant="primary" class="mt-6" :disabled="loading" @click="onCreate">
-      {{ loading ? $t('pleaseWait') : $t('Create') }}
-    </CtaButton>
+    <form class="mt-6" @submit.prevent="onCreate" @keydown.enter="onFormKeydown">
+      <OwnProjectForm
+        v-model="form"
+        :errors="fieldErrors"
+        @clear-error="onClearError"
+      />
+      <CtaButton variant="primary" class="mt-6" :disabled="loading" type="button" @click="onCreate">
+        {{ loading ? $t('pleaseWait') : $t('Create') }}
+      </CtaButton>
+    </form>
   </div>
 </template>
 
@@ -23,6 +24,7 @@ import { clearFieldError, mapZodIssuesToFieldErrors, scrollToFirstFieldError } f
 import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createOwnProjectSchema } from '~/utils/validation/user'
 import { getApiErrorMessage } from '~/utils/api-response'
+import { focusNextOnEnter } from '~/utils/focus-next-on-enter'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -40,6 +42,13 @@ const form = ref({
   project_type: '',
   project_lang: 'nl' as const,
 })
+
+function onFormKeydown(event: KeyboardEvent) {
+  const root = event.currentTarget
+  if (root instanceof HTMLElement) {
+    focusNextOnEnter(event, root)
+  }
+}
 
 function onClearError(fieldKey: string) {
   fieldErrors.value = clearFieldError(fieldErrors.value, fieldKey)

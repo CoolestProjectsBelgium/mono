@@ -193,6 +193,13 @@ describe('project page owner delete', () => {
     })
   })
 
+  it('wraps owner project fields in a form for keyboard navigation', async () => {
+    const wrapper = await mountSuspended(ProjectPage)
+    await vi.waitFor(() => {
+      expect(wrapper.find('form').exists()).toBe(true)
+    })
+  })
+
   it('deletes project after confirmation', async () => {
     const wrapper = await mountSuspended(ProjectPage)
     await vi.waitFor(() => {

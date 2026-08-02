@@ -2,7 +2,7 @@
   <component
     :is="to ? NuxtLink : 'button'"
     :to="to"
-    :type="to ? undefined : 'button'"
+    :type="to ? undefined : (type ?? 'button')"
     :disabled="disabled"
     :class="[variant === 'primary' ? 'btn-primary' : 'btn-cta', { 'opacity-50 pointer-events-none': disabled }]"
     @click="!to && $emit('click')"
@@ -18,6 +18,7 @@ defineProps<{
   to?: string
   disabled?: boolean
   variant?: 'primary' | 'cta'
+  type?: 'button' | 'submit' | 'reset'
 }>()
 
 defineEmits<{

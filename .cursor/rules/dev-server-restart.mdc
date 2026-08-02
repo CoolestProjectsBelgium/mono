@@ -1,0 +1,35 @@
+---
+description: Restart the matching Dev Container app dev server after material frontend/backend app changes
+alwaysApply: true
+---
+
+# Dev server restart
+
+After **material** changes to an app under `apps/` (routes, components, services, config that affects runtime), restart that app's dev server in the Dev Container so the user can verify immediately.
+
+## Port map (workspace container)
+
+| App | Port | Restart command (inside container) |
+|-----|------|-----------------------------------|
+| `apps/api` | **3001** (`API_PORT`) | `npm run start:dev --workspace=apps/api` |
+| `apps/admin` | **3000** (`ADMINJS_PORT`) | `npm run start:dev --workspace=apps/admin` |
+| `apps/eventguide` | 3002 | `npm run start:dev --workspace=apps/eventguide -- -p 3002` |
+| `apps/presentation` | 3003 | `npm run start:dev --workspace=apps/presentation -- -p 3003` |
+| `apps/registration` | 3004 | `npm run start:dev --workspace=apps/registration -- -p 3004` |
+| `apps/voting` | 3005 | `npm run start:dev --workspace=apps/voting -- -p 3005` |
+
+## How to restart
+
+From the host (container name `coolestproject-dev-workspace`):
+
+```bash
+docker exec coolestproject-dev-workspace bash -lc "
+  fuser -k <PORT>/tcp 2>/dev/null || pkill -f '<PORT>' || true
+  sleep 2
+  cd /workspace && nohup npm run start:dev --workspace=apps/<name> -- -p <PORT> > /tmp/<name>.log 2>&1 &
+"
+```
+
+Then verify with `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:<PORT>/`.
+
+Skip restart for test-only, doc-only, or comment-only edits.
