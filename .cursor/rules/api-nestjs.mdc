@@ -1,0 +1,39 @@
+---
+description: NestJS API conventions for apps/api
+globs: apps/api/**
+alwaysApply: false
+---
+
+# API (NestJS)
+
+Read [docs/apps/api.md](../../docs/apps/api.md) first.
+
+## Layout
+
+- One domain per folder under `apps/api/src/` (e.g. `registration/`, `voting/`)
+- `*.module.ts` for Nest modules; `*.controller.ts` for routes; `*.service.ts` for business logic
+- Register controllers and providers in `app.module.ts` (flat module — no feature modules for most domains)
+- Shared cross-cutting: `auth/`, `mailer/`, `tokens/`, `file-upload/`, `background/`, `event/`
+
+## Models
+
+- Import Sequelize models from `@coolestprojects/database` — do not define models in `apps/api`
+- Register models in `SequelizeModule.forRootAsync` and `forFeature` in `app.module.ts`
+- Rebuild database package after model changes: `npm run build --workspace=packages/database`
+
+## Auth
+
+- `AuthModule` provides `AUTH_JWT` and `VOTING_JWT` (separate secrets: `JWT_KEY`, `VOTING_KEY`)
+- Passport strategies in `auth/` (`jwt.strategy.ts`, `jwt-voting.strategy.ts`, `file-sign.strategy.ts`)
+- Voting routes live on `VotingController` at root paths (`/auth/login`, `/projects`, etc.)
+
+## Conventions
+
+- Keep controllers thin; put logic in services
+- Global `InfoInterceptor` is registered via `APP_INTERCEPTOR` — responses include info metadata
+- CLI commands via `nestjs-command` in `cli.ts`; seed with `npm run seed-db`
+- Env via `@nestjs/config` (`ConfigModule.forRoot({ isGlobal: true })`)
+
+## Tests
+
+- Spec files colocated (`*.spec.ts`); use `@nestjs/testing` patterns

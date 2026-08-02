@@ -1,0 +1,785 @@
+import { Event } from '@coolestprojects/database';
+import { Tshirt } from '@coolestprojects/database';
+import { TshirtGroup } from '@coolestprojects/database';
+import { TshirtGroupTranslation } from '@coolestprojects/database';
+import { TshirtTranslation } from '@coolestprojects/database';
+import { Question } from '@coolestprojects/database';
+import { QuestionTranslation } from '@coolestprojects/database';
+import { EventTable } from '@coolestprojects/database';
+import { EmailTemplate } from '@coolestprojects/database';
+import { Account } from '@coolestprojects/database';
+import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
+
+export async function seedDatabase(
+  eventModel: typeof Event,
+  tshirtGroupModel: typeof TshirtGroup,
+  questionModel: typeof Question,
+  questionTranslationModel: typeof QuestionTranslation,
+  tshirtModel: typeof Tshirt,
+  tshirtGroupTranslationModel: typeof TshirtGroupTranslation,
+  eventTableModel: typeof EventTable,
+  emailTemplateModel: typeof EmailTemplate,
+  tshirtTranslationModel: typeof TshirtTranslation,
+  accountModel: typeof Account
+) {
+  const event = await eventModel.create({
+    floorplanPath: 'floorplan_active.svg',
+    minAge: 7,
+    maxAge: 18,
+    minGuardianAge: 16,
+    maxRegistration: 64,
+    maxVoucher: 3,
+    eventBeginDate: new Date().setDate(new Date().getDate() - 100),
+    registrationOpenDate: new Date().setDate(new Date().getDate() - 90),
+    registrationClosedDate: new Date().setDate(new Date().getDate() + 10),
+    projectClosedDate: new Date().setDate(new Date().getDate() + 20),
+    officialStartDate: new Date().setDate(new Date().getDate() + 5),
+    // Must be in the future: InfoInterceptor requires eventBeginDate < now < eventEndDate
+    eventEndDate: new Date().setDate(new Date().getDate() + 40),
+    maxFileSize: 2147483647,
+    allowedMimeTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",
+    eventTitle: 'Coolest Projects Active Event',
+  });
+
+  const groups = await tshirtGroupModel.bulkCreate([
+    {
+      eventId: event.id,
+      name: 'kids',
+    },
+    {
+      eventId: event.id,
+      name: 'adults',
+    },
+  ]);
+
+  const questions = await questionModel.bulkCreate([
+    {
+      eventId: event.id,
+      name: 'Agree to Photo',
+    },
+    {
+      eventId: event.id,
+      name: 'Agree to Contact',
+    },
+    {
+      eventId: event.id,
+      name: 'Approved',
+      mandatory: 1,
+    },
+  ]);
+  await questionTranslationModel.bulkCreate([
+    {
+      eventId: event.id,
+      language: 'en',
+      questionId: questions[0].id,
+      positive: 'That is no problem',
+      negative:
+        "Don't use any pictures or movies where the participant is reconizable",
+      description:
+        'It is possible that the participant is photographed or filmed',
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      questionId: questions[1].id,
+      positive: 'Yes',
+      negative: 'No',
+      description: 'Can CoderDojo contact you for the next edition',
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      questionId: questions[2].id,
+      positive: 'Yes',
+      negative: 'No',
+      description: 'Be sure to read our rules. Do you agree',
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      questionId: questions[0].id,
+      positive: 'Dat is geen probleem',
+      negative:
+        'Gelieve geen foto’s en filmpjes te gebruiken waarop de deelnemer herkenbaar is',
+      description:
+        'Het is mogelijk dat de deelnemer gefotografeerd of gefilmd wordt',
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      questionId: questions[1].id,
+      positive: 'Ja',
+      negative: 'Nee',
+      description: 'Mag CoderDojo je contacteren voor de volgende editie?',
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      questionId: questions[2].id,
+      positive: 'Ja',
+      negative: 'Nee',
+      description: 'Lees zeker onze regels. Ga je akkoord?',
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      questionId: questions[0].id,
+      positive: "Je suis d'accord",
+      negative:
+        'Je ne suis pas d’accord que l’on utilise les images et vidéos si le ou la participant.e est reconnaissable',
+      description:
+        'Le ou la participant.e peut être photographié.e ou filmé.e.',
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      questionId: questions[1].id,
+      positive: 'Qui',
+      negative: 'Non',
+      description:
+        'CoderDojo peut-il vous contacter pour la prochaine édition ?',
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      questionId: questions[2].id,
+      positive: 'Qui',
+      negative: 'Non',
+      description: "Assure-toi de lire nos règles. Es-tu d'accord ?",
+    },
+  ]);
+
+  await tshirtGroupTranslationModel.bulkCreate([
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kids',
+      groupId: groups[0].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adults',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kind',
+      groupId: groups[0].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'enfants',
+      groupId: groups[0].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte',
+      groupId: groups[1].id,
+    },
+  ]);
+
+  const tshirts = await tshirtModel.bulkCreate([
+    {
+      eventId: event.id,
+      name: 'kid_3-4',
+      groupId: groups[0].id,
+    },
+    {
+      eventId: event.id,
+      name: 'kid_5-6',
+      groupId: groups[0].id,
+    },
+    {
+      eventId: event.id,
+      name: 'kid_7-8',
+      groupId: groups[0].id,
+    },
+    {
+      eventId: event.id,
+      name: 'kid_9-11',
+      groupId: groups[0].id,
+    },
+    {
+      eventId: event.id,
+      name: 'kid_12-14',
+      groupId: groups[0].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_XXS',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_XS',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_S',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_M',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_L',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_XL',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_XXL',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_3XL',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_4XL',
+      groupId: groups[1].id,
+    },
+    {
+      eventId: event.id,
+      name: 'adult_5XL',
+      groupId: groups[1].id,
+    },
+  ]);
+
+  // TODO all translations
+  await tshirtTranslationModel.bulkCreate([
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_3-4',
+      tshirtId: tshirts[0].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_5-6',
+      tshirtId: tshirts[1].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_7-8',
+      tshirtId: tshirts[2].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_9-11',
+      tshirtId: tshirts[3].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'kid_12-14',
+      tshirtId: tshirts[4].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_XXS',
+      tshirtId: tshirts[5].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_XS',
+      tshirtId: tshirts[6].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_S',
+      tshirtId: tshirts[7].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_M',
+      tshirtId: tshirts[8].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_L',
+      tshirtId: tshirts[9].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_XL',
+      tshirtId: tshirts[10].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_XXL',
+      tshirtId: tshirts[11].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_3XL',
+      tshirtId: tshirts[12].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_4XL',
+      tshirtId: tshirts[13].id,
+    },
+    {
+      eventId: event.id,
+      language: 'en',
+      description: 'adult_5XL',
+      tshirtId: tshirts[14].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kind_3-4',
+      tshirtId: tshirts[0].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kind_5-6',
+      tshirtId: tshirts[1].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kind_7-8',
+      tshirtId: tshirts[2].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kind_9-11',
+      tshirtId: tshirts[3].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'kind_12-14',
+      tshirtId: tshirts[4].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_XXS',
+      tshirtId: tshirts[5].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_XS',
+      tshirtId: tshirts[6].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_S',
+      tshirtId: tshirts[7].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_M',
+      tshirtId: tshirts[8].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_L',
+      tshirtId: tshirts[9].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_XL',
+      tshirtId: tshirts[10].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_XXL',
+      tshirtId: tshirts[11].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_3XL',
+      tshirtId: tshirts[12].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_4XL',
+      tshirtId: tshirts[13].id,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      description: 'volwassen_5XL',
+      tshirtId: tshirts[14].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'enfants_3-4',
+      tshirtId: tshirts[0].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'enfants_5-6',
+      tshirtId: tshirts[1].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'enfants_7-8',
+      tshirtId: tshirts[2].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'enfants_9-11',
+      tshirtId: tshirts[3].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'enfants_12-14',
+      tshirtId: tshirts[4].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_XXS',
+      tshirtId: tshirts[5].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_XS',
+      tshirtId: tshirts[6].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_S',
+      tshirtId: tshirts[7].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_M',
+      tshirtId: tshirts[8].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_L',
+      tshirtId: tshirts[9].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_XL',
+      tshirtId: tshirts[10].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_XXL',
+      tshirtId: tshirts[11].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_3XL',
+      tshirtId: tshirts[12].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_4XL',
+      tshirtId: tshirts[13].id,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      description: 'adulte_5XL',
+      tshirtId: tshirts[14].id,
+    },
+  ]);
+
+  await eventTableModel.bulkCreate([
+    {
+      eventId: event.id,
+      name: 'Tafel_01',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_02',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_03',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_04',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_05',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_06',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_07',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_08',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_09',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_10',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_11',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_12',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_13',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_14',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_15',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_16',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_17',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_18',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_19',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_20',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_21',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_22',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_23',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_24',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_25',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_26',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_27',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_28',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_29',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_30',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_31',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_32',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_33',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_34',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_35',
+      requirements: null,
+      maxPlaces: 4,
+    },
+    {
+      eventId: event.id,
+      name: 'Tafel_36',
+      requirements: null,
+      maxPlaces: 4,
+    },
+  ]);
+
+  await emailTemplateModel.bulkCreate(
+    buildSeedEmailTemplates(event.id) as unknown as Parameters<
+      typeof emailTemplateModel.bulkCreate
+    >[0],
+  );
+
+  await accountModel.bulkCreate([
+    {
+      email: 'admin',
+      encryptedPassword: accountModel.hashPassword('admin'),
+      account_type: 'admin',
+    },
+    {
+      email: 'superadmin',
+      encryptedPassword: accountModel.hashPassword('superadmin'),
+      account_type: 'super_admin',
+    },
+    {
+      email: 'jury',
+      encryptedPassword: accountModel.hashPassword('jury'),
+      account_type: 'jury',
+    },
+  ]);
+}

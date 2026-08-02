@@ -1,0 +1,37 @@
+{
+  "name": "coolestprojects monorepo",
+  "version": "1.0.0",
+  "description": "Monorepo for coolestprojects apps and packages",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "check-docs": "node scripts/check-docs.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "workspaces": [
+    "packages/database",
+    "apps/admin",
+    "apps/api",
+    "apps/eventguide",
+    "apps/presentation",
+    "apps/registration",
+    "apps/voting"
+  ],
+  "allowScripts": {
+    "@nestjs/core@11.1.24": true,
+    "unrs-resolver@1.12.2": true,
+    "bcrypt@6.0.0": true,
+    "vue-demi@0.14.10": true,
+    "puppeteer@25.2.1": true,
+    "@scarf/scarf@1.4.0": true,
+    "@parcel/watcher@2.5.6": true,
+    "esbuild@0.28.1": true
+  },
+  "dependencies": {
+    "@nestjs/cli": "^11.0.23",
+    "unstorage": "^1.10.2"
+  }
+}
