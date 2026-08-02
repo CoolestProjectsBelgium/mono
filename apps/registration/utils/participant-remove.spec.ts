@@ -13,7 +13,7 @@ describe('getParticipantRemoveConfirm', () => {
     }
 
     expect(getParticipantRemoveConfirm(participant)).toEqual({
-      key: 'participantRemoveConfirmPending',
+      messageKey: 'participantRemove.confirmPending',
       params: {},
     })
   })
@@ -27,7 +27,7 @@ describe('getParticipantRemoveConfirm', () => {
     }
 
     expect(getParticipantRemoveConfirm(participant)).toEqual({
-      key: 'participantRemoveConfirmRegistered',
+      messageKey: 'participantRemove.confirmRegistered',
       params: { name: 'Sam' },
     })
   })
@@ -41,7 +41,7 @@ describe('getParticipantRemoveConfirm', () => {
     }
 
     expect(getParticipantRemoveConfirm(participant)).toEqual({
-      key: 'participantRemoveConfirmPending',
+      messageKey: 'participantRemove.confirmPending',
       params: {},
     })
   })
