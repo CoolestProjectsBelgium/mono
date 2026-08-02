@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Registration } from '@coolestprojects/database';
 import { InfoDto } from '../dto/info.dto';
@@ -16,6 +16,8 @@ import { UserProject } from '@coolestprojects/database';
 
 @Injectable()
 export class RegistrationService {
+  private readonly logger = new Logger(RegistrationService.name);
+
   constructor(
     private mailerService: MailerService,
     private tokenService: TokensService,
@@ -54,7 +56,10 @@ export class RegistrationService {
       },
     });
     if (emailUserFound > 0) {
-      this.mailerService.emailExistsMail(createRegistrationDto.user);
+      await this.mailerService.emailExistsMail(
+        createRegistrationDto.user,
+        info.currentEvent,
+      );
       return;
     }
 
@@ -65,7 +70,10 @@ export class RegistrationService {
       },
     });
     if (emailRegistrationFound > 0) {
-      this.mailerService.emailExistsMail(createRegistrationDto.user);
+      await this.mailerService.emailExistsMail(
+        createRegistrationDto.user,
+        info.currentEvent,
+      );
       return;
     }
 
@@ -86,8 +94,10 @@ export class RegistrationService {
       lastname: createRegistrationDto.user.lastname,
       sex: createRegistrationDto.user.sex,
       gsm: createRegistrationDto.user.gsm,
-      gsm_guardian: createRegistrationDto.user.gsm_guardian,
-      email_guardian: createRegistrationDto.user.email_guardian,
+      gsm_guardian:
+        createRegistrationDto.user.gsm_guardian?.trim() || null,
+      email_guardian:
+        createRegistrationDto.user.email_guardian?.trim() || null,
       via: createRegistrationDto.user.via,
       medical: createRegistrationDto.user.medical,
       tshirt: createRegistrationDto.user.t_size,
@@ -105,10 +115,10 @@ export class RegistrationService {
       // map to questions
       questions: [
         ...createRegistrationDto.user.general_questions.map((questionId) => {
-          return { questionId: questionId, eventId: info.currentEvent };
+          return { questionId: Number(questionId), eventId: info.currentEvent };
         }),
         ...createRegistrationDto.user.mandatory_approvals.map((questionId) => {
-          return { questionId: questionId, eventId: info.currentEvent };
+          return { questionId: Number(questionId), eventId: info.currentEvent };
         }),
       ],
       waiting_list: false,
@@ -133,80 +143,83 @@ export class RegistrationService {
 
     // we want to make sure that the count, insert & waiting list logic is atomic
     const transaction = await this.sequelize.transaction();
-
-    // lock registrations for the current event
-    await this.eventModel.findAll({
-      where: {
-        id: info.currentEvent,
-      },
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-
-    // count the projects in the event
-    const projectCount = await this.projectModel.count({
-      where: { eventId: event.id },
-      transaction,
-    });
-
-    // count the projects in the registration
-    const registrationProjectCount = await this.registrationModel.count({
-      where: { eventId: event.id, project_code: null },
-      transaction,
-    });
-
-    // check waiting list if project code is not filled, participant can always register
-    if (
-      !registration.project_code &&
-      projectCount + registrationProjectCount >= event.maxRegistration
-    ) {
-      registration.waiting_list = true;
-    }
-
-    const r = await this.registrationModel.create(registration, {
-      transaction,
-    });
-
-    // map the questions to the registration (verify if questions exist for the event)
-    const questions = await this.questionModel.findAll({
-      where: {
-        id: registration.questions.map((q) => q.questionId),
-        eventId: info.currentEvent,
-      },
-    });
-    await this.questionRegistrationModel.bulkCreate(
-      questions.map((q) => {
-        return {
-          questionId: q.id,
-          registrationId: r.id,
-          eventId: q.eventId,
-        };
-      }),
-      { transaction },
-    );
-
     try {
+      // lock registrations for the current event
+      await this.eventModel.findAll({
+        where: {
+          id: info.currentEvent,
+        },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      // count the projects in the event
+      const projectCount = await this.projectModel.count({
+        where: { eventId: event.id },
+        transaction,
+      });
+
+      // count the projects in the registration
+      const registrationProjectCount = await this.registrationModel.count({
+        where: { eventId: event.id, project_code: null },
+        transaction,
+      });
+
+      // check waiting list if project code is not filled, participant can always register
+      if (
+        !registration.project_code &&
+        projectCount + registrationProjectCount >= event.maxRegistration
+      ) {
+        registration.waiting_list = true;
+      }
+
+      const r = await this.registrationModel.create(registration, {
+        transaction,
+      });
+
+      // map the questions to the registration (verify if questions exist for the event)
+      const questions = await this.questionModel.findAll({
+        where: {
+          id: registration.questions.map((q) => q.questionId),
+          eventId: info.currentEvent,
+        },
+      });
+      await this.questionRegistrationModel.bulkCreate(
+        questions.map((q) => {
+          return {
+            questionId: q.id,
+            registrationId: r.id,
+            eventId: q.eventId,
+          };
+        }),
+        { transaction },
+      );
+
       await transaction.commit();
+
+      // send mails
+      if (registration.waiting_list) {
+        await this.mailerService.waitingListMail(r);
+      } else {
+        const token = this.tokenService.generateRegistrationToken(r.id);
+        await this.mailerService.registrationMail(r, token);
+      }
+
+      return r;
     } catch (error) {
       await transaction.rollback();
-      throw new Error('Transaction commit failed: ' + error);
+      throw error;
     }
-
-    // send mails
-    if (registration.waiting_list) {
-      await this.mailerService.waitingListMail(r);
-    } else {
-      const token = this.tokenService.generateRegistrationToken(r.id);
-      await this.mailerService.registrationMail(r, token);
-    }
-
-    return r;
   }
 
   async activateRegistration(registrationID: number): Promise<User> {
 
     // update everything in a transaction
     const transaction = await this.sequelize.transaction();
+    let user: User;
+    let joinedViaVoucher = false;
+    let coworkerProjectId: number | null = null;
+
     try {
       const r = await this.registrationModel.findOne({
         where: { id: registrationID },
@@ -233,7 +246,7 @@ export class RegistrationService {
         lock: transaction.LOCK.UPDATE,
       });
 
-      const user = await this.userModel.create(
+      user = await this.userModel.create(
         {
           eventId: r.eventId,
 
@@ -265,6 +278,7 @@ export class RegistrationService {
       );
 
       if (r.project_code) {
+        joinedViaVoucher = true;
         // link user to project via voucher
         const voucher = await this.userProjectModel.findOne({
           where: {
@@ -279,10 +293,11 @@ export class RegistrationService {
         if (!voucher) {
           throw new Error('Voucher not found or already used');
         }
+        coworkerProjectId = voucher.projectId;
         await voucher.update({ userId: user.id }, { transaction });
       } else {
         // create project for user
-        await this.projectModel.create(
+        const createdProject = await this.projectModel.create(
           {
             name: r.project_name,
             description: r.project_descr,
@@ -291,6 +306,15 @@ export class RegistrationService {
             eventId: r.eventId,
             maxVoucher: e.maxVoucher,
             ownerId: user.id,
+          },
+          { transaction },
+        );
+        await this.userProjectModel.create(
+          {
+            userId: user.id,
+            projectId: createdProject.id,
+            eventId: r.eventId,
+            isOwner: true,
           },
           { transaction },
         );
@@ -319,20 +343,41 @@ export class RegistrationService {
       });
 
       await transaction.commit();
-
-      // send confirmation mail
-      if (r.project_code) {
-        await this.mailerService.welcomeMailCoWorker();
-        await this.mailerService.notifyProjectOwner();
-      } else {
-        await this.mailerService.welcomeMailOwner(user);
-      }
-
-      return user;
     } catch (error) {
       await transaction.rollback();
       throw new Error('Transaction commit failed: ' + error);
     }
+
+    // send confirmation mail (outside transaction; must not fail activation)
+    try {
+      const loginToken = this.tokenService.generateLoginToken(user.id);
+      if (joinedViaVoucher) {
+        const project = await this.projectModel.findByPk(coworkerProjectId!);
+        if (!project) {
+          throw new Error('Project not found for co-worker welcome mail');
+        }
+        await this.mailerService.welcomeMailCoWorker(user, project, loginToken);
+        await this.mailerService.notifyProjectOwner();
+      } else {
+        const project = await this.projectModel.findOne({
+          where: {
+            ownerId: user.id,
+            eventId: user.eventId,
+          },
+        });
+        if (!project) {
+          throw new Error('Project not found for owner welcome mail');
+        }
+        await this.mailerService.welcomeMailOwner(user, project, loginToken);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Welcome mail failed after activating registration ${registrationID}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+
+    return user;
   }
 
   async unassignParticipant(userId: number, projectCode: string): Promise<void> {
@@ -372,14 +417,18 @@ export class RegistrationService {
     const mandatoryQuestions = await this.questionModel.findAll({
       attributes: ['id'],
       where: {
-        EventId: event.id,
+        eventId: event.id,
         mandatory: true,
       },
     });
 
-    const answeredQuestionIds = registration.questions.map((q: { questionId: any; }) => q.questionId);
+    const answeredQuestionIds = new Set(
+      registration.questions.map((q: { questionId: string | number }) =>
+        Number(q.questionId),
+      ),
+    );
     const missingMandatory = mandatoryQuestions.filter(
-      (q) => !answeredQuestionIds.includes(q.id),
+      (q) => !answeredQuestionIds.has(q.id),
     );
 
     if (missingMandatory.length > 0) {

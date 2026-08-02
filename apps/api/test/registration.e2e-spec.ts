@@ -97,7 +97,7 @@ describe('RegistrationController (e2e)', () => {
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'test@test.be,test1@test.be',
-        subject: expect.stringContaining('Registration Confirmation'),
+        subject: expect.stringContaining('Coolest Projects'),
       }),
     );
 

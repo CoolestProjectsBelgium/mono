@@ -24,6 +24,8 @@ import { RegistrationController } from './registration/registration.controller';
 import { RegistrationService } from './registration/registration.service';
 import { TokensService } from './tokens/tokens.service';
 import { UserinfoController } from './userinfo/userinfo.controller';
+import { UserinfoService } from './userinfo/userinfo.service';
+import { UserCookieInterceptor } from './user-cookie.interceptor';
 import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
 
@@ -121,7 +123,9 @@ import { VotingService } from './voting/voting.service';
     ProjectinfoService,
     VotingService,
     PresentationService,
-    EventguideService
+    EventguideService,
+    UserinfoService,
+    UserCookieInterceptor,
   ],
   exports: [],
 })

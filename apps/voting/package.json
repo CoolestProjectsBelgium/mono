@@ -7,10 +7,11 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "start:dev": "nuxt dev --host 0.0.0.0 --port 3005",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@pinia-plugin-persistedstate/nuxt": "^1.2.1",

@@ -1,15 +1,35 @@
 {
   "name": "@coolestprojects/registration",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "devDependencies": {},
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "npx http-server -o /"
+    "build": "nuxt build",
+    "dev": "nuxt dev --host 0.0.0.0",
+    "start:dev": "nuxt dev --host 0.0.0.0 --port 3004",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare && node ./scripts/patch-vitest-environment.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed:postal-codes": "node ./scripts/seed-postal-codes.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "dependencies": {
+    "@pinia/nuxt": "^0.11.0",
+    "heic2any": "^0.0.4",
+    "nuxt": "^3.16.2",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.13",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^3.17.2",
+    "@nuxtjs/i18n": "^9.5.3",
+    "@nuxtjs/tailwindcss": "^6.13.2",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^17.4.4",
+    "typescript": "^5.8.3",
+    "unstorage": "^1.17.5",
+    "vite": "^6.4.3",
+    "vitest": "^3.1.1"
+  }
 }

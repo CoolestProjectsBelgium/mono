@@ -8,6 +8,7 @@ import { QuestionTranslation } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
 import { Account } from '@coolestprojects/database';
+import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 
 export async function seedDatabase(
   eventModel: typeof Event,
@@ -31,9 +32,10 @@ export async function seedDatabase(
     eventBeginDate: new Date().setDate(new Date().getDate() - 100),
     registrationOpenDate: new Date().setDate(new Date().getDate() - 90),
     registrationClosedDate: new Date().setDate(new Date().getDate() + 10),
-    projectClosedDate: new Date().setDate(new Date().getDate() - 20),
-    officialStartDate: new Date().setDate(new Date().getDate() - 30),
-    eventEndDate: new Date().setDate(new Date().getDate() - 40),
+    projectClosedDate: new Date().setDate(new Date().getDate() + 20),
+    officialStartDate: new Date().setDate(new Date().getDate() + 5),
+    // Must be in the future: InfoInterceptor requires eventBeginDate < now < eventEndDate
+    eventEndDate: new Date().setDate(new Date().getDate() + 40),
     maxFileSize: 2147483647,
     allowedMimeTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",
     eventTitle: 'Coolest Projects Active Event',
@@ -757,57 +759,11 @@ export async function seedDatabase(
     },
   ]);
 
-  await emailTemplateModel.bulkCreate([
-    {
-      eventId: event.id,
-      template: 'registration',
-      language: 'en',
-      contentPlain: 'Thank you for registering for the event. {{token}}',
-      contentRich: '<p>Thank you for registering for the event.</p>',
-      subject: 'Registration Confirmation',
-    },
-    {
-      eventId: event.id,
-      template: 'registration',
-      language: 'nl',
-      contentPlain: 'Bedankt voor uw registratie voor het evenement. {{token}}',
-      contentRich: '<p>Bedankt voor uw registratie voor het evenement.</p>',
-      subject: 'Bevestiging van registratie',
-    },
-    {
-      eventId: event.id,
-      template: 'registration',
-      language: 'fr',
-      contentPlain: 'Merci de vous être inscrit à l’événement. {{token}}',
-      contentRich: '<p>Merci de vous être inscrit à l’événement.</p>',
-      subject: 'Confirmation d’inscription',
-    },
-
-    {
-      eventId: event.id,
-      template: 'activation',
-      language: 'en',
-      contentPlain: 'Thank you for activating your registration',
-      contentRich: '<p>Thank you for activating your registration.</p>',
-      subject: 'Registration Activation',
-    },
-    {
-      eventId: event.id,
-      template: 'activation',
-      language: 'nl',
-      contentPlain: 'Bedankt voor het activeren van uw registratie',
-      contentRich: 'Bedankt voor het activeren van uw registratie.',
-      subject: 'Activatie van registratie',
-    },
-    {
-      eventId: event.id,
-      template: 'activation',
-      language: 'fr',
-      contentPlain: 'Merci d’avoir activé votre inscription',
-      contentRich: '<p>Merci d’avoir activé votre inscription.</p>',
-      subject: 'Activation de l’inscription',
-    },
-  ]);
+  await emailTemplateModel.bulkCreate(
+    buildSeedEmailTemplates(event.id) as unknown as Parameters<
+      typeof emailTemplateModel.bulkCreate
+    >[0],
+  );
 
   await accountModel.bulkCreate([
     {
