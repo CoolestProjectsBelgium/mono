@@ -207,6 +207,12 @@
     "confirmRegistered": "Es-tu sûr·e de vouloir délier {name} de ce projet ?",
     "confirmButton": "Supprimer"
   },
+  "changeOwner": {
+    "button": "Nommer propriétaire",
+    "title": "Transférer la propriété ?",
+    "confirm": "Es-tu sûr·e de vouloir nommer {name} propriétaire du projet ? Tu resteras coéquipier·ère et tu ne pourras plus le modifier.",
+    "confirmButton": "Nommer propriétaire"
+  },
   "leaveProject": {
     "button": "Quitter le projet",
     "title": "Quitter ce projet ?",

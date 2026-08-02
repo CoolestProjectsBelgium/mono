@@ -35,8 +35,8 @@ Most domain models extend `BaseEventModel` (adds `eventId` FK to `Event`). `Even
 | `Account` | — | Admin/staff accounts (AdminJS auth) |
 | `User` | `BaseEventModel` | Participant user (`postalcode`, `municipality_name`, `tshirtId`, profile fields) |
 | `Registration` | `BaseEventModel` | Registration record |
-| `Project` | `BaseEventModel` | Submitted project |
-| `UserProject` | `BaseEventModel` | User↔project link, voucher, owner flag |
+| `Project` | `BaseEventModel` | Submitted project (`deletedAt` soft-delete) |
+| `UserProject` | `BaseEventModel` | User↔project link, voucher, owner flag (`deletedAt` soft-delete) |
 | `Question` | `BaseEventModel` | Registration question |
 | `QuestionTranslation` | — | Question i18n |
 | `QuestionRegistration` | — | Question answers on registration |
@@ -68,7 +68,7 @@ Exports are listed in `packages/database/src/index.ts`.
 
 ### Project + voting
 
-`Project` ← `UserProject` (voucher GUID, `isOwner`) → `Vote` in `VoteCategory`.
+`Project` ← `UserProject` (voucher GUID, `isOwner`) → `Vote` in `VoteCategory`. Soft-deleted projects (`Project.deletedAt`) and memberships (`UserProject.deletedAt`) are excluded from active registration, join, and voting paths.
 
 ### Admin access
 

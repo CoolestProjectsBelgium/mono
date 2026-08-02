@@ -81,7 +81,10 @@ describe('ProjectinfoService vouchers', () => {
     const save = jest.fn();
     const voucher = { userId: null, deletedAt: null as Date | null, save };
     userProjectModel.findOne
-      .mockResolvedValueOnce({ projectId: 10 })
+      .mockResolvedValueOnce({
+        projectId: 10,
+        getProject: jest.fn().mockResolvedValue({ id: 10, deletedAt: null }),
+      })
       .mockResolvedValueOnce(voucher);
 
     await service.deleteUnusedVoucher(5, 'voucher-guid');
@@ -94,12 +97,105 @@ describe('ProjectinfoService vouchers', () => {
     const save = jest.fn();
     const voucher = { userId: 42, deletedAt: null as Date | null, save };
     userProjectModel.findOne
-      .mockResolvedValueOnce({ projectId: 10 })
+      .mockResolvedValueOnce({ projectId: 10, getProject: jest.fn().mockResolvedValue({ id: 10, deletedAt: null }) })
       .mockResolvedValueOnce(voucher);
 
     await service.deleteUnusedVoucher(5, 'voucher-guid');
 
     expect(voucher.deletedAt).toBeInstanceOf(Date);
     expect(save).toHaveBeenCalled();
+  });
+});
+
+describe('ProjectinfoService deleteProject', () => {
+  let service: ProjectinfoService;
+  const userProjectModel = {
+    findOne: jest.fn(),
+    findAll: jest.fn(),
+    count: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+  };
+  const projectModel = {
+    create: jest.fn(),
+    update: jest.fn(),
+  };
+  const userModel = {
+    findByPk: jest.fn(),
+  };
+  const eventModel = {
+    findByPk: jest.fn(),
+  };
+  const attachmentModel = {};
+  const transaction = {
+    commit: jest.fn(),
+    rollback: jest.fn(),
+  };
+  const sequelize = {
+    transaction: jest.fn().mockResolvedValue(transaction),
+  };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    sequelize.transaction.mockResolvedValue(transaction);
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ProjectinfoService,
+        { provide: getModelToken(Project), useValue: projectModel },
+        { provide: getModelToken(UserProject), useValue: userProjectModel },
+        { provide: getModelToken(Attachment), useValue: attachmentModel },
+        { provide: getModelToken(User), useValue: userModel },
+        { provide: getModelToken(Event), useValue: eventModel },
+        { provide: getConnectionToken(), useValue: sequelize },
+      ],
+    }).compile();
+
+    service = module.get(ProjectinfoService);
+  });
+
+  it('soft-deletes project and all memberships when owner is alone', async () => {
+    const project = {
+      id: 10,
+      deletedAt: null as Date | null,
+      save: jest.fn(),
+    };
+    userProjectModel.findOne.mockResolvedValue({
+      projectId: 10,
+      getProject: jest.fn().mockResolvedValue(project),
+    });
+    userProjectModel.count.mockResolvedValue(0);
+    userProjectModel.update.mockResolvedValue([2]);
+    projectModel.update.mockResolvedValue([1]);
+
+    await service.deleteProject(5);
+
+    expect(userProjectModel.update).toHaveBeenCalledWith(
+      { deletedAt: expect.any(Date) },
+      expect.objectContaining({
+        where: { projectId: 10, deletedAt: null },
+        transaction,
+      }),
+    );
+    expect(projectModel.update).toHaveBeenCalledWith(
+      { deletedAt: expect.any(Date) },
+      expect.objectContaining({
+        where: { id: 10, deletedAt: null },
+        transaction,
+      }),
+    );
+    expect(transaction.commit).toHaveBeenCalled();
+  });
+
+  it('rejects delete when registered co-participants exist', async () => {
+    userProjectModel.findOne.mockResolvedValue({
+      projectId: 10,
+      getProject: jest.fn().mockResolvedValue({ id: 10, deletedAt: null }),
+    });
+    userProjectModel.count.mockResolvedValue(1);
+
+    await expect(service.deleteProject(5)).rejects.toThrow(
+      'Cannot delete project with associated vouchers',
+    );
+    expect(userProjectModel.update).not.toHaveBeenCalled();
   });
 });

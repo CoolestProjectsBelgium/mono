@@ -25,7 +25,7 @@ export class ParticipantService {
     }
 
     const project = await this.projectModel.findByPk(projectOwnerUser.projectId);
-    if (!project) {
+    if (!project || project.deletedAt != null) {
       throw new Error('Project not found');
     }
 

@@ -31,9 +31,18 @@ Default seed logins (from API seeder): `superadmin` / `admin` / `jury` — passw
 
 Sequelize models registered in `apps/admin/src/database.ts` must include every association target (including through-models like `UserProject`). Omitting one crashes AdminJS boot with `X has not been defined`.
 
+## Key resources
+
+| Resource | Notes |
+|----------|-------|
+| `Project` | Explicit list/show/filter/edit properties include `deletedAt` soft-delete timestamp |
+| `UserProject` | Membership/voucher link; has its own `deletedAt` |
+| `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden |
+| `Event` | Event-scoped access for non-superadmin roles |
+
 ## Out of scope / unknowns
 
-- Full resource list and custom AdminJS actions (expand when editing admin features)
+- Full custom AdminJS action catalog beyond the above
 - Production session/cookie configuration
 - How judge voting dashboard integrates with live voting app
 

@@ -12,7 +12,14 @@ sleep 4
 cd /workspace
 
 nohup npm run start:dev --workspace=apps/api > /tmp/api.log 2>&1 &
-sleep 10
+# Wait until API owns 3001 before starting other apps (registration also defaults near 3001).
+for _ in $(seq 1 40); do
+  code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3001/settings || true)
+  if [ "$code" = "200" ]; then
+    break
+  fi
+  sleep 2
+done
 
 nohup npm run start:dev --workspace=apps/admin > /tmp/admin.log 2>&1 &
 nohup npm run start:dev --workspace=apps/eventguide -- -p 3002 > /tmp/eventguide.log 2>&1 &

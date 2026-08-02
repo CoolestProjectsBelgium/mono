@@ -17,6 +17,7 @@ const i18n = createI18n({
       participantStatusRegistered: 'Geregistreerd',
       participantCopyLink: 'Link kopiëren',
       participantCopyToken: 'Token kopiëren',
+      'changeOwner.button': 'Maak eigenaar',
       AddToken: 'Deelnemer toevoegen',
       Delete: 'Verwijderen',
       pleaseWait: 'Even geduld',
@@ -105,6 +106,23 @@ describe('OwnParticipants', () => {
     const wrapper = await mountParticipants({ participants: [owner] })
 
     expect(wrapper.find('[data-testid="remove-participant"]').exists()).toBe(false)
+  })
+
+  it('shows change-owner button for registered co-participants only', async () => {
+    const wrapper = await mountParticipants({
+      participants: [owner, registeredInvite, pendingInvite],
+    })
+
+    expect(wrapper.find('[data-testid="change-owner"]').exists()).toBe(true)
+    expect(wrapper.findAll('[data-testid="change-owner"]')).toHaveLength(1)
+  })
+
+  it('hides change-owner button for pending invites', async () => {
+    const wrapper = await mountParticipants({
+      participants: [owner, pendingInvite],
+    })
+
+    expect(wrapper.find('[data-testid="change-owner"]').exists()).toBe(false)
   })
 
   it('disables delete button while row is being removed', async () => {

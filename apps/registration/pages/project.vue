@@ -34,9 +34,11 @@
         :adding="addingParticipant"
         :add-disabled="addParticipantDisabled"
         :removing-participant-id="removingParticipantId"
+        :changing-owner-id="changingOwnerId"
         class="mt-6"
         @add="onAddParticipant"
         @remove="onRemoveParticipant"
+        @change-owner="onChangeOwnerParticipant"
         @copy="onCopyInvite"
         @copy-token="onCopyToken"
       />
@@ -133,6 +135,16 @@
         @confirm="onLeaveProject"
       />
     </template>
+    <ConfirmDialog
+      v-model:open="showChangeOwnerDialog"
+      :title="$t('changeOwner.title')"
+      :message="changeOwnerMessage"
+      :confirm-label="$t('changeOwner.confirmButton')"
+      :cancel-label="$t('Cancel')"
+      :please-wait-label="$t('pleaseWait')"
+      :loading="changingOwnerId != null"
+      @confirm="onConfirmChangeOwner"
+    />
   </div>
 </template>
 
@@ -150,7 +162,7 @@ definePageMeta({ middleware: 'authenticated' })
 
 const { t } = useI18n()
 const localePath = useLocalePath()
-const { fetchProject, updateProject, deleteProject } = useProjectinfo()
+const { fetchProject, updateProject, deleteProject, changeOwner } = useProjectinfo()
 const { generateInviteToken, removeParticipant, leaveProject, copyInviteUrl, copyInviteToken } = useParticipant()
 const { fetchSettings } = useSettings()
 const { notify } = useNotification()
@@ -162,12 +174,15 @@ const loadError = ref(false)
 const inviteUnavailable = ref(false)
 const addingParticipant = ref(false)
 const removingParticipantId = ref<number | null>(null)
+const changingOwnerId = ref<number | null>(null)
 const showLeaveDialog = ref(false)
 const leavingProject = ref(false)
 const showDeleteDialog = ref(false)
 const deletingProject = ref(false)
 const showRemoveParticipantDialog = ref(false)
 const participantToRemove = ref<ParticipantDto | null>(null)
+const showChangeOwnerDialog = ref(false)
+const participantToMakeOwner = ref<ParticipantDto | null>(null)
 const fieldErrors = ref<Record<string, string>>({})
 const formError = ref<string | null>(null)
 
@@ -195,6 +210,13 @@ const removeParticipantMessage = computed(() => {
   }
   const { messageKey, params } = getParticipantRemoveConfirm(participantToRemove.value)
   return t(messageKey, params)
+})
+
+const changeOwnerMessage = computed(() => {
+  if (!participantToMakeOwner.value) {
+    return ''
+  }
+  return t('changeOwner.confirm', { name: participantToMakeOwner.value.name })
 })
 
 const ownProjectForm = ref({
@@ -369,6 +391,39 @@ async function onConfirmRemoveParticipant() {
   }
   finally {
     removingParticipantId.value = null
+  }
+}
+
+function onChangeOwnerParticipant(participant: ParticipantDto) {
+  if (changingOwnerId.value != null || participant.status !== 'registered') {
+    return
+  }
+
+  participantToMakeOwner.value = participant
+  showChangeOwnerDialog.value = true
+}
+
+async function onConfirmChangeOwner() {
+  const participant = participantToMakeOwner.value
+  if (!participant || changingOwnerId.value != null) {
+    return
+  }
+
+  changingOwnerId.value = participant.id
+  try {
+    await changeOwner(participant.id)
+    showChangeOwnerDialog.value = false
+    participantToMakeOwner.value = null
+    project.value = await fetchProject()
+    syncOwnProjectForm(project.value)
+    notify('success', 'message_successChange')
+  }
+  catch (error) {
+    const message = getApiErrorMessage(error) ?? t('error_An error occurred')
+    notify('error', 'error_An error occurred', undefined, message)
+  }
+  finally {
+    changingOwnerId.value = null
   }
 }
 

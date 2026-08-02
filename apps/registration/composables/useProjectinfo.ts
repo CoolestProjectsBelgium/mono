@@ -41,6 +41,12 @@ export function useProjectinfo() {
     return true
   }
 
+  async function changeOwner(newOwnerId: number): Promise<void> {
+    await apiFetch<null>(`/projectinfo/change-owner/${newOwnerId}`, {
+      method: 'POST',
+    })
+  }
+
   function hasProject(project: ProjectDto | null): project is ProjectDto {
     return hasApiData(project) && !!project.own_project
   }
@@ -50,6 +56,7 @@ export function useProjectinfo() {
     createProject,
     updateProject,
     deleteProject,
+    changeOwner,
     hasProject,
   }
 }

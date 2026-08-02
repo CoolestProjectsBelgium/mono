@@ -9,6 +9,7 @@ const {
   updateProjectMock,
   leaveProjectMock,
   deleteProjectMock,
+  changeOwnerMock,
   removeParticipantMock,
   navigateToMock,
   notifyMock,
@@ -17,6 +18,7 @@ const {
   updateProjectMock: vi.fn(),
   leaveProjectMock: vi.fn(),
   deleteProjectMock: vi.fn(),
+  changeOwnerMock: vi.fn(),
   removeParticipantMock: vi.fn(),
   navigateToMock: vi.fn(),
   notifyMock: vi.fn(),
@@ -27,6 +29,7 @@ vi.mock('~/composables/useProjectinfo', () => ({
     fetchProject: fetchProjectMock,
     updateProject: updateProjectMock,
     deleteProject: deleteProjectMock,
+    changeOwner: changeOwnerMock,
   }),
 }))
 
@@ -79,8 +82,8 @@ vi.mock('~/components/OwnProjectForm.vue', () => ({
 
 vi.mock('~/components/OwnParticipants.vue', () => ({
   default: {
-    props: ['participants', 'removingParticipantId'],
-    emits: ['remove'],
+    props: ['participants', 'removingParticipantId', 'changingOwnerId'],
+    emits: ['remove', 'changeOwner'],
     template: `
       <div>
         <button
@@ -88,6 +91,12 @@ vi.mock('~/components/OwnParticipants.vue', () => ({
           @click="$emit('remove', { id: 10, name: '', self: false, status: 'pending', token: 'invite-token' })"
         >
           Remove
+        </button>
+        <button
+          data-testid="change-owner"
+          @click="$emit('changeOwner', { id: 11, name: 'Sam', self: false, status: 'registered' })"
+        >
+          Make owner
         </button>
       </div>
     `,
@@ -209,11 +218,13 @@ describe('project page owner delete', () => {
     fetchProjectMock.mockReset()
     updateProjectMock.mockReset()
     deleteProjectMock.mockReset()
+    changeOwnerMock.mockReset()
     removeParticipantMock.mockReset()
     navigateToMock.mockReset()
     notifyMock.mockReset()
     fetchProjectMock.mockResolvedValue(ownerProject)
     deleteProjectMock.mockResolvedValue(true)
+    changeOwnerMock.mockResolvedValue(undefined)
     removeParticipantMock.mockResolvedValue(undefined)
     navigateToMock.mockResolvedValue(undefined)
   })
@@ -302,6 +313,40 @@ describe('project page owner delete', () => {
         status: 'pending',
         token: 'invite-token',
       })
+      expect(fetchProjectMock).toHaveBeenCalledTimes(2)
+      expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
+    })
+  })
+
+  it('transfers ownership after confirmation and refreshes project', async () => {
+    const transferredProject: ProjectDto = {
+      is_owner: false,
+      own_project: {
+        ...ownerProject.own_project!,
+        delete_possible: false,
+        participants: [
+          { id: 11, name: 'Sam', self: false, is_owner: true, status: 'registered' },
+          { id: 1, name: 'Alex', self: true, is_owner: false, status: 'registered' },
+        ],
+      },
+    }
+    fetchProjectMock
+      .mockResolvedValueOnce(ownerProject)
+      .mockResolvedValueOnce(transferredProject)
+
+    const wrapper = await mountSuspended(ProjectPage)
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-testid="change-owner"]').exists()).toBe(true)
+    })
+
+    await wrapper.get('[data-testid="change-owner"]').trigger('click')
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-testid="confirm-dialog"]').text()).toContain('Maak eigenaar')
+    })
+    await wrapper.get('[data-testid="confirm-dialog"]').trigger('click')
+
+    await vi.waitFor(() => {
+      expect(changeOwnerMock).toHaveBeenCalledWith(11)
       expect(fetchProjectMock).toHaveBeenCalledTimes(2)
       expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
     })

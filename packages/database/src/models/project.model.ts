@@ -38,6 +38,9 @@ export class Project extends BaseEventModel {
   @Column
   maxVoucher!: number;
 
+  @Column({ allowNull: true, type: DataType.DATE })
+  declare deletedAt: Date;
+
   @HasOne(() => EventTable)
   table!: EventTable;
 

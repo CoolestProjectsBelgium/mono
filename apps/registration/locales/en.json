@@ -207,6 +207,12 @@
     "confirmRegistered": "Are you sure you want to unlink {name} from this project?",
     "confirmButton": "Remove"
   },
+  "changeOwner": {
+    "button": "Make owner",
+    "title": "Transfer ownership?",
+    "confirm": "Are you sure you want to make {name} the project owner? You will stay on the project as a co-participant and can no longer edit it.",
+    "confirmButton": "Make owner"
+  },
   "leaveProject": {
     "button": "Leave project",
     "title": "Leave this project?",
