@@ -1,4 +1,4 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { InjectModel, InjectConnection } from '@nestjs/sequelize';
 import { Project, User, Event } from '@coolestprojects/database';
 import { Op } from 'sequelize';
@@ -14,6 +14,7 @@ import { randomUUID } from 'crypto';
 
 @Injectable()
 export class ProjectinfoService {
+    private readonly logger = new Logger(ProjectinfoService.name);
 
     public constructor(
         @InjectModel(Project) private readonly projectModel: typeof Project,
@@ -195,6 +196,9 @@ export class ProjectinfoService {
     }
 
     public async updateProject(userId: number, updateProjectDto: OwnProjectDto): Promise<OwnProjectDto> {
+        this.logger.log(
+          `updateProject user=${userId} name=${JSON.stringify(updateProjectDto?.project_name)}`,
+        );
         const userProject = await this.userProjectModel.findOne({
             where: { userId, deletedAt: null, isOwner: true },
         });
@@ -203,11 +207,23 @@ export class ProjectinfoService {
         }
 
         const project = await userProject.getProject();
-        project.name = updateProjectDto.project_name;
-        project.description = updateProjectDto.project_descr;
-        project.type = updateProjectDto.project_type;
-        project.language = updateProjectDto.project_lang;
-        await project.save();
+        if (!project) {
+            throw new Error('Project not found for user');
+        }
+
+        const nextName = updateProjectDto.project_name?.trim();
+        if (!nextName) {
+            throw new Error('Project name is required');
+        }
+
+        await project.update({
+            name: nextName,
+            description: updateProjectDto.project_descr,
+            type: updateProjectDto.project_type,
+            language: updateProjectDto.project_lang,
+        });
+        await project.reload();
+        this.logger.log(`updateProject saved name=${JSON.stringify(project.name)}`);
 
         return {
             project_id: String(project.id),

@@ -16,7 +16,7 @@ const i18n = createI18n({
       participantStatusPending: 'Token nog niet gebruikt',
       participantStatusRegistered: 'Geregistreerd',
       participantCopyLink: 'Link kopiëren',
-      participantMailLink: 'Versturen via e-mail',
+      participantCopyToken: 'Token kopiëren',
       AddToken: 'Deelnemer toevoegen',
       Delete: 'Verwijderen',
       pleaseWait: 'Even geduld',
@@ -64,20 +64,21 @@ describe('OwnParticipants', () => {
     expect(wrapper.find('.bg-amber-400').exists()).toBe(true)
   })
 
-  it('shows copy and mail actions only for pending invites', async () => {
+  it('shows copy link and copy token actions only for pending invites', async () => {
     const wrapper = await mountParticipants()
 
     expect(wrapper.find('[data-testid="copy-invite"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="mail-invite"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="copy-token"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Token kopiëren')
   })
 
-  it('hides copy and mail actions for registered co-participants', async () => {
+  it('hides copy actions for registered co-participants', async () => {
     const wrapper = await mountParticipants({
       participants: [owner, registeredInvite],
     })
 
     expect(wrapper.find('[data-testid="copy-invite"]').exists()).toBe(false)
-    expect(wrapper.find('[data-testid="mail-invite"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="copy-token"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Sam')
   })
 

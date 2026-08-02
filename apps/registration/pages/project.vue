@@ -15,12 +15,13 @@
     <template v-else-if="isProjectOwner" data-testid="project-owner-view">
       <form class="mt-6" @submit.prevent="onSave" @keydown.enter="onFormKeydown">
         <OwnProjectForm
-          v-model="ownProjectForm"
+          :model-value="ownProjectForm"
           :errors="fieldErrors"
+          @update:model-value="onOwnProjectFormUpdate"
           @clear-error="onClearError"
         />
         <div class="mt-6 flex gap-4">
-          <CtaButton variant="primary" type="button" @click="onSave">{{ $t('Aanpassen') }}</CtaButton>
+          <CtaButton variant="primary" type="submit">{{ $t('Aanpassen') }}</CtaButton>
           <NuxtLink :to="localePath('/upload')" class="btn-primary">{{ $t('Upload Movie') }}</NuxtLink>
           <CtaButton v-if="project.own_project.delete_possible" variant="cta" type="button" data-testid="delete-project-button" @click="showDeleteDialog = true">
             {{ $t('deleteProject.button') }}
@@ -37,7 +38,7 @@
         @add="onAddParticipant"
         @remove="onRemoveParticipant"
         @copy="onCopyInvite"
-        @mail="onMailInvite"
+        @copy-token="onCopyToken"
       />
       <ConfirmDialog
         v-model:open="showDeleteDialog"
@@ -140,7 +141,7 @@ definePageMeta({ middleware: 'authenticated' })
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { fetchProject, updateProject, deleteProject } = useProjectinfo()
-const { generateInviteToken, removeParticipant, leaveProject, copyInviteUrl, openInviteMailto } = useParticipant()
+const { generateInviteToken, removeParticipant, leaveProject, copyInviteUrl, copyInviteToken } = useParticipant()
 const { fetchSettings } = useSettings()
 const { notify } = useNotification()
 
@@ -176,19 +177,26 @@ const addParticipantDisabled = computed(() =>
   settings.value != null && coParticipantCount.value >= settings.value.maxParticipants,
 )
 
-const ownProjectForm = computed({
-  get: () => ({
-    project_name: project.value?.own_project?.project_name ?? '',
-    project_descr: project.value?.own_project?.project_descr ?? '',
-    project_type: project.value?.own_project?.project_type ?? '',
-    project_lang: project.value?.own_project?.project_lang ?? 'nl' as const,
-  }),
-  set: (val) => {
-    if (project.value?.own_project) {
-      Object.assign(project.value.own_project, val)
-    }
-  },
+const ownProjectForm = ref({
+  project_name: '',
+  project_descr: '',
+  project_type: '',
+  project_lang: 'nl' as const,
 })
+
+function syncOwnProjectForm(from: ProjectDto | null) {
+  const own = from?.own_project
+  ownProjectForm.value = {
+    project_name: own?.project_name ?? '',
+    project_descr: own?.project_descr ?? '',
+    project_type: own?.project_type ?? '',
+    project_lang: own?.project_lang ?? 'nl',
+  }
+}
+
+function onOwnProjectFormUpdate(value: typeof ownProjectForm.value) {
+  ownProjectForm.value = value
+}
 
 onMounted(async () => {
   loading.value = true
@@ -199,6 +207,7 @@ onMounted(async () => {
       fetchSettings(),
     ])
     project.value = fetchedProject
+    syncOwnProjectForm(fetchedProject)
     settings.value = fetchedSettings
     if (!fetchedProject?.own_project && !fetchedProject?.other_project) {
       await navigateTo(localePath('/no_project'))
@@ -238,7 +247,15 @@ async function onSave() {
   }
 
   try {
-    project.value = await updateProject(project.value.own_project)
+    const updated = await updateProject({
+      project_id: project.value.own_project.project_id,
+      ...result.data,
+    })
+    if (!updated?.own_project) {
+      throw new Error(t('error_An error occurred'))
+    }
+    project.value = updated
+    syncOwnProjectForm(updated)
     notify('success', 'message_successChange')
   }
   catch (error) {
@@ -334,8 +351,8 @@ async function onCopyInvite(token: string) {
   await copyInviteUrl(token)
 }
 
-function onMailInvite(token: string) {
-  openInviteMailto(token, project.value?.own_project?.project_name)
+async function onCopyToken(token: string) {
+  await copyInviteToken(token)
 }
 
 async function onLeaveProject() {
