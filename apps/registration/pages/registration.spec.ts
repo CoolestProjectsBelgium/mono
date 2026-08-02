@@ -53,6 +53,26 @@ describe('registration page submit', () => {
     })
   })
 
+  it('does not submit when Enter is pressed in a text field', async () => {
+    const draft = useRegistrationDraftStore(pinia)
+    draft.form = { ...validForm }
+
+    const wrapper = await mountSuspended(RegistrationPage, {
+      global: { plugins: [pinia] },
+    })
+    await vi.waitFor(() => {
+      expect(wrapper.find('form').exists()).toBe(true)
+    })
+    await flushPromises()
+
+    const firstInput = wrapper.find('#firstname')
+    expect(firstInput.exists()).toBe(true)
+    await firstInput.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(mockFetch).not.toHaveBeenCalledWith('/registration', expect.any(Object))
+  })
+
   it('navigates to success page with email on successful submit', async () => {
     const draft = useRegistrationDraftStore(pinia)
     draft.form = { ...validForm }

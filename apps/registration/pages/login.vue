@@ -2,11 +2,11 @@
   <div class="mx-auto max-w-md">
     <h1 class="text-3xl font-bold">{{ $t('titleLogin') }}</h1>
     <ApiUnavailableBanner
-      v-if="activationFailed"
-      message-key="login.linkExpired"
+      v-if="activationError"
+      :message-key="activationError === 'unavailable' ? 'apiUnavailable.default' : 'login.linkExpired'"
       class="mt-4"
     />
-    <p v-else-if="activating" class="mt-6 text-gray-600">{{ $t('pleaseWait') }}</p>
+    <p v-if="activating" class="mt-6 text-gray-600">{{ $t('pleaseWait') }}</p>
     <form v-else class="mt-6 space-y-4" @submit.prevent="onSubmit">
       <div>
         <label class="form-label" for="email">{{ $t('emailAddressLabel') }}</label>
@@ -27,6 +27,8 @@
 </template>
 
 <script setup lang="ts">
+import type { ActivateLoginResult } from '~/composables/useAuth'
+
 definePageMeta({ middleware: 'not-authenticated' })
 
 const route = useRoute()
@@ -38,22 +40,22 @@ const { requestMagicLink, activateWithToken } = useAuth()
 const email = ref('')
 const loading = ref(false)
 const activating = ref(false)
-const activationFailed = ref(false)
+const activationError = ref<Exclude<ActivateLoginResult, 'ok'> | null>(null)
 
 async function activateFromQuery(token: string | undefined) {
   if (!token || activating.value) return
 
   authStore.clearSession()
   activating.value = true
-  activationFailed.value = false
+  activationError.value = null
   try {
-    const ok = await activateWithToken(token)
-    if (ok) {
+    const result = await activateWithToken(token)
+    if (result === 'ok') {
       await router.replace(localePath('/user'))
+      return
     }
-    else {
-      activationFailed.value = true
-    }
+    activationError.value = result
+    await router.replace(localePath('/login'))
   }
   finally {
     activating.value = false

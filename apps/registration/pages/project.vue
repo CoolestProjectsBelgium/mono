@@ -13,12 +13,20 @@
       class="mt-4"
     />
     <template v-else-if="isProjectOwner" data-testid="project-owner-view">
-      <OwnProjectForm
-        v-model="ownProjectForm"
-        :errors="fieldErrors"
-        class="mt-6"
-        @clear-error="onClearError"
-      />
+      <form class="mt-6" @submit.prevent="onSave" @keydown.enter="onFormKeydown">
+        <OwnProjectForm
+          v-model="ownProjectForm"
+          :errors="fieldErrors"
+          @clear-error="onClearError"
+        />
+        <div class="mt-6 flex gap-4">
+          <CtaButton variant="primary" type="button" @click="onSave">{{ $t('Aanpassen') }}</CtaButton>
+          <NuxtLink :to="localePath('/upload')" class="btn-primary">{{ $t('Upload Movie') }}</NuxtLink>
+          <CtaButton v-if="project.own_project.delete_possible" variant="cta" type="button" data-testid="delete-project-button" @click="showDeleteDialog = true">
+            {{ $t('deleteProject.button') }}
+          </CtaButton>
+        </div>
+      </form>
       <OwnParticipants
         :participants="project.own_project.participants ?? []"
         :invite-unavailable="inviteUnavailable"
@@ -31,13 +39,6 @@
         @copy="onCopyInvite"
         @mail="onMailInvite"
       />
-      <div class="mt-6 flex gap-4">
-        <CtaButton variant="primary" @click="onSave">{{ $t('Aanpassen') }}</CtaButton>
-        <NuxtLink :to="localePath('/upload')" class="btn-primary">{{ $t('Upload Movie') }}</NuxtLink>
-        <CtaButton v-if="project.own_project.delete_possible" variant="cta" data-testid="delete-project-button" @click="showDeleteDialog = true">
-          {{ $t('deleteProject.button') }}
-        </CtaButton>
-      </div>
       <ConfirmDialog
         v-model:open="showDeleteDialog"
         :title="$t('deleteProject.title')"
@@ -130,6 +131,7 @@ import { clearFieldError, mapZodIssuesToFieldErrors, scrollToFirstFieldError } f
 import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createOwnProjectSchema } from '~/utils/validation/user'
 import { getApiErrorMessage } from '~/utils/api-response'
+import { focusNextOnEnter } from '~/utils/focus-next-on-enter'
 import { getParticipantRemoveConfirm } from '~/utils/participant-remove'
 import { isProjectOwner as checkIsProjectOwner } from '~/utils/project-routing'
 
@@ -210,6 +212,13 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+function onFormKeydown(event: KeyboardEvent) {
+  const root = event.currentTarget
+  if (root instanceof HTMLElement) {
+    focusNextOnEnter(event, root)
+  }
+}
 
 function onClearError(fieldKey: string) {
   fieldErrors.value = clearFieldError(fieldErrors.value, fieldKey)

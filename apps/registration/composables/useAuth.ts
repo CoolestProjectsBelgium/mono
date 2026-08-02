@@ -1,5 +1,8 @@
 import type { LoginDto, LoginMailDto, LoginActivateDto } from '~/types/api'
 import { getApiErrorMessage, hasApiData } from '~/utils/api-response'
+import { ApiError } from '~/composables/useApiClient'
+
+export type ActivateLoginResult = 'ok' | 'invalid' | 'unavailable'
 
 export function useAuth() {
   const { apiFetch } = useApiClient()
@@ -22,7 +25,7 @@ export function useAuth() {
     }
   }
 
-  async function activateWithToken(jwt: string): Promise<boolean> {
+  async function activateWithToken(jwt: string): Promise<ActivateLoginResult> {
     const body: LoginActivateDto = { jwt }
     try {
       const response = await apiFetch<LoginDto | null>('/login', {
@@ -30,13 +33,19 @@ export function useAuth() {
         body,
       })
       if (!hasApiData(response)) {
-        return false
+        return 'invalid'
       }
       authStore.setSession(response)
-      return true
+      return 'ok'
     }
-    catch {
-      return false
+    catch (error) {
+      if (error instanceof ApiError && error.statusCode === 401) {
+        return 'invalid'
+      }
+      if (!(error instanceof ApiError) || !error.statusCode || error.statusCode >= 500) {
+        return 'unavailable'
+      }
+      return 'invalid'
     }
   }
 

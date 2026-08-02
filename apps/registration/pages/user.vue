@@ -9,26 +9,28 @@
       class="mt-4"
     />
     <template v-else-if="profile">
-      <UserForm
-        v-model="profile"
-        :tshirts="flatTshirts"
-        :settings="settings"
-        :errors="fieldErrors"
-        class="mt-6"
-        @clear-error="onClearError"
-      />
-      <div class="mt-6 flex gap-4">
-        <CtaButton variant="primary" @click="onSave">
-          {{ $t('Aanpassen') }}
-        </CtaButton>
-        <CtaButton
-          v-if="profile.delete_possible"
-          variant="cta"
-          @click="onDelete"
-        >
-          {{ $t('Delete') }}
-        </CtaButton>
-      </div>
+      <form class="mt-6" @submit.prevent="onSave" @keydown.enter="onFormKeydown">
+        <UserForm
+          v-model="profile"
+          :tshirts="flatTshirts"
+          :settings="settings"
+          :errors="fieldErrors"
+          @clear-error="onClearError"
+        />
+        <div class="mt-6 flex gap-4">
+          <CtaButton variant="primary" type="button" @click="onSave">
+            {{ $t('Aanpassen') }}
+          </CtaButton>
+          <CtaButton
+            v-if="profile.delete_possible"
+            variant="cta"
+            type="button"
+            @click="onDelete"
+          >
+            {{ $t('Delete') }}
+          </CtaButton>
+        </div>
+      </form>
     </template>
   </div>
 </template>
@@ -39,6 +41,7 @@ import { clearFieldError, mapZodIssuesToFieldErrors, scrollToFirstFieldError } f
 import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createUserProfileSchema } from '~/utils/validation/user'
 import { getApiErrorMessage } from '~/utils/api-response'
+import { focusNextOnEnter } from '~/utils/focus-next-on-enter'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -82,6 +85,13 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+function onFormKeydown(event: KeyboardEvent) {
+  const root = event.currentTarget
+  if (root instanceof HTMLElement) {
+    focusNextOnEnter(event, root)
+  }
+}
 
 function onClearError(fieldKey: string) {
   fieldErrors.value = clearFieldError(fieldErrors.value, fieldKey)

@@ -93,6 +93,32 @@ describe('PostalCodeSearchField', () => {
     expect((wrapper.find('#postalcode').element as HTMLInputElement).value).toContain('Mechelen')
   })
 
+  it('selects highlighted result on Enter when listbox is open', async () => {
+    const model = ref({ postalcode: 0, municipality_name: '' })
+
+    const wrapper = await mountSuspended(PostalCodeSearchField, {
+      props: {
+        modelValue: model.value,
+        label: 'Postcode / gemeente',
+        'onUpdate:modelValue': (value: typeof model.value) => {
+          model.value = value
+        },
+      },
+      global: {
+        stubs: { FormField: formFieldStub },
+      },
+    })
+
+    await wrapper.find('#postalcode').setValue('2800')
+    await waitForSearch()
+
+    await wrapper.find('#postalcode').trigger('keydown', { key: 'Enter' })
+    await nextTick()
+
+    expect(model.value.postalcode).toBe(2800)
+    expect(model.value.municipality_name).toBe('Mechelen')
+  })
+
   it('keeps typed text while searching', async () => {
     const model = ref({ postalcode: 0, municipality_name: '', street: '', house_number: '', box_number: '' })
 

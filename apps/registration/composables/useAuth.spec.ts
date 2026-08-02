@@ -50,7 +50,7 @@ describe('useAuth', () => {
       method: 'POST',
       body: { jwt: 'abc-token' },
     }))
-    expect(ok).toBe(true)
+    expect(ok).toBe('ok')
     expect(useAuthStore(pinia).isLoggedIn).toBe(true)
   })
 
@@ -58,7 +58,7 @@ describe('useAuth', () => {
     mockFetch.mockResolvedValue(null)
     const { activateWithToken } = await callComposable(() => useAuth(), pinia)
     const ok = await activateWithToken('bad-token')
-    expect(ok).toBe(false)
+    expect(ok).toBe('invalid')
     expect(useAuthStore(pinia).isLoggedIn).toBe(false)
   })
 
