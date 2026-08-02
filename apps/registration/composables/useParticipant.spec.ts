@@ -1,12 +1,26 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { callComposable } from '~/tests/composable-utils'
 import { mockFetch } from '~/tests/setup'
+
+const notifyMock = vi.fn()
+const writeTextMock = vi.fn()
+
+vi.mock('~/composables/useNotification', () => ({
+  useNotification: () => ({ notify: notifyMock }),
+}))
 
 describe('useParticipant', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     mockFetch.mockReset()
+    notifyMock.mockReset()
+    writeTextMock.mockReset()
+    writeTextMock.mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: writeTextMock },
+    })
   })
 
   it('creates invite via POST /projectinfo/participant', async () => {
@@ -48,5 +62,24 @@ describe('useParticipant', () => {
       method: 'DELETE',
       body: { project_code: 'voucher-guid' },
     }))
+  })
+
+  it('copies raw invite token to clipboard', async () => {
+    const { copyInviteToken } = await callComposable(() => useParticipant())
+    await expect(copyInviteToken('invite-token')).resolves.toBe(true)
+    expect(writeTextMock).toHaveBeenCalledWith('invite-token')
+    expect(notifyMock).toHaveBeenCalledWith('success', 'participantCopyTokenSuccess')
+  })
+
+  it('notifies on clipboard failure when copying token', async () => {
+    writeTextMock.mockRejectedValueOnce(new Error('clipboard denied'))
+    const { copyInviteToken } = await callComposable(() => useParticipant())
+    await expect(copyInviteToken('invite-token')).resolves.toBe(false)
+    expect(notifyMock).toHaveBeenCalledWith(
+      'error',
+      'error_An error occurred',
+      undefined,
+      expect.any(String),
+    )
   })
 })

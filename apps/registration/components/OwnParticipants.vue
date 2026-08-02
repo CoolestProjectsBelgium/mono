@@ -47,10 +47,10 @@
                   <button
                     type="button"
                     class="text-blue-600 hover:underline"
-                    data-testid="mail-invite"
-                    @click="onMail(p.token!)"
+                    data-testid="copy-token"
+                    @click="onCopyToken(p.token!)"
                   >
-                    {{ $t('participantMailLink') }}
+                    {{ $t('participantCopyToken') }}
                   </button>
                 </div>
                 <button
@@ -94,7 +94,7 @@ const emit = defineEmits<{
   add: []
   remove: [participant: ParticipantDto]
   copy: [token: string]
-  mail: [token: string]
+  copyToken: [token: string]
 }>()
 
 function onAdd() {
@@ -109,7 +109,7 @@ function onCopy(token: string) {
   emit('copy', token)
 }
 
-function onMail(token: string) {
-  emit('mail', token)
+function onCopyToken(token: string) {
+  emit('copyToken', token)
 }
 </script>

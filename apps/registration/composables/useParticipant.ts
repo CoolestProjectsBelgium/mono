@@ -103,6 +103,23 @@ export function useParticipant() {
     }
   }
 
+  async function copyInviteToken(token: string): Promise<boolean> {
+    if (!import.meta.client || !navigator.clipboard?.writeText) {
+      notify('error', 'error_An error occurred', undefined, t('participantCopyTokenFailed'))
+      return false
+    }
+
+    try {
+      await navigator.clipboard.writeText(token)
+      notify('success', 'participantCopyTokenSuccess')
+      return true
+    }
+    catch {
+      notify('error', 'error_An error occurred', undefined, t('participantCopyTokenFailed'))
+      return false
+    }
+  }
+
   function openInviteMailto(token: string, projectName?: string): void {
     if (!import.meta.client) {
       return
@@ -125,6 +142,7 @@ export function useParticipant() {
     leaveProject,
     buildInviteUrl,
     copyInviteUrl,
+    copyInviteToken,
     openInviteMailto,
     isPendingParticipant,
   }

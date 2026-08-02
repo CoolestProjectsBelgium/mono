@@ -5,12 +5,12 @@
         <template #default="{ inputId, inputClass, ariaInvalid, ariaDescribedby }">
           <input
             :id="inputId"
-            v-model="model.project_name"
+            :value="modelValue.project_name"
             :class="inputClass"
             maxlength="100"
             :aria-invalid="ariaInvalid"
             :aria-describedby="ariaDescribedby"
-            @input="emit('clear-error', 'project_name')"
+            @input="onTextInput('project_name', $event)"
           />
         </template>
       </FormField>
@@ -18,13 +18,13 @@
         <template #default="{ inputId, inputClass, ariaInvalid, ariaDescribedby }">
           <textarea
             :id="inputId"
-            v-model="model.project_descr"
+            :value="modelValue.project_descr"
             :class="inputClass"
             rows="4"
             maxlength="4000"
             :aria-invalid="ariaInvalid"
             :aria-describedby="ariaDescribedby"
-            @input="emit('clear-error', 'project_descr')"
+            @input="onTextInput('project_descr', $event)"
           />
         </template>
       </FormField>
@@ -32,12 +32,12 @@
         <template #default="{ inputId, inputClass, ariaInvalid, ariaDescribedby }">
           <textarea
             :id="inputId"
-            v-model="model.project_type"
+            :value="modelValue.project_type"
             :class="inputClass"
             rows="3"
             :aria-invalid="ariaInvalid"
             :aria-describedby="ariaDescribedby"
-            @input="emit('clear-error', 'project_type')"
+            @input="onTextInput('project_type', $event)"
           />
         </template>
       </FormField>
@@ -45,11 +45,11 @@
         <template #default="{ inputId, inputClass, ariaInvalid, ariaDescribedby }">
           <select
             :id="inputId"
-            v-model="model.project_lang"
+            :value="modelValue.project_lang"
             :class="inputClass"
             :aria-invalid="ariaInvalid"
             :aria-describedby="ariaDescribedby"
-            @change="emit('clear-error', 'project_lang')"
+            @change="onLangChange($event)"
           >
             <option value="nl">{{ $t('Nederlands') }}</option>
             <option value="fr">{{ $t('Frans') }}</option>
@@ -62,18 +62,44 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  errors?: Record<string, string>
-}>()
-
-const emit = defineEmits<{
-  'clear-error': [fieldKey: string]
-}>()
-
-const model = defineModel<{
+export type OwnProjectFormModel = {
   project_name: string
   project_descr: string
   project_type: string
   project_lang: 'nl' | 'fr' | 'en'
-}>({ required: true })
+}
+
+const props = defineProps<{
+  modelValue: OwnProjectFormModel
+  errors?: Record<string, string>
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: OwnProjectFormModel]
+  'clear-error': [fieldKey: string]
+}>()
+
+function patchModel<K extends keyof OwnProjectFormModel>(
+  key: K,
+  value: OwnProjectFormModel[K],
+) {
+  emit('update:modelValue', { ...props.modelValue, [key]: value })
+  emit('clear-error', key)
+}
+
+function onTextInput(
+  key: 'project_name' | 'project_descr' | 'project_type',
+  event: Event,
+) {
+  const target = event.target as HTMLInputElement | HTMLTextAreaElement | null
+  patchModel(key, target?.value ?? '')
+}
+
+function onLangChange(event: Event) {
+  const target = event.target as HTMLSelectElement | null
+  const value = target?.value
+  if (value === 'nl' || value === 'fr' || value === 'en') {
+    patchModel('project_lang', value)
+  }
+}
 </script>

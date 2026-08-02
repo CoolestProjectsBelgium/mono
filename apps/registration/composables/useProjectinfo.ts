@@ -1,4 +1,5 @@
 import type { OwnProjectDto, ProjectDto } from '~/types/api'
+import { ApiError } from '~/composables/useApiClient'
 import { hasApiData } from '~/utils/api-response'
 import { mapApiProjectToView, mapOwnProjectToApi } from '~/utils/projectinfo-mapper'
 
@@ -28,7 +29,11 @@ export function useProjectinfo() {
       method: 'PATCH',
       body: mapOwnProjectToApi(project),
     })
-    return mapApiProjectToView(response)
+    const mapped = mapApiProjectToView(response)
+    if (!mapped?.own_project) {
+      throw new ApiError('Project update returned no data')
+    }
+    return mapped
   }
 
   async function deleteProject(): Promise<boolean> {

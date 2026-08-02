@@ -6,12 +6,14 @@ import type { ProjectDto } from '~/types/api'
 
 const {
   fetchProjectMock,
+  updateProjectMock,
   leaveProjectMock,
   deleteProjectMock,
   navigateToMock,
   notifyMock,
 } = vi.hoisted(() => ({
   fetchProjectMock: vi.fn(),
+  updateProjectMock: vi.fn(),
   leaveProjectMock: vi.fn(),
   deleteProjectMock: vi.fn(),
   navigateToMock: vi.fn(),
@@ -21,7 +23,7 @@ const {
 vi.mock('~/composables/useProjectinfo', () => ({
   useProjectinfo: () => ({
     fetchProject: fetchProjectMock,
-    updateProject: vi.fn(),
+    updateProject: updateProjectMock,
     deleteProject: deleteProjectMock,
   }),
 }))
@@ -32,6 +34,7 @@ vi.mock('~/composables/useParticipant', () => ({
     removeParticipant: vi.fn(),
     leaveProject: leaveProjectMock,
     copyInviteUrl: vi.fn(),
+    copyInviteToken: vi.fn(),
     openInviteMailto: vi.fn(),
   }),
 }))
@@ -57,7 +60,19 @@ vi.mock('~/components/ApiUnavailableBanner.vue', () => ({
 }))
 
 vi.mock('~/components/OwnProjectForm.vue', () => ({
-  default: { template: '<div />' },
+  default: {
+    props: ['modelValue', 'errors'],
+    emits: ['update:modelValue', 'clear-error'],
+    template: `
+      <div>
+        <input
+          data-testid="project-name-input"
+          :value="modelValue.project_name"
+          @input="$emit('update:modelValue', { ...modelValue, project_name: $event.target.value })"
+        />
+      </div>
+    `,
+  },
 }))
 
 vi.mock('~/components/OwnParticipants.vue', () => ({
@@ -177,6 +192,7 @@ describe('project page owner delete', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     fetchProjectMock.mockReset()
+    updateProjectMock.mockReset()
     deleteProjectMock.mockReset()
     navigateToMock.mockReset()
     notifyMock.mockReset()
@@ -197,6 +213,39 @@ describe('project page owner delete', () => {
     const wrapper = await mountSuspended(ProjectPage)
     await vi.waitFor(() => {
       expect(wrapper.find('form').exists()).toBe(true)
+    })
+  })
+
+  it('saves edited project name from the form', async () => {
+    updateProjectMock.mockResolvedValue({
+      is_owner: true,
+      own_project: {
+        ...ownerProject.own_project!,
+        project_name: 'Renamed project',
+      },
+    })
+
+    const wrapper = await mountSuspended(ProjectPage)
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-testid="project-name-input"]').exists()).toBe(true)
+    })
+
+    const input = wrapper.get('[data-testid="project-name-input"]')
+    await input.setValue('Renamed project')
+    await wrapper.get('form').trigger('submit')
+
+    await vi.waitFor(() => {
+      expect(updateProjectMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          project_id: '1',
+          project_name: 'Renamed project',
+        }),
+      )
+      expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
+      expect(wrapper.get('[data-testid="project-name-input"]').element).toHaveProperty(
+        'value',
+        'Renamed project',
+      )
     })
   })
 
