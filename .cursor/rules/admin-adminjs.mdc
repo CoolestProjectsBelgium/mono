@@ -1,0 +1,43 @@
+---
+description: AdminJS conventions for apps/admin
+globs: apps/admin/**
+alwaysApply: false
+---
+
+# Admin (AdminJS)
+
+Read [docs/apps/admin.md](../../docs/apps/admin.md) first.
+
+## Layout
+
+- `apps/admin/src/index.ts` — AdminJS bootstrap, resource definitions, auth, role checks
+- `apps/admin/src/database.ts` — Sequelize instance with model list
+- `apps/admin/src/components/` — custom AdminJS React components (`Login`, `Dashboard`)
+- ESM package (`"type": "module"`); use `.js` extensions in local imports
+
+## Data access
+
+- Import models from `@coolestprojects/database`
+- Direct MySQL via Sequelize — does **not** call `apps/api` over HTTP
+- DB config from env (`DB_*`) via `@nestjs/config` `ConfigService`
+
+## Roles
+
+Defined in `index.ts`:
+
+- `superadmin` — full access
+- `admin` — event-scoped resources (`currentAdmin.eventId`)
+- `judge` — voting dashboard and own votes
+
+Use `addEventFilter`, `canCreate`, `canAccessResourceFieldFilter`, `andAccess` helpers for event scoping.
+
+## AdminJS patterns
+
+- `@adminjs/sequelize` adapter for resources
+- `@adminjs/passwords` for `Account` password hashing
+- `ComponentLoader` for custom components; override `Login`, add `Dashboard`
+- Custom components are `.tsx` files referenced by path in `componentLoader`
+
+## After model changes
+
+Rebuild database package and restart admin dev server.

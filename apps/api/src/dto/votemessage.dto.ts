@@ -1,0 +1,3 @@
+class VoteMessage{
+    message!: string
+}

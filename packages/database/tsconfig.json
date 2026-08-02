@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "src",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    // Required: ES2022 defaults useDefineForClassFields=true, which emits
+    // instance fields that shadow sequelize-typescript getters/setters.
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "composite": true,
+    "strict": true
+  },
+  "include": ["src"]
+}
