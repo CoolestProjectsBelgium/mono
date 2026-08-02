@@ -60,8 +60,8 @@ export class InfoInterceptor implements NestInterceptor {
         Date.now() >= new Date(activeEvent.eventBeginDate).getTime() &&
         Date.now() <= new Date(activeEvent.eventEndDate).getTime();
       info.registrationOpen =
-        Date.now() < new Date(activeEvent.registrationOpenDate).getTime() &&
-        new Date(activeEvent.registrationClosedDate).getTime() > Date.now();
+        Date.now() >= new Date(activeEvent.registrationOpenDate).getTime() &&
+        Date.now() <= new Date(activeEvent.registrationClosedDate).getTime();
       info.projectClosed =
         Date.now() > new Date(activeEvent.projectClosedDate).getTime();
     }

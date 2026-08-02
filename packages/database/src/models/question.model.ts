@@ -21,11 +21,11 @@ export class Question extends BaseEventModel {
   declare mandatory: boolean;
 
   @BelongsToMany(() => User, () => QuestionUser)
-  users!: User[];
+  declare users: User[];
 
   @BelongsToMany(() => Registration, () => QuestionRegistration)
-  registrations!: Registration[];
+  declare registrations: Registration[];
 
   @HasMany(() => QuestionTranslation)
-  translations!: QuestionTranslation[];
+  declare translations: QuestionTranslation[];
 }

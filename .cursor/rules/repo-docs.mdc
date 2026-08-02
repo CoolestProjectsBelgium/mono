@@ -1,0 +1,26 @@
+---
+description: Expand stub documentation when materially changing a workspace area
+alwaysApply: true
+---
+
+# Repo documentation
+
+Read [AGENTS.md](../../AGENTS.md) and the matching `docs/apps/<name>.md` or `docs/packages/<name>.md` before editing.
+
+## Expand when touched
+
+If you make a **material** change (new routes, models, behavior, config) in a workspace whose doc is `Status: stub`, update that doc in the same change:
+
+- Fill sections you relied on (Purpose, Entrypoints, Talks to, unknowns)
+- Remove resolved items from **Out of scope / unknowns**
+- Promote to `Status: deep` only when the page includes the deep sections (`Module map` / `Model map` + `Key flows`)
+
+Skip doc updates for typo-only or purely cosmetic edits.
+
+## Ownership
+
+- `docs/` = source of truth for architecture
+- `.cursor/rules/` = short conventions only — no long architecture prose
+- App READMEs = pointer to `docs/` — no duplicate essays
+
+Run `npm run check-docs` before finishing.
