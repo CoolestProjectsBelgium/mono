@@ -26,7 +26,7 @@ export class UserinfoService {
       mandatory_approvals: [],
       year: birth ? birth.getFullYear() : 0,
       month: birth ? birth.getMonth() : -1,
-      t_size: user.tshirtId,
+      t_size: user.tshirtId ?? 0,
       gsm_guardian: user.gsm_guardian ?? '',
       email_guardian: user.email_guardian ?? '',
       via: user.via ?? '',
@@ -35,7 +35,7 @@ export class UserinfoService {
       address: {
         street: '',
         house_number: '',
-        municipality_name: '',
+        municipality_name: user.municipality_name ?? '',
         box_number: '',
         postalcode: user.postalcode ?? 0,
       },
@@ -68,6 +68,7 @@ export class UserinfoService {
     user.via = updateUserDto.via;
     user.medical = updateUserDto.medical;
     user.postalcode = updateUserDto.address.postalcode;
+    user.municipality_name = updateUserDto.address.municipality_name;
 
     if (updateUserDto.year && updateUserDto.month >= 0) {
       user.birthmonth = new Date(updateUserDto.year, updateUserDto.month, 1);

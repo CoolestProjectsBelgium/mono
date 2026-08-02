@@ -21,10 +21,7 @@ describe('UserinfoService', () => {
     via: '',
     medical: '',
     postalcode: 1000,
-    municipality_name: 'Bruxelles',
-    street: 'Street',
-    house_number: '1',
-    box_number: '',
+    municipality_name: 'Brussel',
     birthmonth: new Date(2010, 5, 1),
     save: jest.fn().mockResolvedValue(undefined),
   } as unknown as User;
@@ -54,5 +51,8 @@ describe('UserinfoService', () => {
     expect(dto.lastname).toBe('User');
     expect(dto.year).toBe(2010);
     expect(dto.month).toBe(5);
+    expect(dto.t_size).toBe(2);
+    expect(dto.address.postalcode).toBe(1000);
+    expect(dto.address.municipality_name).toBe('Brussel');
   });
 });

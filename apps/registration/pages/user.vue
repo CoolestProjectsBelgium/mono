@@ -42,6 +42,7 @@ import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createUserProfileSchema } from '~/utils/validation/user'
 import { getApiErrorMessage } from '~/utils/api-response'
 import { focusNextOnEnter } from '~/utils/focus-next-on-enter'
+import { hydrateUserProfile } from '~/utils/registration-payload'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -65,16 +66,26 @@ onMounted(async () => {
   loading.value = true
   loadError.value = false
   try {
-    const [fetchedUser, fetchedSettings, fetchedTshirts] = await Promise.all([
+    const [userResult, settingsResult, tshirtsResult] = await Promise.allSettled([
       fetchUser(),
       fetchSettings(),
       fetchTshirts(),
     ])
-    profile.value = fetchedUser
-    settings.value = fetchedSettings
-    tshirtGroups.value = fetchedTshirts
-    if (!fetchedUser) {
+    if (userResult.status === 'fulfilled') {
+      profile.value = userResult.value ? hydrateUserProfile(userResult.value) : null
+      if (!userResult.value) {
+        loadError.value = true
+      }
+    }
+    else {
       loadError.value = true
+      profile.value = null
+    }
+    if (settingsResult.status === 'fulfilled') {
+      settings.value = settingsResult.value
+    }
+    if (tshirtsResult.status === 'fulfilled') {
+      tshirtGroups.value = tshirtsResult.value
     }
   }
   catch {
