@@ -18,6 +18,17 @@ describe('map-api-errors', () => {
     expect(result.fieldErrors.project_code).toBe('validation_tokenRequired')
   })
 
+  it('maps project not found or already assigned to project_code', () => {
+    const result = mapApiMessageToFieldErrors('Project not found or already assigned', t)
+    expect(result.fieldErrors.project_code).toBe('validation_tokenRequired')
+  })
+
+  it('maps user already has a project to project_code', () => {
+    const result = mapApiMessageToFieldErrors('User already has a project', t)
+    expect(result.fieldErrors.project_code).toBe('validation_alreadyHasProject')
+    expect(result.message).toBe('validation_alreadyHasProject')
+  })
+
   it('maps project required message to project fields', () => {
     const result = mapApiMessageToFieldErrors(
       'Project name, description, type and language are required when no project code is provided.',

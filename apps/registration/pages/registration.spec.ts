@@ -7,16 +7,38 @@ import { activeSettingsFixture } from '~/fixtures/settings'
 import { mockFetch } from '~/tests/setup'
 import RegistrationPage from './registration/index.vue'
 
-const { navigateToMock, setRegistrationSuccessMock } = vi.hoisted(() => ({
+const {
+  navigateToMock,
+  setRegistrationSuccessMock,
+  joinProjectMock,
+  notifyMock,
+  routeQuery,
+} = vi.hoisted(() => ({
   navigateToMock: vi.fn(),
   setRegistrationSuccessMock: vi.fn(),
+  joinProjectMock: vi.fn(),
+  notifyMock: vi.fn(),
+  routeQuery: { value: {} as Record<string, string> },
 }))
 
 mockNuxtImport('navigateTo', () => navigateToMock)
+mockNuxtImport('useRoute', () => () => ({ query: routeQuery.value }))
 vi.stubGlobal('useLocalePath', () => (path: string) => path)
 
 vi.mock('~/utils/registration-success', () => ({
   setRegistrationSuccess: (...args: unknown[]) => setRegistrationSuccessMock(...args),
+}))
+
+vi.mock('~/composables/useParticipant', () => ({
+  useParticipant: () => ({
+    joinProject: joinProjectMock,
+  }),
+}))
+
+vi.mock('~/composables/useNotification', () => ({
+  useNotification: () => ({
+    notify: notifyMock,
+  }),
 }))
 
 const validForm = {
@@ -41,6 +63,11 @@ describe('registration page submit', () => {
     setActivePinia(pinia)
     navigateToMock.mockReset()
     setRegistrationSuccessMock.mockReset()
+    joinProjectMock.mockReset()
+    notifyMock.mockReset()
+    routeQuery.value = {}
+    joinProjectMock.mockResolvedValue(true)
+    navigateToMock.mockResolvedValue(undefined)
     mockFetch.mockReset()
     mockFetch.mockImplementation((url: string) => {
       if (url === '/csrf-token') return Promise.resolve({ csrfToken: 'csrf-token' })
@@ -97,5 +124,58 @@ describe('registration page submit', () => {
     }, { timeout: 3000 })
     expect(setRegistrationSuccessMock).toHaveBeenCalledWith('test@example.com')
     expect(navigateToMock).toHaveBeenCalledWith('/registration/success')
+  })
+})
+
+describe('registration page logged-in voucher join', () => {
+  let pinia: ReturnType<typeof createPinia>
+
+  beforeEach(() => {
+    pinia = createPinia()
+    setActivePinia(pinia)
+    navigateToMock.mockReset()
+    joinProjectMock.mockReset()
+    notifyMock.mockReset()
+    routeQuery.value = { token: 'invite-token' }
+    joinProjectMock.mockResolvedValue(true)
+    navigateToMock.mockResolvedValue(undefined)
+    const authStore = useAuthStore(pinia)
+    authStore.setSession({
+      expires: new Date(Date.now() + 60_000).toISOString(),
+      language: 'nl',
+    })
+  })
+
+  it('joins immediately when logged in with invite token', async () => {
+    const wrapper = await mountSuspended(RegistrationPage, {
+      global: { plugins: [pinia] },
+    })
+    await vi.waitFor(() => {
+      expect(joinProjectMock).toHaveBeenCalledWith('invite-token')
+    })
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(navigateToMock).toHaveBeenCalledWith('/project')
+    expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
+  })
+
+  it('shows join panel with error when redeem fails', async () => {
+    joinProjectMock.mockRejectedValueOnce({
+      data: { message: 'User already has a project' },
+    })
+
+    const wrapper = await mountSuspended(RegistrationPage, {
+      global: { plugins: [pinia] },
+    })
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-testid="join-voucher-panel"]').exists()).toBe(true)
+    })
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(navigateToMock).not.toHaveBeenCalled()
+    expect(notifyMock).toHaveBeenCalledWith(
+      'error',
+      'error_An error occurred',
+      undefined,
+      expect.stringContaining('project'),
+    )
   })
 })

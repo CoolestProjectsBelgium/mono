@@ -19,9 +19,14 @@ const API_MESSAGE_PATTERNS: Array<{
     i18nKey: 'validation_guardianNotAllowed',
   },
   {
-    test: /voucher not found|token is niet gevonden/i,
+    test: /voucher not found|token is niet gevonden|project not found or already assigned/i,
     fieldErrors: { project_code: 'validation_tokenRequired' },
     i18nKey: 'validation_tokenRequired',
+  },
+  {
+    test: /user already has a project/i,
+    fieldErrors: { project_code: 'validation_alreadyHasProject' },
+    i18nKey: 'validation_alreadyHasProject',
   },
   {
     test: /mandatory questions/i,

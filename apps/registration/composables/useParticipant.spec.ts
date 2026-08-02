@@ -64,6 +64,18 @@ describe('useParticipant', () => {
     }))
   })
 
+  it('joins project via POST /participant', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+      .mockResolvedValueOnce(null)
+    const { joinProject } = await callComposable(() => useParticipant())
+    await expect(joinProject('invite-token')).resolves.toBe(true)
+    expect(mockFetch).toHaveBeenCalledWith('/participant', expect.objectContaining({
+      method: 'POST',
+      body: { project_code: 'invite-token' },
+    }))
+  })
+
   it('copies raw invite token to clipboard', async () => {
     const { copyInviteToken } = await callComposable(() => useParticipant())
     await expect(copyInviteToken('invite-token')).resolves.toBe(true)
