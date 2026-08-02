@@ -37,8 +37,7 @@ export class MailerService {
     event: Event,
     token?: string,
   ) {
-    const language =
-      registration.getDataValue('language') ?? registration.language ?? 'en';
+    const language = registration.language ?? 'en';
     const year = eventYear(event);
     const website = registrationWebsiteUrl();
     const url = token
@@ -49,11 +48,8 @@ export class MailerService {
       event,
       user: registration,
       registration: {
-        firstname:
-          registration.getDataValue('firstname') ?? registration.firstname,
-        email_guardian:
-          registration.getDataValue('email_guardian') ??
-          registration.email_guardian,
+        firstname: registration.firstname,
+        email_guardian: registration.email_guardian,
         year,
       },
       year,
@@ -68,7 +64,7 @@ export class MailerService {
     token: string,
     project?: Project,
   ) {
-    const language = user.getDataValue('language') ?? user.language ?? 'en';
+    const language = user.language ?? 'en';
     const year = eventYear(event);
     const website = registrationWebsiteUrl();
     const url = buildLoginUrl(registrationAppUrl(), language, token);
@@ -184,11 +180,8 @@ export class MailerService {
       throw new Error('Event not found');
     }
 
-    const email = user.getDataValue('email') ?? user.email;
-    const emailGuardian =
-      user.getDataValue('email_guardian') ?? user.email_guardian;
-    const language = user.getDataValue('language') ?? user.language ?? 'en';
-    const to = this.formatRecipients(email, emailGuardian);
+    const to = this.formatRecipients(user.email, user.email_guardian);
+    const language = user.language ?? 'en';
     const context = this.buildRegistrationContext(user, event, token);
     await this.sendMail(
       MailTemplates.registration,
@@ -212,17 +205,13 @@ export class MailerService {
   }
 
   async welcomeMailOwner(user: User, project: Project, token: string) {
-    const eventId = user.getDataValue('eventId') ?? user.eventId;
-    const event = await this.eventModel.findByPk(eventId);
+    const event = await this.eventModel.findByPk(user.eventId);
     if (!event) {
       throw new Error('Event not found');
     }
 
-    const email = user.getDataValue('email') ?? user.email;
-    const emailGuardian =
-      user.getDataValue('email_guardian') ?? user.email_guardian;
-    const language = user.getDataValue('language') ?? user.language ?? 'en';
-    const to = this.formatRecipients(email, emailGuardian);
+    const to = this.formatRecipients(user.email, user.email_guardian);
+    const language = user.language ?? 'en';
     const context = this.buildUserMailContext(user, event, token, project);
     await this.sendMail(
       MailTemplates.welcomeOwner,
@@ -234,17 +223,13 @@ export class MailerService {
   }
 
   async loginMail(user: User, token: string) {
-    const eventId = user.getDataValue('eventId') ?? user.eventId;
-    const event = await this.eventModel.findByPk(eventId);
+    const event = await this.eventModel.findByPk(user.eventId);
     if (!event) {
       throw new Error('Event not found');
     }
 
-    const email = user.getDataValue('email') ?? user.email;
-    const emailGuardian =
-      user.getDataValue('email_guardian') ?? user.email_guardian;
-    const language = user.getDataValue('language') ?? user.language ?? 'en';
-    const to = this.formatRecipients(email, emailGuardian);
+    const to = this.formatRecipients(user.email, user.email_guardian);
+    const language = user.language ?? 'en';
     const context = this.buildUserMailContext(user, event, token);
     await this.sendMail(
       MailTemplates.ask4Token,
@@ -256,17 +241,13 @@ export class MailerService {
   }
 
   async welcomeMailCoWorker(user: User, project: Project, token: string) {
-    const eventId = user.getDataValue('eventId') ?? user.eventId;
-    const event = await this.eventModel.findByPk(eventId);
+    const event = await this.eventModel.findByPk(user.eventId);
     if (!event) {
       throw new Error('Event not found');
     }
 
-    const email = user.getDataValue('email') ?? user.email;
-    const emailGuardian =
-      user.getDataValue('email_guardian') ?? user.email_guardian;
-    const language = user.getDataValue('language') ?? user.language ?? 'en';
-    const to = this.formatRecipients(email, emailGuardian);
+    const to = this.formatRecipients(user.email, user.email_guardian);
+    const language = user.language ?? 'en';
     const context = this.buildUserMailContext(user, event, token, project);
     await this.sendMail(
       MailTemplates.welcomeCoWorker,

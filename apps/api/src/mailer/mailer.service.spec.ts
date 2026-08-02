@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import * as nodemailer from 'nodemailer';
 import { MailerService } from './mailer.service';
-import { Event, EmailTemplate, Registration, User, Project } from '@coolestprojects/database';
+import { Event, EmailTemplate, Registration, User, Project, EmailLog } from '@coolestprojects/database';
 
 jest.mock('nodemailer');
 const sendMailMock = jest.fn().mockResolvedValue({});
@@ -39,6 +39,10 @@ describe('MailerService', () => {
     findByPk: jest.fn(),
   };
 
+  const emailLogModel = {
+    create: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
     process.env.SMTP_HOST = 'mailhog';
@@ -52,6 +56,7 @@ describe('MailerService', () => {
         { provide: getModelToken(Event), useValue: eventModel },
         { provide: getModelToken(EmailTemplate), useValue: emailTemplateModel },
         { provide: getModelToken(Project), useValue: projectModel },
+        { provide: getModelToken(EmailLog), useValue: emailLogModel },
       ],
     }).compile();
 
@@ -65,8 +70,6 @@ describe('MailerService', () => {
       email_guardian: 'parent@test.be',
       language: 'nl',
       firstname: 'Jan',
-      getDataValue: (key: string) =>
-        (registration as unknown as Record<string, unknown>)[key],
     } as unknown as Registration;
 
     await service.registrationMail(registration, 'jwt-token');
@@ -102,8 +105,6 @@ describe('MailerService', () => {
         email: 'kid@test.be',
         language,
         firstname: 'Test',
-        getDataValue: (key: string) =>
-          (registration as unknown as Record<string, unknown>)[key],
       } as unknown as Registration;
 
       await service.registrationMail(registration, 'abc');
@@ -130,8 +131,6 @@ describe('MailerService', () => {
       email: 'user@test.be',
       language: 'en',
       firstname: 'Jane',
-      getDataValue: (key: string) =>
-        (user as unknown as Record<string, unknown>)[key],
     } as unknown as User;
 
     await service.loginMail(user, 'login-jwt');
@@ -160,8 +159,6 @@ describe('MailerService', () => {
       email: 'owner@test.be',
       language: 'en',
       firstname: 'Owner',
-      getDataValue: (key: string) =>
-        (user as unknown as Record<string, unknown>)[key],
     } as unknown as User;
 
     const project = {
@@ -195,8 +192,6 @@ describe('MailerService', () => {
       email: 'wait@test.be',
       language: 'en',
       firstname: 'Waiting',
-      getDataValue: (key: string) =>
-        (registration as unknown as Record<string, unknown>)[key],
     } as unknown as Registration;
 
     await service.waitingListMail(registration);
@@ -220,8 +215,6 @@ describe('MailerService', () => {
       email: 'coworker@test.be',
       language: 'en',
       firstname: 'Co',
-      getDataValue: (key: string) =>
-        (user as unknown as Record<string, unknown>)[key],
     } as unknown as User;
 
     const project = {
