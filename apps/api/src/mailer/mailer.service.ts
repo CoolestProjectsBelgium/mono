@@ -171,7 +171,7 @@ export class MailerService {
         status: 'failed',
         error: String(error),  
       });
-      console.error(`[mailer] Failed to send "${template}" to ${to}:`, error);
+      console.error('[mailer] Failed to send "%s" to %s:', template, to, error);
       if (env.NODE_ENV === 'production') {
         throw error;
       }
