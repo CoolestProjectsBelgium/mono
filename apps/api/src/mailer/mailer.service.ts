@@ -104,6 +104,8 @@ export class MailerService {
     event: Event,
     to: string,
     context: Record<string, unknown>,
+    userId?: number,
+    registrationId?: number,
   ) {
     const templateMail = await this.emailTemplateModel.findOne({
       where: { template, language, eventId: event.id },
@@ -196,6 +198,8 @@ export class MailerService {
       event,
       to,
       context,
+      undefined,
+      user.id
     );
   }
 
