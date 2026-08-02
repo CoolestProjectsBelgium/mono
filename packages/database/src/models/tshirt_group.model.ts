@@ -6,7 +6,7 @@ import { BaseEventModel } from './base_event.model.js';
 @Table
 export class TshirtGroup extends BaseEventModel {
   @HasMany(() => TshirtGroupTranslation)
-  translations!: TshirtGroupTranslation[];
+  declare translations: TshirtGroupTranslation[];
 
   @HasMany(() => Tshirt)
   declare tshirts: Tshirt[];

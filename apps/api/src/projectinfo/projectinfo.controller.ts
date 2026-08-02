@@ -10,6 +10,7 @@ import { ProjectinfoService } from './projectinfo.service';
 import { FileValidationInterceptor } from '../file-upload/file-validation.interceptor';
 import { FileInterceptor } from '@nestjs/platform-express/multer';
 import { OwnProjectDto } from '../dto/own-project.dto';
+import { VoucherCreatedDto } from '../dto/voucher-created.dto';
 
 
 @Controller('projectinfo')
@@ -105,7 +106,7 @@ export class ProjectinfoController {
   @UseInterceptors(UserCookieInterceptor)
   async createVoucher(
     @Request() req: any,
-  ) {
+  ): Promise<VoucherCreatedDto> {
     return await this.projectService.generateVoucher(req.user.id);
   }
 

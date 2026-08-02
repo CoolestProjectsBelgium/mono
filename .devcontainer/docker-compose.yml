@@ -32,6 +32,11 @@ services:
       FILE_BASE_URL: "https://register.coolestproject.com/files"
       FILE_SIGNATURE_EXPIRATION: 300
 
+      # Mail (MailHog in Dev Container)
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_FROM: noreply@coolestprojects.localhost
+
     volumes:
       - ..:/workspace:cached
       - files-data:/tmp/files
@@ -42,6 +47,7 @@ services:
 
     links:
       - "db:db"
+      - "mailhog:mailhog"
 
     ports:
       - "3000:3000"
@@ -53,6 +59,7 @@ services:
 
     depends_on:
       - db
+      - mailhog
 
   db:
     image: mysql:latest
@@ -65,6 +72,15 @@ services:
       MYSQL_PASSWORD: Se84KCCCJlnfkdfv
     volumes:
       - db-data:/var/lib/mysql
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: ${PROJECT_NAME:-coolestproject-dev}-mailhog
+    restart: unless-stopped
+    # Host ports use 11025/18025 — Windows often blocks 1025/8025 (Hyper-V reserved range).
+    ports:
+      - "11025:1025"
+      - "18025:8025"
 
   phpmyadmin:
     container_name: ${PROJECT_NAME:-coolestproject-dev}-phpadmin

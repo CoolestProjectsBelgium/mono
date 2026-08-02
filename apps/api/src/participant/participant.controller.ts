@@ -14,7 +14,7 @@ export class ParticipantController {
     ) { }
 
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async createParticipant(
     @Request() req: any,
@@ -23,7 +23,7 @@ export class ParticipantController {
     return this.registrationService.assignParticipant(req.user.id, participantDto.project_code);
   }
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt-cookiecombo'))
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async deleteParticipant(
     @Request() req: any,

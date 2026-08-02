@@ -145,7 +145,7 @@ const start = async () => {
       { resource: sequelize.models.VoteCategory },
       { resource: sequelize.models.EventTable },
       { resource: sequelize.models.User },
-      { resource: sequelize.models.Voucher },
+      { resource: sequelize.models.UserProject },
       {
         resource: sequelize.models.Tshirt, options: {
           properties: {
@@ -218,6 +218,10 @@ const start = async () => {
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch events' })
     }
+  })
+
+  app.get('/', (_req, res) => {
+    res.redirect(admin.options.rootPath)
   })
 
   app.use(admin.options.rootPath, adminRouter)
