@@ -141,7 +141,41 @@ const start = async () => {
         }
       },
       { resource: sequelize.models.Award },
-      { resource: sequelize.models.Project },
+      {
+        resource: sequelize.models.Project,
+        options: {
+          listProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
+          filterProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
+          showProperties: [
+            'id',
+            'name',
+            'description',
+            'type',
+            'internalInformation',
+            'language',
+            'maxVoucher',
+            'eventId',
+            'deletedAt',
+          ],
+          editProperties: [
+            'name',
+            'description',
+            'type',
+            'internalInformation',
+            'language',
+            'maxVoucher',
+            'eventId',
+            'deletedAt',
+          ],
+          properties: {
+            deletedAt: {
+              type: 'datetime',
+              label: 'Deleted At',
+              isVisible: { list: true, filter: true, show: true, edit: true },
+            },
+          },
+        },
+      },
       { resource: sequelize.models.VoteCategory },
       { resource: sequelize.models.EventTable },
       { resource: sequelize.models.User },

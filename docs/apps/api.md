@@ -73,6 +73,9 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 
 `GET|POST|PATCH|DELETE /projectinfo` plus attachments and participant routes → `Project`, `UserProject`, `Attachment` models.
 
+- `DELETE /projectinfo` (owner alone): sets `Project.deletedAt` and soft-deletes all active `UserProject` rows for that project; rejected when registered co-participants exist
+- `POST /projectinfo/change-owner/:newOwnerId`: transfers `isOwner` while both memberships remain active
+
 ### Voting
 
 `POST /auth/login`, `GET /projects`, `POST /projects/:projectId` → `VotingService` with `Vote`, `VoteCategory`, `UserProject`.

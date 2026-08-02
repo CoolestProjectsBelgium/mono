@@ -123,7 +123,7 @@ export class AppService {
     }
 
     const projectCount = await this.projectModel.count({
-      where: { eventId: event.id },
+      where: { eventId: event.id, deletedAt: null },
     });
 
     //keep in sync with registration validation logic

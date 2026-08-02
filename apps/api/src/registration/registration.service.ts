@@ -155,7 +155,7 @@ export class RegistrationService {
 
       // count the projects in the event
       const projectCount = await this.projectModel.count({
-        where: { eventId: event.id },
+        where: { eventId: event.id, deletedAt: null },
         transaction,
       });
 
@@ -290,6 +290,12 @@ export class RegistrationService {
         if (!voucher) {
           throw new Error('Voucher not found or already used');
         }
+        const voucherProject = await this.projectModel.findByPk(voucher.projectId, {
+          transaction,
+        });
+        if (!voucherProject || voucherProject.deletedAt != null) {
+          throw new Error('Voucher not found or already used');
+        }
         coworkerProjectId = voucher.projectId;
         await voucher.update({ userId: user.id }, { transaction });
       } else {
@@ -410,6 +416,11 @@ export class RegistrationService {
     });
 
     if (!voucher) {
+      throw new NotFoundException('Project not found or already assigned');
+    }
+
+    const project = await this.projectModel.findByPk(voucher.projectId);
+    if (!project || project.deletedAt != null) {
       throw new NotFoundException('Project not found or already assigned');
     }
 

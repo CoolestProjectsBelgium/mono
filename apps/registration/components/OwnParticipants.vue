@@ -54,10 +54,20 @@
                   </button>
                 </div>
                 <button
+                  v-if="p.status === 'registered'"
+                  type="button"
+                  class="text-blue-600 hover:underline disabled:opacity-50"
+                  data-testid="change-owner"
+                  :disabled="changingOwnerId === p.id || removingParticipantId === p.id"
+                  @click="onChangeOwner(p)"
+                >
+                  {{ changingOwnerId === p.id ? $t('pleaseWait') : $t('changeOwner.button') }}
+                </button>
+                <button
                   type="button"
                   class="text-red-600 hover:underline disabled:opacity-50"
                   data-testid="remove-participant"
-                  :disabled="removingParticipantId === p.id"
+                  :disabled="removingParticipantId === p.id || changingOwnerId === p.id"
                   @click="onRemove(p)"
                 >
                   {{ removingParticipantId === p.id ? $t('pleaseWait') : $t('Delete') }}
@@ -88,11 +98,13 @@ defineProps<{
   adding?: boolean
   addDisabled?: boolean
   removingParticipantId?: number | null
+  changingOwnerId?: number | null
 }>()
 
 const emit = defineEmits<{
   add: []
   remove: [participant: ParticipantDto]
+  changeOwner: [participant: ParticipantDto]
   copy: [token: string]
   copyToken: [token: string]
 }>()
@@ -103,6 +115,10 @@ function onAdd() {
 
 function onRemove(participant: ParticipantDto) {
   emit('remove', participant)
+}
+
+function onChangeOwner(participant: ParticipantDto) {
+  emit('changeOwner', participant)
 }
 
 function onCopy(token: string) {

@@ -32,6 +32,11 @@ export class ProjectinfoService {
             throw new Error('User is not associated with any project');
         }
 
+        const project = await userProject.getProject();
+        if (!this.isActiveProject(project)) {
+            throw new Error('User is not associated with any project');
+        }
+
         const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, projectId: userProject.projectId } });
 
         if (!attachment) {
@@ -48,6 +53,21 @@ export class ProjectinfoService {
 
     private formatParticipantName(firstname?: string | null, lastname?: string | null): string {
         return [firstname, lastname].filter(Boolean).join(' ').trim();
+    }
+
+    private isActiveProject(project: Project | null | undefined): project is Project {
+        return Boolean(project) && project!.deletedAt == null;
+    }
+
+    private async countRegisteredCoParticipants(projectId: number): Promise<number> {
+        return this.userProjectModel.count({
+            where: {
+                projectId,
+                userId: { [Op.ne]: null },
+                deletedAt: null,
+                isOwner: false,
+            },
+        });
     }
 
     private async buildParticipants(
@@ -106,16 +126,12 @@ export class ProjectinfoService {
         }
 
         const project = await userProject.getProject();
+        if (!this.isActiveProject(project)) {
+            throw new Error('User is not associated with any project');
+        }
+
         const participants = await this.buildParticipants(project.id, userId);
-        const vouchersInUse = await this.userProjectModel.count({
-            where: {
-                projectId: userProject.projectId,
-                userId: { [Op.ne]: null },
-                deletedAt: null,
-                isOwner: false,
-                voucherGuid: { [Op.ne]: null },
-            },
-        });
+        const registeredCoParticipants = await this.countRegisteredCoParticipants(project.id);
 
         return {
             project_id: String(project.id),
@@ -124,7 +140,7 @@ export class ProjectinfoService {
             project_type: project.type,
             project_lang: project.language,
             is_owner: userProject.isOwner,
-            delete_possible: vouchersInUse === 0,
+            delete_possible: registeredCoParticipants === 0,
             participants,
         };
     }
@@ -139,6 +155,10 @@ export class ProjectinfoService {
         }
 
         const project = await userProject.getProject();
+        if (!this.isActiveProject(project)) {
+            throw new Error('User is not associated with any project');
+        }
+
         const attachments = await project.getAttachments();
 
         return attachments.map(attachment => ({
@@ -207,7 +227,7 @@ export class ProjectinfoService {
         }
 
         const project = await userProject.getProject();
-        if (!project) {
+        if (!this.isActiveProject(project)) {
             throw new Error('Project not found for user');
         }
 
@@ -225,6 +245,8 @@ export class ProjectinfoService {
         await project.reload();
         this.logger.log(`updateProject saved name=${JSON.stringify(project.name)}`);
 
+        const registeredCoParticipants = await this.countRegisteredCoParticipants(project.id);
+
         return {
             project_id: String(project.id),
             project_name: project.name,
@@ -233,7 +255,7 @@ export class ProjectinfoService {
             project_lang: project.language,
             is_owner: true,
             participants: await this.buildParticipants(project.id, userId),
-            delete_possible: true,
+            delete_possible: registeredCoParticipants === 0,
         };
     }
 
@@ -245,21 +267,48 @@ export class ProjectinfoService {
             throw new Error('Project not found for user');
         }
 
-        const vouchersInUse = await this.userProjectModel.count({
-            where: {
-                projectId: userProject.projectId,
-                userId: { [Op.ne]: null },
-                deletedAt: null,
-                isOwner: false,
-                voucherGuid: { [Op.ne]: null },
-            },
-        });
-        if (vouchersInUse > 0) {
+        const project = await userProject.getProject();
+        if (!this.isActiveProject(project)) {
+            throw new Error('Project not found for user');
+        }
+
+        const registeredCoParticipants = await this.countRegisteredCoParticipants(project.id);
+        if (registeredCoParticipants > 0) {
             throw new Error('Cannot delete project with associated vouchers');
         }
 
-        userProject.deletedAt = new Date();
-        await userProject.save();
+        const deletedAt = new Date();
+        const transaction = await this.sequelize.transaction();
+
+        try {
+            const [membershipsUpdated] = await this.userProjectModel.update(
+                { deletedAt },
+                {
+                    where: {
+                        projectId: project.id,
+                        deletedAt: null,
+                    },
+                    transaction,
+                },
+            );
+
+            const [projectUpdated] = await this.projectModel.update(
+                { deletedAt },
+                {
+                    where: { id: project.id, deletedAt: null },
+                    transaction,
+                },
+            );
+
+            if (membershipsUpdated < 1 || projectUpdated < 1) {
+                throw new Error('Project delete failed');
+            }
+
+            await transaction.commit();
+        } catch (error) {
+            await transaction.rollback();
+            throw new Error('Project delete failed');
+        }
     }
 
     public async generateVoucher(userId: number): Promise<VoucherCreatedDto> {
@@ -280,6 +329,9 @@ export class ProjectinfoService {
         });
 
         const project = await userProject.getProject();
+        if (!this.isActiveProject(project)) {
+            throw new Error('Project not found for user');
+        }
         if (existingVouchers >= project.maxVoucher) {
             throw new Error('Maximum number of vouchers reached');
         }
@@ -304,6 +356,11 @@ export class ProjectinfoService {
             throw new Error('Project not found for user');
         }
 
+        const project = await userProject.getProject();
+        if (!this.isActiveProject(project)) {
+            throw new Error('Project not found for user');
+        }
+
         const voucher = await this.userProjectModel.findOne({
             where: {
                 projectId: userProject.projectId,
@@ -325,6 +382,11 @@ export class ProjectinfoService {
             where: { userId, deletedAt: null, isOwner: true },
         });
         if (!userProject) {
+            throw new Error('Project not found for user');
+        }
+
+        const project = await userProject.getProject();
+        if (!this.isActiveProject(project)) {
             throw new Error('Project not found for user');
         }
 

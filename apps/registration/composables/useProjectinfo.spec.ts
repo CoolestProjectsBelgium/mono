@@ -19,4 +19,16 @@ describe('useProjectinfo', () => {
     expect(project?.own_project?.project_name).toBe('P')
     expect(project?.is_owner).toBe(true)
   })
+
+  it('changeOwner posts to change-owner endpoint', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+      .mockResolvedValueOnce(null)
+    const { changeOwner } = await callComposable(() => useProjectinfo())
+    await changeOwner(11)
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/projectinfo/change-owner/11',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
 })

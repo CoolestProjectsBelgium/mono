@@ -33,7 +33,7 @@ Local URL (via proxy): `https://registration.coolestprojects.localhost:8443`
 1. **Landing / rules** — `GET /settings` drives event status (`no_event`, registration open/closed)
 2. **Registration** — catalogs + `POST /registration`
 3. **Login** — `POST /login/mailToken` → `POST /login` with JWT from email link
-4. **Project** — flat `OwnProjectDto` on `GET/POST/PATCH /projectinfo`; owner CRUD + participant invite list
+4. **Project** — flat `OwnProjectDto` on `GET/POST/PATCH /projectinfo`; owner CRUD + participant invite list; owner can transfer ownership via `POST /projectinfo/change-owner/:newOwnerId`; `DELETE /projectinfo` soft-deletes the project when no registered co-participants remain
 5. **Upload** — owner-only; client HEIC normalize + XHR multipart upload with progress
 6. **Join via token (logged-in)** — `/token` or invite URL `/registration?token=<voucher>` calls `POST /participant` (`assignParticipant`); success → `/project`; reject if user already has a project or token invalid/used (no registration form, no email)
 
@@ -41,7 +41,6 @@ Local URL (via proxy): `https://registration.coolestprojects.localhost:8443`
 
 - Azure Blob `/attachments` SAS flow (replaced by multipart uploads)
 - Attachment rename, server video normalize/poster
-- `change-owner` UI (API exists)
 
 ## Status
 
