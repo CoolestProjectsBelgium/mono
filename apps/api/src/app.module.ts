@@ -28,6 +28,7 @@ import { UserinfoService } from './userinfo/userinfo.service';
 import { UserCookieInterceptor } from './user-cookie.interceptor';
 import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
+import { EmailLog } from '@coolestprojects/database';
 
 @Module({
   imports: [
@@ -72,7 +73,8 @@ import { VotingService } from './voting/voting.service';
             Account,
             Award,
             EmailTemplate,
-            UserProject
+            UserProject,
+            EmailLog,
           ],
         };
       },
@@ -96,7 +98,8 @@ import { VotingService } from './voting/voting.service';
       EventTable,
       Vote,
       VoteCategory,
-      Attachment
+      Attachment,
+      EmailLog
     ]),
   ],
   controllers: [ 

@@ -31,6 +31,7 @@ import { Vote } from '@coolestprojects/database';
 import { VoteCategory } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
+import { EmailLog } from '@coolestprojects/database';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { UserProject } from '@coolestprojects/database';
             Account,
             Award,
             EmailTemplate,
+            EmailLog,
           ],
         };
       },
@@ -96,7 +98,8 @@ import { UserProject } from '@coolestprojects/database';
       Tshirt,
       TshirtTranslation,
       TshirtGroupTranslation,
-      EventTable
+      EventTable,
+      EmailLog
     ]),
   ],
   providers: [
