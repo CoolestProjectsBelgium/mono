@@ -1,6 +1,8 @@
-import { Column, Table, DataType } from 'sequelize-typescript';
+import { Column, Table, DataType, ForeignKey } from 'sequelize-typescript';
 import { BaseEventModel } from './base_event.model';
 import { MailTemplates } from './email_template.model';
+import { User } from './user.model';
+import { Registration } from './registration.model';
 
 @Table
 export class EmailLog extends BaseEventModel {
@@ -19,4 +21,11 @@ export class EmailLog extends BaseEventModel {
   @Column({ type: DataType.TEXT, allowNull: true })
   declare error?: string;
 
+  @ForeignKey(() => User)
+  @Column({ allowNull: true })
+  declare userId?: number;
+
+  @ForeignKey(() => Registration)
+  @Column({ allowNull: true })
+  declare registrationId?: number;
 }
