@@ -7,10 +7,10 @@ import { NextFunction, Request, Response } from 'express';
 import { env } from 'process';
 import { AppModule } from './app.module';
 
-
-
-async function bootstrap(){
+async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   app.use(cookieParser(env.JWT_KEY));
 
@@ -31,19 +31,28 @@ async function bootstrap(){
     next();
   });
 
-  const { doubleCsrfProtection } = doubleCsrf({
+  const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     getSecret: () => process.env.CSRF_SECRET!,
 
     getSessionIdentifier: (req) => {
-      if (req.user) {
-        return String((req.user as any).sub);
+      const user = req.user as { id?: number } | undefined;
+      if (user?.id) {
+        return String(user.id);
       }
 
       return req.cookies.anonId;
     },
-    
+
     getCsrfTokenFromRequest: (req) =>
-      req.headers["x-csrf-token"] as string,
+      req.headers['x-csrf-token'] as string,
+  });
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path === '/csrf-token' && req.method === 'GET') {
+      res.json({ csrfToken: generateCsrfToken(req, res) });
+      return;
+    }
+    next();
   });
 
   app.use(doubleCsrfProtection);

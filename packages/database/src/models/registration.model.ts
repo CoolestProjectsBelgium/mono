@@ -78,8 +78,8 @@ export class Registration extends BaseEventModel {
   internalinfo!: string;
 
   @IsEmail
-  @Column(DataType.STRING(254))
-  email_guardian!: string;
+  @Column({ type: DataType.STRING(254), allowNull: true })
+  declare email_guardian: string | null;
 
   @Column(DataType.UUID)
   project_code!: string;
