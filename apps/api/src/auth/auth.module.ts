@@ -17,6 +17,7 @@ import { Question } from '@coolestprojects/database';
 import { QuestionUser } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
 import { FileSignatureStrategy } from './file-sign.strategy';
+import { EmailLog } from '@coolestprojects/database';
 
 export const VOTING_JWT = Symbol('VOTING_JWT');
 export const AUTH_JWT = Symbol('AUTH_JWT');
@@ -24,7 +25,7 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Question, QuestionUser, QuestionRegistration, Account, UserProject]),
+    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Question, QuestionUser, QuestionRegistration, Account, UserProject, EmailLog]),
   ],
   providers: [{
     provide: AUTH_JWT,
