@@ -33,7 +33,7 @@ vi.mock('~/components/ConfirmDialog.vue', () => ({
 
 const sampleAttachment: AttachmentDto = {
   id: '12',
-  name: 'My movie',
+  name: 'project-photo.jpg',
   thumbnailUrl: 'https://example.test/thumb/12',
 }
 
@@ -70,7 +70,7 @@ describe('AttachmentList', () => {
     })
 
     expect(wrapper.findAll('[data-testid="attachment-row"]')).toHaveLength(1)
-    expect(wrapper.text()).toContain('My movie')
+    expect(wrapper.text()).toContain('project-photo.jpg')
     expect(wrapper.get('[data-testid="attachment-preview"]').exists()).toBe(true)
   })
 

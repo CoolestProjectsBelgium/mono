@@ -1,40 +1,24 @@
 <template>
-  <FormSection :title="$t('Upload Movie')">
+  <FormSection :title="$t('upload.photoTitle')">
     <div class="space-y-4">
       <p v-if="limitReached" class="text-gray-600" data-testid="upload-limit-reached">
         {{ limitReachedMessage }}
       </p>
       <FormField
-        field-id="attachment-display-name"
-        :label="$t('attachments.displayNameLabel')"
-      >
-        <template #default="{ inputId, inputClass }">
-          <input
-            :id="inputId"
-            v-model="displayName"
-            type="text"
-            maxlength="50"
-            :class="inputClass"
-            :disabled="uploading || limitReached"
-            data-testid="attachment-display-name"
-          >
-        </template>
-      </FormField>
-      <FormField
-        field-id="movie-file"
-        :label="$t('Enter your movie location')"
+        field-id="photo-file"
+        :label="$t('upload.selectPhoto')"
         :error="fieldError"
       >
         <template #default="{ inputId, inputClass, ariaInvalid, ariaDescribedby }">
           <input
             :id="inputId"
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/quicktime,video/x-msvideo,video/webm"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
             :class="inputClass"
             :disabled="uploading || limitReached"
             :aria-invalid="ariaInvalid"
             :aria-describedby="ariaDescribedby"
-            data-testid="movie-file-input"
+            data-testid="photo-file-input"
             @change="onFileSelect"
           >
         </template>
@@ -69,7 +53,6 @@ const converting = ref(false)
 const progress = ref(0)
 const unavailable = ref(false)
 const fieldError = ref<string | null>(null)
-const displayName = ref('')
 
 const limitReached = computed(() =>
   isAttachmentLimitReached(props.attachmentCount, effectiveMax.value),
@@ -128,10 +111,6 @@ async function onFileSelect(event: Event) {
     return
   }
 
-  if (!displayName.value.trim()) {
-    displayName.value = file.name
-  }
-
   uploading.value = true
   converting.value = false
   progress.value = 0
@@ -139,7 +118,6 @@ async function onFileSelect(event: Event) {
 
   try {
     const result = await uploadFile(file, {
-      displayName: displayName.value,
       onProgress: (p) => { progress.value = p },
       onPhase: (phase) => { converting.value = phase === 'converting' },
     })
@@ -153,7 +131,7 @@ async function onFileSelect(event: Event) {
       }
     }
     else {
-      notify('success', 'MovieRec')
+      notify('success', 'upload.photoReceived')
       emit('upload-success')
     }
   }

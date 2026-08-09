@@ -40,6 +40,6 @@ describe('map-api-errors', () => {
 
   it('maps file validation failed to upload field', () => {
     const result = mapApiMessageToFieldErrors('File validation failed', t)
-    expect(result.fieldErrors['movie-file']).toBe('validation_uploadTooLarge')
+    expect(result.fieldErrors['photo-file']).toBe('validation_uploadTooLarge')
   })
 })

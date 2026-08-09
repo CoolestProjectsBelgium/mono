@@ -50,7 +50,7 @@ const API_MESSAGE_PATTERNS: Array<{
   },
   {
     test: /file validation failed/i,
-    fieldErrors: { 'movie-file': 'validation_uploadTooLarge' },
+    fieldErrors: { 'photo-file': 'validation_uploadTooLarge' },
     i18nKey: 'validation_uploadTooLarge',
   },
 ]
