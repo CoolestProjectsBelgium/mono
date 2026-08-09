@@ -68,23 +68,40 @@ export class FileUploadService {
 
 
   async deleteFile(userId: number, attachmentId: number): Promise<void> {
-
-    const attachment = await this.attachmentModel.findByPk(attachmentId, {
-      include: ['Project'],
-    });
+    const attachment = await this.attachmentModel.findByPk(attachmentId);
 
     if (!attachment) {
       throw new Error('Attachment not found');
     }
 
-    if ((await attachment.project.getOwner())?.id !== userId) {
+    const ownerProject = await this.userProjectModel.findOne({
+      where: {
+        userId,
+        deletedAt: null,
+        isOwner: true,
+        projectId: attachment.projectId,
+      },
+    });
+
+    if (!ownerProject) {
       throw new Error('Unauthorized');
     }
 
-    await fs.unlink(attachment.filepath);
-    await fs.unlink(attachment.thumbnailPath);
+    await this.safeUnlink(attachment.filepath);
+    await this.safeUnlink(attachment.thumbnailPath);
 
     await attachment.destroy();
+  }
+
+  private async safeUnlink(filePath: string): Promise<void> {
+    try {
+      await fs.unlink(filePath);
+    }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+    }
   }
 
 }
