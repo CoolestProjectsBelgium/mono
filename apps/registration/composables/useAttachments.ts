@@ -21,7 +21,6 @@ export function useAttachments() {
   async function uploadFile(
     file: File,
     options?: {
-      displayName?: string
       onProgress?: (percent: number) => void
       onPhase?: (phase: 'converting' | 'uploading') => void
     },

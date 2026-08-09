@@ -137,13 +137,13 @@
   "validation_projectLang": "Please select a presentation language.",
   "validation_generalQuestion": "Please answer this question.",
   "validation_uploadTooLarge": "This file is too large. Maximum size is {maxSize}.",
-  "validation_uploadInvalidType": "Only video and image files are allowed.",
+  "validation_uploadInvalidType": "Only image files are allowed.",
   "apiUnavailable": {
     "title": "Feature temporarily unavailable",
     "default": "The backend is not fully configured for this action yet.",
     "userinfo": "Profile data is not yet available via the API.",
     "participant": "Invite tokens cannot be created yet.",
-    "attachments": "File upload is not yet available."
+    "attachments": "Photo upload is temporarily unavailable. Please try again later."
   },
   "login": {
     "linkSent": "If your email is known to us, you will receive a login link.",
@@ -156,7 +156,13 @@
     "homeCta": "Back to homepage"
   },
   "noProject": { "message": "You don't have a project yet. Create one or join an existing project." },
-  "upload": { "leaveWarning": "Upload in progress — do not leave this page.", "leaveConfirm": "Upload in progress. Leave anyway?" },
+  "upload": {
+    "photoTitle": "Upload photo",
+    "selectPhoto": "Select your photo",
+    "photoReceived": "We have received your photo",
+    "leaveWarning": "Upload in progress — do not leave this page.",
+    "leaveConfirm": "Upload in progress. Leave anyway?"
+  },
   "attachments": {
     "title": "Uploaded files",
     "empty": "No files uploaded yet.",
@@ -175,14 +181,12 @@
     "deleteConfirm": "Delete",
     "count": "{count} / {max} files",
     "limitReached": "You can upload at most {max} files. You already uploaded {count}.",
-    "displayNameLabel": "Display name",
-    "displayNameHint": "A short label shown in the file list.",
     "lightboxClose": "Close preview",
     "renameSave": "Save",
     "renameCancel": "Cancel",
     "renameRequired": "Enter a display name.",
     "converting": "Converting file",
-    "invalidType": "Only images and videos can be uploaded."
+    "invalidType": "Only images can be uploaded."
   },
   "participantPending": "Invitation pending",
   "participantStatusLabel": "Status",

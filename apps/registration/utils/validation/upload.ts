@@ -7,7 +7,7 @@ export type UploadValidationResult =
   | { ok: false, code: UploadValidationCode }
 
 export function isAllowedUploadMimeType(type: string): boolean {
-  return type.startsWith('video/') || type.startsWith('image/')
+  return type.startsWith('image/')
 }
 
 export function validateUploadFile(

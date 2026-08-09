@@ -3,24 +3,21 @@ import { getFileExtension } from './attachment-media'
 export type UploadFileClass =
   | 'native'
   | 'convertible-image'
-  | 'convertible-video'
   | 'rejected'
 
 export type NormalizedUpload = {
   file: File
   filename: string
-  needsServerNormalize: boolean
 }
 
-const NATIVE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'mp4'])
+const NATIVE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png'])
 const CONVERTIBLE_IMAGE_EXTENSIONS = new Set(['webp', 'bmp', 'tiff', 'gif', 'heic', 'heif'])
-const CONVERTIBLE_VIDEO_EXTENSIONS = new Set(['mov', 'avi', 'mkv', 'webm', '3gp', 'm4v'])
 
 export function classifyUploadFile(file: File): UploadFileClass {
   const mime = file.type.toLowerCase()
   const ext = getFileExtension(file.name)
 
-  if (!mime.startsWith('image/') && !mime.startsWith('video/')) {
+  if (!mime.startsWith('image/')) {
     return 'rejected'
   }
 
@@ -29,9 +26,6 @@ export function classifyUploadFile(file: File): UploadFileClass {
   }
   if (CONVERTIBLE_IMAGE_EXTENSIONS.has(ext) || mime.startsWith('image/')) {
     return 'convertible-image'
-  }
-  if (CONVERTIBLE_VIDEO_EXTENSIONS.has(ext) || mime.startsWith('video/')) {
-    return 'convertible-video'
   }
   return 'rejected'
 }
@@ -84,15 +78,7 @@ export async function normalizeUploadFile(file: File): Promise<NormalizedUpload>
   }
 
   if (uploadClass === 'native') {
-    return { file, filename: file.name, needsServerNormalize: false }
-  }
-
-  if (uploadClass === 'convertible-video') {
-    return {
-      file,
-      filename: replaceExtension(file.name, 'mp4'),
-      needsServerNormalize: true,
-    }
+    return { file, filename: file.name }
   }
 
   const ext = getFileExtension(file.name)
@@ -103,6 +89,5 @@ export async function normalizeUploadFile(file: File): Promise<NormalizedUpload>
   return {
     file: converted,
     filename: converted.name,
-    needsServerNormalize: false,
   }
 }

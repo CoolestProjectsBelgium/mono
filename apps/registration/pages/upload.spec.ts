@@ -34,7 +34,7 @@ vi.mock('~/components/UploadAttachments.vue', () => ({
 vi.mock('~/composables/useAttachments', () => ({
   useAttachments: () => ({
     fetchAttachments: vi.fn().mockResolvedValue([
-      { id: '1', name: 'Movie', thumbnailUrl: '/thumb/1' },
+      { id: '1', name: 'Photo', thumbnailUrl: '/thumb/1' },
     ]),
   }),
 }))
@@ -58,7 +58,7 @@ const ownerProject: ProjectDto = {
   attachments: [
     {
       id: '1',
-      name: 'Movie',
+      name: 'Photo',
       thumbnailUrl: '/thumb/1',
     } satisfies AttachmentDto,
   ],

@@ -7,7 +7,6 @@ vi.mock('~/utils/attachment-normalize', () => ({
   normalizeUploadFile: vi.fn(async (file: File) => ({
     file,
     filename: file.name,
-    needsServerNormalize: false,
   })),
 }))
 

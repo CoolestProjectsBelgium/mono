@@ -10,6 +10,14 @@ describe('upload validation', () => {
     })
   })
 
+  it('rejects video files', () => {
+    const file = new File(['x'], 'clip.mp4', { type: 'video/mp4' })
+    expect(validateUploadFile(file, { maxUploadSize: 1000 })).toEqual({
+      ok: false,
+      code: 'invalidType',
+    })
+  })
+
   it('accepts png files', () => {
     const file = new File(['x'], 'photo.png', { type: 'image/png' })
     expect(validateUploadFile(file, { maxUploadSize: 1000 })).toEqual({ ok: true })

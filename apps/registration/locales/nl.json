@@ -137,13 +137,13 @@
   "validation_projectLang": "Kies een presentatietaal.",
   "validation_generalQuestion": "Beantwoord deze vraag.",
   "validation_uploadTooLarge": "Dit bestand is te groot. Maximale grootte is {maxSize}.",
-  "validation_uploadInvalidType": "Alleen video- en afbeeldingsbestanden zijn toegestaan.",
+  "validation_uploadInvalidType": "Alleen afbeeldingsbestanden zijn toegestaan.",
   "apiUnavailable": {
     "title": "Functie tijdelijk niet beschikbaar",
     "default": "De backend is nog niet volledig geconfigureerd voor deze actie.",
     "userinfo": "Profielgegevens zijn nog niet beschikbaar via de API.",
     "participant": "Uitnodigingstokens kunnen nog niet worden aangemaakt.",
-    "attachments": "Bestandsupload is nog niet beschikbaar."
+    "attachments": "Foto-upload is tijdelijk niet beschikbaar. Probeer het later opnieuw."
   },
   "login": {
     "linkSent": "Als je e-mailadres bij ons bekend is, ontvang je een loginlink.",
@@ -156,7 +156,13 @@
     "homeCta": "Terug naar de startpagina"
   },
   "noProject": { "message": "Je hebt nog geen project. Start er een of sluit je aan bij een bestaand project." },
-  "upload": { "leaveWarning": "Upload bezig — verlaat de pagina niet.", "leaveConfirm": "Upload bezig. Toch de pagina verlaten?" },
+  "upload": {
+    "photoTitle": "Foto opladen",
+    "selectPhoto": "Selecteer je foto",
+    "photoReceived": "We hebben je foto goed ontvangen",
+    "leaveWarning": "Upload bezig — verlaat de pagina niet.",
+    "leaveConfirm": "Upload bezig. Toch de pagina verlaten?"
+  },
   "attachments": {
     "title": "Geüploade bestanden",
     "empty": "Nog geen bestanden geüpload.",
@@ -175,14 +181,12 @@
     "deleteConfirm": "Verwijderen",
     "count": "{count} / {max} bestanden",
     "limitReached": "Je kan maximaal {max} bestanden uploaden. Je hebt er al {count} geüpload.",
-    "displayNameLabel": "Weergavenaam",
-    "displayNameHint": "Een korte naam in de bestandenlijst.",
     "lightboxClose": "Voorbeeld sluiten",
     "renameSave": "Opslaan",
     "renameCancel": "Annuleren",
     "renameRequired": "Geef een weergavenaam in.",
     "converting": "Bestand converteren",
-    "invalidType": "Alleen afbeeldingen en video's kunnen worden geüpload."
+    "invalidType": "Alleen afbeeldingen kunnen worden geüpload."
   },
   "participantPending": "Uitnodiging open",
   "participantStatusLabel": "Status",

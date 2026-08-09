@@ -137,13 +137,13 @@
   "validation_projectLang": "Choisis une langue de présentation.",
   "validation_generalQuestion": "Réponds à cette question.",
   "validation_uploadTooLarge": "Ce fichier est trop volumineux. Taille maximale : {maxSize}.",
-  "validation_uploadInvalidType": "Seuls les fichiers vidéo et image sont autorisés.",
+  "validation_uploadInvalidType": "Seules les images sont autorisées.",
   "apiUnavailable": {
     "title": "Fonction temporairement indisponible",
     "default": "Le backend n'est pas encore configuré pour cette action.",
     "userinfo": "Les données de profil ne sont pas encore disponibles.",
     "participant": "Les tokens d'invitation ne peuvent pas encore être créés.",
-    "attachments": "L'envoi de fichiers n'est pas encore disponible."
+    "attachments": "L'envoi de photos est temporairement indisponible. Réessaie plus tard."
   },
   "login": {
     "linkSent": "Si ton e-mail est connu, tu recevras un lien de connexion.",
@@ -156,7 +156,13 @@
     "homeCta": "Retour à la page d'accueil"
   },
   "noProject": { "message": "Tu n'as pas encore de projet." },
-  "upload": { "leaveWarning": "Envoi en cours — ne quitte pas cette page.", "leaveConfirm": "Envoi en cours. Quitter quand même la page ?" },
+  "upload": {
+    "photoTitle": "Envoyer une photo",
+    "selectPhoto": "Sélectionne ta photo",
+    "photoReceived": "Nous avons bien reçu ta photo",
+    "leaveWarning": "Envoi en cours — ne quitte pas cette page.",
+    "leaveConfirm": "Envoi en cours. Quitter quand même la page ?"
+  },
   "attachments": {
     "title": "Fichiers envoyés",
     "empty": "Aucun fichier envoyé pour l'instant.",
@@ -175,14 +181,12 @@
     "deleteConfirm": "Supprimer",
     "count": "{count} / {max} fichiers",
     "limitReached": "Tu peux envoyer au maximum {max} fichiers. Tu en as déjà envoyé {count}.",
-    "displayNameLabel": "Nom affiché",
-    "displayNameHint": "Un libellé court dans la liste des fichiers.",
     "lightboxClose": "Fermer l'aperçu",
     "renameSave": "Enregistrer",
     "renameCancel": "Annuler",
     "renameRequired": "Saisis un nom affiché.",
     "converting": "Conversion du fichier",
-    "invalidType": "Seules les images et les vidéos peuvent être envoyées."
+    "invalidType": "Seules les images peuvent être envoyées."
   },
   "participantPending": "Invitation en attente",
   "participantStatusLabel": "Statut",

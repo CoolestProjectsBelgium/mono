@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-3xl font-bold">{{ $t('Upload Movie') }}</h1>
+    <h1 class="text-3xl font-bold">{{ $t('upload.photoTitle') }}</h1>
     <UploadAttachments
       v-if="settings"
       ref="uploadRef"
