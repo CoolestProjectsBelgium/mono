@@ -7,6 +7,7 @@ import { Project } from '@coolestprojects/database';
 import { Registration } from '@coolestprojects/database';
 import { Op } from 'sequelize';
 import { MailerService } from '../mailer/mailer.service';
+import { Attachment } from '@coolestprojects/database';
 
 @Injectable()
 export class BackgroundService {
@@ -20,8 +21,10 @@ export class BackgroundService {
     private readonly registrationModel: typeof Registration,
     @InjectModel(Project)
     private readonly projectModel: typeof Project,
-    private readonly mailerService: MailerService
-  
+    private readonly mailerService: MailerService,
+    @InjectModel(Attachment)
+    private readonly attachmentModel: typeof Attachment
+
   ) { }
 
 
@@ -69,6 +72,7 @@ export class BackgroundService {
       }],
       where: {
         '$projects.id$': null,
+        eventId: activeEvent.id,
       },
     });
 
@@ -102,9 +106,15 @@ export class BackgroundService {
             deletedAt: null,
           },
         },
+        include: [{
+          model: this.attachmentModel,
+          as: 'attachments',
+          required: false,
+        }],
       }],
       where: {
-        '$projects.attachments$': null,
+        eventId: activeEvent.id,
+        '$projects.attachments.id$': null,
       },
     });
 
