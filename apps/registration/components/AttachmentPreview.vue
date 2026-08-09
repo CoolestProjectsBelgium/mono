@@ -12,7 +12,7 @@
       data-testid="attachment-preview-image"
     >
     <span
-      v-else
+      v-else-if="!loading"
       class="px-2 text-center text-xs text-gray-500"
       data-testid="attachment-preview-unavailable"
     >
@@ -22,9 +22,24 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
+  attachmentId: string
   name: string
-  thumbnailUrl?: string | null
   unavailableLabel: string
 }>()
+
+const { fetchThumbnailObjectUrl } = useAttachments()
+
+const thumbnailUrl = ref<string | null>(null)
+const loading = ref(true)
+
+async function loadThumbnail() {
+  loading.value = true
+  thumbnailUrl.value = await fetchThumbnailObjectUrl(props.attachmentId)
+  loading.value = false
+}
+
+watch(() => props.attachmentId, () => {
+  void loadThumbnail()
+}, { immediate: true })
 </script>

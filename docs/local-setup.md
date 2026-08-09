@@ -45,7 +45,7 @@ HTTPS (recommended — matches cert setup):
 
 Proxy vhost config: [`.devcontainer/dockerfile_proxy/proxy_templates/proxy.conf`](../.devcontainer/dockerfile_proxy/proxy_templates/proxy.conf).
 
-Nuxt SPA apps (registration, voting) need `AllowEncodedSlashes NoDecode` and `ProxyPass ... nocanon` so Vite virtual-module URLs containing `%2F` are not rejected as 404 (blank page otherwise). After changing proxy templates, rebuild/restart the `proxy` container.
+Nuxt SPA apps (registration, voting) need `AllowEncodedSlashes NoDecode` and `ProxyPass ... nocanon` so Vite virtual-module URLs containing `%2F` are not rejected as 404 (blank page otherwise). Registration also proxies `/_api/` to the API container so attachment thumbnails and other API calls do not fall through to the Nuxt `index.html`. After changing proxy templates, rebuild/restart the `proxy` container.
 
 Direct ports (inside/on workspace container):
 
