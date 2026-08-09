@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UserDto } from '../dto/user.dto';
 import { Template } from 'handlebars';
 import * as Handlebars from 'handlebars';
@@ -31,6 +31,8 @@ export class MailerService {
     @InjectModel(EmailLog)
     private readonly emailLogModel: typeof EmailLog,
   ) {}
+
+  private readonly logger = new Logger(MailerService.name);
 
   private buildRegistrationContext(
     registration: Registration,
@@ -298,10 +300,20 @@ export class MailerService {
   }
 
   async deleteMail() {}
-  async warningNoProject() {}
-  async deadlineApproaching() {}
+  async warningNoProject(user: User) {
+    this.logger.debug(`Sending warningNoProject mail to user ${user.id}`);
+  }
+  async deadlineApproaching(user: User) {
+    this.logger.debug(`Sending deadline approaching mail to user ${user.id}`);
+  }
   async waitingMail() {}
   async activationMail() {}
   async ask4TokenMail() {}
   async notifyProjectOwner() {}
+  async warningNoPhoto(user: User) {
+    this.logger.debug(`Sending warningNoPhoto mail to user ${user.id}`);
+  }
+  async notifyRegistrationActivation(registration: Registration) {
+    this.logger.debug(`Sending notifyRegistrationActivation mail to user ${registration.email}`);
+  }
 }
