@@ -30,8 +30,8 @@
               @click="onPreviewClick(attachment)"
             >
               <AttachmentPreview
+                :attachment-id="attachment.id"
                 :name="attachment.name"
-                :thumbnail-url="attachment.thumbnailUrl"
                 :unavailable-label="$t('attachments.previewUnavailable')"
               />
             </button>
@@ -100,7 +100,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { deleteAttachment, getPreviewUrl } = useAttachments()
+const { deleteAttachment, fetchThumbnailObjectUrl } = useAttachments()
 const { notify } = useNotification()
 
 const deletingId = ref<string | null>(null)
@@ -157,7 +157,7 @@ async function openLightbox(attachment: AttachmentDto) {
   const mediaKind = inferAttachmentMediaKind(attachment.name)
   openingId.value = attachment.id
   try {
-    const url = getPreviewUrl(attachment)
+    const url = await fetchThumbnailObjectUrl(attachment.id)
     if (!url) {
       notify('error', 'error_An error occurred')
       return
@@ -176,8 +176,8 @@ function onPreviewClick(attachment: AttachmentDto) {
   void openLightbox(attachment)
 }
 
-function onOpen(attachment: AttachmentDto) {
-  const url = getPreviewUrl(attachment)
+async function onOpen(attachment: AttachmentDto) {
+  const url = await fetchThumbnailObjectUrl(attachment.id)
   if (!url) {
     notify('error', 'error_An error occurred')
     return

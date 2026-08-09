@@ -44,11 +44,15 @@ export class ProjectinfoService {
         }
 
         const file = createReadStream(attachment.thumbnailPath);
-        return new StreamableFile(file);
+        return new StreamableFile(file, { type: 'image/webp' });
     }
 
     private getThumbnailUrl(attachmentId: number): string {
-        return process.env.ATTACHMENT_BASE_URL + '/' + attachmentId;
+        const base = process.env.ATTACHMENT_BASE_URL?.replace(/\/$/, '');
+        if (!base) {
+            return `/projectinfo/attachments/${attachmentId}`;
+        }
+        return `${base}/${attachmentId}`;
     }
 
     private formatParticipantName(firstname?: string | null, lastname?: string | null): string {

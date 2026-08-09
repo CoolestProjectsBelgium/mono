@@ -5,13 +5,13 @@ import AttachmentList from './AttachmentList.vue'
 import type { AttachmentDto } from '~/types/api'
 
 const deleteAttachment = vi.fn()
-const getPreviewUrl = vi.fn()
+const fetchThumbnailObjectUrl = vi.fn()
 const notify = vi.fn()
 
 vi.mock('~/composables/useAttachments', () => ({
   useAttachments: () => ({
     deleteAttachment,
-    getPreviewUrl,
+    fetchThumbnailObjectUrl,
   }),
 }))
 
@@ -40,10 +40,10 @@ const sampleAttachment: AttachmentDto = {
 describe('AttachmentList', () => {
   beforeEach(() => {
     deleteAttachment.mockReset()
-    getPreviewUrl.mockReset()
+    fetchThumbnailObjectUrl.mockReset()
     notify.mockReset()
     vi.stubGlobal('open', vi.fn())
-    getPreviewUrl.mockReturnValue('https://example.test/thumb/12')
+    fetchThumbnailObjectUrl.mockResolvedValue('blob:thumb-12')
   })
 
   it('shows empty state when there are no attachments', async () => {

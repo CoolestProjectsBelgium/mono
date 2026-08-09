@@ -46,12 +46,27 @@ describe('useAttachments', () => {
     await expect(deleteAttachment('12')).resolves.toBe(false)
   })
 
-  it('getPreviewUrl returns thumbnailUrl', async () => {
+  it('getPreviewUrl builds the authenticated thumbnail API path', async () => {
     const { getPreviewUrl } = await callComposable(() => useAttachments())
     expect(getPreviewUrl({
-      id: '1',
+      id: '12',
       name: 'Photo',
-      thumbnailUrl: '/thumb/1',
-    })).toBe('/thumb/1')
+      thumbnailUrl: 'https://example.test/ignored',
+    })).toBe('/_api/projectinfo/attachments/12')
+  })
+
+  it('fetchThumbnailObjectUrl delegates to the thumbnail helper', async () => {
+    const blob = new Blob(['webp'], { type: 'image/webp' })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => blob,
+    }))
+    vi.stubGlobal('URL', {
+      createObjectURL: vi.fn(() => 'blob:thumb-12'),
+      revokeObjectURL: vi.fn(),
+    })
+
+    const { fetchThumbnailObjectUrl } = await callComposable(() => useAttachments())
+    await expect(fetchThumbnailObjectUrl('12')).resolves.toBe('blob:thumb-12')
   })
 })

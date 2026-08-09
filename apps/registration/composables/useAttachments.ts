@@ -1,8 +1,12 @@
 import type { AttachmentDto } from '~/types/api'
 import { getApiErrorMessage } from '~/utils/api-response'
+import {
+  buildAttachmentThumbnailPath,
+  fetchAttachmentThumbnailObjectUrl,
+  revokeAttachmentThumbnailObjectUrl,
+} from '~/utils/attachment-thumbnail'
 import { normalizeUploadFile } from '~/utils/attachment-normalize'
 import { ensureCsrfToken } from '~/utils/csrf-token'
-
 export type UploadFileCode = 'tooLarge' | 'invalidType' | 'tooMany' | 'unavailable' | 'converting'
 
 export type UploadFileResult =
@@ -83,6 +87,7 @@ export function useAttachments() {
       await apiFetch<null>(`/projectinfo/attachments/${encodeURIComponent(id)}`, {
         method: 'DELETE',
       })
+      revokeAttachmentThumbnailObjectUrl(id)
       return true
     }
     catch {
@@ -90,14 +95,23 @@ export function useAttachments() {
     }
   }
 
+  async function fetchThumbnailObjectUrl(attachmentId: string): Promise<string | null> {
+    return fetchAttachmentThumbnailObjectUrl(config.public.apiBase as string, attachmentId)
+  }
+
   function getPreviewUrl(attachment: AttachmentDto): string | null {
-    return attachment.thumbnailUrl ?? null
+    if (!attachment.id) {
+      return null
+    }
+    const baseURL = (config.public.apiBase as string).replace(/\/$/, '')
+    return `${baseURL}${buildAttachmentThumbnailPath(attachment.id)}`
   }
 
   return {
     fetchAttachments,
     uploadFile,
     deleteAttachment,
+    fetchThumbnailObjectUrl,
     getPreviewUrl,
   }
 }
