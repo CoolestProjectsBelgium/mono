@@ -95,6 +95,8 @@ export class BackgroundService {
       await this.mailerService.notifyRegistrationActivation(registration);
     }
 
+    this.logger.debug('Notification attachment reminders');
+
     const noAttachmentUsers = await this.userModel.findAll({
       include: [{
         model: this.projectModel,
