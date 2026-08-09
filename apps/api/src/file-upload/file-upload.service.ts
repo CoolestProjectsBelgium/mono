@@ -30,7 +30,10 @@ export class FileUploadService {
       throw new Error('UPLOAD_ROOT environment variable is not set');
     }
 
-    const project = await this.userProjectModel.findOne({ where: { id: userId, isOwner: true }, include: [Event, Project] });
+    const project = await this.userProjectModel.findOne({
+      where: { userId, deletedAt: null, isOwner: true },
+      include: [Event, Project],
+    });
     if (!project) {
       throw new Error('Owner not found');
     }
@@ -53,6 +56,7 @@ export class FileUploadService {
     await fs.writeFile(path.join(folderPath, thumbnailName), thumbnailBuffer);
 
     await this.attachmentModel.create({
+      eventId: project.eventId,
       projectId: project.project.id,
       name: file.originalname,
       size: file.size,

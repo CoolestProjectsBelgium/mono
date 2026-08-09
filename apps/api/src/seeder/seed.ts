@@ -37,7 +37,8 @@ export async function seedDatabase(
     // Must be in the future: InfoInterceptor requires eventBeginDate < now < eventEndDate
     eventEndDate: new Date().setDate(new Date().getDate() + 40),
     maxFileSize: 2147483647,
-    allowedMimeTypes: "['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'],",
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    folderName: 'coolestprojects',
     eventTitle: 'Coolest Projects Active Event',
   });
 
