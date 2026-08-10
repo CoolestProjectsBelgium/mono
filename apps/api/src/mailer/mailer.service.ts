@@ -102,6 +102,7 @@ export class MailerService {
     event: Event,
     to: string,
     context: Record<string, unknown>,
+    link?: User | Registration,
   ) {
     const templateMail = await this.emailTemplateModel.findOne({
       where: { template, language, eventId: event.id },
@@ -160,6 +161,8 @@ export class MailerService {
         to,
         messageId: result.messageId,
         status: 'sent',
+        user: link instanceof User ? link : undefined,
+        registration: link instanceof Registration ? link : undefined,
       });
 
     } catch (error) {
@@ -170,6 +173,8 @@ export class MailerService {
         messageId: '',
         status: 'failed',
         error: String(error),
+        user: link instanceof User ? link : undefined,
+        registration: link instanceof Registration ? link : undefined,
       });
       console.error('[mailer] Failed to send "%s" to %s:', template, to, error);
       if (env.NODE_ENV === 'production') {
@@ -193,6 +198,7 @@ export class MailerService {
       event,
       to,
       context,
+      user
     );
   }
 
@@ -223,6 +229,7 @@ export class MailerService {
       event,
       to,
       context,
+      user
     );
   }
 
@@ -241,6 +248,7 @@ export class MailerService {
       event,
       to,
       context,
+      user
     );
   }
 
@@ -259,6 +267,7 @@ export class MailerService {
       event,
       to,
       context,
+      user
     );
   }
 
@@ -307,9 +316,22 @@ export class MailerService {
     messageId: string
     status: 'sent' | 'failed'
     error?: string
+    user?: User
+    registration?: Registration
   }): Promise<void> {
+    const emailLog = this.emailLogModel.build({
+      eventId: entry.eventId,
+      template: entry.template,
+      to: entry.to,
+      messageId: entry.messageId,
+      status: entry.status,
+      error: entry.error,
+      userId: entry.user?.id,
+      registrationId: entry.registration?.id,
+    });
+    
     try {
-      await this.emailLogModel.create(entry);
+      await emailLog.save();
     }
     catch (logError) {
       console.error('[mailer] Failed to log email:', logError);
