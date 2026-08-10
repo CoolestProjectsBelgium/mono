@@ -239,3 +239,4 @@ sw.*
 
 # Vim swap files
 *.swp
+apps/admin/.adminjs/bundle.js
