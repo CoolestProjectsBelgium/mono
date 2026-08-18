@@ -1,35 +1,109 @@
-import React from 'react'
-import { Box, Button, H2, H5, Illustration, IllustrationProps, Text } from '@adminjs/design-system'
+import React,{ useState, useEffect }  from 'react'
+import { ApiClient } from 'adminjs'
+
+import { Box, 
+    Button, 
+    Illustration, 
+    IllustrationProps, 
+    H4,
+    H5,
+    Table,
+    TableRow,
+    TableBody,
+    TableCell,
+    TableHead,
+    Text } from '@adminjs/design-system'
 import { styled } from '@adminjs/design-system/styled-components'
 
 import { useTranslation } from 'adminjs'
 
+// Define interfaces for nested list structures
+interface TableItem {
+    id: string | number
+    total: number | string
+    short: string
+    description: string
+}
+const api = new ApiClient()
+
+// Comprehensive interface matching your dashboard data shape
+interface DashboardData {
+    event_title?: string
+    officialStartDate?: string
+    days_remaining?: number
+    pending_users?: number
+    overdue_registration?: number
+    waiting_list?: number
+    total_unusedVouchers?: number
+    total_projects?: number
+    maxRegistration?: number
+    total_usedVouchers?: number
+    total_users?: number
+    total_videos?: number
+    tlang_nl?: number
+    tlang_fr?: number
+    tlang_en?: number
+    total_females?: number
+    total_males?: number
+    total_X?: number
+    questions?: TableItem[]
+    tshirts?: TableItem[]
+}
+
+interface CardProps {
+    flex?: boolean
+}
+
 const pageHeaderHeight = 300
-const pageHeaderPaddingY = 74
-const pageHeaderPaddingX = 250
+const pageHeaderPaddingY = 54
+const pageHeaderPaddingX = 300
+
+const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+}
 
 export const DashboardHeader: React.FC = () => {
-  const { translateMessage } = useTranslation()
-  return (
-    <Box data-css="default-dashboard">
-      <Box
-        position="relative"
-        overflow="hidden"
-        bg="white"
-        height={pageHeaderHeight}
-        py={pageHeaderPaddingY}
-        px={['default', 'lg', pageHeaderPaddingX]}
-      >
-        <Box position="absolute" top={30} left={0} opacity={0.9} animate display={['none', 'none', 'none', 'block']}>
-          
+    // Initialize state with the specific data interface type
+    const [data, setData] = useState<DashboardData>({})
+
+    useEffect(() => {
+        let isSubscribed = true
+        api.getDashboard().then((response) => {
+            console.log('dashboard.tsx_02', response)
+            if (isSubscribed) {
+                setData(response.data as DashboardData)
+            }
+        })
+        return () => {
+            isSubscribed = false
+        }
+    }, [])
+
+    return (
+        <Box position="relative" overflow="hidden">
+            <Box
+                bg="grey100"
+                height={pageHeaderHeight}
+                py={pageHeaderPaddingY}
+                px={['default', 'lg', pageHeaderPaddingX]}
+            >
+                <Box textAlign="center" color="white">
+                    <h2 style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0' }}>
+                        {data.event_title} {' '} 
+                        
+                    </h2>
+                    <Text>starting on :
+                           {data.officialStartDate !== undefined
+                            ? new Intl.DateTimeFormat('en-BE', options).format(new Date(data.officialStartDate))
+                            : 'No event'}
+                    </Text>
+                    <Text>{data.days_remaining} days remaining</Text>
+                </Box>
+            </Box>
         </Box>
-        <Text textAlign="center" color="grey100">
-          <H2 fontWeight="bold">Coolestproject Admin</H2>
-          <Text opacity={0.8}>TODO make nice dashbord with current event info</Text>
-        </Text>
-      </Box>
-    </Box>
-  )
+    )
 }
 
 type BoxType = {
@@ -49,7 +123,14 @@ const boxes = ({ translateMessage }): Array<BoxType> => [
     subtitle: "Upload fotos on behalf of a participant",
     href: 'https://docs.adminjs.co/basics/resource#providing-resources-explicitly',
   },
+    {
+    title:  "StatistiekNew",
+    subtitle: "Show several statistics about the event New",
+    href: 'https://docs.adminjs.co/basics/resource#providing-resources-explicitly',
+  },
 ]
+
+
 
 const Card = styled(Box)`
   display: ${({ flex }): string => (flex ? 'flex' : 'block')};
@@ -77,45 +158,145 @@ Card.defaultProps = {
 }
 
 export const Dashboard: React.FC = () => {
-  const { translateMessage, translateButton } = useTranslation()
+    const [data, setData] = useState<DashboardData>({})
 
-  return (
-    <Box>
-      <DashboardHeader />
-      <Box
-        mt={['xl', 'xl', '-100px']}
-        mb="xl"
-        mx={[0, 0, 0, 'auto']}
-        px={['default', 'lg', 'xxl', '0']}
-        position="relative"
-        flex
-        flexDirection="row"
-        flexWrap="wrap"
-        width={[1, 1, 1, 1024]}
-      >
-        {boxes({ translateMessage }).map((box, index) => (
-          // eslint-disable-next-line react/no-array-index-key
-          <Box key={index} width={[1, 1 / 2, 1 / 2, 1 / 3]} p="lg">
-            <Card as="a" href={box.href} target="_blank">
-              <Text textAlign="center">
-                <H5 mt="md">{box.title}</H5>
-                <Text>{box.subtitle}</Text>
-              </Text>
-            </Card>
-          </Box>
-        ))}
-        <Card width={1} m="lg">
-          <Text textAlign="center">
-            <H5>Overview</H5>
-            <Text>TODO some nice graphs</Text>
-            <Text mt="xxl">
-              text
-            </Text>
-          </Text>
-        </Card>
-      </Box>
-    </Box>
-  )
+    useEffect(() => {
+        let isSubscribed = true
+        api.getDashboard().then((response) => {
+            if (isSubscribed) {
+                setData(response.data as DashboardData)
+            }
+        })
+        return () => {
+            isSubscribed = false
+        }
+    }, [])
+
+    return (
+        <Box>
+            <DashboardHeader />
+            <Box
+                mt={['xl', 'xl', '-100px']}
+                mb="xl"
+                mx={[0, 0, 0, 'auto']}
+                px={['default', 'lg', 'xxl', '0']}
+                position="relative"
+                flex
+                flexDirection="row"
+                flexWrap="wrap"
+                justifyContent="space-between"
+                alignContent="flex-start"
+                width={[1, 1, 1, 1024]}
+            >
+                <Box width={[1, 1, 1 / 2]} p="lg">
+                    <Card as="a" flex>
+                        <Box ml="xl">
+                            <H4>Status Registrations</H4>
+                            <ul>
+                                <li>{data.pending_users ?? 0} Registrations Pending</li>
+                                <li>{data.overdue_registration ?? 0} Overdue registrations</li>
+                                <li>{data.waiting_list ?? 0} On waiting list</li>
+                                <li>{data.total_unusedVouchers ?? 0} unused vouchers</li>
+                            </ul>
+                        </Box>
+                    </Card>
+                </Box>
+                <Box width={[1, 1, 1 / 2]} p="lg">
+                    <Card as="a" flex>
+                        <Box ml="xl">
+                            <H4>Status Projects</H4>
+                            <ul>
+                                <li>
+                                    {data.total_projects ?? 0}/{data.maxRegistration ?? 0} Projects Remaining / with{' '}
+                                    {data.total_usedVouchers ?? 0} Co-Worker(s)
+                                </li>
+                                <li>
+                                    {((data.total_users || 0) - (data.total_usedVouchers || 0) - (data.total_projects || 0))} user(s) without Project
+                                </li>
+                                <li>{data.total_videos ?? 0} Project(s) with videos loaded</li>
+                            </ul>
+                        </Box>
+                    </Card>
+                </Box>
+                <Box width={[1, 1, 1 / 2]} p="lg">
+                    <Card as="a" flex>
+                        <Box ml="xl">
+                            <H4>Statistics Users (total:{data.total_users ?? 0})</H4>
+                            <Box flex flexDirection="row" justifyContent="space-between" position="relative">
+                                <Box width={[1, 1, 1]}>
+                                    <H5>Languages</H5>
+                                    <ul>
+                                        <li>{data.tlang_nl || 0} nl</li>
+                                        <li>{data.tlang_fr || 0} fr</li>
+                                        <li>{data.tlang_en || 0} en</li>
+                                    </ul>
+                                </Box>
+                                <Box width={[1, 1, 1]}>
+                                    <H5>Sex</H5>
+                                    <ul>
+                                        <li>{data.total_females || 0} females</li>
+                                        <li>{data.total_males || 0} males</li>
+                                        <li>{data.total_X || 0} X</li>
+                                    </ul>
+                                </Box>
+                            </Box>
+                        </Box>
+                    </Card>
+                </Box>
+                <Box width={[1, 1, 1]} p="lg">
+                    <Card as="a" flex>
+                        <Box ml="xl">
+                            <H5>Answers</H5>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>total</TableCell>
+                                        <TableCell>short</TableCell>
+                                        <TableCell>description</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {data.questions &&
+                                        data.questions.map((question) => (
+                                            <TableRow key={question.id}>
+                                                <TableCell>{question.total}</TableCell>
+                                                <TableCell>{question.short}</TableCell>
+                                                <TableCell>{question.description}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
+                    </Card>
+                </Box>
+                <Box width={[1, 1, 1]} p="lg">
+                    <Card as="a" flex>
+                        <Box ml="xl">
+                            <H5>T-Shirts</H5>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>total</TableCell>
+                                        <TableCell>short</TableCell>
+                                        <TableCell>description</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {data.tshirts &&
+                                        data.tshirts.map((tshirt) => (
+                                            <TableRow key={tshirt.id}>
+                                                <TableCell>{tshirt.total}</TableCell>
+                                                <TableCell>{tshirt.short}</TableCell>
+                                                <TableCell>{tshirt.description}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
+                    </Card>
+                </Box>
+            </Box>
+        </Box>
+    )
 }
-
 export default Dashboard

@@ -239,4 +239,7 @@ sw.*
 
 # Vim swap files
 *.swp
+apps/admin/src/components/Dashboard2.tsx
+apps/admin/src/components/DashboardOrig.tsx
+apps/admin/src/components/Dashboard2.tsx
 apps/admin/.adminjs/bundle.js
