@@ -22,6 +22,24 @@ export async function seedDatabase(
   tshirtTranslationModel: typeof TshirtTranslation,
   accountModel: typeof Account
 ) {
+    const eventBeginDate = new Date();
+    eventBeginDate.setDate(new Date().getDate() - 100);
+
+    const registrationOpenDate = new Date();
+    registrationOpenDate.setDate(new Date().getDate() - 90);
+
+    const registrationClosedDate = new Date();
+    registrationClosedDate.setDate(new Date().getDate() + 10);
+
+    const projectClosedDate = new Date();
+    projectClosedDate.setDate(new Date().getDate() + 20);
+
+    const officialStartDate = new Date();
+    officialStartDate.setDate(new Date().getDate() + 5);
+
+    const eventEndDate = new Date();
+    eventEndDate.setDate(new Date().getDate() + 40);
+
   const event = await eventModel.create({
     floorplanPath: 'floorplan_active.svg',
     minAge: 7,
@@ -29,13 +47,13 @@ export async function seedDatabase(
     minGuardianAge: 16,
     maxRegistration: 64,
     maxVoucher: 3,
-    eventBeginDate: new Date().setDate(new Date().getDate() - 100),
-    registrationOpenDate: new Date().setDate(new Date().getDate() - 90),
-    registrationClosedDate: new Date().setDate(new Date().getDate() + 10),
-    projectClosedDate: new Date().setDate(new Date().getDate() + 20),
-    officialStartDate: new Date().setDate(new Date().getDate() + 5),
+    eventBeginDate: eventBeginDate,
+    registrationOpenDate: registrationOpenDate,
+    registrationClosedDate: registrationClosedDate,
+    projectClosedDate: projectClosedDate,
+    officialStartDate: officialStartDate,
     // Must be in the future: InfoInterceptor requires eventBeginDate < now < eventEndDate
-    eventEndDate: new Date().setDate(new Date().getDate() + 40),
+    eventEndDate: eventEndDate,
     maxFileSize: 2147483647,
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
     folderName: 'coolestprojects',
