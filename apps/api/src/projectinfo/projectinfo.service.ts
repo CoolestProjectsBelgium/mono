@@ -371,6 +371,7 @@ export class ProjectinfoService {
                 deletedAt: null,
                 isOwner: false,
                 voucherGuid,
+                userId: null,
             },
         });
         if (!voucher) {
