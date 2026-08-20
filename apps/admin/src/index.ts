@@ -4,6 +4,7 @@ import type { Request } from 'express'
 import express from 'express'
 import * as AdminJSSequelize from '@adminjs/sequelize'
 import passwordsFeature from '@adminjs/passwords'
+import { Op } from 'sequelize'
 
 import {
   sequelize,
@@ -155,12 +156,12 @@ const start = async () => {
   const pendingUsers = await safeCount('Registration', { eventId })
   const overdueRegistration = await safeCount('User', { eventId, status: 'overdue' })
   const waitingList = await safeCount('Registration', { eventId, waiting_list: true})
-  const totalUnusedVouchers = await safeCount('User', { eventId, status: 'unused_voucher' })
+  const totalUnusedVouchers = await safeCount('UserProject', { eventId, userId: null })
   
   const totalProjects = await safeCount('Project', { eventId })
-  const totalUsedVouchers = await safeCount('User', { eventId, status: 'used_voucher' })
+  const totalUsedVouchers = await safeCount('UserProject', { eventId, deletedAt: { [Op.ne]: null }, voucherGuid: { [Op.ne]: null }, userId: { [Op.ne]: null } })
   const totalUsers = await safeCount('User', { eventId })
-  const totalVideos = await safeCount('Project', { eventId, videoLoaded: true })
+  const totalVideos = await safeCount('Attachment', { eventId, confirmed: true })
 
   const tlangNl = await safeCount('User', { eventId, language: 'nl' })
   const tlangFr = await safeCount('User', { eventId, language: 'fr' })
@@ -324,6 +325,52 @@ const start = async () => {
           },
         },
       },
+      { resource: sequelize.models.Attachment,
+        options: {
+          listProperties: ['id', 'projectId','confirmed','internal','size','mimetype'],
+          filterProperties: ['id', 'projectId',   'eventId'],
+          showProperties: [
+            'id',
+            'projectId',
+            'confirmed',
+            'internal',
+            'size',
+            'mimetype',
+            'filepath',
+            'thumbnailPath',
+            'name',
+            'type',
+            'internalInformation',
+            'language',
+            'maxVoucher',
+            'eventId',
+            'deletedAt',
+          ],
+          editProperties: [
+            'projectId',
+            'confirmed',
+            'internal',
+             'mimetype',
+            'filepath',
+            'thumbnailPath',
+            'name',
+            'type',
+            'internalInformation',
+            'language',
+            'maxVoucher',
+            'eventId',
+            'deletedAt',
+          ],
+          properties: {
+            deletedAt: {
+              type: 'datetime',
+              label: 'Deleted At',
+              isVisible: { list: true, filter: true, show: true, edit: true },
+            },
+          },
+        },
+      },
+      
       { resource: sequelize.models.VoteCategory },
       { resource: sequelize.models.EventTable },
       { resource: sequelize.models.User },
