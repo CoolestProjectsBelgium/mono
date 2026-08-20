@@ -1,10 +1,8 @@
-import React,{ useState, useEffect }  from 'react'
+import React, { useState, useEffect } from 'react'
 import { ApiClient } from 'adminjs'
 
-import { Box, 
-    Button, 
-    Illustration, 
-    IllustrationProps, 
+import { 
+    Box, 
     H4,
     H5,
     Table,
@@ -12,21 +10,21 @@ import { Box,
     TableBody,
     TableCell,
     TableHead,
-    Text } from '@adminjs/design-system'
+    Text 
+} from '@adminjs/design-system'
 import { styled } from '@adminjs/design-system/styled-components'
 
-import { useTranslation } from 'adminjs'
+const api = new ApiClient()
 
-// Define interfaces for nested list structures
+// 1. Unieke interface voor tabelitems (vragen & t-shirts)
 interface TableItem {
     id: string | number
     total: number | string
     short: string
     description: string
 }
-const api = new ApiClient()
 
-// Comprehensive interface matching your dashboard data shape
+// 2. Hoofdinterface voor alle dashboardgegevens
 interface DashboardData {
     event_title?: string
     officialStartDate?: string
@@ -50,6 +48,7 @@ interface DashboardData {
     tshirts?: TableItem[]
 }
 
+// Props interface voor de gestylede Card component
 interface CardProps {
     flex?: boolean
 }
@@ -65,7 +64,6 @@ const options: Intl.DateTimeFormatOptions = {
 }
 
 export const DashboardHeader: React.FC = () => {
-    // Initialize state with the specific data interface type
     const [data, setData] = useState<DashboardData>({})
 
     useEffect(() => {
@@ -91,11 +89,10 @@ export const DashboardHeader: React.FC = () => {
             >
                 <Box textAlign="center" color="white">
                     <h2 style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0' }}>
-                        {data.event_title} {' '} 
-                        
+                        {data.event_title}
                     </h2>
-                    <Text>starting on :
-                           {data.officialStartDate !== undefined
+                    <Text>starting on : {' '}
+                        {data.officialStartDate !== undefined
                             ? new Intl.DateTimeFormat('en-BE', options).format(new Date(data.officialStartDate))
                             : 'No event'}
                     </Text>
@@ -106,33 +103,34 @@ export const DashboardHeader: React.FC = () => {
     )
 }
 
+// Type definitie voor de navigatieblokken (indien je deze later wil renderen)
 type BoxType = {
-  title: string
-  subtitle: string
-  href: string
+    title: string
+    subtitle: string
+    href: string
 }
 
-const boxes = ({ translateMessage }): Array<BoxType> => [
-  {
-    title:  "Register",
-    subtitle: "Register on behalf of a participant",
-    href: 'https://docs.adminjs.co/basics/resource#providing-resources-explicitly',
-  },
-  {
-    title:  "Upload Foto",
-    subtitle: "Upload fotos on behalf of a participant",
-    href: 'https://docs.adminjs.co/basics/resource#providing-resources-explicitly',
-  },
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const boxes = (): Array<BoxType> => [
     {
-    title:  "StatistiekNew",
-    subtitle: "Show several statistics about the event New",
-    href: 'https://docs.adminjs.co/basics/resource#providing-resources-explicitly',
-  },
+        title: "Register",
+        subtitle: "Register on behalf of a participant",
+        href: 'https://docs.adminjs.co/basics/resource#providing-resources-explicitly',
+    },
+    {
+        title: "Upload Foto",
+        subtitle: "Upload fotos on behalf of a participant",
+        href: 'https://docs.adminjs.co/basics/resource#providing-resources-explicitly',
+    },
+    {
+        title: "StatistiekNew",
+        subtitle: "Show several statistics about the event New",
+        href: 'https://docs.adminjs.co/basics/resource#providing-resources-explicitly',
+    },
 ]
 
-
-
-const Card = styled(Box)`
+// Volledig getypeerde Styled Component
+const Card = styled(Box)<CardProps>`
   display: ${({ flex }): string => (flex ? 'flex' : 'block')};
   color: ${({ theme }) => theme.colors.grey100};
   height: 100%;
@@ -153,8 +151,8 @@ const Card = styled(Box)`
 `
 
 Card.defaultProps = {
-  variant: 'container',
-  boxShadow: 'card',
+    variant: 'container',
+    boxShadow: 'card',
 }
 
 export const Dashboard: React.FC = () => {
@@ -188,6 +186,7 @@ export const Dashboard: React.FC = () => {
                 alignContent="flex-start"
                 width={[1, 1, 1, 1024]}
             >
+                {/* 1. Status Registrations */}
                 <Box width={[1, 1, 1 / 2]} p="lg">
                     <Card as="a" flex>
                         <Box ml="xl">
@@ -201,6 +200,8 @@ export const Dashboard: React.FC = () => {
                         </Box>
                     </Card>
                 </Box>
+
+                {/* 2. Status Projects */}
                 <Box width={[1, 1, 1 / 2]} p="lg">
                     <Card as="a" flex>
                         <Box ml="xl">
@@ -218,12 +219,14 @@ export const Dashboard: React.FC = () => {
                         </Box>
                     </Card>
                 </Box>
+
+                {/* 3. Statistics Users */}
                 <Box width={[1, 1, 1 / 2]} p="lg">
                     <Card as="a" flex>
                         <Box ml="xl">
                             <H4>Statistics Users (total:{data.total_users ?? 0})</H4>
                             <Box flex flexDirection="row" justifyContent="space-between" position="relative">
-                                <Box width={[1, 1, 1]}>
+                                <Box width={[1, 1, 1 / 2]}>
                                     <H5>Languages</H5>
                                     <ul>
                                         <li>{data.tlang_nl || 0} nl</li>
@@ -231,7 +234,7 @@ export const Dashboard: React.FC = () => {
                                         <li>{data.tlang_en || 0} en</li>
                                     </ul>
                                 </Box>
-                                <Box width={[1, 1, 1]}>
+                                <Box width={[1, 1, 1 / 2]}>
                                     <H5>Sex</H5>
                                     <ul>
                                         <li>{data.total_females || 0} females</li>
@@ -243,10 +246,12 @@ export const Dashboard: React.FC = () => {
                         </Box>
                     </Card>
                 </Box>
+
+                {/* 4. Answers Table */}
                 <Box width={[1, 1, 1]} p="lg">
                     <Card as="a" flex>
-                        <Box ml="xl">
-                            <H5>Answers</H5>
+                        <Box ml="xl" width="100%">
+                            <H4>Answers controle list</H4>
                             <Table>
                                 <TableHead>
                                     <TableRow>
@@ -256,26 +261,27 @@ export const Dashboard: React.FC = () => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {data.questions &&
-                                        data.questions.map((question) => (
-                                            <TableRow key={question.id}>
-                                                <TableCell>{question.total}</TableCell>
-                                                <TableCell>{question.short}</TableCell>
-                                                <TableCell>{question.description}</TableCell>
-                                            </TableRow>
-                                        ))}
+                                    {data.questions && data.questions.map((question) => (
+                                        <TableRow key={question.id}>
+                                            <TableCell>{question.total}</TableCell>
+                                            <TableCell>{question.short}</TableCell>
+                                            <TableCell>{question.description}</TableCell>
+                                        </TableRow>
+                                    ))}
                                 </TableBody>
                             </Table>
                         </Box>
                     </Card>
                 </Box>
+
+                {/* 5. T-Shirts Table */}
                 <Box width={[1, 1, 1]} p="lg">
                     <Card as="a" flex>
-                        <Box ml="xl">
-                            <H5>T-Shirts</H5>
+                        <Box ml="xl" width="100%">
+                            <H4>T-Shirts order list</H4>
                             <Table>
                                 <TableHead>
-                                    <TableRow>
+                                   <TableRow>
                                         <TableCell>total</TableCell>
                                         <TableCell>short</TableCell>
                                         <TableCell>description</TableCell>
@@ -294,7 +300,7 @@ export const Dashboard: React.FC = () => {
                             </Table>
                         </Box>
                     </Card>
-                </Box>
+                </Box>        
             </Box>
         </Box>
     )

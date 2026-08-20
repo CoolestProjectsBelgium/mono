@@ -108,6 +108,8 @@ const start = async () => {
  // }
 
  const dashboardHandler = async (request: any, response: any, context: any) => {
+  console.log(context)
+
   // 1. Geselecteerd eventId ophalen
   const eventId = context.currentAdmin?.eventId
   console.log('--- DASHBOARD DEBUG --- Geselecteerd Event ID:', eventId)
@@ -170,7 +172,57 @@ const start = async () => {
 
   // Tijdelijke mockdata voor tabellen om fouten te voorkomen
   const questionsData = []
-  const tshirtsData = []
+  //const tshirtsData = []
+    // Vang eventuele database-fouten op zodat het dashboard niet crasht als een tabel/veld mist
+  let tshirtsData: Array<{
+    id: string | number
+    total: number
+    short: string
+    description: string
+  }> = []
+  try {
+    if (sequelize.models.User && sequelize.models.Tshirt) {
+      const tshirtCounts = await sequelize.models.User.findAll({
+        attributes: [
+          'tshirt.id',
+          // Tel het aantal users per tshirtId
+          [sequelize.fn('COUNT', sequelize.col('User.id')), 'total'],
+          'tshirt.name', // Voeg de beschrijving van de T-shirt toe
+          'tshirt.translations.description'
+        ],
+        where: { 
+          eventId
+        },
+        group: ['User.tshirtId', 'tshirt.id', 'tshirt.name', 'tshirt.translations.id', 'tshirt.translations.description'], // Groeperen op ID's voor accurate tellingen
+        include: [{
+          model: sequelize.models.Tshirt,
+          as: 'tshirt', // Pas dit aan naar jouw Sequelize relatie-alias als deze anders is gedefinieerd
+          attributes: ['name'],
+          include: [{
+            model: sequelize.models.TshirtTranslation,
+            as: 'translations',
+            attributes: ['description'],
+            where: { language: 'en' } // Alleen Engelse beschrijving ophalen
+          }],
+        }],
+        raw: true,
+        nest: true
+      })
+
+      // Transformeer de data naar de interface (TableItem) die je React dashboard verwacht
+      tshirtsData = tshirtCounts.map((item: any) => ({
+        id: item.tshirt.name,
+        total: parseInt(item.total, 10) || 0,
+        short: item.tshirt.name,
+        description: item.tshirt.translations?.description,
+      }))
+    } else {
+      console.warn('User of Tshirt model ontbreekt in sequelize.models!')
+    }
+  } catch (err: any) {
+    console.error('Sequelize Fout bij het ophalen van T-shirt statistieken:', err.message)
+  }
+
 
   // 5. Return de data (Zelfs bij kolomfouten werkt je dashboard nu, de foute cijfers worden gewoon 0)
   return {
