@@ -214,7 +214,7 @@ export const Dashboard: React.FC = () => {
                                 <li>
                                     {((data.total_users || 0) - (data.total_usedVouchers || 0) - (data.total_projects || 0))} user(s) without Project
                                 </li>
-                                <li>{data.total_videos ?? 0} Project(s) with videos loaded</li>
+                                <li>{data.total_videos ?? 0} Project(s) with foto/video confirmed</li>
                             </ul>
                         </Box>
                     </Card>
