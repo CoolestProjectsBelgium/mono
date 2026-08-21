@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { ApiClient } from 'adminjs'
+interface MediaItem {
+    id: number
+    mimetype: string
+    name: string
+    base64: string
+    confirmed: boolean
+    projectId?: number // <-- Voeg deze regel toe
+}
+
 
 import { 
     Box, 
@@ -24,6 +33,9 @@ interface TableItem {
     description: string
 }
 
+interface DashboardData {
+        media?: MediaItem[] // <-- DIT LOST DE TS(2339) FOUT OP!
+}
 // 2. Hoofdinterface voor alle dashboardgegevens
 interface DashboardData {
     event_title?: string
@@ -46,6 +58,7 @@ interface DashboardData {
     total_X?: number
     questions?: TableItem[]
     tshirts?: TableItem[]
+    media?: MediaItem[] // <-- DIT LOST DE TS(2339) FOUT OP!
 }
 
 // Props interface voor de gestylede Card component
@@ -69,7 +82,7 @@ export const DashboardHeader: React.FC = () => {
     useEffect(() => {
         let isSubscribed = true
         api.getDashboard().then((response) => {
-            console.log('dashboard.tsx_02', response)
+            console.log('dashboard.tsx_01', response)
             if (isSubscribed) {
                 setData(response.data as DashboardData)
             }
@@ -300,7 +313,7 @@ export const Dashboard: React.FC = () => {
                             </Table>
                         </Box>
                     </Card>
-                </Box>        
+                </Box>  
             </Box>
         </Box>
     )

@@ -19,9 +19,11 @@ const componentLoader = new ComponentLoader()
 componentLoader.override('Login', './components/Login');
 
 const Components = {
-  Dashboard: componentLoader.add('Dashboard', './components/Dashboard'),
-  // other custom components
+  MediaManagement: componentLoader.add('MediaManagement', './components/MediaManagement'),
+   Dashboard: componentLoader.add('Dashboard', './components/Dashboard')
 }
+ 
+  
 
 const addEventFilter = async (filterName: string = "id", request: any, context: any) => {
   const eventId = context.currentAdmin?.eventId
@@ -171,7 +173,6 @@ const start = async () => {
   const totalMales = await safeCount('User', { eventId, sex: 'm' })
   const totalX = await safeCount('User', { eventId, sex: 'X' })
 
- // Get questions data from QuestionUser model
 // Get questions data from QuestionUser model
 let questionsData: Array<{
   id: string | number
@@ -296,10 +297,83 @@ try {
   } catch (err: any) {
     console.error('Sequelize Fout bij het ophalen van question statistieken:', err.message)
   }
+  // ---- 7. ALLE MEDIA BESTANDEN OPHALEN UIT WORKSPACE ----
+  const fs = await import('fs');
+  let mediaFiles: Array<{ id: number; projectId: number; mimetype: string; base64: string; name: string; confirmed: boolean }> = [];
 
+  try {
+    if (sequelize.models.Attachment) {
+      const { Attachment } = sequelize.models;
 
-  // 5. Return de data (Zelfs bij kolomfouten werkt je dashboard nu, de foute cijfers worden gewoon 0)
+      // Haal ALLE media records op voor dit evenement (zowel confirmed als unconfirmed)
+      const attachments = await Attachment.findAll({
+        where: { 
+          projectId:{ [Op.ne]: null },
+          thumbnailPath: { [Op.ne]: null }
+        },
+        order: [['projectId', 'DESC']],
+        raw: true
+      });
+       console.log('dashboard.tsx_02', attachments);
+       console.log(`--- DASHBOARD DEBUG --- Aantal media records gevonden: ${attachments.length}`);
+      for (const att of attachments) {
+        const absolutePath = (att as any).Filepath; 
+
+        if (fs.existsSync(absolutePath)) {
+          const fileBuffer = fs.readFileSync(absolutePath);
+          const base64Data = fileBuffer.toString('base64');
+          
+          mediaFiles.push({
+            id: (att as any).id,
+            projectId: (att as any).projectId, // <-- Zorg dat dit wordt meegestuurd!
+            mimetype: (att as any).Mimetype || 'image/jpeg',
+            name: (att as any).Name || `Media-${(att as any).id}`,
+            base64: `data:${(att as any).Mimetype || 'image/jpeg'};base64,${base64Data}`,
+            confirmed: !!(att as any).Confirmed // Zorg voor een boolean (true/false)
+          });
+        }
+      }
+    }
+  } catch (err: any) {
+    console.error('Fout bij het omzetten van media naar Base64:', err.message);
+  }
+
+  // ---- NIEUWE UPDATE ACTIE (Als de front-end een POST stuurt om te confimen) ----
+  if (request.method === 'post' && request.payload?.action === 'toggle-confirm') {
+    try {
+      const { attachmentId } = request.payload;
+      const { Attachment } = sequelize.models;
+
+      // 1. Zoek de gekozen attachment op om de projectId te achterhalen
+      const targetAttachment = await Attachment.findByPk(attachmentId);
+      
+      if (targetAttachment) {
+        // 2. Zet ALLE attachments van DIT specifieke project op confirmed: false
+        await Attachment.update(
+          { Confirmed: false },
+          { where: { projectId: targetAttachment.get('projectId') } }
+        );
+
+        // 3. Zet de geselecteerde attachment op confirmed: true
+        await targetAttachment.update({ Confirmed: true });
+
+        return response.status(200).json({ success: true });
+      }
+    } catch (err: any) {
+      return response.status(500).json({ error: err.message });
+    }
+  }
+
+  // Return alles naar het dashboard (voeg media toe aan de return)
   return {
+    // ... behoud alle bestaande stats counters ...
+  // 5. Return de data (Zelfs bij kolomfouten werkt je dashboard nu, de foute cijfers worden gewoon 0)
+
+    // ... behoud alle bestaande stats counters ...
+    //questions: questionsData,
+    //tshirts: tshirtsData,
+    media: mediaFiles,
+
     event_title: currentEvent?.eventTitle || 'Coolest Project 2027',
     officialStartDate: currentEvent?.officialStartDate, 
     days_remaining: daysRemaining,
@@ -334,6 +408,14 @@ try {
       component: Components.Dashboard,
       handler: dashboardHandler,
     },
+        // 1. Voeg hier het pages object toe voor de navigatie
+    pages: {
+      mediaManagement: {
+        component: Components.MediaManagement, // Verwijst naar je loader bovenaan
+        icon: 'Image',
+      },
+    },
+    //componentLoader,
     resources: [
       {
         resource: sequelize.models.Account,
