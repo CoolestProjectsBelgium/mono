@@ -9,7 +9,7 @@ npm run build --workspace=packages/database
 npm run build --workspace=apps/api
 
 # load test db
-# npm run seed-db --workspace=apps/api
+npm run seed-db --workspace=apps/api
 
 # Start Admin app
 npm run start:dev  --workspace=apps/admin &
