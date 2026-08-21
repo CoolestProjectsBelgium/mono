@@ -1,4 +1,4 @@
-import { Column, Table, ForeignKey } from 'sequelize-typescript';
+import { Column, Table, ForeignKey, BelongsTo } from 'sequelize-typescript';
 import { User } from './user.model.js';
 import { Question } from './question.model.js';
 import { BaseEventModel } from './base_event.model.js';
@@ -12,4 +12,9 @@ export class QuestionUser extends BaseEventModel {
   @ForeignKey(() => Question)
   @Column
   questionId!: number;
+
+  // ---- VOEG DIT TOE ----
+  @BelongsTo(() => Question)
+  question!: Question;
 }
+
