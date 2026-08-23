@@ -11,7 +11,7 @@ import { FileValidationInterceptor } from '../file-upload/file-validation.interc
 import { FileInterceptor } from '@nestjs/platform-express/multer';
 import { OwnProjectDto } from '../dto/own-project.dto';
 import { VoucherCreatedDto } from '../dto/voucher-created.dto';
-
+import { StreamableFile } from '@nestjs/common';
 
 @Controller('projectinfo')
 @ApiTags('projectinfo')
@@ -70,10 +70,16 @@ export class ProjectinfoController {
 
   @Get('attachments/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard(['jwt-cookiecombo', 'cookie']))
   @UseInterceptors(UserCookieInterceptor)
   async getAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
-    return await this.projectService.getThumbnail(req.user.id, attachmentId);
+    let result: StreamableFile;
+    if (req.user.isAdmin) {
+      result = await this.projectService.getThumbnailAdmin(attachmentId);
+    } else {
+      result = await this.projectService.getThumbnail(req.user.id, attachmentId)
+    }
+    return result;
   }
 
   @Delete('attachments/:attachmentId')
@@ -128,6 +134,6 @@ export class ProjectinfoController {
     @Param('newOwnerId') newOwnerId: number,
   ) {
     return await this.projectService.changeProjectOwner(req.user.id, newOwnerId);
-  } 
+  }
 
 }

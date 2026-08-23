@@ -47,6 +47,17 @@ export class ProjectinfoService {
         return new StreamableFile(file, { type: attachment.mimetype });
     }
 
+    public async getThumbnailAdmin(attachmentId: number): Promise<StreamableFile> {
+        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId } });
+
+        if (!attachment) {
+            throw new Error('Attachment not found');
+        }
+
+        const file = createReadStream(attachment.thumbnailPath);
+        return new StreamableFile(file, { type: attachment.mimetype });
+    }
+
     private getThumbnailUrl(attachmentId: number): string {
         const base = process.env.ATTACHMENT_BASE_URL?.replace(/\/$/, '');
         if (!base) {
@@ -222,7 +233,7 @@ export class ProjectinfoService {
 
     public async updateProject(userId: number, updateProjectDto: OwnProjectDto): Promise<OwnProjectDto> {
         this.logger.log(
-          `updateProject user=${userId} name=${JSON.stringify(updateProjectDto?.project_name)}`,
+            `updateProject user=${userId} name=${JSON.stringify(updateProjectDto?.project_name)}`,
         );
         const userProject = await this.userProjectModel.findOne({
             where: { userId, deletedAt: null, isOwner: true },
