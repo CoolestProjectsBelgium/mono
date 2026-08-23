@@ -4,6 +4,7 @@ import * as AdminJSSequelize from '@adminjs/sequelize'
 import AdminJS from 'adminjs'
 import express from 'express'
 import { componentLoader, Components, Handlers } from './components/index.js'
+import eventLoginRouter from './components/login/router.js'
 
 import { Account } from '@coolestprojects/database'
 import { andAccess, canAccessResourceFieldFilter, canAccessResourceRoleFilter, filterEventId } from './authorisations.js'
@@ -34,7 +35,6 @@ const start = async () => {
         icon: 'Image',
       },
     },
-    //componentLoader,
     resources: [
       {
         resource: sequelize.models.Account,
@@ -145,7 +145,6 @@ const start = async () => {
           },
         },
       },
-
       { resource: sequelize.models.VoteCategory },
       { resource: sequelize.models.EventTable },
       { resource: sequelize.models.User },
@@ -194,24 +193,9 @@ const start = async () => {
     },
     name: 'adminjs',
   })
-  // get all the events for the login page
-  app.get('/api/events', async (req, res) => {
-    try {
-      const events = await sequelize.models.Event.findAll({
-        attributes: ['id', 'eventTitle', 'current'],
-        order: [['eventTitle', 'ASC']],
-      })
-      res.json(
-        events.map((e: any) => ({
-          value: String(e.id),
-          label: e.eventTitle,
-          isCurrent: e.current,
-        }))
-      )
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch events' })
-    }
-  })
+
+
+  app.use('/api', eventLoginRouter);
 
   app.get('/', (_req, res) => {
     res.redirect(admin.options.rootPath)
