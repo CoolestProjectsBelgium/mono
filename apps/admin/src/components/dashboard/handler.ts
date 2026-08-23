@@ -166,7 +166,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))
   }
 
-  const [pendingUsers, waitingList, totalUnusedVouchers, totalProjects, totalUsedVouchers, totalUsers, totalVideos, tlangNl, tlangFr, tlangEn, totalFemales, totalMales, totalX] = await Promise.all([
+  const [pendingUsers, waitingList, totalUnusedVouchers, totalProjects, totalUsedVouchers, totalUsers, totalVideos, tlangNl, tlangFr, tlangEn, totalFemales, totalMales, totalX, overdue_registration] = await Promise.all([
     Registration.count({ where: { eventId } }),
     Registration.count({ where: { eventId, waiting_list: true } }),
     UserProject.count({ where: { eventId, userId: null } }),
@@ -180,6 +180,9 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     User.count({ where: { eventId, sex: 'f' } }),
     User.count({ where: { eventId, sex: 'm' } }),
     User.count({ where: { eventId, sex: 'X' } }),
+    Registration.findAll({ attributes: ['id'], where: { eventId } }).then((registrations) =>
+      registrations.filter((registration) => registration.overdue).length
+    )
   ])
 
   const questionsData = await getQuestions(eventId);
@@ -191,7 +194,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     days_remaining: daysRemaining,
 
     pending_users: pendingUsers,
-    overdue_registration: 0, //TODO get registations where creation date < max token time
+    overdue_registration: overdue_registration, //TODO get registations where creation date < max token time
     waiting_list: waitingList,
     total_unusedVouchers: totalUnusedVouchers,
 
