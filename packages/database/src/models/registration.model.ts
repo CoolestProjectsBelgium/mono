@@ -104,7 +104,7 @@ export class Registration extends BaseEventModel {
 
   @Column(DataType.VIRTUAL(DataType.BOOLEAN))
   get overdue(): boolean {
-    const creationDate = this.getDataValue('creationDate') as Date;
+    const creationDate = this.getDataValue('createdAt') as Date;
     const expiresIn = process.env.JWT_EXPIRES;
 
     if (!creationDate || !expiresIn) return false;
