@@ -97,6 +97,13 @@ const start = async () => {
     Resource: AdminJSSequelize.Resource,
     Database: AdminJSSequelize.Database,
   })
+            'name',
+            'description',
+            'type',
+            'internalInformation',
+            'language',
+            'maxVoucher',
+            'eventId',
 
 
   const admin = new AdminJS({
@@ -110,6 +117,14 @@ const start = async () => {
       component: Components.Dashboard,
       handler: dashboardHandler,
     },
+        // 1. Voeg hier het pages object toe voor de navigatie
+    pages: {
+      mediaManagement: {
+        component: Components.MediaManagement, // Verwijst naar je loader bovenaan
+        icon: 'Image',
+      },
+    },
+    //componentLoader,
     resources: [
       {
         resource: sequelize.models.Account,
@@ -142,6 +157,9 @@ const start = async () => {
       {
         resource: sequelize.models.Project,
         options: {
+          ],
+          properties: {
+            deletedAt: {
           listProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           filterProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           showProperties: [
@@ -174,6 +192,52 @@ const start = async () => {
           },
         },
       },
+      { resource: sequelize.models.Attachment,
+        options: {
+          listProperties: ['id', 'projectId','confirmed','internal','size','mimetype'],
+          filterProperties: ['id', 'projectId',   'eventId'],
+          showProperties: [
+            'id',
+            'projectId',
+            'confirmed',
+            'internal',
+            'size',
+            'mimetype',
+            'filepath',
+            'thumbnailPath',
+            'name',
+            'type',
+            'internalInformation',
+            'language',
+            'maxVoucher',
+            'eventId',
+            'deletedAt',
+          ],
+          editProperties: [
+            'projectId',
+            'confirmed',
+            'internal',
+             'mimetype',
+            'filepath',
+            'thumbnailPath',
+            'name',
+            'type',
+            'internalInformation',
+            'language',
+            'maxVoucher',
+            'eventId',
+            'deletedAt',
+          ],
+          properties: {
+            deletedAt: {
+              type: 'datetime',
+              label: 'Deleted At',
+              isVisible: { list: true, filter: true, show: true, edit: true },
+            },
+          },
+        },
+      },
+      
       { resource: sequelize.models.VoteCategory },
       { resource: sequelize.models.EventTable },
       { resource: sequelize.models.User },
@@ -237,7 +301,7 @@ const start = async () => {
   app.get('/api/events', async (req, res) => {
     try {
       const events = await sequelize.models.Event.findAll({
-        attributes: ['id', 'eventTitle', 'current'],
+        attributes: ['id', 'eventTitle', 'current'],MediaManagement
         order: [['eventTitle', 'ASC']],
       })
       res.json(
