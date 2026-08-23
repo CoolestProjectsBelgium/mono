@@ -22,6 +22,8 @@ services:
       JWT_KEY: U\"l!p@@{An31_1dJ60zb6|3
       API_PORT: 3001
       VOTING_KEY: "cEc.#8Pc5^H26OBxKLMKsM"
+      JWT_EXPIRES: "6d"
+
 
       CSRF_SECRET: "cEc.&1Pc5^zzH2xp8lmOBc(c)L6KsdM"
 
