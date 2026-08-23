@@ -29,7 +29,7 @@ const TshirtTranslation = sequelize.models.TshirtTranslation as typeof TshirtTra
 const User = sequelize.models.User as typeof UserModel
 const UserProject = sequelize.models.UserProject as typeof UserProjectModel
 
-export interface DashboardTableItem {
+interface DashboardTableItem {
   id: string | number
   total: number
   short: string
