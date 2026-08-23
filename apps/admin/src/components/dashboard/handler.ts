@@ -73,7 +73,7 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
       where: {
         eventId
       },
-      group: ['User.id','User.tshirtId', 'tshirt.id', 'tshirt.name', 'tshirt.translations.id', 'tshirt.translations.description'],
+      group: ['User.id', 'User.tshirtId', 'tshirt.id', 'tshirt.name', 'tshirt.translations.id', 'tshirt.translations.description'],
       include: [{
         model: Tshirt,
         as: 'tshirt',
@@ -180,9 +180,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     User.count({ where: { eventId, sex: 'f' } }),
     User.count({ where: { eventId, sex: 'm' } }),
     User.count({ where: { eventId, sex: 'X' } }),
-    Registration.findAll({ attributes: ['id'], where: { eventId } }).then((registrations) =>
-      registrations.filter((registration) => registration.overdue).length
-    )
+    Registration.findAll({ attributes: ['id'], where: { eventId } })
   ])
 
   const questionsData = await getQuestions(eventId);
@@ -194,7 +192,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     days_remaining: daysRemaining,
 
     pending_users: pendingUsers,
-    overdue_registration: overdue_registration, //TODO get registations where creation date < max token time
+    overdue_registration: overdue_registration.filter((registration) => registration.overdue).length,
     waiting_list: waitingList,
     total_unusedVouchers: totalUnusedVouchers,
 
