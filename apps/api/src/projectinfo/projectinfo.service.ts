@@ -37,14 +37,14 @@ export class ProjectinfoService {
             throw new Error('User is not associated with any project');
         }
 
-        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, projectId: userProject.projectId } });
+        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, projectId: userProject.projectId, internal: false } });
 
         if (!attachment) {
             throw new Error('Attachment not found');
         }
 
         const file = createReadStream(attachment.thumbnailPath);
-        return new StreamableFile(file, { type: 'image/webp' });
+        return new StreamableFile(file, { type: attachment.mimetype });
     }
 
     private getThumbnailUrl(attachmentId: number): string {
@@ -168,7 +168,8 @@ export class ProjectinfoService {
         return attachments.map(attachment => ({
             id: String(attachment.id),
             name: attachment.name,
-            thumbnailUrl: this.getThumbnailUrl(attachment.id)
+            thumbnailUrl: this.getThumbnailUrl(attachment.id),
+            delete_possible: !attachment.confirmed
         }));
     }
 
