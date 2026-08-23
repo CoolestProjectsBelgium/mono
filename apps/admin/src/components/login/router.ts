@@ -12,7 +12,7 @@ interface EventList {
 
 const router = express.Router();
 
-router.get('/events', async (req, res) => {
+router.get('/events', async (_req, res) => {
     try {
         const events = await sequelize.models.Event.findAll({
             attributes: ['id', 'eventTitle', 'current'],
@@ -20,7 +20,7 @@ router.get('/events', async (req, res) => {
         }) as Event[]
 
         const eventList: EventList[] = events.map((e) => ({
-            value: String(e.id),
+            value: e.id + "",
             label: e.eventTitle,
             isCurrent: e.current,
         }))
