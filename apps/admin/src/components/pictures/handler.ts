@@ -2,7 +2,7 @@
 import { Attachment, Project } from '@coolestprojects/database';
 import {
     sequelize,
-} from '../database.js'
+} from '../../database.js'
 
 export interface PictureAttachment {
     id: number;
