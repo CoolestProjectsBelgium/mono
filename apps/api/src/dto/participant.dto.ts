@@ -10,4 +10,5 @@ export class ParticipantDto {
     status?: 'registered' | 'pending';
     @ApiPropertyOptional()
     token?: string;
+    delete_possible?: boolean;
 }
