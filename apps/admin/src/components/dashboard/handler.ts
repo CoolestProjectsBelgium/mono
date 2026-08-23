@@ -73,7 +73,7 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
       where: {
         eventId
       },
-      group: ['User.tshirtId', 'tshirt.id', 'tshirt.name', 'tshirt.translations.id', 'tshirt.translations.description'], // Groeperen op ID's voor accurate tellingen
+      group: ['User.id','User.tshirtId', 'tshirt.id', 'tshirt.name', 'tshirt.translations.id', 'tshirt.translations.description'],
       include: [{
         model: Tshirt,
         as: 'tshirt',
@@ -94,7 +94,7 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
       description: item.tshirt.translations?.[0]?.description || '',
     }))
   } catch (err: any) {
-    console.error('Sequelize Fout bij het ophalen van question statistieken:', err.message)
+    console.error('Sequelize Fout bij het ophalen van tshirt statistieken:', err.message)
   }
   return tshirtsData;
 }
@@ -116,7 +116,8 @@ async function getQuestions(eventId: number, language: string = 'nl'): Promise<D
         'question.id',
         'question.name',
         'question.translations.id',
-        'question.translations.description'
+        'question.translations.description',
+        'userId'
       ],
       include: [{
         model: Question,
@@ -165,9 +166,8 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))
   }
 
-  const [pendingUsers, overdueRegistration, waitingList, totalUnusedVouchers, totalProjects, totalUsedVouchers, totalUsers, totalVideos, tlangNl, tlangFr, tlangEn, totalFemales, totalMales, totalX] = await Promise.all([
+  const [pendingUsers, waitingList, totalUnusedVouchers, totalProjects, totalUsedVouchers, totalUsers, totalVideos, tlangNl, tlangFr, tlangEn, totalFemales, totalMales, totalX] = await Promise.all([
     Registration.count({ where: { eventId } }),
-    User.count({ where: { eventId, status: 'overdue' } }), //TODO need to count the registrations where the creation date < registration token expire date
     Registration.count({ where: { eventId, waiting_list: true } }),
     UserProject.count({ where: { eventId, userId: null } }),
     Project.count({ where: { eventId } }),
@@ -191,7 +191,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     days_remaining: daysRemaining,
 
     pending_users: pendingUsers,
-    overdue_registration: overdueRegistration,
+    overdue_registration: 0, //TODO get registations where creation date < max token time
     waiting_list: waitingList,
     total_unusedVouchers: totalUnusedVouchers,
 
