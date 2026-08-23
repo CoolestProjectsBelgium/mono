@@ -16,7 +16,7 @@ export interface GroupedAttachments {
     [projectName: string]: PictureAttachment[];
 }
 
-export const pictureHandler = async (request: any, response: any, context: any): Promise<GroupedAttachments> => {
+export const Handler = async (request: any, response: any, context: any): Promise<GroupedAttachments> => {
 
     const eventId = context.currentAdmin?.eventId;
 

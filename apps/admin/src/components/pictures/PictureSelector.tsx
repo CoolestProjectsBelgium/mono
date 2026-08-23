@@ -14,7 +14,7 @@ import {
     Badge
 } from '@adminjs/design-system';
 
-import { GroupedAttachments, PictureAttachment } from '../handlers/picture.js'
+import { GroupedAttachments, PictureAttachment } from '../pictures/handler.js'
 
 export const PictureHandlerPage: React.FC = () => {
     const [data, setData] = useState<GroupedAttachments>({});

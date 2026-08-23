@@ -1,94 +1,18 @@
 import AdminJSExpress from '@adminjs/express'
-import AdminJS, { ComponentLoader } from 'adminjs'
-import type { Request } from 'express'
-import express from 'express'
-import * as AdminJSSequelize from '@adminjs/sequelize'
 import passwordsFeature from '@adminjs/passwords'
-import { dashboardHandler } from './handlers/dashboard.js'
-import { pictureHandler } from './handlers/picture.js'
-import { Components, componentLoader } from './components.js'
+import * as AdminJSSequelize from '@adminjs/sequelize'
+import AdminJS from 'adminjs'
+import express from 'express'
+import { componentLoader, Components, Handlers } from './components/index.js'
 
+import { Account } from '@coolestprojects/database'
+import { andAccess, canAccessResourceFieldFilter, canAccessResourceRoleFilter, filterEventId } from './authorisations.js'
+import { Authenticate } from './components/login/authenticate.js'
 import {
   sequelize,
 } from './database.js'
-import { Account } from '@coolestprojects/database'
-
-// roles: superadmin (can access everything), 
-// admin (can access resources of the selected event), can update their own password
-// judge (can access the voting dashboard and their own votes)
-
-const addEventFilter = async (filterName: string = "id", request: any, context: any) => {
-  const eventId = context.currentAdmin?.eventId
-  if (!eventId) return request
-
-  return {
-    ...request,
-    query: {
-      ...request.query,
-      filters: {
-        ...request.query?.filters,
-        filterName: eventId,
-      },
-    },
-    payload: request.payload
-      ? { ...request.payload, eventId }
-      : request.payload,
-  }
-}
-
-const canCreate = ({ currentAdmin, resource }: any) => {
-  if (currentAdmin.role === 'superadmin') return true
-  if (currentAdmin?.role !== 'admin' || !currentAdmin?.eventId) return false
-  if (resource?.id === 'Account') return false
-  return true
-}
-
-const canAccessResourceFieldFilter =
-  (fieldName: string) =>
-    ({ currentAdmin, record }: any) => {
-      const adminValue = currentAdmin?.eventId
-      return record?.params?.[fieldName] === adminValue
-    }
-
-type AccessHandler = (args: any) => boolean
-
-export const andAccess =
-  (...filters: AccessHandler[]): AccessHandler =>
-    (args) =>
-      filters.every((filter) => filter(args))
-
-export const orAccess =
-  (...filters: AccessHandler[]): AccessHandler =>
-    (args) =>
-      filters.some((filter) => filter(args))
-
-const canAccessResourceRoleFilter =
-  (roleName: string) => ({ currentAdmin }: any) => currentAdmin.role === roleName
 
 const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000')
-
-const filterEventId =
-  (filterName: string) =>
-    async (request: any, context: any) => {
-      const eventId = context.currentAdmin?.eventId
-
-      return {
-        ...request,
-        query: {
-          ...request.query,
-          filters: {
-            ...request.query?.filters,
-            [filterName]: eventId,
-          },
-        },
-        payload: request.payload
-          ? {
-            ...request.payload,
-            [filterName]: eventId,
-          }
-          : request.payload,
-      }
-    }
 
 const start = async () => {
   const app = express()
@@ -97,30 +21,16 @@ const start = async () => {
     Resource: AdminJSSequelize.Resource,
     Database: AdminJSSequelize.Database,
   })
-            'name',
-            'description',
-            'type',
-            'internalInformation',
-            'language',
-            'maxVoucher',
-            'eventId',
-
 
   const admin = new AdminJS({
-    pages: {
-      PictureSelector: {
-          component: Components.PictureSelector,
-          handler: pictureHandler
-        }
-    },
     dashboard: {
       component: Components.Dashboard,
-      handler: dashboardHandler,
+      handler: Handlers.Dashboard,
     },
-        // 1. Voeg hier het pages object toe voor de navigatie
     pages: {
-      mediaManagement: {
-        component: Components.MediaManagement, // Verwijst naar je loader bovenaan
+      PictureSelector: {
+        component: Components.PictureSelector,
+        handler: Handlers.PictureSelector,
         icon: 'Image',
       },
     },
@@ -157,9 +67,6 @@ const start = async () => {
       {
         resource: sequelize.models.Project,
         options: {
-          ],
-          properties: {
-            deletedAt: {
           listProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           filterProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           showProperties: [
@@ -192,10 +99,11 @@ const start = async () => {
           },
         },
       },
-      { resource: sequelize.models.Attachment,
+      {
+        resource: sequelize.models.Attachment,
         options: {
-          listProperties: ['id', 'projectId','confirmed','internal','size','mimetype'],
-          filterProperties: ['id', 'projectId',   'eventId'],
+          listProperties: ['id', 'projectId', 'confirmed', 'internal', 'size', 'mimetype'],
+          filterProperties: ['id', 'projectId', 'eventId'],
           showProperties: [
             'id',
             'projectId',
@@ -217,7 +125,7 @@ const start = async () => {
             'projectId',
             'confirmed',
             'internal',
-             'mimetype',
+            'mimetype',
             'filepath',
             'thumbnailPath',
             'name',
@@ -237,7 +145,7 @@ const start = async () => {
           },
         },
       },
-      
+
       { resource: sequelize.models.VoteCategory },
       { resource: sequelize.models.EventTable },
       { resource: sequelize.models.User },
@@ -272,22 +180,10 @@ const start = async () => {
     componentLoader,
   })
 
-
   const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
     cookiePassword: process.env.ADMINJS_COOKIE_SECRET!,
     cookieName: 'adminjs',
-    authenticate: async (email, password, context) => {
-      const eventId = ((context?.req as unknown) as Request & { fields?: Record<string, any> })?.fields?.event
-      const account = await sequelize.models.Account.findOne({ where: { email } }) as Account | null;
-
-      if (account) {
-        const isPasswordValid = account.verifyPassword(password)
-        if (isPasswordValid) {
-          return { email: account.email, eventId, role: account.account_type }
-        }
-      }
-      return null
-    },
+    authenticate: Authenticate,
   }, null, {
     resave: true,
     saveUninitialized: true,
@@ -298,10 +194,11 @@ const start = async () => {
     },
     name: 'adminjs',
   })
+  // get all the events for the login page
   app.get('/api/events', async (req, res) => {
     try {
       const events = await sequelize.models.Event.findAll({
-        attributes: ['id', 'eventTitle', 'current'],MediaManagement
+        attributes: ['id', 'eventTitle', 'current'],
         order: [['eventTitle', 'ASC']],
       })
       res.json(
