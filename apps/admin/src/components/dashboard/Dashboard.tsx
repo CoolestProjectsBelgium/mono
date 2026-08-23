@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { ApiClient } from 'adminjs'
-interface MediaItem {
-    id: number
-    mimetype: string
-    name: string
-    base64: string
-    confirmed: boolean
-    projectId?: number // <-- Voeg deze regel toe
-}
+import { DashboardResponse } from './handler.js'
 
-
-import { 
-    Box, 
+import {
+    Box,
     H4,
     H5,
     Table,
@@ -19,47 +11,12 @@ import {
     TableBody,
     TableCell,
     TableHead,
-    Text 
+    Text
 } from '@adminjs/design-system'
 import { styled } from '@adminjs/design-system/styled-components'
 
 const api = new ApiClient()
 
-// 1. Unieke interface voor tabelitems (vragen & t-shirts)
-interface TableItem {
-    id: string | number
-    total: number | string
-    short: string
-    description: string
-}
-
-interface DashboardData {
-        media?: MediaItem[] // <-- DIT LOST DE TS(2339) FOUT OP!
-}
-// 2. Hoofdinterface voor alle dashboardgegevens
-interface DashboardData {
-    event_title?: string
-    officialStartDate?: string
-    days_remaining?: number
-    pending_users?: number
-    overdue_registration?: number
-    waiting_list?: number
-    total_unusedVouchers?: number
-    total_projects?: number
-    maxRegistration?: number
-    total_usedVouchers?: number
-    total_users?: number
-    total_videos?: number
-    tlang_nl?: number
-    tlang_fr?: number
-    tlang_en?: number
-    total_females?: number
-    total_males?: number
-    total_X?: number
-    questions?: TableItem[]
-    tshirts?: TableItem[]
-    media?: MediaItem[] // <-- DIT LOST DE TS(2339) FOUT OP!
-}
 
 // Props interface voor de gestylede Card component
 interface CardProps {
@@ -77,14 +34,14 @@ const options: Intl.DateTimeFormatOptions = {
 }
 
 export const DashboardHeader: React.FC = () => {
-    const [data, setData] = useState<DashboardData>({})
+    const [data, setData] = useState<DashboardResponse>({} as DashboardResponse)
 
     useEffect(() => {
         let isSubscribed = true
         api.getDashboard().then((response) => {
             console.log('dashboard.tsx_01', response)
             if (isSubscribed) {
-                setData(response.data as DashboardData)
+                setData(response.data as DashboardResponse)
             }
         })
         return () => {
@@ -143,7 +100,7 @@ const boxes = (): Array<BoxType> => [
 ]
 
 // Volledig getypeerde Styled Component
-const Card = styled(Box)<CardProps>`
+const Card = styled(Box) <CardProps>`
   display: ${({ flex }): string => (flex ? 'flex' : 'block')};
   color: ${({ theme }) => theme.colors.grey100};
   height: 100%;
@@ -169,13 +126,13 @@ Card.defaultProps = {
 }
 
 export const Dashboard: React.FC = () => {
-    const [data, setData] = useState<DashboardData>({})
+    const [data, setData] = useState<DashboardResponse>({} as DashboardResponse)
 
     useEffect(() => {
         let isSubscribed = true
         api.getDashboard().then((response) => {
             if (isSubscribed) {
-                setData(response.data as DashboardData)
+                setData(response.data as DashboardResponse)
             }
         })
         return () => {
@@ -294,7 +251,7 @@ export const Dashboard: React.FC = () => {
                             <H4>T-Shirts order list</H4>
                             <Table>
                                 <TableHead>
-                                   <TableRow>
+                                    <TableRow>
                                         <TableCell>total</TableCell>
                                         <TableCell>short</TableCell>
                                         <TableCell>description</TableCell>
@@ -313,7 +270,7 @@ export const Dashboard: React.FC = () => {
                             </Table>
                         </Box>
                     </Card>
-                </Box>  
+                </Box>
             </Box>
         </Box>
     )
