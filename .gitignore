@@ -242,4 +242,4 @@ sw.*
 apps/admin/src/components/Dashboard2.tsx
 apps/admin/src/components/DashboardOrig.tsx
 apps/admin/src/components/Dashboard2.tsx
-apps/admin/.adminjs/bundle.js
+apps/admin/.adminjs/**
