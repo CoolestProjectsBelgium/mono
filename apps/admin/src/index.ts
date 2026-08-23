@@ -1,17 +1,29 @@
 import AdminJSExpress from '@adminjs/express'
 import passwordsFeature from '@adminjs/passwords'
 import * as AdminJSSequelize from '@adminjs/sequelize'
-import AdminJS from 'adminjs'
-import express from 'express'
-import { componentLoader, Components, Handlers } from './components/index.js'
-import eventLoginRouter from './components/login/router.js'
-
 import { Account } from '@coolestprojects/database'
+import AdminJS from 'adminjs'
+import connectSessionSequelize from 'connect-session-sequelize'
+import express from 'express'
+import session from 'express-session'
 import { andAccess, canAccessResourceFieldFilter, canAccessResourceRoleFilter, filterEventId } from './authorisations.js'
+import { componentLoader, Components, Handlers } from './components/index.js'
 import { Authenticate } from './components/login/authenticate.js'
+import eventLoginRouter from './components/login/router.js'
 import {
   sequelize,
 } from './database.js'
+
+const SequelizeStore = connectSessionSequelize(session.Store)
+
+const sessionStore = new SequelizeStore({
+  db: sequelize,
+  tableName: 'admin_sessions',
+  checkExpirationInterval: 15 * 60 * 1000,
+  expiration: 8 * 60 * 60 * 1000,
+})
+
+sessionStore.sync()
 
 const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000')
 
@@ -177,11 +189,15 @@ const start = async () => {
     authenticate: Authenticate,
   }, null, {
     resave: true,
+    store: sessionStore,
     saveUninitialized: true,
-    secret: process.env.ADMINJS_COOKIE_SECRET,
+    secret: process.env.ADMINJS_COOKIE_SECRET + "",
     cookie: {
       httpOnly: process.env.NODE_ENV === 'production',
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 8 * 60 * 60 * 1000,
+      domain: process.env.COOKIE_DOMAIN,
     },
     name: 'adminjs',
   })
