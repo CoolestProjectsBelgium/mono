@@ -2,29 +2,163 @@
 import {
   sequelize,
 } from '../../database.js'
+import { Op } from 'sequelize'
+import type {
+  Attachment as AttachmentModel,
+  Event as EventModel,
+  Project as ProjectModel,
+  Question as QuestionModel,
+  QuestionTranslation as QuestionTranslationModel,
+  QuestionUser as QuestionUserModel,
+  Registration as RegistrationModel,
+  Tshirt as TshirtModel,
+  TshirtTranslation as TshirtTranslationModel,
+  User as UserModel,
+  UserProject as UserProjectModel,
+} from '@coolestprojects/database'
 
-export const Handler = async (request: any, response: any, context: any) => {
+const Attachment = sequelize.models.Attachment as typeof AttachmentModel
+const Event = sequelize.models.Event as typeof EventModel
+const Project = sequelize.models.Project as typeof ProjectModel
+const Question = sequelize.models.Question as typeof QuestionModel
+const QuestionTranslation = sequelize.models.QuestionTranslation as typeof QuestionTranslationModel
+const QuestionUser = sequelize.models.QuestionUser as typeof QuestionUserModel
+const Registration = sequelize.models.Registration as typeof RegistrationModel
+const Tshirt = sequelize.models.Tshirt as typeof TshirtModel
+const TshirtTranslation = sequelize.models.TshirtTranslation as typeof TshirtTranslationModel
+const User = sequelize.models.User as typeof UserModel
+const UserProject = sequelize.models.UserProject as typeof UserProjectModel
+
+export interface DashboardTableItem {
+  id: string | number
+  total: number
+  short: string
+  description: string
+}
+
+export interface DashboardResponse {
+  event_title: string
+  officialStartDate?: Date
+  days_remaining: number
+  pending_users: number
+  overdue_registration: number
+  waiting_list: number
+  total_unusedVouchers: number
+  total_projects: number
+  maxRegistration: number
+  total_usedVouchers: number
+  total_users: number
+  total_videos: number
+  tlang_nl: number
+  tlang_fr: number
+  tlang_en: number
+  total_females: number
+  total_males: number
+  total_X: number
+  questions: DashboardTableItem[]
+  tshirts: DashboardTableItem[]
+}
+
+async function getTshirts(eventId: number, language: string = 'nl'): Promise<DashboardTableItem[]> {
+  // Tshirts
+  let tshirtsData: DashboardTableItem[] = []
+  try {
+    const tshirtCounts = await User.findAll({
+      attributes: [
+        'tshirt.id',
+        [sequelize.fn('COUNT', sequelize.col('User.id')), 'total'],
+        'tshirt.name',
+        'tshirt.translations.description'
+      ],
+      where: {
+        eventId
+      },
+      group: ['User.tshirtId', 'tshirt.id', 'tshirt.name', 'tshirt.translations.id', 'tshirt.translations.description'], // Groeperen op ID's voor accurate tellingen
+      include: [{
+        model: Tshirt,
+        as: 'tshirt',
+        attributes: ['name'],
+        include: [{
+          model: TshirtTranslation,
+          as: 'translations',
+          attributes: ['description'],
+          where: { language: language }
+        }],
+      }],
+    }) as (UserModel & { total: number | string })[]
+
+    tshirtsData = tshirtCounts.map((item) => ({
+      id: item.tshirt.name,
+      total: Number(item.total) || 0,
+      short: item.tshirt.name,
+      description: item.tshirt.translations?.[0]?.description || '',
+    }))
+  } catch (err: any) {
+    console.error('Sequelize Fout bij het ophalen van question statistieken:', err.message)
+  }
+  return tshirtsData;
+}
+
+async function getQuestions(eventId: number, language: string = 'nl'): Promise<DashboardTableItem[]> {
+  // Questions
+  let questionsData: DashboardTableItem[] = []
+  try {
+    const questionCounts = await QuestionUser.findAll({
+      attributes: [
+        'questionId',
+        [sequelize.fn('COUNT', sequelize.col('QuestionUser.questionId')), 'total']
+      ],
+      where: {
+        eventId
+      },
+      group: [
+        'QuestionUser.questionId',
+        'question.id',
+        'question.name',
+        'question.translations.id',
+        'question.translations.description'
+      ],
+      include: [{
+        model: Question,
+        as: 'question',
+        attributes: ['id', 'name'],
+        include: [{
+          model: QuestionTranslation,
+          as: 'translations',
+          attributes: ['id', 'description'],
+          where: { language: language }
+        }],
+      }]
+    }) as (QuestionUserModel & { total: number | string; question: QuestionModel })[]
+
+    questionsData = questionCounts.map((item) => {
+      const translation = item.question?.translations?.[0]
+
+      return {
+        id: item.questionId,
+        total: Number(item.total) || 0,
+        short: item.question?.name || '',
+        description: translation?.description || '',
+      }
+    })
+  } catch (err: any) {
+    console.error('Sequelize Fout bij het ophalen van question statistieken:', err.message)
+  }
+
+  return questionsData;
+}
+
+export const Handler = async (_request: any, _response: any, context: any): Promise<DashboardResponse> => {
   console.log(context)
 
   // 1. Geselecteerd eventId ophalen
   const eventId = context.currentAdmin?.eventId
-  console.log('--- DASHBOARD DEBUG --- Geselecteerd Event ID:', eventId)
 
   if (!eventId) {
-    return {
-      event_title: 'Geen evenement geselecteerd',
-      questions: [],
-      tshirts: []
-    }
+    throw Error("Event is missing in user")
   }
 
-  // 2. Event ophalen (met extra foutcontrole)
-  let currentEvent: any = null
-  try {
-    currentEvent = await sequelize.models.Event.findByPk(eventId)
-  } catch (err) {
-    console.error('Sequelize Fout bij Event model:', err.message)
-  }
+  const currentEvent = await Event.findByPk(eventId)
 
   // 3. Dagen berekenen
   let daysRemaining = 0
@@ -33,166 +167,28 @@ export const Handler = async (request: any, response: any, context: any) => {
     daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))
   }
 
-  // Helper functie om veilig te tellen zonder dat de hele boel crasht
-  const safeCount = async (modelName: string, whereClause: any) => {
-    try {
-      if (!sequelize.models[modelName]) {
-        console.warn(`Model "${modelName}" bestaat niet in sequelize.models!`)
-        return 0
-      }
-      return await sequelize.models[modelName].count({ where: whereClause })
-    } catch (err) {
-      console.error(`Sequelize Fout bij ${modelName}.count met criteria:`, whereClause, '-> Fout:', err.message)
-      return 0
-    }
-  }
+  const [pendingUsers, overdueRegistration, waitingList, totalUnusedVouchers, totalProjects, totalUsedVouchers, totalUsers, totalVideos, tlangNl, tlangFr, tlangEn, totalFemales, totalMales, totalX] = await Promise.all([
+    Registration.count({ where: { eventId } }),
+    User.count({ where: { eventId, status: 'overdue' } }),
+    Registration.count({ where: { eventId, waiting_list: true } }),
+    UserProject.count({ where: { eventId, userId: null } }),
+    Project.count({ where: { eventId } }),
+    UserProject.count({ where: { eventId, deletedAt: { [Op.ne]: null }, voucherGuid: { [Op.ne]: null }, userId: { [Op.ne]: null } } }),
+    User.count({ where: { eventId } }),
+    Attachment.count({ where: { eventId, confirmed: true } }),
+    User.count({ where: { eventId, language: 'nl' } }),
+    User.count({ where: { eventId, language: 'fr' } }),
+    User.count({ where: { eventId, language: 'en' } }),
+    User.count({ where: { eventId, sex: 'f' } }),
+    User.count({ where: { eventId, sex: 'm' } }),
+    User.count({ where: { eventId, sex: 'X' } }),
+  ])
 
-  // 4. Voer de tellingen veilig uit (Als een kolom niet bestaat, geeft hij nu 0 i.p.v. een crash)
-  const pendingUsers = await safeCount('Registration', { eventId })
-  const overdueRegistration = await safeCount('User', { eventId, status: 'overdue' })
-  const waitingList = await safeCount('Registration', { eventId, waiting_list: true })
-  const totalUnusedVouchers = await safeCount('UserProject', { eventId, userId: null })
-
-  const totalProjects = await safeCount('Project', { eventId })
-  const totalUsedVouchers = await safeCount('UserProject', { eventId, deletedAt: { [Op.ne]: null }, voucherGuid: { [Op.ne]: null }, userId: { [Op.ne]: null } })
-  const totalUsers = await safeCount('User', { eventId })
-  const totalVideos = await safeCount('Attachment', { eventId, confirmed: true })
-
-  const tlangNl = await safeCount('User', { eventId, language: 'nl' })
-  const tlangFr = await safeCount('User', { eventId, language: 'fr' })
-  const tlangEn = await safeCount('User', { eventId, language: 'en' })
-
-  const totalFemales = await safeCount('User', { eventId, sex: 'f' })
-  const totalMales = await safeCount('User', { eventId, sex: 'm' })
-  const totalX = await safeCount('User', { eventId, sex: 'X' })
-
-  // Get questions data from QuestionUser model
-  let questionsData: Array<{
-    id: string | number
-    total: number
-    short: string
-    description: string
-  }> = []
-
-  try {
-    if (sequelize.models.QuestionUser && sequelize.models.QuestionTranslation && sequelize.models.Question) {
-
-      const { QuestionUser, Question, QuestionTranslation } = sequelize.models;
-
-      // Runtime fallback mocht de @BelongsTo decorator nog niet in het model staan
-      if (!QuestionUser.associations.question) {
-        QuestionUser.belongsTo(Question, { as: 'question', foreignKey: 'questionId' });
-      }
-      if (!Question.associations.translations) {
-        Question.hasMany(QuestionTranslation, { as: 'translations', foreignKey: 'questionId' });
-      }
-
-      const questionCounts = await QuestionUser.findAll({
-        attributes: [
-          'questionId',
-          // Let op de exacte hoofdletters: 'QuestionUser.questionId'
-          [sequelize.fn('COUNT', sequelize.col('QuestionUser.questionId')), 'total']
-        ],
-        where: {
-          eventId // Komt uit je BaseEventModel
-        },
-        group: [
-          'QuestionUser.questionId',
-          'question.id',
-          'question.name',
-          'question.translations.id',
-          'question.translations.description'
-        ],
-        include: [{
-          model: Question,
-          as: 'question',
-          attributes: ['id', 'name'],
-          include: [{
-            model: QuestionTranslation,
-            as: 'translations',
-            attributes: ['id', 'description'],
-            where: { language: 'nl' }
-          }],
-        }],
-        raw: true,
-        nest: true
-      })
-
-      // Transformeer de data naar de interface (TableItem) die je React dashboard verwacht
-      questionsData = questionCounts.map((item: any) => {
-        // Sequelize TypeScript stopt geneste hasMany resultaten soms in een array
-        const translation = Array.isArray(item.question?.translations)
-          ? item.question.translations[0]
-          : item.question?.translations;
-
-        return {
-          // Bij raw+nest in sequelize-typescript zit het attribuut direct op de root
-          id: item.questionId || item.QuestionUser?.questionId,
-          total: parseInt(item.total, 10) || 0,
-          short: item.question?.name || '',
-          description: translation?.description || '',
-        }
-      })
-
-    } else {
-      console.warn('User of question model ontbreekt in sequelize.models!')
-    }
-  } catch (err: any) {
-    console.error('Sequelize Fout bij het ophalen van question statistieken:', err.message)
-  }
-
-  // Get tshirt data from Users model
-  let tshirtsData: Array<{
-    id: string | number
-    total: number
-    short: string
-    description: string
-  }> = []
-  try {
-    if (sequelize.models.User && sequelize.models.Tshirt) {
-      const tshirtCounts = await sequelize.models.User.findAll({
-        attributes: [
-          'tshirt.id',
-          // Tel het aantal users per tshirtId
-          [sequelize.fn('COUNT', sequelize.col('User.id')), 'total'],
-          'tshirt.name', // Voeg de beschrijving van de T-shirt toe
-          'tshirt.translations.description'
-        ],
-        where: {
-          eventId
-        },
-        group: ['User.tshirtId', 'tshirt.id', 'tshirt.name', 'tshirt.translations.id', 'tshirt.translations.description'], // Groeperen op ID's voor accurate tellingen
-        include: [{
-          model: sequelize.models.Tshirt,
-          as: 'tshirt', // Pas dit aan naar jouw Sequelize relatie-alias als deze anders is gedefinieerd
-          attributes: ['name'],
-          include: [{
-            model: sequelize.models.TshirtTranslation,
-            as: 'translations',
-            attributes: ['description'],
-            where: { language: 'en' } // Alleen Engelse beschrijving ophalen
-          }],
-        }],
-        raw: true,
-        nest: true
-      })
-
-      // Transformeer de data naar de interface (TableItem) die je React dashboard verwacht
-      tshirtsData = tshirtCounts.map((item: any) => ({
-        id: item.tshirt.name,
-        total: parseInt(item.total, 10) || 0,
-        short: item.tshirt.name,
-        description: item.tshirt.translations?.description,
-      }))
-    } else {
-      console.warn('User of question model ontbreekt in sequelize.models!')
-    }
-  } catch (err: any) {
-    console.error('Sequelize Fout bij het ophalen van question statistieken:', err.message)
-  }
+  const questionsData = await getQuestions(eventId);
+  const tshirtsData = await getTshirts(eventId);
 
   return {
-    event_title: currentEvent?.eventTitle || 'Coolest Project 2027',
+    event_title: currentEvent?.eventTitle || 'Coolest Projects',
     officialStartDate: currentEvent?.officialStartDate,
     days_remaining: daysRemaining,
 

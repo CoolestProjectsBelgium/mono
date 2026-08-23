@@ -40,6 +40,10 @@ Sequelize models registered in `apps/admin/src/database.ts` must include every a
 | `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden |
 | `Event` | Event-scoped access for non-superadmin roles |
 
+The dashboard handler in [`apps/admin/src/components/dashboard/handler.ts`](../../apps/admin/src/components/dashboard/handler.ts)
+exports `DashboardResponse` and `DashboardTableItem` for reuse by TSX components. It returns the same complete
+response shape when no event is selected, and uses the registered database models directly for Sequelize counts.
+
 ## Out of scope / unknowns
 
 - Full custom AdminJS action catalog beyond the above
