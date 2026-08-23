@@ -149,9 +149,7 @@ async function getQuestions(eventId: number, language: string = 'nl'): Promise<D
 }
 
 export const Handler = async (_request: any, _response: any, context: any): Promise<DashboardResponse> => {
-  console.log(context)
 
-  // 1. Geselecteerd eventId ophalen
   const eventId = context.currentAdmin?.eventId
 
   if (!eventId) {
@@ -160,7 +158,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
 
   const currentEvent = await Event.findByPk(eventId)
 
-  // 3. Dagen berekenen
+  // days remaining
   let daysRemaining = 0
   if (currentEvent?.officialStartDate) {
     const diffTime = new Date(currentEvent.officialStartDate).getTime() - new Date().getTime()
@@ -169,7 +167,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
 
   const [pendingUsers, overdueRegistration, waitingList, totalUnusedVouchers, totalProjects, totalUsedVouchers, totalUsers, totalVideos, tlangNl, tlangFr, tlangEn, totalFemales, totalMales, totalX] = await Promise.all([
     Registration.count({ where: { eventId } }),
-    User.count({ where: { eventId, status: 'overdue' } }),
+    User.count({ where: { eventId, status: 'overdue' } }), //TODO need to count the registrations where the creation date < registration token expire date
     Registration.count({ where: { eventId, waiting_list: true } }),
     UserProject.count({ where: { eventId, userId: null } }),
     Project.count({ where: { eventId } }),

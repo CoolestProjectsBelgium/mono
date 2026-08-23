@@ -2,7 +2,7 @@ import express, { type Request, type Response, type NextFunction } from 'express
 import {
     sequelize,
 } from '../../database.js'
-import { Event } from '@coolestprojects/database';
+import { Event as EventModel } from '@coolestprojects/database';
 
 interface EventList {
     value: string,
@@ -10,14 +10,16 @@ interface EventList {
     isCurrent: boolean
 }
 
+const Event = sequelize.models.Event as typeof EventModel
+
 const router = express.Router();
 
 router.get('/events', async (_req, res) => {
     try {
-        const events = await sequelize.models.Event.findAll({
+        const events = await Event.findAll({
             attributes: ['id', 'eventTitle', 'current'],
             order: [['eventTitle', 'ASC']],
-        }) as Event[]
+        })
 
         const eventList: EventList[] = events.map((e) => ({
             value: e.id + "",
