@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { sign } from 'jsonwebtoken';
 import { env } from 'process';
+import type { StringValue } from 'ms';
 
 @Injectable()
 export class TokensService {
-  constructor() {}
+  constructor() { }
   generateRegistrationToken(registration_id: number) {
     return sign(
       {
@@ -12,7 +13,7 @@ export class TokensService {
         iat: Math.floor(Date.now() / 1000) - 30,
       },
       env.JWT_KEY || '',
-      { expiresIn: ( env.JWT_EXPIRES || '6d' ) },
+      { expiresIn: env.JWT_EXPIRES as StringValue || '6d' },
     );
   }
   generateLoginToken(user_id: number) {
@@ -22,7 +23,7 @@ export class TokensService {
         iat: Math.floor(Date.now() / 1000) - 30,
       },
       env.JWT_KEY || '',
-      { expiresIn: ( env.JWT_EXPIRES || '6d' ) },
+      { expiresIn: env.JWT_EXPIRES as StringValue || '6d' },
     );
   }
 }
