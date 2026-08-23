@@ -68,7 +68,7 @@ export class FileUploadService {
 
 
   async deleteFile(userId: number, attachmentId: number): Promise<void> {
-    const attachment = await this.attachmentModel.findByPk(attachmentId);
+    const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, confirmed: false, internal: false } });
 
     if (!attachment) {
       throw new Error('Attachment not found');
