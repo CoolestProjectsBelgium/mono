@@ -101,4 +101,20 @@ export class Registration extends BaseEventModel {
 
   @Column
   max_tokens!: number;
+
+  @Column(DataType.VIRTUAL(DataType.BOOLEAN))
+  get overdue(): boolean {
+    const creationDate = this.getDataValue('creationDate') as Date;
+    const expiresIn = process.env.JWT_EXPIRES;
+
+    if (!creationDate || !expiresIn) return false;
+
+    const match = expiresIn.match(/^(\d+(?:\.\d+)?)([smhd])$/i);
+    const duration = match
+      ? Number(match[1]) * ({ s: 1000, m: 60000, h: 3600000, d: 86400000 } as const)[match[2].toLowerCase() as 's' | 'm' | 'h' | 'd']
+      : Number(expiresIn);
+
+    return Number.isFinite(duration) && new Date(creationDate).getTime() + duration <= Date.now();
+  }
+
 }

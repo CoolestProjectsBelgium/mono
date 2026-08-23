@@ -12,7 +12,7 @@ export class TokensService {
         iat: Math.floor(Date.now() / 1000) - 30,
       },
       env.JWT_KEY || '',
-      { expiresIn: '6d' },
+      { expiresIn: ( env.JWT_EXPIRES || '6d' ) },
     );
   }
   generateLoginToken(user_id: number) {
@@ -22,7 +22,7 @@ export class TokensService {
         iat: Math.floor(Date.now() / 1000) - 30,
       },
       env.JWT_KEY || '',
-      { expiresIn: '6d' },
+      { expiresIn: ( env.JWT_EXPIRES || '6d' ) },
     );
   }
 }
