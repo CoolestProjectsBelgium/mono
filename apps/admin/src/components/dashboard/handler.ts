@@ -180,7 +180,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     User.count({ where: { eventId, sex: 'f' } }),
     User.count({ where: { eventId, sex: 'm' } }),
     User.count({ where: { eventId, sex: 'X' } }),
-    Registration.findAll({ attributes: ['id'], where: { eventId } })
+    Registration.findAll({ attributes: ['createdAt'], where: { eventId } })
   ])
 
   const questionsData = await getQuestions(eventId);
