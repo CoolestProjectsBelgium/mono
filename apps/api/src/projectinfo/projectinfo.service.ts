@@ -117,6 +117,7 @@ export class ProjectinfoService {
                 is_owner: membership.isOwner,
                 status: 'registered',
                 token: !membership.isOwner ? membership.voucherGuid : undefined,
+                delete_possible: false
             });
         }
 
@@ -126,6 +127,7 @@ export class ProjectinfoService {
             self: false,
             status: 'pending',
             token: membership.voucherGuid,
+            delete_possible: true
         }));
 
         return [...registered, ...pending];
