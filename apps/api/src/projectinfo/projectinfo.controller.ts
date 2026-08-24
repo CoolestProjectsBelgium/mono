@@ -75,11 +75,19 @@ export class ProjectinfoController {
   async getAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
     let result: StreamableFile;
     if (req.user.isAdmin) {
-      result = await this.projectService.getThumbnailAdmin(attachmentId);
+      result = await this.projectService.getThumbnailAdmin(req.user.adminUser.eventId, attachmentId);
     } else {
       result = await this.projectService.getThumbnail(req.user.id, attachmentId)
     }
     return result;
+  }
+
+  @Get('attachments/original/:attachmentId')
+  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @UseGuards(AuthGuard(['cookie']))
+  @UseInterceptors(UserCookieInterceptor)
+  async getAttachmentOriginal(@Request() req: any, @Param('attachmentId') attachmentId: number) {
+    return await this.projectService.getAttachment(req.user.adminUser.eventId, attachmentId);;
   }
 
   @Delete('attachments/:attachmentId')
