@@ -12,12 +12,18 @@ function getThumbnailUrl(attachmentId: number): string {
     return `${base}/${attachmentId}`
 }
 
+function getOriginalUrl(attachmentId: number): string {
+    const base = process.env.ATTACHMENT_BASE_URL!.replace(/\/$/, '')
+    return `${base}/original/${attachmentId}`
+}
+
 export interface PictureAttachment {
     id: number;
     name: string;
     confirmed: boolean;
     internal: boolean;
     thumbnailUrl: string;
+    originalUrl: string;
 }
 
 export interface GroupedAttachments {
@@ -47,6 +53,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
             confirmed: a.confirmed,
             internal: a.internal,
             thumbnailUrl: getThumbnailUrl(a.id),
+            originalUrl: getOriginalUrl(a.id)
         }));
     }
 
