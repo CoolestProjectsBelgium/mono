@@ -102,7 +102,8 @@ import { AdminSession } from '@coolestprojects/database';
       TshirtGroupTranslation,
       EventTable,
       EmailLog,
-      AdminSession
+      AdminSession,
+      Attachment
     ]),
   ],
   providers: [
