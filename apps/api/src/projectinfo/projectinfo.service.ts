@@ -54,14 +54,25 @@ export class ProjectinfoService {
         return new StreamableFile(file, { type: attachment.mimetype });
     }
 
-    public async getThumbnailAdmin(attachmentId: number): Promise<StreamableFile> {
-        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId } });
+    public async getThumbnailAdmin(eventId: number, attachmentId: number): Promise<StreamableFile> {
+        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, eventId } });
 
         if (!attachment) {
             throw new Error('Attachment not found');
         }
 
         const file = createReadStream(attachment.thumbnailPath);
+        return new StreamableFile(file, { type: attachment.mimetype });
+    }
+
+    public async getAttachment(eventId: number, attachmentId: number): Promise<StreamableFile> {
+        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, eventId } });
+
+        if (!attachment) {
+            throw new Error('Attachment not found');
+        }
+
+        const file = createReadStream(attachment.filepath);
         return new StreamableFile(file, { type: attachment.mimetype });
     }
 

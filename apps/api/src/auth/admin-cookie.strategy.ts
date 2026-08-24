@@ -20,7 +20,6 @@ export class AdminCookieStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(token: string) {
-    console.log("admin test")
     if (!token) {
       throw new UnauthorizedException();
     }
@@ -50,6 +49,6 @@ export class AdminCookieStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    return { ...account.get({ plain: true }), isAdmin: true }; //TODO check eventID when api's are called
+    return { ...sessionData, isAdmin: true }; //TODO check eventID when api's are called
   }
 }
