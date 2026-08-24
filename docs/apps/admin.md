@@ -50,6 +50,9 @@ allowing at most one confirmed attachment per project; saving a confirmed image 
 The `VotingOverview` page shows event-scoped vote totals, votes over time, and a project/category vote breakdown. It
 refreshes automatically every 15 seconds and displays the last successful update when a refresh request fails.
 
+The `Tables` page supports selecting two tables and swapping their project assignments while keeping assignments scoped
+to the selected event.
+
 ## Out of scope / unknowns
 
 - Full custom AdminJS action catalog beyond the above
