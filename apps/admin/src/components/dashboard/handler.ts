@@ -65,15 +65,17 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
   try {
     const tshirtCounts = await User.findAll({
       attributes: [
-        'tshirt.id',
-        [sequelize.fn('COUNT', sequelize.col('User.id')), 'total'],
+        'tshirtId',
+        // Tel het aantal users per tshirtId
+        [sequelize.fn('COUNT', sequelize.col('User.tshirtId')), 'total'],
         'tshirt.name',
         'tshirt.translations.description'
       ],
       where: {
         eventId
       },
-      group: ['User.id', 'User.tshirtId', 'tshirt.id', 'tshirt.name', 'tshirt.translations.id', 'tshirt.translations.description'],
+      // Groeperen op ID's voor accurate tellingen
+      group: ['User.tshirtId', 'tshirt.name',  'tshirt.translations.id', 'tshirt.translations.description', 'User.id'],
       include: [{
         model: Tshirt,
         as: 'tshirt',
@@ -86,10 +88,17 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
         }],
       }],
     }) as (UserModel & { total: number | string })[]
-
+/*
+    console.log('Tshirt counts:', tshirtCounts.map(item => ({
+      tshirtId: item.tshirtId,
+      total: item.get('total'),
+      name: item.tshirt?.name,
+      description: item.tshirt?.translations?.[0]?.description
+    })))
+*/
     tshirtsData = tshirtCounts.map((item) => ({
       id: item.tshirt.name,
-      total: Number(item.total) || 0,
+      total: Number(item.get('total')) || 0,
       short: item.tshirt.name,
       description: item.tshirt.translations?.[0]?.description || '',
     }))
