@@ -51,6 +51,11 @@ const start = async () => {
         handler: Handlers.VotingOverview,
         icon: 'BarChart',
       },
+      Tables: {
+        component: Components.Tables,
+        handler: Handlers.Tables,
+        icon: 'Table',
+      },
     },
     resources: [
       {
