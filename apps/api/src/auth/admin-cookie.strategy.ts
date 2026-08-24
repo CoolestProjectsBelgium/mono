@@ -1,12 +1,11 @@
-import { Strategy } from 'passport-cookie';
-import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { env } from 'process';
-import { createHmac, timingSafeEqual } from 'crypto';
-import { InjectModel } from '@nestjs/sequelize';
 import { Account, AdminSession } from '@coolestprojects/database';
-import { Op } from 'sequelize';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { InjectModel } from '@nestjs/sequelize';
 import { signedCookie } from 'cookie-parser';
+import { Strategy } from 'passport-cookie';
+import { env } from 'process';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class AdminCookieStrategy extends PassportStrategy(Strategy) {
@@ -34,7 +33,7 @@ export class AdminCookieStrategy extends PassportStrategy(Strategy) {
     }
 
     const sessionData = JSON.parse(session.data) as {
-      adminUser?: { email?: string };
+      adminUser?: { email?: string, eventId?: number, role?: string };
     };
     const email = sessionData.adminUser?.email;
     if (!email) {
