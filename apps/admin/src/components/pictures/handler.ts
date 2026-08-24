@@ -35,7 +35,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     const eventId = context.currentAdmin?.eventId;
 
     const projectsModels = await Project.findAll({
-        where: { eventId },
+        where: { eventId, deletedAt: null },
         attributes: ['name'],
         include: [{
             model: Attachment,
