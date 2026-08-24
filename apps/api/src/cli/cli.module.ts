@@ -32,6 +32,7 @@ import { VoteCategory } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
 import { EmailLog } from '@coolestprojects/database';
+import { AdminSession } from '@coolestprojects/database';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { EmailLog } from '@coolestprojects/database';
             Award,
             EmailTemplate,
             EmailLog,
+            AdminSession
           ],
         };
       },
@@ -99,7 +101,8 @@ import { EmailLog } from '@coolestprojects/database';
       TshirtTranslation,
       TshirtGroupTranslation,
       EventTable,
-      EmailLog
+      EmailLog,
+      AdminSession
     ]),
   ],
   providers: [
