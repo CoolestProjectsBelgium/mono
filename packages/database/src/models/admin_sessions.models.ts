@@ -3,26 +3,28 @@ import {
     Table,
     DataType,
     PrimaryKey,
+    Model,
     UpdatedAt,
     CreatedAt,
 } from 'sequelize-typescript';
+import { InferAttributes, InferCreationAttributes } from 'sequelize';
 
 @Table({ freezeTableName: true, tableName: 'admin_sessions', timestamps: false })
-export class AdminSession {
+export class AdminSession extends Model<InferAttributes<AdminSession>, InferCreationAttributes<AdminSession>>  {
 
     @PrimaryKey
     @Column(DataType.STRING(36))
-    sid!: string;
+    declare sid: string;
 
     @Column(DataType.DATE)
-    expires!: Date;
+    declare expires: Date;
 
     @Column(DataType.TEXT)
-    data!: string;
+    declare data: string;
 
     @CreatedAt
-    createdAt!: Date;
+    declare createdAt: Date;
 
     @UpdatedAt
-    updatedAt!: Date;
+    declare updatedAt: Date;
 }
