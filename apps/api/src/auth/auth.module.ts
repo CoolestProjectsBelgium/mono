@@ -4,7 +4,7 @@ import { JwtVotingStrategy } from './jwt-voting.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { Account, User, EmailLog } from '@coolestprojects/database';
+import { Account, AdminSession, User, EmailLog } from '@coolestprojects/database';
 import { RegistrationService } from '../registration/registration.service';
 import { MailerService } from '../mailer/mailer.service';
 import { EmailTemplate } from '@coolestprojects/database';
@@ -24,7 +24,7 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Question, QuestionUser, QuestionRegistration, Account, UserProject, EmailLog]),
+    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Question, QuestionUser, QuestionRegistration, Account, AdminSession, UserProject, EmailLog]),
   ],
   providers: [{
     provide: AUTH_JWT,
