@@ -131,11 +131,13 @@ export const PictureHandlerPage: React.FC = () => {
                                         >
                                             <TableCell style={{ width: '100px' }}>
                                                 {item.thumbnailUrl ? (
-                                                    <img
-                                                        src={item.thumbnailUrl}
-                                                        alt={item.name}
-                                                        style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
-                                                    />
+                                                    <a href={item.originalUrl} target="_blank" rel="noopener noreferrer">
+                                                        <img
+                                                            src={item.thumbnailUrl}
+                                                            alt={`View full image: ${item.name}`}
+                                                            style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' }}
+                                                        />
+                                                    </a>
                                                 ) : (
                                                     <Text color="grey60">No Image</Text>
                                                 )}
