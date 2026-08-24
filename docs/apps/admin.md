@@ -47,6 +47,9 @@ response shape when no event is selected, and uses the registered database model
 The `PictureSelector` page lists every project for the selected event. Its confirmed-image controls are radio buttons,
 allowing at most one confirmed attachment per project; saving a confirmed image updates the project attachment group.
 
+The `VotingOverview` page shows event-scoped vote totals, votes over time, and a project/category vote breakdown. It
+refreshes automatically every 15 seconds and displays the last successful update when a refresh request fails.
+
 ## Out of scope / unknowns
 
 - Full custom AdminJS action catalog beyond the above
