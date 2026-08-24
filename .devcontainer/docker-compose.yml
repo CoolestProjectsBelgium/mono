@@ -31,7 +31,7 @@ services:
 
       # file configuration
       UPLOAD_ROOT: /tmp/uploads
-      ATTACHMENT_BASE_URL: "https://registration.coolestprojects.localhost:8443/_api/projectinfo/attachments"
+      ATTACHMENT_BASE_URL: "https://api.coolestprojects.localhost:8443/projectinfo/attachments"
       FILE_SIGN_SECRET: "cxc.#8Pc5^H26465BxKLxKsv"
       APACHE_SECRET: "cEc.#8Pc5^zzH26OBccLMKsdM"
       FILE_BASE_URL: "https://register.coolestproject.com/files"

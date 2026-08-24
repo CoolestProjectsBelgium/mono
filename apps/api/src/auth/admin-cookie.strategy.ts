@@ -2,9 +2,7 @@ import { Account, AdminSession } from '@coolestprojects/database';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { InjectModel } from '@nestjs/sequelize';
-import { signedCookie } from 'cookie-parser';
 import { Strategy } from 'passport-cookie';
-import { env } from 'process';
 import { Op } from 'sequelize';
 
 @Injectable()
@@ -17,17 +15,17 @@ export class AdminCookieStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       cookieName: 'adminjs',
+      signed: true,
     });
   }
 
-  async validate(req: any, token: string, done: any) {
-    const sessionId = signedCookie(token, env.ADMINJS_COOKIE_SECRET);
-
-    if (!sessionId || sessionId === false) {
+  async validate(token: string) {
+    console.log("admin test")
+    if (!token) {
       throw new UnauthorizedException();
     }
 
-    const session = await this.adminSessionModel.findByPk(sessionId);
+    const session = await this.adminSessionModel.findByPk(token);
     if (!session || session.expires <= new Date()) {
       throw new UnauthorizedException();
     }
@@ -52,6 +50,6 @@ export class AdminCookieStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    return done(null, { ...account.get({ plain: true }), isAdmin: true }); //TODO check eventID when api's are called
+    return { ...account.get({ plain: true }), isAdmin: true }; //TODO check eventID when api's are called
   }
 }

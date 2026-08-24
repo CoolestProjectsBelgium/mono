@@ -70,7 +70,7 @@ export class ProjectinfoController {
 
   @Get('attachments/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard(['jwt-cookiecombo', 'cookie']))
+  @UseGuards(AuthGuard(['cookie', 'jwt-cookiecombo']))
   @UseInterceptors(UserCookieInterceptor)
   async getAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
     let result: StreamableFile;

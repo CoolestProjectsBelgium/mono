@@ -44,6 +44,9 @@ The dashboard handler in [`apps/admin/src/components/dashboard/handler.ts`](../.
 exports `DashboardResponse` and `DashboardTableItem` for reuse by TSX components. It returns the same complete
 response shape when no event is selected, and uses the registered database models directly for Sequelize counts.
 
+The `PictureSelector` page lists every project for the selected event. Its confirmed-image controls are radio buttons,
+allowing at most one confirmed attachment per project; saving a confirmed image updates the project attachment group.
+
 ## Out of scope / unknowns
 
 - Full custom AdminJS action catalog beyond the above
