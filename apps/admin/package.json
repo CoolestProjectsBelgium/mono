@@ -21,6 +21,7 @@
     "connect-session-sequelize": "^8.0.6",
     "express-formidable": "^1.2.0",
     "express-session": "^1.19.0",
+    "recharts": "2.15.4",
     "sequelize-typescript": "^2.1.6"
   },
   "devDependencies": {

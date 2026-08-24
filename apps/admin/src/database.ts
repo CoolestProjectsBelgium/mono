@@ -17,6 +17,7 @@ import {
     VoteCategory,
     UserProject,
     Attachment,
+    Vote
 } from '@coolestprojects/database'
 
 import { ConfigService } from '@nestjs/config'
@@ -50,6 +51,7 @@ export const sequelize = new Sequelize({
         Registration,
         TshirtGroupTranslation,
         Attachment,
+        Vote
     ],
     logging: true,
 } as any)

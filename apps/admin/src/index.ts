@@ -46,6 +46,11 @@ const start = async () => {
         handler: Handlers.PictureSelector,
         icon: 'Image',
       },
+      VotingOverview: {
+        component: Components.VotingOverview,
+        handler: Handlers.VotingOverview,
+        icon: 'BarChart',
+      },
     },
     resources: [
       {
