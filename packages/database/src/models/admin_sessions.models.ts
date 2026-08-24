@@ -9,7 +9,7 @@ import {
 } from 'sequelize-typescript';
 import { InferAttributes, InferCreationAttributes } from 'sequelize';
 
-@Table({ freezeTableName: true, tableName: 'admin_sessions', timestamps: false })
+@Table({ freezeTableName: true, tableName: 'admin_sessions' })
 export class AdminSession extends Model<InferAttributes<AdminSession>, InferCreationAttributes<AdminSession>>  {
 
     @PrimaryKey

@@ -37,7 +37,14 @@ export class ProjectinfoService {
             throw new Error('User is not associated with any project');
         }
 
-        const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, projectId: userProject.projectId, internal: false } });
+        const attachment = await this.attachmentModel.findOne({
+            where: {
+                id: attachmentId, projectId: userProject.projectId, [Op.or]: [
+                    { internal: false },
+                    { internal: null },
+                ],
+            }
+        });
 
         if (!attachment) {
             throw new Error('Attachment not found');
@@ -176,7 +183,14 @@ export class ProjectinfoService {
             throw new Error('User is not associated with any project');
         }
 
-        const attachments = await project.getAttachments();
+        const attachments = await project.getAttachments({
+            where: {
+                [Op.or]: [
+                    { internal: false },
+                    { internal: null },
+                ],
+            }
+        });
 
         return attachments.map(attachment => ({
             id: String(attachment.id),
