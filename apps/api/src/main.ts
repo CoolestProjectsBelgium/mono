@@ -12,7 +12,7 @@ async function bootstrap() {
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
-  app.use(cookieParser(env.JWT_KEY));
+  app.use(cookieParser([env.JWT_KEY!, env.ADMINJS_COOKIE_SECRET!]));
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (!req.cookies.anonId) {

@@ -7,12 +7,17 @@ import {
 const Project = sequelize.models.Project as typeof ProjectModel
 const Attachment = sequelize.models.Attachment as typeof AttachmentModel
 
+function getThumbnailUrl(attachmentId: number): string {
+    const base = process.env.ATTACHMENT_BASE_URL!.replace(/\/$/, '')
+    return `${base}/${attachmentId}`
+}
+
 export interface PictureAttachment {
     id: number;
     name: string;
     confirmed: boolean;
     internal: boolean;
-    thumbnailPath: string;
+    thumbnailUrl: string;
 }
 
 export interface GroupedAttachments {
@@ -41,7 +46,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
             name: a.name,
             confirmed: a.confirmed,
             internal: a.internal,
-            thumbnailPath: a.thumbnailPath,
+            thumbnailUrl: getThumbnailUrl(a.id),
         }));
     }
 
