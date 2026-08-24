@@ -245,3 +245,4 @@ apps/admin/src/components/Dashboard2.tsx
 apps/admin/.adminjs/**
 apps/admin/.adminjs/*
 apps/admin/.adminjs/bundle.js
+apps/admin/.adminjs/bundle.js
