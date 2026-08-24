@@ -171,7 +171,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     Registration.count({ where: { eventId, waiting_list: true } }),
     UserProject.count({ where: { eventId, userId: null } }),
     Project.count({ where: { eventId } }),
-    UserProject.count({ where: { eventId, deletedAt: { [Op.ne]: null }, voucherGuid: { [Op.ne]: null }, userId: { [Op.ne]: null } } }),
+    UserProject.count({ where: { eventId, deletedAt: { [Op.eq]: null }, voucherGuid: { [Op.ne]: null }, userId: { [Op.ne]: null } } }),
     User.count({ where: { eventId } }),
     Attachment.count({ where: { eventId, confirmed: true } }),
     User.count({ where: { eventId, language: 'nl' } }),
