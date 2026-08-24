@@ -8,6 +8,12 @@ npm run build --workspace=packages/database
 # build the api cli
 npm run build --workspace=apps/api
 
+# copy demo images to project 1 folder
+if [[ -n "${UPLOAD_ROOT:-}" ]]; then
+	mkdir -p "$UPLOAD_ROOT/coolestprojects/project_1"
+	cp -R .devcontainer/images/. "$UPLOAD_ROOT/coolestprojects/project_1/"
+fi
+
 # load test db
 npm run seed-db --workspace=apps/api
 

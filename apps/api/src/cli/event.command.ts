@@ -1,17 +1,8 @@
-import { Command } from 'nestjs-command';
+import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionTranslation, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject } from '@coolestprojects/database';
 import { Injectable } from '@nestjs/common';
-import { Event } from '@coolestprojects/database';
-import { Tshirt } from '@coolestprojects/database';
-import { TshirtGroup } from '@coolestprojects/database';
-import { TshirtGroupTranslation } from '@coolestprojects/database';
-import { TshirtTranslation } from '@coolestprojects/database';
-import { Question } from '@coolestprojects/database';
-import { QuestionTranslation } from '@coolestprojects/database';
-import { EventTable } from '@coolestprojects/database';
-import { EmailTemplate } from '@coolestprojects/database';
 import { InjectModel } from '@nestjs/sequelize';
+import { Command } from 'nestjs-command';
 import { seedDatabase } from '../seeder/seed';
-import { Account } from '@coolestprojects/database';
 
 @Injectable()
 export class EventCommand {
@@ -36,6 +27,14 @@ export class EventCommand {
     private readonly emailTemplateModel: typeof EmailTemplate,
     @InjectModel(Account)
     private readonly accountModel: typeof Account,
+    @InjectModel(Project)
+    private readonly projectModel: typeof Project,
+    @InjectModel(User)
+    private readonly userModel: typeof User,
+    @InjectModel(Attachment)
+    private readonly attachmentModel: typeof Attachment,
+    @InjectModel(UserProject)
+    private readonly userProjectModel: typeof UserProject,
   ) { }
 
   @Command({
@@ -54,6 +53,10 @@ export class EventCommand {
       this.emailTemplateModel,
       this.tshirtTranslationModel,
       this.accountModel,
+      this.projectModel,
+      this.userModel,
+      this.attachmentModel,
+      this.userProjectModel
     );
   }
 }

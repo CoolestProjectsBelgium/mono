@@ -1,14 +1,6 @@
-import { Event } from '@coolestprojects/database';
-import { Tshirt } from '@coolestprojects/database';
-import { TshirtGroup } from '@coolestprojects/database';
-import { TshirtGroupTranslation } from '@coolestprojects/database';
-import { TshirtTranslation } from '@coolestprojects/database';
-import { Question } from '@coolestprojects/database';
-import { QuestionTranslation } from '@coolestprojects/database';
-import { EventTable } from '@coolestprojects/database';
-import { EmailTemplate } from '@coolestprojects/database';
-import { Account } from '@coolestprojects/database';
+import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionTranslation, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject } from '@coolestprojects/database';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
+import * as path from 'path';
 
 export async function seedDatabase(
   eventModel: typeof Event,
@@ -20,25 +12,29 @@ export async function seedDatabase(
   eventTableModel: typeof EventTable,
   emailTemplateModel: typeof EmailTemplate,
   tshirtTranslationModel: typeof TshirtTranslation,
-  accountModel: typeof Account
+  accountModel: typeof Account,
+  projectModel: typeof Project,
+  userModel: typeof User,
+  attachmentModel: typeof Attachment,
+  userProjectModel: typeof UserProject
 ) {
-    const eventBeginDate = new Date();
-    eventBeginDate.setDate(new Date().getDate() - 100);
+  const eventBeginDate = new Date();
+  eventBeginDate.setDate(new Date().getDate() - 100);
 
-    const registrationOpenDate = new Date();
-    registrationOpenDate.setDate(new Date().getDate() - 90);
+  const registrationOpenDate = new Date();
+  registrationOpenDate.setDate(new Date().getDate() - 90);
 
-    const registrationClosedDate = new Date();
-    registrationClosedDate.setDate(new Date().getDate() + 10);
+  const registrationClosedDate = new Date();
+  registrationClosedDate.setDate(new Date().getDate() + 10);
 
-    const projectClosedDate = new Date();
-    projectClosedDate.setDate(new Date().getDate() + 20);
+  const projectClosedDate = new Date();
+  projectClosedDate.setDate(new Date().getDate() + 20);
 
-    const officialStartDate = new Date();
-    officialStartDate.setDate(new Date().getDate() + 5);
+  const officialStartDate = new Date();
+  officialStartDate.setDate(new Date().getDate() + 5);
 
-    const eventEndDate = new Date();
-    eventEndDate.setDate(new Date().getDate() + 40);
+  const eventEndDate = new Date();
+  eventEndDate.setDate(new Date().getDate() + 40);
 
   const event = await eventModel.create({
     floorplanPath: 'floorplan_active.svg',
@@ -801,4 +797,37 @@ export async function seedDatabase(
       account_type: 'jury',
     },
   ]);
+
+  const projects = await projectModel.bulkCreate([
+    { name: 'Test Project 1', eventId: event.id, language: 'en', description: 'Test Description 1', maxVoucher: 3 },
+    { name: 'Test Project 2', eventId: event.id, language: 'en', description: 'Test Description 2', maxVoucher: 3 },
+    { name: 'Test Project 3', eventId: event.id, language: 'nl', description: 'Test Description 3', maxVoucher: 2 },
+    { name: 'Test Project 4', eventId: event.id, language: 'nl', description: 'Test Description 4', maxVoucher: 5 },
+    { name: 'Test Project 5', eventId: event.id, language: 'fr', description: 'Test Description 5', maxVoucher: 3, deletedAt: new Date() }
+  ]);
+
+  const users = await userModel.bulkCreate([
+    { eventId: event.id, email: 'user1@user.be', firstname: 'User 1', lastname: 'User 1', sex: 'M', language: 'en', birthmonth: new Date(new Date().getFullYear() - 7, 0, 1), postalcode: '1000', municipality_name: 'Brussel', phone: '+32 470 00 00 01', guardian_firstname: 'Guardian 1', guardian_lastname: 'User 1', guardian_email: 'guardian1@user.be', guardian_phone: '+32 470 10 00 01' },
+    { eventId: event.id, email: 'user2@user.be', firstname: 'User 2', lastname: 'User 2', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 12, 0, 1), postalcode: '2000', municipality_name: 'Antwerpen', phone: '+32 470 00 00 02', guardian_firstname: 'Guardian 2', guardian_lastname: 'User 2', guardian_email: 'guardian2@user.be', guardian_phone: '+32 470 10 00 02' },
+    { eventId: event.id, email: 'user3@user.be', firstname: 'User 3', lastname: 'User 3', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 15, 0, 1), postalcode: '3000', municipality_name: 'Leuven', phone: '+32 470 00 00 03', guardian_firstname: 'Guardian 3', guardian_lastname: 'User 3', guardian_email: 'guardian3@user.be', guardian_phone: '+32 470 10 00 03' },
+    { eventId: event.id, email: 'user4@user.be', firstname: 'User 4', lastname: 'User 4', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 16, 0, 1), postalcode: '4000', municipality_name: 'Luik', phone: '+32 470 00 00 04' },
+    { eventId: event.id, email: 'user5@user.be', firstname: 'User 5', lastname: 'User 5', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 18, 0, 1), postalcode: '5000', municipality_name: 'Namen', phone: '+32 470 00 00 05' }
+  ])
+
+  await userProjectModel.bulkCreate([
+    { eventId: event.id, isOwner: true, projectId: projects[0].id, userId: users[0].id },
+    { eventId: event.id, isOwner: false, projectId: projects[0].id, userId: users[1].id, voucherGuid: '1' },
+    { eventId: event.id, isOwner: true, projectId: projects[1].id, userId: users[2].id },
+    { eventId: event.id, isOwner: true, projectId: projects[2].id, userId: users[3].id },
+    { eventId: event.id, isOwner: true, projectId: projects[3].id, userId: users[4].id, deletedAt: new Date() },
+  ])
+
+  await attachmentModel.bulkCreate([
+    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '1.png'), name: 'attachment 1', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_1.png') },
+    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '2.png'), name: 'attachment 2', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_2.png'), confirmed: true },
+    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '3.png'), name: 'attachment 3', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_3.png'), internal: true },
+    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '4.png'), name: 'attachment 4', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_4.png') },
+    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '5.png'), name: 'attachment 5', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_5.png') }
+  ])
+
 }
