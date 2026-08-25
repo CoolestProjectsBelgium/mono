@@ -71,8 +71,21 @@ Dev Container (`.devcontainer/`) runs:
 
 See [local-setup.md](local-setup.md).
 
+## Production (Level27)
+
+Public marketing site `coolestprojects.be` is still Telenet/Hostbasket; the current Azure apps are the legacy stack. The reworked monorepo publishes to **Level27 Agency** hosting on `coolestprojects-test.be`:
+
+| Role | Components |
+|------|------------|
+| API / Admin | Node 24 (`api-dev`/`api-prod`, `admin-dev`/`admin-prod`) |
+| Static SPAs | `phplegacy` paths under `public_html/{registration,voting,eventguide}` |
+| Database | MySQL 8.4 `db-dev` / `db-prod` |
+| Mail | Mailpit (`mail-dev`) and mail (`mail-prod`) |
+
+Publish with [build-tools.md](build-tools.md) (`build_tools/`). Infra inventory lives in the sibling OpenTofu repo; this monorepo only ships artifacts.
+
 ## Unknowns
 
-- Production deployment topology
 - Azure blob usage details (`@azure/storage-blob` in API)
 - Full auth matrix across all frontends
+- DNS for `api-dev` / `admin-dev` (zone is Level27; some SPA hostnames already resolve)

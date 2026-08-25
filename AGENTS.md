@@ -23,6 +23,7 @@ npm workspaces monorepo (`package.json`):
 - [docs/local-setup.md](docs/local-setup.md) — Dev Container setup (supported local path)
 - Per-app pages: [docs/apps/](docs/apps/)
 - Shared package: [docs/packages/database.md](docs/packages/database.md)
+- Level27 publish: [docs/build-tools.md](docs/build-tools.md) (`build_tools/`)
 
 ## Before you change code
 

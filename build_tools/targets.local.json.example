@@ -1,0 +1,7 @@
+{
+  "sshHost": "SET_ME.level27.eu",
+  "overrides": {
+    "api-dev": null,
+    "admin-dev": null
+  }
+}

@@ -27,7 +27,7 @@ Local URL (via proxy): `https://eventguide.coolestprojects.localhost:8443`
 
 - Static asset layout and build pipeline (if any beyond `http-server`)
 - Which API endpoints the guide calls
-- Production hosting
+- Production hosting (Level27 `eventguide-dev` / `eventguide-prod` via [build-tools.md](../build-tools.md))
 
 ## Status
 
