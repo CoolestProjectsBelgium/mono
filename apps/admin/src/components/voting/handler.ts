@@ -48,8 +48,10 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     const projectCategories = new Map<string, Record<string, number>>();
 
     for (const vote of votes) {
-        const date = new Date(vote.createdAt).toISOString().slice(0, 10);
-        timeTotals.set(date, (timeTotals.get(date) ?? 0) + 1);
+        const voteTime = new Date(vote.createdAt);
+        voteTime.setUTCMinutes(Math.floor(voteTime.getUTCMinutes() / 5) * 5, 0, 0);
+        const interval = voteTime.toISOString();
+        timeTotals.set(interval, (timeTotals.get(interval) ?? 0) + 1);
 
         const project = vote['project.name'];
         const category = vote['category.name'];
