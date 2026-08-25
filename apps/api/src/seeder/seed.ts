@@ -892,14 +892,13 @@ export async function seedDatabase(
     },
   ]);
 
-  
-
   const projects = await projectModel.bulkCreate([
     { name: 'Test Project 1', eventId: event.id, language: 'en', description: 'Test Description 1', maxVoucher: 3 },
     { name: 'Test Project 2', eventId: event.id, language: 'en', description: 'Test Description 2', maxVoucher: 3 },
     { name: 'Test Project 3', eventId: event.id, language: 'nl', description: 'Test Description 3', maxVoucher: 2 },
     { name: 'Test Project 4', eventId: event.id, language: 'nl', description: 'Test Description 4', maxVoucher: 5 },
-    { name: 'Test Project 5', eventId: event.id, language: 'fr', description: 'Test Description 5', maxVoucher: 3, deletedAt: new Date() }
+    { name: 'Test Project 5', eventId: event.id, language: 'fr', description: 'Test Description 5', maxVoucher: 3 },
+    { name: 'Test Project 6', eventId: event.id, language: 'fr', description: 'Test Description 6', maxVoucher: 3, deletedAt: new Date() }
   ]);
 
   const voteCategories = await voteCategoryModel.bulkCreate([
