@@ -31,7 +31,7 @@ Local URL (via proxy): `https://voting.coolestprojects.localhost:8443`
 ## Out of scope / unknowns
 
 - Exact voting UX flows and API contract details (expand when implementing features)
-- Production deployment and env var naming beyond `.env.example`
+- Production deploy is Level27 `voting-dev` / `voting-prod` via [build-tools.md](../build-tools.md)
 - Auth/session mechanism between Nuxt and API
 
 ## Status
