@@ -925,11 +925,11 @@ export async function seedDatabase(
   await voteModel.bulkCreate(votes);
 
   const users = await userModel.bulkCreate([
-    { eventId: event.id, email: 'user1@user.be', firstname: 'User 1', lastname: 'User 1', sex: 'M', language: 'en', birthmonth: new Date(new Date().getFullYear() - 7, 0, 1), postalcode: '1000', municipality_name: 'Brussel', phone: '+32 470 00 00 01', guardian_firstname: 'Guardian 1', guardian_lastname: 'User 1', guardian_email: 'guardian1@user.be', guardian_phone: '+32 470 10 00 01' },
-    { eventId: event.id, email: 'user2@user.be', firstname: 'User 2', lastname: 'User 2', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 12, 0, 1), postalcode: '2000', municipality_name: 'Antwerpen', phone: '+32 470 00 00 02', guardian_firstname: 'Guardian 2', guardian_lastname: 'User 2', guardian_email: 'guardian2@user.be', guardian_phone: '+32 470 10 00 02' },
-    { eventId: event.id, email: 'user3@user.be', firstname: 'User 3', lastname: 'User 3', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 15, 0, 1), postalcode: '3000', municipality_name: 'Leuven', phone: '+32 470 00 00 03', guardian_firstname: 'Guardian 3', guardian_lastname: 'User 3', guardian_email: 'guardian3@user.be', guardian_phone: '+32 470 10 00 03' },
-    { eventId: event.id, email: 'user4@user.be', firstname: 'User 4', lastname: 'User 4', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 16, 0, 1), postalcode: '4000', municipality_name: 'Luik', phone: '+32 470 00 00 04' },
-    { eventId: event.id, email: 'user5@user.be', firstname: 'User 5', lastname: 'User 5', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 18, 0, 1), postalcode: '5000', municipality_name: 'Namen', phone: '+32 470 00 00 05' }
+    { eventId: event.id, email: 'user1@user.be', firstname: 'User 1', lastname: 'User 1', sex: 'M', language: 'en', birthmonth: new Date(new Date().getFullYear() - 7, 0, 1), postalcode: '1000', municipality_name: 'Brussel', phone: '+32 470 00 00 01', guardian_firstname: 'Guardian 1', guardian_lastname: 'User 1', guardian_email: 'guardian1@user.be', guardian_phone: '+32 470 10 00 01', tshirtId: tshirts[3].id, },
+    { eventId: event.id, email: 'user2@user.be', firstname: 'User 2', lastname: 'User 2', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 12, 0, 1), postalcode: '2000', municipality_name: 'Antwerpen', phone: '+32 470 00 00 02', guardian_firstname: 'Guardian 2', guardian_lastname: 'User 2', guardian_email: 'guardian2@user.be', guardian_phone: '+32 470 10 00 02', tshirtId: tshirts[0].id },
+    { eventId: event.id, email: 'user3@user.be', firstname: 'User 3', lastname: 'User 3', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 15, 0, 1), postalcode: '3000', municipality_name: 'Leuven', phone: '+32 470 00 00 03', guardian_firstname: 'Guardian 3', guardian_lastname: 'User 3', guardian_email: 'guardian3@user.be', guardian_phone: '+32 470 10 00 03', tshirtId: tshirts[4].id },
+    { eventId: event.id, email: 'user4@user.be', firstname: 'User 4', lastname: 'User 4', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 16, 0, 1), postalcode: '4000', municipality_name: 'Luik', phone: '+32 470 00 00 04', tshirtId: tshirts[1].id },
+    { eventId: event.id, email: 'user5@user.be', firstname: 'User 5', lastname: 'User 5', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 18, 0, 1), postalcode: '5000', municipality_name: 'Namen', phone: '+32 470 00 00 05', tshirtId: tshirts[1].id }
   ])
 
   await userProjectModel.bulkCreate([
@@ -967,5 +967,5 @@ export async function seedDatabase(
     { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '4.png'), name: 'attachment 4', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_4.png') },
     { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '5.png'), name: 'attachment 5', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_5.png') }
   ])
-  
+
 }
