@@ -837,7 +837,7 @@ export async function seedDatabase(
       house_number: '2',
       tshirtId: tshirts[3].id,
       project_code: randomUUID(),
-      waiting_list: false,
+      waiting_list: true,
     },
     {
       eventId: event.id,
@@ -904,6 +904,8 @@ export async function seedDatabase(
     { eventId: event.id, isOwner: true, projectId: projects[1].id, userId: users[2].id },
     { eventId: event.id, isOwner: true, projectId: projects[2].id, userId: users[3].id },
     { eventId: event.id, isOwner: true, projectId: projects[3].id, userId: users[4].id, deletedAt: new Date() },
+    { eventId: event.id, isOwner: false, projectId: projects[3].id, voucherGuid: '2' },
+    { eventId: event.id, isOwner: false, projectId: projects[3].id, voucherGuid: '3' },
   ])
 
   await questionUserModel.bulkCreate([
