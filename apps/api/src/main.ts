@@ -6,11 +6,13 @@ import { doubleCsrf } from 'csrf-csrf';
 import { NextFunction, Request, Response } from 'express';
 import { env } from 'process';
 import { AppModule } from './app.module';
+import { configureSecurity } from './bootstrap-security';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  configureSecurity(app);
 
   app.use(cookieParser([env.JWT_KEY!, env.ADMINJS_COOKIE_SECRET!]));
 
@@ -20,8 +22,11 @@ async function bootstrap() {
 
       res.cookie('anonId', anonId, {
         httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        secure:
+          process.env.NODE_ENV === 'production'
+          || req.secure
+          || req.headers['x-forwarded-proto'] === 'https',
         path: '/',
       });
 

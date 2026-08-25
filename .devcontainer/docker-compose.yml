@@ -28,6 +28,8 @@ services:
 
 
       CSRF_SECRET: "cEc.&1Pc5^zzH2xp8lmOBc(c)L6KsdM"
+      CORS_ORIGINS: "https://registration.coolestprojects.localhost:8443,http://localhost:3004"
+      NUXT_PUBLIC_API_BASE: "https://api.coolestprojects.localhost:8443"
 
       # file configuration
       UPLOAD_ROOT: /tmp/uploads

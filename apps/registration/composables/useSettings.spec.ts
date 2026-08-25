@@ -13,7 +13,7 @@ describe('useSettings fetchSettings', () => {
     const { fetchSettings } = await callComposable(() => useSettings())
     const result = await fetchSettings()
     expect(mockFetch).toHaveBeenCalledWith('/settings', expect.objectContaining({
-      baseURL: '/_api',
+      baseURL: 'https://api.coolestprojects.localhost:8443',
       credentials: 'include',
       headers: expect.objectContaining({ 'Accept-Language': expect.any(String) }),
     }))

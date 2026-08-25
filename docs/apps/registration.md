@@ -8,7 +8,7 @@ Nuxt 3 SPA for participant registration, magic-link login, project management, p
 
 - Nuxt 3 (SPA, `ssr: false`), Vue 3, TypeScript, Pinia, Tailwind CSS, `@nuxtjs/i18n`
 - Vitest for unit/component tests
-- `npm run dev` → Nuxt dev server; API proxied via `/_api`
+- `npm run dev` → Nuxt dev server; API at `https://api.coolestprojects.localhost:8443` (`NUXT_PUBLIC_API_BASE`)
 
 ## Entrypoints
 
@@ -23,7 +23,7 @@ Local URL (via proxy): `https://registration.coolestprojects.localhost:8443`
 
 ## Talks to
 
-- `apps/api` — `RegistrationController`, `LoginController`, `ProjectinfoController`, `UserinfoController`, `ParticipantController`, `AppController` (`/settings`, catalogs)
+- `apps/api` at `https://api.coolestprojects.localhost:8443` — `RegistrationController`, `LoginController`, `ProjectinfoController`, `UserinfoController`, `ParticipantController`, `AppController` (`/settings`, catalogs); cross-origin with `credentials: 'include'` (API `CORS_ORIGINS`)
 - Auth: magic-link JWT → signed httpOnly `jwt` cookie (`jwt-cookiecombo`); CSRF via `GET /csrf-token` + `x-csrf-token` on mutating requests
 - Attachments: multipart `POST /projectinfo/attachments`, list `GET /projectinfo/attachments`, delete `DELETE /projectinfo/attachments/:id`
 - Participant invites: `POST /projectinfo/participant` returns `{ project_code }`; unused vouchers listed on `GET /projectinfo` as `pending` participants with `token`
