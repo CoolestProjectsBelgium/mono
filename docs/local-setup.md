@@ -66,7 +66,7 @@ Mail: the Dev Container sets `SMTP_HOST=mailhog`, `SMTP_PORT=1025`, and `SMTP_FR
 
 Voting app API base URL: `NUXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:3001` in `nuxt.config.ts`).
 
-Registration app API base URL: `NUXT_PUBLIC_API_BASE` (defaults to `https://api.coolestprojects.localhost:8443`). The API must list the registration origin in `CORS_ORIGINS` (set in compose for local dev).
+Registration app API base URL: `API_BASE_URL` (defaults to `https://api.coolestprojects.localhost:8443` in `nuxt.config.ts`). The API must list the registration origin in `CORS_ORIGINS` (set in compose for local dev).
 
 ## Certificates
 

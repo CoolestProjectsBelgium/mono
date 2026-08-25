@@ -77,11 +77,11 @@ export class ProjectinfoService {
     }
 
     private getThumbnailUrl(attachmentId: number): string {
-        const base = process.env.ATTACHMENT_BASE_URL?.replace(/\/$/, '');
-        if (!base) {
+        const apiBase = process.env.API_BASE_URL?.replace(/\/$/, '');
+        if (!apiBase) {
             return `/projectinfo/attachments/${attachmentId}`;
         }
-        return `${base}/${attachmentId}`;
+        return `${apiBase}/projectinfo/attachments/${attachmentId}`;
     }
 
     private formatParticipantName(firstname?: string | null, lastname?: string | null): string {
