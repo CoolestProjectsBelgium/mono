@@ -1,0 +1,152 @@
+{
+  "appId": 21746,
+  "appName": "coolestprojects",
+  "apps": {
+    "api": {
+      "kind": "node",
+      "workspace": "apps/api",
+      "databaseWorkspace": "packages/database",
+      "entry": "main.js",
+      "module": "commonjs",
+      "requiredEnv": [
+        "DB_HOST",
+        "DB_PASSWORD",
+        "JWT_KEY",
+        "VOTING_KEY",
+        "CSRF_SECRET",
+        "ADMINJS_COOKIE_SECRET"
+      ],
+      "dev": {
+        "componentId": 74461,
+        "componentName": "api-dev",
+        "sshUser": "nj10446",
+        "remotePath": "app",
+        "port": 3001,
+        "publicUrl": "https://api-dev.coolestprojects-test.be",
+        "smokePath": "/api",
+        "dbUser": "db35160"
+      },
+      "prod": {
+        "componentId": 74462,
+        "componentName": "api-prod",
+        "sshUser": "nj10447",
+        "remotePath": "app",
+        "port": 3001,
+        "publicUrl": "https://api.coolestprojects-test.be",
+        "smokePath": "/api",
+        "dbUser": "db35161"
+      }
+    },
+    "admin": {
+      "kind": "node",
+      "workspace": "apps/admin",
+      "databaseWorkspace": "packages/database",
+      "entry": "index.js",
+      "module": "esm",
+      "requiredEnv": [
+        "DB_HOST",
+        "DB_PASSWORD",
+        "ADMINJS_COOKIE_SECRET"
+      ],
+      "dev": {
+        "componentId": 74468,
+        "componentName": "admin-dev",
+        "sshUser": "nj10448",
+        "remotePath": "app",
+        "port": 3000,
+        "publicUrl": "https://admin-dev.coolestprojects-test.be",
+        "smokePath": "/admin",
+        "dbUser": "db35160"
+      },
+      "prod": {
+        "componentId": 74469,
+        "componentName": "admin-prod",
+        "sshUser": "nj10449",
+        "remotePath": "app",
+        "port": 3000,
+        "publicUrl": "https://admin.coolestprojects-test.be",
+        "smokePath": "/admin",
+        "dbUser": "db35161"
+      }
+    },
+    "registration": {
+      "kind": "static",
+      "workspace": "apps/registration",
+      "generate": "nuxt",
+      "generateEnv": {
+        "dev": {
+          "API_BASE_URL": "https://api-dev.coolestprojects-test.be"
+        },
+        "prod": {
+          "API_BASE_URL": "https://api.coolestprojects-test.be"
+        }
+      },
+      "dev": {
+        "componentId": 74473,
+        "componentName": "registration-dev",
+        "sshUser": "vd35113",
+        "remotePath": "public_html/registration",
+        "publicUrl": "https://registration-dev.coolestprojects-test.be",
+        "smokePath": "/"
+      },
+      "prod": {
+        "componentId": 74474,
+        "componentName": "registration-prod",
+        "sshUser": "vd35114",
+        "remotePath": "public_html/registration",
+        "publicUrl": "https://registration.coolestprojects-test.be",
+        "smokePath": "/"
+      }
+    },
+    "voting": {
+      "kind": "static",
+      "workspace": "apps/voting",
+      "generate": "nuxt",
+      "generateEnv": {
+        "dev": {
+          "NUXT_PUBLIC_API_BASE_URL": "https://api-dev.coolestprojects-test.be"
+        },
+        "prod": {
+          "NUXT_PUBLIC_API_BASE_URL": "https://api.coolestprojects-test.be"
+        }
+      },
+      "dev": {
+        "componentId": 74471,
+        "componentName": "voting-dev",
+        "sshUser": "vd35113",
+        "remotePath": "public_html/voting",
+        "publicUrl": "https://voting-dev.coolestprojects-test.be",
+        "smokePath": "/"
+      },
+      "prod": {
+        "componentId": 74472,
+        "componentName": "voting-prod",
+        "sshUser": "vd35114",
+        "remotePath": "public_html/voting",
+        "publicUrl": "https://voting.coolestprojects-test.be",
+        "smokePath": "/"
+      }
+    },
+    "eventguide": {
+      "kind": "static",
+      "workspace": "apps/eventguide",
+      "generate": "copy",
+      "dev": {
+        "componentId": 74475,
+        "componentName": "eventguide-dev",
+        "sshUser": "vd35113",
+        "remotePath": "public_html/eventguide",
+        "publicUrl": "https://eventguide-dev.coolestprojects-test.be",
+        "smokePath": "/"
+      },
+      "prod": {
+        "componentId": 74476,
+        "componentName": "eventguide-prod",
+        "sshUser": "vd35114",
+        "remotePath": "public_html/eventguide",
+        "publicUrl": "https://eventguide.coolestprojects-test.be",
+        "smokePath": "/"
+      }
+    }
+  }
+}
