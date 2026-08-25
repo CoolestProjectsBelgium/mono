@@ -1,4 +1,4 @@
-import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration } from '@coolestprojects/database';
+import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Command } from 'nestjs-command';
@@ -41,6 +41,10 @@ export class EventCommand {
     private readonly questionRegistrationModel: typeof QuestionRegistration,
     @InjectModel(QuestionUser)
     private readonly questionUserModel: typeof QuestionUser,
+    @InjectModel(VoteCategory)
+    private readonly voteCategoryModel: typeof VoteCategory,
+    @InjectModel(Vote)
+    private readonly voteModel: typeof Vote,
   ) { }
 
   @Command({
@@ -65,7 +69,9 @@ export class EventCommand {
       this.userProjectModel,
       this.registrationModel,
       this.questionRegistrationModel,
-      this.questionUserModel
+      this.questionUserModel,
+      this.voteCategoryModel,
+      this.voteModel
     );
   }
 }

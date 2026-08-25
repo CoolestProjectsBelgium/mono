@@ -1,4 +1,4 @@
-import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration } from '@coolestprojects/database';
+import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
@@ -21,6 +21,8 @@ export async function seedDatabase(
   registrationModel: typeof Registration,
   questionRegistrationModel: typeof QuestionRegistration,
   questionUserModel: typeof QuestionUser,
+  voteCategoryModel: typeof VoteCategory,
+  voteModel: typeof Vote,
 ) {
   const eventBeginDate = new Date();
   eventBeginDate.setDate(new Date().getDate() - 100);
@@ -784,7 +786,7 @@ export async function seedDatabase(
     >[0],
   );
 
-  await accountModel.bulkCreate([
+  const accounts = await accountModel.bulkCreate([
     {
       email: 'admin',
       encryptedPassword: accountModel.hashPassword('admin'),
@@ -798,6 +800,16 @@ export async function seedDatabase(
     {
       email: 'jury',
       encryptedPassword: accountModel.hashPassword('jury'),
+      account_type: 'jury',
+    },
+    {
+      email: 'jury2',
+      encryptedPassword: accountModel.hashPassword('jury2'),
+      account_type: 'jury',
+    },
+    {
+      email: 'jury3',
+      encryptedPassword: accountModel.hashPassword('jury3'),
       account_type: 'jury',
     },
   ]);
@@ -890,6 +902,29 @@ export async function seedDatabase(
     { name: 'Test Project 5', eventId: event.id, language: 'fr', description: 'Test Description 5', maxVoucher: 3, deletedAt: new Date() }
   ]);
 
+  const voteCategories = await voteCategoryModel.bulkCreate([
+    { eventId: event.id, name: 'Creativity', min: 1, max: 10, public: true, optional: false },
+    { eventId: event.id, name: 'Technical skill', min: 1, max: 10, public: true, optional: false },
+    { eventId: event.id, name: 'Presentation', min: 1, max: 5, public: true, optional: true },
+  ]);
+
+  const votingProjects = projects.slice(0, 4);
+  const juryAccounts = accounts.filter((account) => account.account_type === 'jury');
+  const voteStart = Date.now() - 3 * 24 * 60 * 60 * 1000;
+  const votes = juryAccounts.flatMap((account, juryIndex) =>
+    votingProjects.flatMap((project, projectIndex) =>
+      voteCategories.map((category, categoryIndex) => ({
+        eventId: event.id,
+        projectId: project.id,
+        accountId: account.id,
+        categoryId: category.id,
+        amount: category.min + ((juryIndex + projectIndex + categoryIndex) % (category.max - category.min + 1)),
+        createdAt: new Date(voteStart + (juryIndex * votingProjects.length + projectIndex) * 10 * 60 * 1000),
+      })),
+    ),
+  );
+  await voteModel.bulkCreate(votes);
+
   const users = await userModel.bulkCreate([
     { eventId: event.id, email: 'user1@user.be', firstname: 'User 1', lastname: 'User 1', sex: 'M', language: 'en', birthmonth: new Date(new Date().getFullYear() - 7, 0, 1), postalcode: '1000', municipality_name: 'Brussel', phone: '+32 470 00 00 01', guardian_firstname: 'Guardian 1', guardian_lastname: 'User 1', guardian_email: 'guardian1@user.be', guardian_phone: '+32 470 10 00 01' },
     { eventId: event.id, email: 'user2@user.be', firstname: 'User 2', lastname: 'User 2', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 12, 0, 1), postalcode: '2000', municipality_name: 'Antwerpen', phone: '+32 470 00 00 02', guardian_firstname: 'Guardian 2', guardian_lastname: 'User 2', guardian_email: 'guardian2@user.be', guardian_phone: '+32 470 10 00 02' },
@@ -933,5 +968,5 @@ export async function seedDatabase(
     { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '4.png'), name: 'attachment 4', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_4.png') },
     { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '5.png'), name: 'attachment 5', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_5.png') }
   ])
-
+  
 }
