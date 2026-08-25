@@ -88,17 +88,17 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
         }],
       }],
     }) as (UserModel & { total: number | string })[]
-/*
+
     console.log('Tshirt counts:', tshirtCounts.map(item => ({
       tshirtId: item.tshirtId,
-      total: item.get('total'),
+      total: item.total ||0,
       name: item.tshirt?.name,
       description: item.tshirt?.translations?.[0]?.description
     })))
-*/
+
     tshirtsData = tshirtCounts.map((item) => ({
       id: item.tshirt.name,
-      total: Number(item.get('total')) || 0,
+      total: Number(item.total) || 0,
       short: item.tshirt.name,
       description: item.tshirt.translations?.[0]?.description || '',
     }))
@@ -266,7 +266,7 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     Registration.count({ where: { eventId } }),
     Registration.count({ where: { eventId, waiting_list: true } }),
     UserProject.count({ where: { eventId, userId: null } }),
-    Project.count({ where: { eventId } }),
+    Project.count({ where: { eventId, deletedAt: { [Op.eq]: null } } }),
     UserProject.count({ where: { eventId, deletedAt: { [Op.eq]: null }, voucherGuid: { [Op.ne]: null }, userId: { [Op.ne]: null } } }),
     User.count({ where: { eventId } }),
     Attachment.count({ where: { eventId, confirmed: true } }),
