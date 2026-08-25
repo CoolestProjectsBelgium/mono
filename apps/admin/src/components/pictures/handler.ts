@@ -7,14 +7,17 @@ import {
 const Project = sequelize.models.Project as typeof ProjectModel
 const Attachment = sequelize.models.Attachment as typeof AttachmentModel
 
+function getAttachmentBaseUrl(): string {
+    const apiBase = process.env.API_BASE_URL!.replace(/\/$/, '')
+    return `${apiBase}/projectinfo/attachments`
+}
+
 function getThumbnailUrl(attachmentId: number): string {
-    const base = process.env.ATTACHMENT_BASE_URL!.replace(/\/$/, '')
-    return `${base}/${attachmentId}`
+    return `${getAttachmentBaseUrl()}/${attachmentId}`
 }
 
 function getOriginalUrl(attachmentId: number): string {
-    const base = process.env.ATTACHMENT_BASE_URL!.replace(/\/$/, '')
-    return `${base}/original/${attachmentId}`
+    return `${getAttachmentBaseUrl()}/original/${attachmentId}`
 }
 
 export interface PictureAttachment {

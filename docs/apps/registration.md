@@ -8,7 +8,7 @@ Nuxt 3 SPA for participant registration, magic-link login, project management, p
 
 - Nuxt 3 (SPA, `ssr: false`), Vue 3, TypeScript, Pinia, Tailwind CSS, `@nuxtjs/i18n`
 - Vitest for unit/component tests
-- `npm run dev` → Nuxt dev server; API at `https://api.coolestprojects.localhost:8443` (`NUXT_PUBLIC_API_BASE`)
+- `npm run dev` → Nuxt dev server; API at `API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`)
 
 ## Entrypoints
 
