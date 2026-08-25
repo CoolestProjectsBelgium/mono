@@ -1,6 +1,7 @@
-import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionTranslation, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject } from '@coolestprojects/database';
+import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionTranslation, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration } from '@coolestprojects/database';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import * as path from 'path';
+import { randomUUID } from 'crypto';
 
 export async function seedDatabase(
   eventModel: typeof Event,
@@ -16,7 +17,8 @@ export async function seedDatabase(
   projectModel: typeof Project,
   userModel: typeof User,
   attachmentModel: typeof Attachment,
-  userProjectModel: typeof UserProject
+  userProjectModel: typeof UserProject,
+  registrationModel: typeof Registration
 ) {
   const eventBeginDate = new Date();
   eventBeginDate.setDate(new Date().getDate() - 100);
@@ -795,6 +797,66 @@ export async function seedDatabase(
       email: 'jury',
       encryptedPassword: accountModel.hashPassword('jury'),
       account_type: 'jury',
+    },
+  ]);
+
+  const registration = await registrationModel.bulkCreate([
+    {
+      eventId: event.id,
+      language: 'en',
+      email: 'registration.project@example.com',
+      firstname: 'Project',
+      lastname: 'Owner',
+      sex: 'm',
+      birthmonth: new Date(new Date().getFullYear() - 12, 0, 1),
+      postalcode: 1000,
+      municipality_name: 'Brussels',
+      street: 'Main Street',
+      house_number: '1',
+      tshirtId: tshirts[2].id,
+      project_name: 'Seed Project',
+      project_descr: 'A project created from the seed data.',
+      project_lang: 'en',
+      project_type: 'Technology',
+      project_code: null,
+      waiting_list: false,
+    },
+    {
+      eventId: event.id,
+      language: 'nl',
+      email: 'registration.participant@example.com',
+      firstname: 'Project',
+      lastname: 'Participant',
+      sex: 'f',
+      birthmonth: new Date(new Date().getFullYear() - 11, 0, 1),
+      postalcode: 2000,
+      municipality_name: 'Antwerp',
+      street: 'Park Lane',
+      house_number: '2',
+      tshirtId: tshirts[3].id,
+      project_code: randomUUID(),
+      waiting_list: false,
+    },
+    {
+      eventId: event.id,
+      language: 'fr',
+      email: 'registration.old@example.com',
+      firstname: 'Older',
+      lastname: 'Registration',
+      sex: 'x',
+      birthmonth: new Date(new Date().getFullYear() - 15, 0, 1),
+      postalcode: 4000,
+      municipality_name: 'Liege',
+      street: 'River Road',
+      house_number: '3',
+      tshirtId: tshirts[4].id,
+      project_name: 'Older Seed Project',
+      project_descr: 'An older registration for testing overdue handling.',
+      project_lang: 'fr',
+      project_type: 'Art',
+      project_code: null,
+      waiting_list: false,
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     },
   ]);
 
