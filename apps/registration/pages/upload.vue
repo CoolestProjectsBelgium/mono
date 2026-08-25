@@ -2,7 +2,7 @@
   <div>
     <h1 class="text-3xl font-bold">{{ $t('upload.photoTitle') }}</h1>
     <UploadAttachments
-      v-if="settings"
+      v-if="settings && isProjectOwner"
       ref="uploadRef"
       :max-upload-size="settings.maxUploadSize"
       :attachment-count="attachments.length"
@@ -21,6 +21,7 @@
       :attachments="attachments"
       :max-attachments="settings.maxAttachments"
       :disabled="uploading"
+      :can-delete="isProjectOwner"
       class="mt-6"
       @deleted="refreshAttachments"
     />
@@ -29,7 +30,7 @@
 
 <script setup lang="ts">
 import type { AttachmentDto, ProjectDto, SettingDto } from '~/types/api'
-import { isProjectOwner as checkIsProjectOwner } from '~/utils/project-routing'
+import { isProjectOwner as checkIsProjectOwner, hasProjectMembership } from '~/utils/project-routing'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -49,12 +50,14 @@ async function refreshAttachments() {
   attachments.value = await fetchAttachments()
 }
 
+const isProjectOwner = computed(() => checkIsProjectOwner(project.value))
+
 onMounted(async () => {
   const [fetchedProject, fetchedSettings] = await Promise.all([
     fetchProject(),
     fetchSettings(),
   ])
-  if (!checkIsProjectOwner(fetchedProject)) {
+  if (!hasProjectMembership(fetchedProject)) {
     await navigateTo(localePath('/project'))
     return
   }

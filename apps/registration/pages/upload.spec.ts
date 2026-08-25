@@ -72,24 +72,34 @@ describe('upload page', () => {
     fetchSettingsMock.mockResolvedValue({ maxUploadSize: 1024, maxAttachments: 10 })
   })
 
-  it('redirects non-owners to project page', async () => {
-    fetchProjectMock.mockResolvedValue({
-      is_owner: false,
-      own_project: ownerProject.own_project,
-    })
+  it('redirects users without a project to project page', async () => {
+    fetchProjectMock.mockResolvedValue(null)
 
     await mountSuspended(UploadPage)
 
     expect(navigateToMock).toHaveBeenCalled()
   })
 
-  it('shows attachment list for project owners', async () => {
+  it('shows attachment list for project owners with upload form', async () => {
     fetchProjectMock.mockResolvedValue(ownerProject)
 
     const wrapper = await mountSuspended(UploadPage)
     await wrapper.vm.$nextTick()
 
     expect(wrapper.get('[data-testid="upload-form"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="attachment-list"]').text()).toBe('1')
+  })
+
+  it('shows attachment list without upload form for coworkers', async () => {
+    fetchProjectMock.mockResolvedValue({
+      is_owner: false,
+      own_project: ownerProject.own_project,
+    })
+
+    const wrapper = await mountSuspended(UploadPage)
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-testid="upload-form"]').exists()).toBe(false)
     expect(wrapper.get('[data-testid="attachment-list"]').text()).toBe('1')
   })
 })

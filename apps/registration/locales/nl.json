@@ -78,7 +78,7 @@
   "message_successChange": "De wijziging is gelukt.",
   "message_successReg": "OPGELET: De eerste stap is klaar, goed gedaan! Klik nu op de link in de email die we je gestuurd hebben voor het vervolg.",
   "error_An error occurred": "Er is een fout opgetreden",
-  "Upload Movie": "Foto opladen",
+  "Upload Movie": "Foto's",
   "Enter your movie location": "Selecteer je bestand",
   "Registration opens on": "Inschrijvingen zijn open tussen {registrationOpenDate} en {registrationClosedDate}",
   "Waiting list is active": "Wachtlijst is actief",
@@ -157,7 +157,7 @@
   },
   "noProject": { "message": "Je hebt nog geen project. Start er een of sluit je aan bij een bestaand project." },
   "upload": {
-    "photoTitle": "Foto opladen",
+    "photoTitle": "Foto's",
     "selectPhoto": "Selecteer je foto",
     "photoReceived": "We hebben je foto goed ontvangen",
     "leaveWarning": "Upload bezig — verlaat de pagina niet.",
