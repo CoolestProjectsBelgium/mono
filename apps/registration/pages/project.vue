@@ -22,7 +22,7 @@
         />
         <div class="mt-6 flex gap-4">
           <CtaButton variant="primary" type="submit">{{ $t('Aanpassen') }}</CtaButton>
-          <NuxtLink :to="localePath('/upload')" class="btn-primary">{{ $t('upload.photoTitle') }}</NuxtLink>
+          <NuxtLink :to="localePath('/upload')" class="btn-primary" data-testid="photos-link">{{ $t('upload.photoTitle') }}</NuxtLink>
           <CtaButton v-if="project.own_project.delete_possible" variant="cta" type="button" data-testid="delete-project-button" @click="showDeleteDialog = true">
             {{ $t('deleteProject.button') }}
           </CtaButton>
@@ -114,7 +114,10 @@
           </tbody>
         </table>
       </FormSection>
-      <div class="mt-6">
+      <div class="mt-6 flex flex-wrap gap-4">
+        <NuxtLink :to="localePath('/upload')" class="btn-primary" data-testid="photos-link">
+          {{ $t('upload.photoTitle') }}
+        </NuxtLink>
         <CtaButton
           variant="cta"
           data-testid="leave-project-button"

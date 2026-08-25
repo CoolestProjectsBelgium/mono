@@ -78,7 +78,7 @@
   "message_successChange": "Modification réussie.",
   "message_successReg": "Première étape terminée! Vérifie ton e-mail.",
   "error_An error occurred": "Une erreur s'est produite",
-  "Upload Movie": "Envoyer une photo",
+  "Upload Movie": "Photos",
   "Enter your movie location": "Sélectionne ton fichier",
   "Registration opens on": "Les inscriptions sont ouvertes entre le {registrationOpenDate} et le {registrationClosedDate}",
   "Waiting list is active": "Liste d'attente active",
@@ -157,7 +157,7 @@
   },
   "noProject": { "message": "Tu n'as pas encore de projet." },
   "upload": {
-    "photoTitle": "Envoyer une photo",
+    "photoTitle": "Photos",
     "selectPhoto": "Sélectionne ta photo",
     "photoReceived": "Nous avons bien reçu ta photo",
     "leaveWarning": "Envoi en cours — ne quitte pas cette page.",

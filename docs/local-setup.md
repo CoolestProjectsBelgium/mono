@@ -72,6 +72,16 @@ Registration app API base URL: `API_BASE_URL` (defaults to `https://api.coolestp
 
 TLS certs live under [`.devcontainer/certs/`](../.devcontainer/certs/). If `*.coolestprojects.localhost` does not resolve, add hosts entries or trust the local CA per [`.devcontainer/certs/README.md`](../.devcontainer/certs/README.md).
 
+Registration calls the API on **`api.coolestprojects.localhost`** (separate origin). Trusting only the registration site in the browser is not enough — install the dev CA once on your **host OS** so all `*.coolestprojects.localhost` HTTPS calls succeed (avoids `ERR_CERT_AUTHORITY_INVALID` on `/settings`, attachments, etc.).
+
+**Windows (PowerShell, user store):**
+
+```powershell
+certutil -addstore -user Root .devcontainer\certs\pki\ca.crt
+```
+
+Restart the browser after installing the CA.
+
 ## Manual commands
 
 ```bash

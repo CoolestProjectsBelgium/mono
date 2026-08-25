@@ -78,7 +78,7 @@
   "message_successChange": "Changes saved successfully.",
   "message_successReg": "First step done! Check your email for the confirmation link.",
   "error_An error occurred": "An error occurred",
-  "Upload Movie": "Upload photo",
+  "Upload Movie": "Photos",
   "Enter your movie location": "Select your file",
   "Registration opens on": "Registrations are open between {registrationOpenDate} and {registrationClosedDate}",
   "Waiting list is active": "Waiting list is active",
@@ -157,7 +157,7 @@
   },
   "noProject": { "message": "You don't have a project yet. Create one or join an existing project." },
   "upload": {
-    "photoTitle": "Upload photo",
+    "photoTitle": "Photos",
     "selectPhoto": "Select your photo",
     "photoReceived": "We have received your photo",
     "leaveWarning": "Upload in progress — do not leave this page.",

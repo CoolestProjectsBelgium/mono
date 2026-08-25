@@ -49,6 +49,7 @@
                 {{ $t('attachments.download') }}
               </button>
               <button
+                v-if="canDelete"
                 type="button"
                 class="text-red-600 hover:underline disabled:opacity-50"
                 data-testid="attachment-delete"
@@ -87,11 +88,14 @@ import type { AttachmentDto } from '~/types/api'
 import { resolveMaxAttachments } from '~/utils/attachment'
 import { inferAttachmentMediaKind } from '~/utils/attachment-media'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   attachments: AttachmentDto[]
   maxAttachments: number
   disabled?: boolean
-}>()
+  canDelete?: boolean
+}>(), {
+  canDelete: true,
+})
 
 const effectiveMax = computed(() => resolveMaxAttachments(props.maxAttachments))
 

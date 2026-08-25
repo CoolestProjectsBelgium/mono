@@ -74,6 +74,19 @@ describe('AttachmentList', () => {
     expect(wrapper.get('[data-testid="attachment-preview"]').exists()).toBe(true)
   })
 
+  it('hides delete when canDelete is false', async () => {
+    const wrapper = await mountSuspended(AttachmentList, {
+      props: { attachments: [sampleAttachment], maxAttachments: 10, canDelete: false },
+      global: {
+        stubs: {
+          FormSection: { template: '<div><slot /></div>', props: ['title'] },
+        },
+      },
+    })
+
+    expect(wrapper.find('[data-testid="attachment-delete"]').exists()).toBe(false)
+  })
+
   it('deletes an attachment after confirmation', async () => {
     deleteAttachment.mockResolvedValue(true)
     const wrapper = await mountSuspended(AttachmentList, {
