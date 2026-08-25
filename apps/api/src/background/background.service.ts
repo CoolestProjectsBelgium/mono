@@ -31,7 +31,7 @@ export class BackgroundService {
   private readonly logger = new Logger(BackgroundService.name);
 
   //@Cron('0 12 * * *') // Runs every day at noon
-  @Cron('*/1 * * * *') // Runs every 5 minutes
+  @Cron(process.env.CRON_JOB || '*/1 * * * *') 
   async handleCron() {
 
     // TODO setup logic that we group the mails and not send multiple ones a day
