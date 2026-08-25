@@ -1,4 +1,4 @@
-import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionTranslation, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration } from '@coolestprojects/database';
+import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration } from '@coolestprojects/database';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
@@ -18,7 +18,9 @@ export async function seedDatabase(
   userModel: typeof User,
   attachmentModel: typeof Attachment,
   userProjectModel: typeof UserProject,
-  registrationModel: typeof Registration
+  registrationModel: typeof Registration,
+  questionRegistrationModel: typeof QuestionRegistration,
+  questionUserModel: typeof QuestionUser,
 ) {
   const eventBeginDate = new Date();
   eventBeginDate.setDate(new Date().getDate() - 100);
@@ -860,6 +862,26 @@ export async function seedDatabase(
     },
   ]);
 
+  await questionRegistrationModel.bulkCreate([
+    ...registration.map((item) => ({
+      eventId: event.id,
+      registrationId: item.id,
+      questionId: questions[2].id,
+    })),
+    {
+      eventId: event.id,
+      registrationId: registration[0].id,
+      questionId: questions[0].id,
+    },
+    {
+      eventId: event.id,
+      registrationId: registration[1].id,
+      questionId: questions[1].id,
+    },
+  ]);
+
+  
+
   const projects = await projectModel.bulkCreate([
     { name: 'Test Project 1', eventId: event.id, language: 'en', description: 'Test Description 1', maxVoucher: 3 },
     { name: 'Test Project 2', eventId: event.id, language: 'en', description: 'Test Description 2', maxVoucher: 3 },
@@ -882,6 +904,24 @@ export async function seedDatabase(
     { eventId: event.id, isOwner: true, projectId: projects[1].id, userId: users[2].id },
     { eventId: event.id, isOwner: true, projectId: projects[2].id, userId: users[3].id },
     { eventId: event.id, isOwner: true, projectId: projects[3].id, userId: users[4].id, deletedAt: new Date() },
+  ])
+
+  await questionUserModel.bulkCreate([
+    ...users.map((user) => ({
+      eventId: event.id,
+      userId: user.id,
+      questionId: questions[2].id,
+    })),
+    {
+      eventId: event.id,
+      userId: users[0].id,
+      questionId: questions[0].id,
+    },
+    {
+      eventId: event.id,
+      userId: users[1].id,
+      questionId: questions[1].id,
+    },
   ])
 
   await attachmentModel.bulkCreate([
