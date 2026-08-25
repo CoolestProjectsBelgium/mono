@@ -107,6 +107,19 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
   }
   return tshirtsData;
 }
+/*
+SELECT 
+    q.id AS question_id,
+    q.name, 
+    COUNT(uq.questionId) AS total_answers
+FROM 
+     `Questions` q
+LEFT JOIN 
+   `QuestionUsers` uq ON q.id = uq.questionId
+GROUP BY 
+    q.id;
+
+*/
 
 async function getQuestions(eventId: number, language: string = 'nl'): Promise<DashboardTableItem[]> {
   // Questions
@@ -121,12 +134,13 @@ async function getQuestions(eventId: number, language: string = 'nl'): Promise<D
         eventId
       },
       group: [
-        'QuestionUser.questionId',
-        'question.id',
+        'QuestionUser.questionId', 
+        'questionId',
         'question.name',
         'question.translations.id',
-        'question.translations.description',
-        'userId'
+        'question.translations.description'
+      //  'userId'
+
       ],
       include: [{
         model: Question,
@@ -141,12 +155,19 @@ async function getQuestions(eventId: number, language: string = 'nl'): Promise<D
       }]
     }) as (QuestionUserModel & { total: number | string; question: QuestionModel })[]
 
+   console.log('Question counts:', questionCounts.map(item => ({
+      questionId: item.questionId,
+      total: item.get('total'),
+      name: item.question?.name,
+      description: item.question?.translations?.[0]?.description
+    }))) 
+    
+    
     questionsData = questionCounts.map((item) => {
       const translation = item.question?.translations?.[0]
-
       return {
         id: item.questionId,
-        total: Number(item.total) || 0,
+        total: Number(item.get('total')) || 0,
         short: item.question?.name || '',
         description: translation?.description || '',
       }
@@ -157,6 +178,72 @@ async function getQuestions(eventId: number, language: string = 'nl'): Promise<D
 
   return questionsData;
 }
+/*
+const privacyComplianceAction = {
+  resource: User, 
+  options: {
+    actions: {
+      check_missing_responses: { // Naam aangepast naar "Ontbrekende Antwoorden"
+        actionType: 'list',
+        handler: async (request, context) => {
+          const { sequelize } = context;
+
+          // De definitieve query die alle combinaties vindt waarbij de koppeling ontbreekt.
+          // Dit geeft exact weer welke vragen een gebruiker NIET heeft bevestigd als 'Ja'.
+          const rawQuery = `
+            SELECT 
+                u.email AS user_email,
+                q.id AS question_id,
+                'has not' AS exeptions,
+                q.name AS q_name,
+                qt.description AS missing_desc
+            FROM 
+                \`Users\` u
+            CROSS JOIN 
+                \`Questions\` q
+            LEFT JOIN 
+                \`QuestionUsers\` uq ON (u.id = uq.userId AND q.id = uq.questionId)
+            INNER JOIN 
+                \`QuestionTranslations\` qt ON (q.id = qt.questionId AND qt.language = 'nl')
+            WHERE 
+                uq.userId IS NULL;
+          `;
+
+          try {
+            const results = await sequelize.query(rawQuery, {
+              type: context.sequelize.QueryTypes.SELECT
+            });
+
+            return {
+              records: results.map((row) => ({
+                // Unieke ID voor AdminJS lijstweergave (Email + QuestionID)
+                id: `${row.user_email}-${row.question_id}`, 
+                data: {
+                  email: row.user_email,
+                  status: row.exeptions,       // 'has not'
+                  questionName: row.q_name,    // De naam van de vraag (bijv. "Foto")
+                  description: row.missing_desc // De beschrijving/uitleg van die vraag
+                },
+              })),
+            };
+          } catch (error) {
+            console.error("CRITICAL ERROR - Missing Responses Query:", error);
+            throw new Error("Kon de lijst met ontbrekende vragen niet ophalen.");
+          }
+        },
+        options: {
+          // De kolommen die je ziet in het AdminJS dashboard
+          listProperties: ['email', 'status', 'questionName', 'description'],
+        },
+      },
+    },
+  },
+};
+
+// Voeg dit toe aan je modules array
+//
+*/
+
 
 export const Handler = async (_request: any, _response: any, context: any): Promise<DashboardResponse> => {
 
