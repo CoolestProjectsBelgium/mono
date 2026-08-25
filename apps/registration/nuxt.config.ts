@@ -11,7 +11,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/_api',
+      apiBase:
+        process.env.NUXT_PUBLIC_API_BASE
+        || 'https://api.coolestprojects.localhost:8443',
     },
   },
   i18n: {
@@ -45,13 +47,6 @@ export default defineNuxtConfig({
       watch: {
         usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
         interval: Number(process.env.CHOKIDAR_INTERVAL || 1000),
-      },
-      proxy: {
-        '/_api': {
-          target: process.env.NUXT_DEV_API_PROXY || 'http://127.0.0.1:3001',
-          changeOrigin: true,
-          rewrite: (path: string) => path.replace(/^\/_api/, ''),
-        },
       },
       hmr: {
         protocol: 'wss',

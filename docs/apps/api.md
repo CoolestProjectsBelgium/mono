@@ -24,7 +24,9 @@ Central NestJS HTTP API for Coolest Projects. Serves registration, login, projec
 
 Local URL (via proxy): `https://api.coolestprojects.localhost:8443`
 
-Key env vars (set in `.devcontainer/docker-compose.yml`): `DB_*`, `JWT_KEY`, `API_PORT`, `VOTING_KEY`, `CSRF_SECRET`, `UPLOAD_ROOT`, `FILE_*`.
+Security bootstrap ([`apps/api/src/main.ts`](../../apps/api/src/main.ts), [`bootstrap-security.ts`](../../apps/api/src/bootstrap-security.ts)): [Helmet](https://docs.nestjs.com/security/helmet) for HTTP headers; [CORS](https://docs.nestjs.com/security/cors) via `app.enableCors()` when `CORS_ORIGINS` is set (comma-separated registration/voting origins, `credentials: true`).
+
+Key env vars (set in `.devcontainer/docker-compose.yml`): `DB_*`, `JWT_KEY`, `API_PORT`, `VOTING_KEY`, `CSRF_SECRET`, `CORS_ORIGINS`, `UPLOAD_ROOT`, `FILE_*`.
 
 ## Talks to
 

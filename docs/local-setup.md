@@ -45,7 +45,7 @@ HTTPS (recommended — matches cert setup):
 
 Proxy vhost config: [`.devcontainer/dockerfile_proxy/proxy_templates/proxy.conf`](../.devcontainer/dockerfile_proxy/proxy_templates/proxy.conf).
 
-Nuxt SPA apps (registration, voting) need `AllowEncodedSlashes NoDecode` and `ProxyPass ... nocanon` so Vite virtual-module URLs containing `%2F` are not rejected as 404 (blank page otherwise). Registration also proxies `/_api/` to the API container so attachment thumbnails and other API calls do not fall through to the Nuxt `index.html`. After changing proxy templates, rebuild/restart the `proxy` container.
+Nuxt SPA apps (registration, voting) need `AllowEncodedSlashes NoDecode` and `ProxyPass ... nocanon` so Vite virtual-module URLs containing `%2F` are not rejected as 404 (blank page otherwise). After changing proxy templates, rebuild/restart the `proxy` container.
 
 Direct ports (inside/on workspace container):
 
@@ -65,6 +65,8 @@ DB and app secrets are set in `docker-compose.yml` on the `workspace` service (`
 Mail: the Dev Container sets `SMTP_HOST=mailhog`, `SMTP_PORT=1025`, and `SMTP_FROM`. Captured mail appears in MailHog at http://localhost:18025 (SMTP on host port `11025`). If `SMTP_HOST` is unset, the API logs the message (including activation URL) and skips sending so registration still succeeds.
 
 Voting app API base URL: `NUXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:3001` in `nuxt.config.ts`).
+
+Registration app API base URL: `NUXT_PUBLIC_API_BASE` (defaults to `https://api.coolestprojects.localhost:8443`). The API must list the registration origin in `CORS_ORIGINS` (set in compose for local dev).
 
 ## Certificates
 

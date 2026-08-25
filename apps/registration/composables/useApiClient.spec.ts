@@ -13,7 +13,7 @@ const { navigateToMock, routeQuery } = vi.hoisted(() => ({
 mockNuxtImport('navigateTo', () => navigateToMock)
 mockNuxtImport('useRoute', () => () => ({ query: routeQuery.value }))
 mockNuxtImport('useRuntimeConfig', () => () => ({
-  public: { apiBase: '/_api' },
+  public: { apiBase: 'https://api.coolestprojects.localhost:8443' },
 }))
 
 describe('useApiClient', () => {
@@ -65,7 +65,7 @@ describe('useApiClient', () => {
     await apiFetch('/registration', { method: 'POST', body: { user: {} } })
 
     expect(mockFetch).toHaveBeenNthCalledWith(1, '/csrf-token', expect.objectContaining({
-      baseURL: '/_api',
+      baseURL: 'https://api.coolestprojects.localhost:8443',
       credentials: 'include',
     }))
     expect(mockFetch).toHaveBeenNthCalledWith(2, '/registration', expect.objectContaining({

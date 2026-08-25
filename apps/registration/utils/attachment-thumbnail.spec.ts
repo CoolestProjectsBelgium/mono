@@ -6,6 +6,8 @@ import {
   revokeAttachmentThumbnailObjectUrl,
 } from './attachment-thumbnail'
 
+const API_BASE = 'https://api.coolestprojects.localhost:8443'
+
 describe('attachment-thumbnail', () => {
   const revokeObjectURL = vi.fn()
   const createObjectURL = vi.fn(() => 'blob:thumb-1')
@@ -30,10 +32,10 @@ describe('attachment-thumbnail', () => {
       blob: async () => blob,
     }))
 
-    const url = await fetchAttachmentThumbnailObjectUrl('/_api', '1')
+    const url = await fetchAttachmentThumbnailObjectUrl(API_BASE, '1')
     expect(url).toBe('blob:thumb-1')
     expect(fetch).toHaveBeenCalledWith(
-      '/_api/projectinfo/attachments/1',
+      `${API_BASE}/projectinfo/attachments/1`,
       { credentials: 'include' },
     )
   })
@@ -46,8 +48,8 @@ describe('attachment-thumbnail', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    await fetchAttachmentThumbnailObjectUrl('/_api', '1')
-    await fetchAttachmentThumbnailObjectUrl('/_api', '1')
+    await fetchAttachmentThumbnailObjectUrl(API_BASE, '1')
+    await fetchAttachmentThumbnailObjectUrl(API_BASE, '1')
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
@@ -59,11 +61,11 @@ describe('attachment-thumbnail', () => {
       blob: async () => blob,
     }))
 
-    await fetchAttachmentThumbnailObjectUrl('/_api', '1')
+    await fetchAttachmentThumbnailObjectUrl(API_BASE, '1')
     revokeAttachmentThumbnailObjectUrl('1')
 
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:thumb-1')
-    expect(await fetchAttachmentThumbnailObjectUrl('/_api', '1')).toBe('blob:thumb-1')
+    expect(await fetchAttachmentThumbnailObjectUrl(API_BASE, '1')).toBe('blob:thumb-1')
     expect(fetch).toHaveBeenCalledTimes(2)
   })
 })

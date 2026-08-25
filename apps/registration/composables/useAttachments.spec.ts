@@ -52,7 +52,7 @@ describe('useAttachments', () => {
       id: '12',
       name: 'Photo',
       thumbnailUrl: 'https://example.test/ignored',
-    })).toBe('/_api/projectinfo/attachments/12')
+    })).toBe('https://api.coolestprojects.localhost:8443/projectinfo/attachments/12')
   })
 
   it('fetchThumbnailObjectUrl delegates to the thumbnail helper', async () => {
