@@ -246,3 +246,8 @@ apps/admin/.adminjs/**
 apps/admin/.adminjs/*
 apps/admin/.adminjs/bundle.js
 apps/admin/.adminjs/bundle.js
+
+# Level27 publish tooling
+build_tools/secrets/*.env
+build_tools/targets.local.json
+build_tools/.stage/

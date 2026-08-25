@@ -65,3 +65,5 @@ Verify documentation index:
 ```bash
 npm run check-docs
 ```
+
+Publish to Level27 (manual CLI): see [docs/build-tools.md](docs/build-tools.md).
