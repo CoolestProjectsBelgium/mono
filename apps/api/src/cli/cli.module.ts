@@ -79,7 +79,7 @@ import { AdminSession } from '@coolestprojects/database';
             Award,
             EmailTemplate,
             EmailLog,
-            AdminSession
+            AdminSession,
           ],
         };
       },
@@ -103,7 +103,9 @@ import { AdminSession } from '@coolestprojects/database';
       EventTable,
       EmailLog,
       AdminSession,
-      Attachment
+      Attachment,
+      Vote,
+      VoteCategory
     ]),
   ],
   providers: [

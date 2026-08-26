@@ -1,4 +1,4 @@
-import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration } from '@coolestprojects/database';
+import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
@@ -21,6 +21,8 @@ export async function seedDatabase(
   registrationModel: typeof Registration,
   questionRegistrationModel: typeof QuestionRegistration,
   questionUserModel: typeof QuestionUser,
+  voteCategoryModel: typeof VoteCategory,
+  voteModel: typeof Vote,
 ) {
   const eventBeginDate = new Date();
   eventBeginDate.setDate(new Date().getDate() - 100);
@@ -784,7 +786,7 @@ export async function seedDatabase(
     >[0],
   );
 
-  await accountModel.bulkCreate([
+  const accounts = await accountModel.bulkCreate([
     {
       email: 'admin',
       encryptedPassword: accountModel.hashPassword('admin'),
@@ -798,6 +800,16 @@ export async function seedDatabase(
     {
       email: 'jury',
       encryptedPassword: accountModel.hashPassword('jury'),
+      account_type: 'jury',
+    },
+    {
+      email: 'jury2',
+      encryptedPassword: accountModel.hashPassword('jury2'),
+      account_type: 'jury',
+    },
+    {
+      email: 'jury3',
+      encryptedPassword: accountModel.hashPassword('jury3'),
       account_type: 'jury',
     },
   ]);
@@ -880,22 +892,45 @@ export async function seedDatabase(
     },
   ]);
 
-  
-
   const projects = await projectModel.bulkCreate([
     { name: 'Test Project 1', eventId: event.id, language: 'en', description: 'Test Description 1', maxVoucher: 3 },
     { name: 'Test Project 2', eventId: event.id, language: 'en', description: 'Test Description 2', maxVoucher: 3 },
     { name: 'Test Project 3', eventId: event.id, language: 'nl', description: 'Test Description 3', maxVoucher: 2 },
     { name: 'Test Project 4', eventId: event.id, language: 'nl', description: 'Test Description 4', maxVoucher: 5 },
-    { name: 'Test Project 5', eventId: event.id, language: 'fr', description: 'Test Description 5', maxVoucher: 3, deletedAt: new Date() }
+    { name: 'Test Project 5', eventId: event.id, language: 'fr', description: 'Test Description 5', maxVoucher: 3 },
+    { name: 'Test Project 6', eventId: event.id, language: 'fr', description: 'Test Description 6', maxVoucher: 3, deletedAt: new Date() }
+  ]);
+
+  const voteCategories = await voteCategoryModel.bulkCreate([
+    { eventId: event.id, name: 'Creativity', min: 1, max: 10, public: true, optional: false },
+    { eventId: event.id, name: 'Technical skill', min: 1, max: 10, public: true, optional: false },
+    { eventId: event.id, name: 'Presentation', min: 1, max: 5, public: true, optional: true },
+  ]);
+
+
+  const voteStart = Date.now() - 3 * 24 * 60 * 60 * 1000;
+  await voteModel.bulkCreate([
+    { eventId: event.id, accountId: accounts[1].id, categoryId: voteCategories[0].id, amount: 9, createdAt: new Date(voteStart + 0 * 10 * 60 * 1000), projectId: projects[0].id },
+    { eventId: event.id, accountId: accounts[1].id, categoryId: voteCategories[1].id, amount: 2, createdAt: new Date(voteStart + 1 * 10 * 60 * 1000), projectId: projects[0].id },
+    { eventId: event.id, accountId: accounts[1].id, categoryId: voteCategories[2].id, amount: 5, createdAt: new Date(voteStart + 2 * 10 * 60 * 1000), projectId: projects[0].id },
+
+    { eventId: event.id, accountId: accounts[2].id, categoryId: voteCategories[0].id, amount: 1, createdAt: new Date(voteStart + 3 * 10 * 60 * 1000), projectId: projects[1].id },
+    { eventId: event.id, accountId: accounts[2].id, categoryId: voteCategories[1].id, amount: 10, createdAt: new Date(voteStart + 4 * 10 * 60 * 1000), projectId: projects[1].id },
+    { eventId: event.id, accountId: accounts[2].id, categoryId: voteCategories[2].id, amount: 4, createdAt: new Date(voteStart + 5 * 10 * 60 * 1000), projectId: projects[1].id },
+
+    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[0].id, amount: 7, createdAt: new Date(voteStart + 6 * 10 * 60 * 1000), projectId: projects[2].id },
+    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[1].id, amount: 7, createdAt: new Date(voteStart + 7 * 10 * 60 * 1000), projectId: projects[2].id },
+
+    { eventId: event.id, accountId: accounts[4].id, categoryId: voteCategories[0].id, amount: 5, createdAt: new Date(voteStart + 9 * 10 * 60 * 1000), projectId: projects[3].id },
+    { eventId: event.id, accountId: accounts[4].id, categoryId: voteCategories[1].id, amount: 6, createdAt: new Date(voteStart + 10 * 10 * 60 * 1000), projectId: projects[3].id },
   ]);
 
   const users = await userModel.bulkCreate([
-    { eventId: event.id, email: 'user1@user.be', firstname: 'User 1', lastname: 'User 1', sex: 'M', language: 'en', birthmonth: new Date(new Date().getFullYear() - 7, 0, 1), postalcode: '1000', municipality_name: 'Brussel', phone: '+32 470 00 00 01', guardian_firstname: 'Guardian 1', guardian_lastname: 'User 1', guardian_email: 'guardian1@user.be', guardian_phone: '+32 470 10 00 01' },
-    { eventId: event.id, email: 'user2@user.be', firstname: 'User 2', lastname: 'User 2', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 12, 0, 1), postalcode: '2000', municipality_name: 'Antwerpen', phone: '+32 470 00 00 02', guardian_firstname: 'Guardian 2', guardian_lastname: 'User 2', guardian_email: 'guardian2@user.be', guardian_phone: '+32 470 10 00 02' },
-    { eventId: event.id, email: 'user3@user.be', firstname: 'User 3', lastname: 'User 3', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 15, 0, 1), postalcode: '3000', municipality_name: 'Leuven', phone: '+32 470 00 00 03', guardian_firstname: 'Guardian 3', guardian_lastname: 'User 3', guardian_email: 'guardian3@user.be', guardian_phone: '+32 470 10 00 03' },
-    { eventId: event.id, email: 'user4@user.be', firstname: 'User 4', lastname: 'User 4', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 16, 0, 1), postalcode: '4000', municipality_name: 'Luik', phone: '+32 470 00 00 04' },
-    { eventId: event.id, email: 'user5@user.be', firstname: 'User 5', lastname: 'User 5', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 18, 0, 1), postalcode: '5000', municipality_name: 'Namen', phone: '+32 470 00 00 05' }
+    { eventId: event.id, email: 'user1@user.be', firstname: 'User 1', lastname: 'User 1', sex: 'M', language: 'en', birthmonth: new Date(new Date().getFullYear() - 7, 0, 1), postalcode: '1000', municipality_name: 'Brussel', phone: '+32 470 00 00 01', guardian_firstname: 'Guardian 1', guardian_lastname: 'User 1', guardian_email: 'guardian1@user.be', guardian_phone: '+32 470 10 00 01', tshirtId: tshirts[3].id, },
+    { eventId: event.id, email: 'user2@user.be', firstname: 'User 2', lastname: 'User 2', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 12, 0, 1), postalcode: '2000', municipality_name: 'Antwerpen', phone: '+32 470 00 00 02', guardian_firstname: 'Guardian 2', guardian_lastname: 'User 2', guardian_email: 'guardian2@user.be', guardian_phone: '+32 470 10 00 02', tshirtId: tshirts[0].id },
+    { eventId: event.id, email: 'user3@user.be', firstname: 'User 3', lastname: 'User 3', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 15, 0, 1), postalcode: '3000', municipality_name: 'Leuven', phone: '+32 470 00 00 03', guardian_firstname: 'Guardian 3', guardian_lastname: 'User 3', guardian_email: 'guardian3@user.be', guardian_phone: '+32 470 10 00 03', tshirtId: tshirts[4].id },
+    { eventId: event.id, email: 'user4@user.be', firstname: 'User 4', lastname: 'User 4', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 16, 0, 1), postalcode: '4000', municipality_name: 'Luik', phone: '+32 470 00 00 04', tshirtId: tshirts[1].id },
+    { eventId: event.id, email: 'user5@user.be', firstname: 'User 5', lastname: 'User 5', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 18, 0, 1), postalcode: '5000', municipality_name: 'Namen', phone: '+32 470 00 00 05', tshirtId: tshirts[1].id }
   ])
 
   await userProjectModel.bulkCreate([
