@@ -38,6 +38,15 @@ export function uploadTextFile(input) {
   });
 }
 
+/**
+ * Level27 systemd unit (`njXXXX.service`) respawns `node main.js` after SIGTERM.
+ * CP4 `POST .../actions {type:restart}` returns 400 for nodejs components.
+ * @returns {string}
+ */
+export function restartNodeCommand() {
+  return 'pkill -u "$(id -u)" -f \'[n]ode main.js\' || true';
+}
+
 function shellSingleQuote(value) {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }

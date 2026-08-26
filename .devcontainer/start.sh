@@ -20,8 +20,8 @@ npm run seed-db --workspace=apps/api
 # Start Admin app
 npm run start:dev  --workspace=apps/admin &
 
-# Start API backend
-npm run start:dev --workspace=apps/api &
+# Start API backend (built dist — nest --watch can serve stale cookie/auth code)
+nohup node apps/api/dist/main.js > /tmp/api.log 2>&1 &
 
 # Start Static apps
 npm run start:dev --workspace=apps/eventguide -- -p 3002 &

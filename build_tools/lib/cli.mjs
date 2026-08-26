@@ -61,7 +61,7 @@ Options:
   --dry-run        Print actions; do not rsync, restart, or write .env
   --skip-build     Use existing dist / generate output
   --skip-npm-install
-  --skip-restart   Skip Level27 Node restart
+  --skip-restart   Skip SSH pkill of node main.js (systemd respawns it)
   --skip-smoke     Skip SSH curl smoke check
 `;
 }
