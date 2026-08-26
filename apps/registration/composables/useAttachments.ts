@@ -14,8 +14,7 @@ export type UploadFileResult =
   | { ok: false, code: UploadFileCode, message?: string }
 
 export function useAttachments() {
-  const { apiFetch } = useApiClient()
-  const config = useRuntimeConfig()
+  const { apiFetch, apiBase } = useApiClient()
 
   async function fetchAttachments(): Promise<AttachmentDto[]> {
     const response = await apiFetch<AttachmentDto[]>('/projectinfo/attachments')
@@ -37,9 +36,8 @@ export function useAttachments() {
       const formData = new FormData()
       formData.append('file', normalized.file, normalized.filename)
 
-      const csrfToken = await ensureCsrfToken(config.public.apiBase as string)
-      const baseURL = config.public.apiBase as string
-      const url = `${baseURL.replace(/\/$/, '')}/projectinfo/attachments`
+      const csrfToken = await ensureCsrfToken(apiBase)
+      const url = `${apiBase.replace(/\/$/, '')}/projectinfo/attachments`
 
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
@@ -96,14 +94,14 @@ export function useAttachments() {
   }
 
   async function fetchThumbnailObjectUrl(attachmentId: string): Promise<string | null> {
-    return fetchAttachmentThumbnailObjectUrl(config.public.apiBase as string, attachmentId)
+    return fetchAttachmentThumbnailObjectUrl(apiBase, attachmentId)
   }
 
   function getPreviewUrl(attachment: AttachmentDto): string | null {
     if (!attachment.id) {
       return null
     }
-    const baseURL = (config.public.apiBase as string).replace(/\/$/, '')
+    const baseURL = apiBase.replace(/\/$/, '')
     return `${baseURL}${buildAttachmentThumbnailPath(attachment.id)}`
   }
 

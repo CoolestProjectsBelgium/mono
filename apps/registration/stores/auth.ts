@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { LoginDto } from '~/types/api'
+import { normalizeExpires } from '~/utils/auth-storage'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -8,17 +9,18 @@ export const useAuthStore = defineStore('auth', {
   }),
   getters: {
     isLoggedIn: (state) => {
-      if (!state.expires) return false
-      return new Date(state.expires) > new Date()
+      const expires = normalizeExpires(state.expires)
+      if (!expires) return false
+      return new Date(expires) > new Date()
     },
   },
   actions: {
     setSession(login: LoginDto) {
-      this.expires = login.expires
+      this.expires = normalizeExpires(login.expires)
       this.language = login.language
     },
-    setExpires(expires: string) {
-      this.expires = expires
+    setExpires(expires: string | Date) {
+      this.expires = normalizeExpires(expires)
     },
     clearSession() {
       this.expires = null

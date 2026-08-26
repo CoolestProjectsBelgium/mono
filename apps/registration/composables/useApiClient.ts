@@ -1,5 +1,7 @@
 import type { FetchOptions } from 'ofetch'
+import { getActivePinia } from 'pinia'
 import { getApiErrorMessage, isEmptyApiResponse } from '~/utils/api-response'
+import { resolveApiBase } from '~/utils/api-base'
 import { clearCsrfToken, ensureCsrfToken, isUnsafeMethod } from '~/utils/csrf-token'
 
 export class ApiError extends Error {
@@ -12,10 +14,48 @@ export class ApiError extends Error {
   }
 }
 
+function isAbortError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+  const err = error as { name?: string, code?: string }
+  return err.name === 'AbortError' || err.code === 'ABORT_ERR'
+}
+
+function extendAuthSession(path: string): void {
+  // Public endpoints must not extend a client session that may only exist in localStorage.
+  if (path === '/settings' || path.startsWith('/settings?')) {
+    return
+  }
+  const pinia = getActivePinia()
+  if (!pinia) {
+    return
+  }
+  const authStore = useAuthStore(pinia)
+  if (!authStore.isLoggedIn) {
+    return
+  }
+  authStore.setExpires(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))
+}
+
+function handleUnauthorizedSession(): void {
+  const pinia = getActivePinia()
+  if (!pinia) {
+    return
+  }
+  const authStore = useAuthStore(pinia)
+  if (!authStore.isLoggedIn) {
+    return
+  }
+  authStore.clearSession()
+  const localePath = useLocalePath()
+  void navigateTo(localePath('/login'))
+}
+
 export function useApiClient() {
   const config = useRuntimeConfig()
   const nuxtApp = useNuxtApp()
-  const route = useRoute()
+  const apiBase = resolveApiBase(config.public.apiBase as string)
 
   function getAcceptLanguage(): string {
     const i18n = nuxtApp.$i18n as { locale?: { value: string } } | undefined
@@ -37,7 +77,7 @@ export function useApiClient() {
 
     const method = (options.method ?? 'GET').toUpperCase()
     if (isUnsafeMethod(method) && !headers['x-csrf-token']) {
-      const csrfToken = await ensureCsrfToken(config.public.apiBase as string)
+      const csrfToken = await ensureCsrfToken(apiBase)
       headers['x-csrf-token'] = csrfToken
     }
 
@@ -45,7 +85,7 @@ export function useApiClient() {
 
     try {
       const response = await $fetch<T | null>(path, {
-        baseURL: config.public.apiBase as string,
+        baseURL: apiBase,
         credentials: 'include',
         ...options,
         headers,
@@ -56,21 +96,20 @@ export function useApiClient() {
           })
         },
       })
+      extendAuthSession(path)
       return response
     }
     catch (error: unknown) {
+      if (isAbortError(error)) {
+        throw new ApiError('Request aborted')
+      }
+
       const fetchError = error as { statusCode?: number, status?: number }
       const statusCode = fetchError.statusCode ?? fetchError.status
       const message = responseErrorMessage ?? getApiErrorMessage(error) ?? 'API request failed'
       if (statusCode === 401) {
         clearCsrfToken()
-        const authStore = useAuthStore()
-        authStore.clearSession()
-        // Do not redirect while activating a magic link — that strips ?token= from the URL.
-        const onMagicLinkPage = path === '/login' || Boolean(route.query.token)
-        if (import.meta.client && !onMagicLinkPage) {
-          await navigateTo('/login')
-        }
+        handleUnauthorizedSession()
       }
       throw new ApiError(message, statusCode)
     }
@@ -80,5 +119,6 @@ export function useApiClient() {
     apiFetch,
     isEmptyApiResponse,
     clearCsrfToken,
+    apiBase,
   }
 }

@@ -5,13 +5,14 @@ import { callComposable } from '~/tests/composable-utils'
 import { mockFetch } from '~/tests/setup'
 import { ApiError } from './useApiClient'
 
-const { navigateToMock, routeQuery } = vi.hoisted(() => ({
+const { navigateToMock, localePathMock } = vi.hoisted(() => ({
   navigateToMock: vi.fn(),
-  routeQuery: { value: {} as Record<string, string> },
+  localePathMock: vi.fn((path: string) => path),
 }))
 
 mockNuxtImport('navigateTo', () => navigateToMock)
-mockNuxtImport('useRoute', () => () => ({ query: routeQuery.value }))
+mockNuxtImport('useLocalePath', () => () => localePathMock)
+mockNuxtImport('useRoute', () => () => ({ query: {} }))
 mockNuxtImport('useRuntimeConfig', () => () => ({
   public: { apiBase: 'https://api.coolestprojects.localhost:8443' },
 }))
@@ -22,13 +23,19 @@ describe('useApiClient', () => {
   beforeEach(() => {
     pinia = createPinia()
     setActivePinia(pinia)
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+    })
     useAuthStore(pinia).clearSession()
-    routeQuery.value = {}
     mockFetch.mockReset()
     navigateToMock.mockReset()
   })
 
-  it('redirects to /login on 401 for protected endpoints', async () => {
+  it('clears session and redirects on 401 when logged in', async () => {
+    useAuthStore(pinia).setExpires('2099-01-01T00:00:00.000Z')
     mockFetch.mockRejectedValue({ statusCode: 401, message: 'Unauthorized' })
     const { apiFetch } = await callComposable(() => useApiClient(), pinia)
 
@@ -37,19 +44,8 @@ describe('useApiClient', () => {
     expect(useAuthStore(pinia).isLoggedIn).toBe(false)
   })
 
-  it('does not redirect on 401 for POST /login', async () => {
-    mockFetch
-      .mockResolvedValueOnce({ csrfToken: 'csrf-abc' })
-      .mockRejectedValueOnce({ statusCode: 401, message: 'Unauthorized' })
-    const { apiFetch } = await callComposable(() => useApiClient(), pinia)
-
-    await expect(apiFetch('/login', { method: 'POST', body: { jwt: 'bad' } })).rejects.toBeInstanceOf(ApiError)
-    expect(navigateToMock).not.toHaveBeenCalled()
-  })
-
-  it('does not redirect on 401 while a magic-link token is in the route', async () => {
-    routeQuery.value = { token: 'jwt-from-email' }
-    mockFetch.mockRejectedValue({ statusCode: 401, message: 'Unauthorized' })
+  it('does not redirect on aborted requests', async () => {
+    mockFetch.mockRejectedValue({ name: 'AbortError' })
     const { apiFetch } = await callComposable(() => useApiClient(), pinia)
 
     await expect(apiFetch('/userinfo')).rejects.toBeInstanceOf(ApiError)
@@ -65,7 +61,7 @@ describe('useApiClient', () => {
     await apiFetch('/registration', { method: 'POST', body: { user: {} } })
 
     expect(mockFetch).toHaveBeenNthCalledWith(1, '/csrf-token', expect.objectContaining({
-      baseURL: 'https://api.coolestprojects.localhost:8443',
+      baseURL: 'http://localhost:3001',
       credentials: 'include',
     }))
     expect(mockFetch).toHaveBeenNthCalledWith(2, '/registration', expect.objectContaining({

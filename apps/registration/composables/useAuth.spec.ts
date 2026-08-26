@@ -10,6 +10,13 @@ function mockCsrfThen(response: unknown) {
     .mockResolvedValueOnce(response)
 }
 
+function mockLoginActivation(loginResponse: unknown, userinfoResponse: unknown = { id: 1 }) {
+  mockFetch
+    .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+    .mockResolvedValueOnce(loginResponse)
+    .mockResolvedValueOnce(userinfoResponse)
+}
+
 describe('useAuth', () => {
   let pinia: Pinia
 
@@ -42,20 +49,34 @@ describe('useAuth', () => {
     expect(useAuthStore(pinia).isLoggedIn).toBe(false)
   })
 
-  it('activateWithToken POSTs { jwt } to /login', async () => {
-    mockCsrfThen({ expires: '2099-01-01T00:00:00.000Z', language: 'nl', api_key: 'x' })
+  it('activateWithToken POSTs { jwt } to /login and verifies /userinfo', async () => {
+    mockLoginActivation({ expires: '2099-01-01T00:00:00.000Z', language: 'nl', api_key: 'x' })
     const { activateWithToken } = await callComposable(() => useAuth(), pinia)
     const ok = await activateWithToken('abc-token')
     expect(mockFetch).toHaveBeenNthCalledWith(2, '/login', expect.objectContaining({
       method: 'POST',
       body: { jwt: 'abc-token' },
     }))
+    expect(mockFetch).toHaveBeenNthCalledWith(3, '/userinfo', expect.any(Object))
     expect(ok).toBe('ok')
     expect(useAuthStore(pinia).isLoggedIn).toBe(true)
   })
 
+  it('activateWithToken clears session when cookie verification fails', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+      .mockResolvedValueOnce({ expires: '2099-01-01T00:00:00.000Z', language: 'nl', api_key: 'x' })
+      .mockRejectedValueOnce({ statusCode: 401, message: 'Unauthorized' })
+    const { activateWithToken } = await callComposable(() => useAuth(), pinia)
+    const ok = await activateWithToken('abc-token')
+    expect(ok).toBe('invalid')
+    expect(useAuthStore(pinia).isLoggedIn).toBe(false)
+  })
+
   it('null activate does not set session', async () => {
-    mockFetch.mockResolvedValue(null)
+    mockFetch
+      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+      .mockResolvedValueOnce(null)
     const { activateWithToken } = await callComposable(() => useAuth(), pinia)
     const ok = await activateWithToken('bad-token')
     expect(ok).toBe('invalid')

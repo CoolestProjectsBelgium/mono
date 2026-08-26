@@ -19,7 +19,7 @@ import { LoginMailDto } from '../dto/logon-mail.dto';
 import { RegistrationService } from '../registration/registration.service';
 import { TokensService } from '../tokens/tokens.service';
 import { MailerService } from '../mailer/mailer.service';
-import { UserCookieInterceptor } from '../user-cookie.interceptor';
+import { UserCookieInterceptor, buildUserCookieOptions } from '../user-cookie.interceptor';
 
 @Controller('login')
 @ApiTags('login')
@@ -80,8 +80,13 @@ export class LoginController {
   @Post('logout')
   @ApiCookieAuth()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('jwt', { signed: true, path: '/' });
+  async logout(@Res({ passthrough: true }) res: Response, @Request() req: { secure?: boolean, headers?: Record<string, string | string[] | undefined> }) {
+    const cookieOptions = buildUserCookieOptions(req);
+    res.clearCookie('jwt', {
+      signed: true,
+      path: cookieOptions.path,
+      ...(cookieOptions.domain ? { domain: cookieOptions.domain } : {}),
+    });
     return { success: true };
   }
 
