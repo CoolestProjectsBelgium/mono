@@ -17,6 +17,10 @@ import { VotingOverview } from './handler.js';
 
 const api = new ApiClient();
 const refreshInterval = 15000;
+const formatVoteTime = (value: string) => new Date(value).toLocaleTimeString([], {
+	hour: '2-digit',
+	minute: '2-digit',
+});
 
 export const Voting: React.FC = () => {
 	const [data, setData] = useState<VotingOverview | null>(null);
@@ -94,9 +98,9 @@ export const Voting: React.FC = () => {
 					<ResponsiveContainer width="100%" height="100%">
 						<LineChart data={data.votesOverTime} margin={{ top: 8, right: 24, left: 8, bottom: 8 }}>
 							<CartesianGrid strokeDasharray="3 3" />
-							<XAxis dataKey="date" />
+							<XAxis dataKey="date" tickFormatter={formatVoteTime} />
 							<YAxis allowDecimals={false} />
-							<Tooltip />
+							<Tooltip labelFormatter={formatVoteTime} />
 							<Line type="monotone" dataKey="votes" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} />
 						</LineChart>
 					</ResponsiveContainer>
