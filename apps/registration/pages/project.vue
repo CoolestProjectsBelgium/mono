@@ -33,11 +33,9 @@
         :invite-unavailable="inviteUnavailable"
         :adding="addingParticipant"
         :add-disabled="addParticipantDisabled"
-        :removing-participant-id="removingParticipantId"
         :changing-owner-id="changingOwnerId"
         class="mt-6"
         @add="onAddParticipant"
-        @remove="onRemoveParticipant"
         @change-owner="onChangeOwnerParticipant"
         @copy="onCopyInvite"
         @copy-token="onCopyToken"
@@ -51,16 +49,6 @@
         :please-wait-label="$t('pleaseWait')"
         :loading="deletingProject"
         @confirm="onDeleteProject"
-      />
-      <ConfirmDialog
-        v-model:open="showRemoveParticipantDialog"
-        :title="$t('participantRemove.title')"
-        :message="removeParticipantMessage"
-        :confirm-label="$t('participantRemove.confirmButton')"
-        :cancel-label="$t('Cancel')"
-        :please-wait-label="$t('pleaseWait')"
-        :loading="removingParticipantId != null"
-        @confirm="onConfirmRemoveParticipant"
       />
     </template>
     <template v-else-if="project?.own_project" data-testid="project-coworker-view">
@@ -92,7 +80,7 @@
         <table class="w-full text-left text-sm">
           <thead>
             <tr class="border-b">
-              <th class="py-2">{{ $t('label_Voornaam:') }}</th>
+              <th class="py-2">{{ $t('participantNameLabel') }}</th>
               <th class="py-2">{{ $t('participantRoleLabel') }}</th>
             </tr>
           </thead>
@@ -158,7 +146,6 @@ import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createOwnProjectSchema } from '~/utils/validation/user'
 import { getApiErrorMessage } from '~/utils/api-response'
 import { focusNextOnEnter } from '~/utils/focus-next-on-enter'
-import { getParticipantRemoveConfirm } from '~/utils/participant-remove'
 import { isProjectOwner as checkIsProjectOwner } from '~/utils/project-routing'
 
 definePageMeta({ middleware: 'authenticated' })
@@ -166,7 +153,7 @@ definePageMeta({ middleware: 'authenticated' })
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { fetchProject, updateProject, deleteProject, changeOwner } = useProjectinfo()
-const { generateInviteToken, removeParticipant, leaveProject, copyInviteUrl, copyInviteToken } = useParticipant()
+const { generateInviteToken, leaveProject, copyInviteUrl, copyInviteToken } = useParticipant()
 const { fetchSettings } = useSettings()
 const { notify } = useNotification()
 
@@ -176,14 +163,11 @@ const loading = ref(true)
 const loadError = ref(false)
 const inviteUnavailable = ref(false)
 const addingParticipant = ref(false)
-const removingParticipantId = ref<number | null>(null)
 const changingOwnerId = ref<number | null>(null)
 const showLeaveDialog = ref(false)
 const leavingProject = ref(false)
 const showDeleteDialog = ref(false)
 const deletingProject = ref(false)
-const showRemoveParticipantDialog = ref(false)
-const participantToRemove = ref<ParticipantDto | null>(null)
 const showChangeOwnerDialog = ref(false)
 const participantToMakeOwner = ref<ParticipantDto | null>(null)
 const fieldErrors = ref<Record<string, string>>({})
@@ -206,14 +190,6 @@ function languageLabelKey(lang: 'nl' | 'fr' | 'en') {
 const addParticipantDisabled = computed(() =>
   settings.value != null && coParticipantCount.value >= settings.value.maxParticipants,
 )
-
-const removeParticipantMessage = computed(() => {
-  if (!participantToRemove.value) {
-    return ''
-  }
-  const { messageKey, params } = getParticipantRemoveConfirm(participantToRemove.value)
-  return t(messageKey, params)
-})
 
 const changeOwnerMessage = computed(() => {
   if (!participantToMakeOwner.value) {
@@ -362,38 +338,6 @@ async function onAddParticipant() {
   }
   finally {
     addingParticipant.value = false
-  }
-}
-
-function onRemoveParticipant(participant: ParticipantDto) {
-  if (removingParticipantId.value != null) {
-    return
-  }
-
-  participantToRemove.value = participant
-  showRemoveParticipantDialog.value = true
-}
-
-async function onConfirmRemoveParticipant() {
-  const participant = participantToRemove.value
-  if (!participant || removingParticipantId.value != null) {
-    return
-  }
-
-  removingParticipantId.value = participant.id
-  try {
-    await removeParticipant(participant)
-    project.value = await fetchProject()
-    showRemoveParticipantDialog.value = false
-    participantToRemove.value = null
-    notify('success', 'message_successChange')
-  }
-  catch (error) {
-    const message = getApiErrorMessage(error) ?? t('error_An error occurred')
-    notify('error', 'error_An error occurred', undefined, message)
-  }
-  finally {
-    removingParticipantId.value = null
   }
 }
 

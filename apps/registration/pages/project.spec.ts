@@ -10,7 +10,6 @@ const {
   leaveProjectMock,
   deleteProjectMock,
   changeOwnerMock,
-  removeParticipantMock,
   navigateToMock,
   notifyMock,
 } = vi.hoisted(() => ({
@@ -19,7 +18,6 @@ const {
   leaveProjectMock: vi.fn(),
   deleteProjectMock: vi.fn(),
   changeOwnerMock: vi.fn(),
-  removeParticipantMock: vi.fn(),
   navigateToMock: vi.fn(),
   notifyMock: vi.fn(),
 }))
@@ -36,7 +34,6 @@ vi.mock('~/composables/useProjectinfo', () => ({
 vi.mock('~/composables/useParticipant', () => ({
   useParticipant: () => ({
     generateInviteToken: vi.fn(),
-    removeParticipant: removeParticipantMock,
     leaveProject: leaveProjectMock,
     copyInviteUrl: vi.fn(),
     copyInviteToken: vi.fn(),
@@ -82,16 +79,10 @@ vi.mock('~/components/OwnProjectForm.vue', () => ({
 
 vi.mock('~/components/OwnParticipants.vue', () => ({
   default: {
-    props: ['participants', 'removingParticipantId', 'changingOwnerId'],
-    emits: ['remove', 'changeOwner'],
+    props: ['participants', 'changingOwnerId'],
+    emits: ['changeOwner'],
     template: `
       <div>
-        <button
-          data-testid="remove-participant"
-          @click="$emit('remove', { id: 10, name: '', self: false, status: 'pending', token: 'invite-token' })"
-        >
-          Remove
-        </button>
         <button
           data-testid="change-owner"
           @click="$emit('changeOwner', { id: 11, name: 'Sam', self: false, status: 'registered' })"
@@ -183,6 +174,8 @@ describe('project page coworker leave', () => {
     const wrapper = await mountSuspended(ProjectPage)
     await vi.waitFor(() => {
       expect(wrapper.text()).toContain('Alleen de projecteigenaar kan de projectinstellingen aanpassen')
+      expect(wrapper.text()).toContain('Naam')
+      expect(wrapper.text()).not.toContain('Voornaam')
       expect(wrapper.text()).toContain('Alex')
       expect(wrapper.text()).toContain('Projecteigenaar')
       expect(wrapper.text()).toContain('Sam')
@@ -227,13 +220,11 @@ describe('project page owner delete', () => {
     updateProjectMock.mockReset()
     deleteProjectMock.mockReset()
     changeOwnerMock.mockReset()
-    removeParticipantMock.mockReset()
     navigateToMock.mockReset()
     notifyMock.mockReset()
     fetchProjectMock.mockResolvedValue(ownerProject)
     deleteProjectMock.mockResolvedValue(true)
     changeOwnerMock.mockResolvedValue(undefined)
-    removeParticipantMock.mockResolvedValue(undefined)
     navigateToMock.mockResolvedValue(undefined)
   })
 
@@ -297,31 +288,6 @@ describe('project page owner delete', () => {
     await vi.waitFor(() => {
       expect(deleteProjectMock).toHaveBeenCalled()
       expect(navigateToMock).toHaveBeenCalledWith('/no_project')
-      expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
-    })
-  })
-
-  it('removes participant after confirmation dialog', async () => {
-    const wrapper = await mountSuspended(ProjectPage)
-    await vi.waitFor(() => {
-      expect(wrapper.get('[data-testid="remove-participant"]').exists()).toBe(true)
-    })
-
-    await wrapper.get('[data-testid="remove-participant"]').trigger('click')
-    await vi.waitFor(() => {
-      expect(wrapper.get('[data-testid="confirm-dialog"]').text()).toContain('Verwijderen')
-    })
-    await wrapper.get('[data-testid="confirm-dialog"]').trigger('click')
-
-    await vi.waitFor(() => {
-      expect(removeParticipantMock).toHaveBeenCalledWith({
-        id: 10,
-        name: '',
-        self: false,
-        status: 'pending',
-        token: 'invite-token',
-      })
-      expect(fetchProjectMock).toHaveBeenCalledTimes(2)
       expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
     })
   })

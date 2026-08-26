@@ -10,7 +10,7 @@ const i18n = createI18n({
   messages: {
     nl: {
       participants: 'Deelnemer',
-      'label_Voornaam:': 'Voornaam',
+      participantNameLabel: 'Naam',
       participantStatusLabel: 'Status',
       participantPending: 'Uitnodiging open',
       participantStatusPending: 'Token nog niet gebruikt',
@@ -19,7 +19,6 @@ const i18n = createI18n({
       participantCopyToken: 'Token kopiëren',
       'changeOwner.button': 'Maak eigenaar',
       AddToken: 'Deelnemer toevoegen',
-      Delete: 'Verwijderen',
       pleaseWait: 'Even geduld',
     },
   },
@@ -58,6 +57,14 @@ async function mountParticipants(props: Partial<InstanceType<typeof OwnParticipa
 }
 
 describe('OwnParticipants', () => {
+  it('labels the name column as name, not first name', async () => {
+    const wrapper = await mountParticipants()
+    const header = wrapper.find('th')
+
+    expect(header.text()).toBe('Naam')
+    expect(wrapper.text()).not.toContain('Voornaam')
+  })
+
   it('renders pending participant label and status dot', async () => {
     const wrapper = await mountParticipants()
 
@@ -96,10 +103,10 @@ describe('OwnParticipants', () => {
     expect(wrapper.text()).toContain('Even geduld')
   })
 
-  it('shows remove button for co-participants', async () => {
+  it('hides remove button for co-participants', async () => {
     const wrapper = await mountParticipants()
 
-    expect(wrapper.find('[data-testid="remove-participant"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="remove-participant"]').exists()).toBe(false)
   })
 
   it('hides remove button when only the owner is listed', async () => {
@@ -123,13 +130,5 @@ describe('OwnParticipants', () => {
     })
 
     expect(wrapper.find('[data-testid="change-owner"]').exists()).toBe(false)
-  })
-
-  it('disables delete button while row is being removed', async () => {
-    const wrapper = await mountParticipants({ removingParticipantId: 10 })
-
-    const deleteButton = wrapper.find('[data-testid="remove-participant"]')
-    expect(deleteButton.attributes('disabled')).toBeDefined()
-    expect(deleteButton.text()).toBe('Even geduld')
   })
 })

@@ -33,7 +33,7 @@ Local URL (via proxy): `https://registration.coolestprojects.localhost:8443`
 1. **Landing / rules** — `GET /settings` drives event status (`no_event`, registration open/closed)
 2. **Registration** — catalogs + `POST /registration`
 3. **Login** — `POST /login/mailToken` → `POST /login` with JWT from email link
-4. **Project** — flat `OwnProjectDto` on `GET/POST/PATCH /projectinfo`; owner CRUD + participant invite list; owner can transfer ownership via `POST /projectinfo/change-owner/:newOwnerId`; `DELETE /projectinfo` soft-deletes the project when no registered co-participants remain
+4. **Project** — flat `OwnProjectDto` on `GET/POST/PATCH /projectinfo`; owner CRUD + participant invite list (copy invite link/token, change owner; no remove from the list); owner can transfer ownership via `POST /projectinfo/change-owner/:newOwnerId`; `DELETE /projectinfo` soft-deletes the project when no registered co-participants remain
 5. **Upload** — owner-only `/upload`; images only (JPEG/PNG/WebP/HEIC→JPEG); client normalize + XHR multipart upload with progress; list/preview/delete via `GET/DELETE /projectinfo/attachments`
 6. **Join via token (logged-in)** — `/token` or invite URL `/registration?token=<voucher>` calls `POST /participant` (`assignParticipant`); success → `/project`; reject if user already has a project or token invalid/used (no registration form, no email)
 
