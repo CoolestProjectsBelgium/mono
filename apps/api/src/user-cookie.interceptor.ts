@@ -7,6 +7,9 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TokensService } from './tokens/tokens.service';
+import { buildAppCookieOptions, clearLegacyJwtCookies } from './cookie-options';
+
+export { buildAppCookieOptions, buildUserCookieOptions } from './cookie-options';
 
 @Injectable()
 export class UserCookieInterceptor implements NestInterceptor {
@@ -22,20 +25,11 @@ export class UserCookieInterceptor implements NestInterceptor {
         next: () => {
           const user = request.user;
           if (user) {
+            clearLegacyJwtCookies(response, request);
             response.cookie(
               'jwt',
               this.tokensService.generateLoginToken(user.id),
-              {
-                httpOnly: true,
-                signed: true,
-                path: '/',
-                secure:
-                  process.env.NODE_ENV === 'production' ||
-                  request.secure ||
-                  request.headers['x-forwarded-proto'] === 'https',
-                sameSite: 'lax',
-                maxAge: 7 * 24 * 60 * 60 * 1000,
-              },
+              buildAppCookieOptions(request),
             );
           }
         },

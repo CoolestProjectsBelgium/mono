@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
+import { setActivePinia, createPinia } from 'pinia'
 import UploadPage from './upload.vue'
 import type { AttachmentDto, ProjectDto } from '~/types/api'
 
@@ -66,6 +67,8 @@ const ownerProject: ProjectDto = {
 
 describe('upload page', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
+    useAuthStore().setExpires('2099-01-01T00:00:00.000Z')
     fetchProjectMock.mockReset()
     fetchSettingsMock.mockReset()
     navigateToMock.mockReset()

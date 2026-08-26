@@ -7,6 +7,7 @@ import { NextFunction, Request, Response } from 'express';
 import { env } from 'process';
 import { AppModule } from './app.module';
 import { configureSecurity } from './bootstrap-security';
+import { buildAppCookieOptions } from './cookie-options';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,15 +20,14 @@ async function bootstrap() {
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (!req.cookies.anonId) {
       const anonId = randomUUID();
+      const anonCookieOptions = buildAppCookieOptions(req);
 
       res.cookie('anonId', anonId, {
         httpOnly: true,
-        sameSite: 'lax',
-        secure:
-          process.env.NODE_ENV === 'production'
-          || req.secure
-          || req.headers['x-forwarded-proto'] === 'https',
+        sameSite: anonCookieOptions.sameSite,
+        secure: anonCookieOptions.secure,
         path: '/',
+        ...(anonCookieOptions.domain ? { domain: anonCookieOptions.domain } : {}),
       });
 
       req.cookies.anonId = anonId;
@@ -36,8 +36,16 @@ async function bootstrap() {
     next();
   });
 
+  const csrfCookieOptions = buildAppCookieOptions({ secure: true, headers: { 'x-forwarded-proto': 'https' } });
   const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     getSecret: () => process.env.CSRF_SECRET!,
+
+    cookieOptions: {
+      sameSite: csrfCookieOptions.sameSite,
+      secure: csrfCookieOptions.secure,
+      httpOnly: true,
+      path: '/',
+    },
 
     getSessionIdentifier: (req) => {
       const user = req.user as { id?: number } | undefined;

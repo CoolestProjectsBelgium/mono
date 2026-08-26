@@ -12,7 +12,7 @@
       @upload-end="uploading = false"
       @upload-success="onUploadSuccess"
     />
-    <p v-else class="mt-6 text-gray-500">{{ $t('pleaseWait') }}</p>
+    <p v-else-if="!settings" class="mt-6 text-gray-500">{{ $t('pleaseWait') }}</p>
     <p v-if="uploading" class="mt-4 text-amber-700" role="alert">
       {{ $t('upload.leaveWarning') }}
     </p>
@@ -31,6 +31,7 @@
 <script setup lang="ts">
 import type { AttachmentDto, ProjectDto, SettingDto } from '~/types/api'
 import { isProjectOwner as checkIsProjectOwner, hasProjectMembership } from '~/utils/project-routing'
+import { hydrateAuthStoreFromStorage } from '~/utils/auth-storage'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -53,17 +54,27 @@ async function refreshAttachments() {
 const isProjectOwner = computed(() => checkIsProjectOwner(project.value))
 
 onMounted(async () => {
-  const [fetchedProject, fetchedSettings] = await Promise.all([
-    fetchProject(),
-    fetchSettings(),
-  ])
-  if (!hasProjectMembership(fetchedProject)) {
-    await navigateTo(localePath('/project'))
-    return
+  try {
+    const [fetchedProject, fetchedSettings] = await Promise.all([
+      fetchProject(),
+      fetchSettings(),
+    ])
+    if (!hydrateAuthStoreFromStorage()) {
+      return
+    }
+    if (!hasProjectMembership(fetchedProject)) {
+      await navigateTo(localePath('/project'))
+      return
+    }
+    project.value = fetchedProject
+    settings.value = fetchedSettings
+    await refreshAttachments()
   }
-  project.value = fetchedProject
-  settings.value = fetchedSettings
-  await refreshAttachments()
+  catch {
+    if (!hydrateAuthStoreFromStorage()) {
+      await navigateTo(localePath('/login'))
+    }
+  }
 })
 
 async function onUploadSuccess() {

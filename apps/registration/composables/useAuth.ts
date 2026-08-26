@@ -36,6 +36,13 @@ export function useAuth() {
         return 'invalid'
       }
       authStore.setSession(response)
+      try {
+        await apiFetch<unknown>('/userinfo')
+      }
+      catch {
+        authStore.clearSession()
+        return 'invalid'
+      }
       return 'ok'
     }
     catch (error) {
