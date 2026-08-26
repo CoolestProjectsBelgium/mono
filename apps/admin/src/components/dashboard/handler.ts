@@ -59,54 +59,63 @@ export interface DashboardResponse {
   tshirts: DashboardTableItem[]
 }
 
+/*
+SELECT 
+    COUNT(u.tshirtId) AS total, 
+    u.tshirtId, 
+    tt.description
+FROM 
+    `Users` u
+JOIN 
+    `TshirtTranslations` tt ON u.tshirtId = tt.tshirtId AND tt.language = 'nl'
+GROUP BY 
+    u.tshirtId, 
+    tt.description;
+*/
+/* 
+LOGICA:
+1. We tellen (COUNT) het aantal gebruikers per unieke tshirtId uit de `Users` tabel.
+2. We koppelen (`JOIN`) de `TshirtTranslations` tabel aan de `Users` tabel op basis van de overeenkomende tshirtId.
+3. We filteren direct in de JOIN dat we alleen vertalingen willen die de taal 'nl' hebben.
+4. De `GROUP BY` zorgt ervoor dat de telling wordt toegepast op elke unieke combinatie 
+   van het shirt-ID en de bijbehorende Nederlandse beschrijving.
+*/ 
+// VOEG DEZE IMPORT TOE (meestal bovenaan je bestand)
+import { QueryTypes } from 'sequelize'; 
 async function getTshirts(eventId: number, language: string = 'nl'): Promise<DashboardTableItem[]> {
-  // Tshirts
-  let tshirtsData: DashboardTableItem[] = []
+  let tshirtsData: DashboardTableItem[] = [];
   try {
-    const tshirtCounts = await User.findAll({
-      attributes: [
-        'tshirtId',
-        // Tel het aantal users per tshirtId
-        [sequelize.fn('COUNT', sequelize.col('User.tshirtId')), 'total'],
-        'tshirt.name',
-        'tshirt.translations.description'
-      ],
-      where: {
-        eventId
-      },
-      // Groeperen op ID's voor accurate tellingen
-      group: ['User.tshirtId', 'tshirt.name',  'tshirt.translations.id', 'tshirt.translations.description', 'User.id'],
-      include: [{
-        model: Tshirt,
-        as: 'tshirt',
-        attributes: ['name'],
-        include: [{
-          model: TshirtTranslation,
-          as: 'translations',
-          attributes: ['description'],
-          where: { language: language }
-        }],
-      }],
-    }) as (UserModel & { total: number | string })[]
-
-    console.log('Tshirt counts:', tshirtCounts.map(item => ({
-      tshirtId: item.tshirtId,
-      total: item.total ||0,
-      name: item.tshirt?.name,
-      description: item.tshirt?.translations?.[0]?.description
-    })))
-
-    tshirtsData = tshirtCounts.map((item) => ({
-      id: item.tshirt.name,
-      total: Number(item.total) || 0,
-      short: item.tshirt.name,
-      description: item.tshirt.translations?.[0]?.description || '',
-    }))
+    // We gebruiken een Raw Query om volledige controle te hebben over de aliassen en GROUP BY
+    const results = await sequelize.query(
+      `SELECT 
+        COUNT(u.id) AS total, 
+        u.tshirtId, 
+        t.name AS tshirtName, 
+        tt.description AS description
+      FROM Users u
+      INNER JOIN Tshirts t ON u.tshirtId = t.id
+      INNER JOIN TshirtTranslations tt ON u.tshirtId = tt.tshirtId AND tt.language = :lang
+      WHERE u.eventId = :eventId AND u.tshirtId IS NOT NULL
+      GROUP BY u.tshirtId, t.name, tt.description`,
+      {
+        replacements: { eventId, lang: language }, // Veilig tegen SQL Injection
+        type: QueryTypes.SELECT
+      }
+    );
+    // Het resultaat van een raw query met type: QueryTypes.SELECT is al een array van platte objecten
+    tshirtsData = results.map((row: any) => ({
+      id: row.tshirtName,
+      total: Number(row.total),
+      short: row.tshirtName,
+      description: row.description || '',
+    }));
   } catch (err: any) {
-    console.error('Sequelize Fout bij het ophalen van tshirt statistieken:', err.message)
+    console.error('SQL Fout bij het ophalen van tshirt statistieken:', err.message);
   }
   return tshirtsData;
 }
+
+
 /*
 SELECT 
     q.id AS question_id,
@@ -179,6 +188,25 @@ async function getQuestions(eventId: number, language: string = 'nl'): Promise<D
   return questionsData;
 }
 /*
+SELECT
+    u.email AS user_email,
+    q.id AS question_id,
+    'has not' AS exeptions,
+    q.name AS q_name,
+    qt.description AS missing_desc
+FROM
+    `Users` u
+CROSS JOIN `Questions` q LEFT JOIN `QuestionUsers` uq ON
+    (
+        u.id = uq.userId AND q.id = uq.questionId
+    )
+INNER JOIN `QuestionTranslations` qt ON
+    (
+        q.id = qt.questionId AND qt.language = 'nl'
+    )
+WHERE
+    uq.userId IS NULL;
+
 const privacyComplianceAction = {
   resource: User, 
   options: {
