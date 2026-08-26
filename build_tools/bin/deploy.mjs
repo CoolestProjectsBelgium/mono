@@ -4,13 +4,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs, usage } from '../lib/cli.mjs';
 import { planEnvBootstrap } from '../lib/env-bootstrap.mjs';
-import { restartComponent } from '../lib/level27.mjs';
 import { packApp } from '../lib/pack.mjs';
 import { BUILD_TOOLS_ROOT, loadTargets, resolveTarget } from '../lib/targets.mjs';
 import { buildRsyncArgs, rsyncDestination } from '../lib/rsync.mjs';
 import { run } from '../lib/run.mjs';
 import { smokeLocalhost } from '../lib/smoke.mjs';
-import { remoteFileExists, uploadTextFile } from '../lib/ssh.mjs';
+import { remoteFileExists, restartNodeCommand, sshExec, uploadTextFile } from '../lib/ssh.mjs';
 
 async function main(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
@@ -70,11 +69,9 @@ async function main(argv = process.argv.slice(2)) {
   run('rsync', rsyncArgs, { stdio: 'inherit' });
 
   if (target.kind === 'node' && !args.skipRestart) {
-    await restartComponent({
-      appId: target.appId,
-      componentId: target.componentId,
-      apiKey: process.env.LEVEL27_API_KEY ?? '',
-    });
+    process.stdout.write('Restarting node via SSH (systemd respawn)...\n');
+    sshExec({ ...target, command: restartNodeCommand() });
+    await new Promise((resolve) => setTimeout(resolve, 2500));
   }
 
   if (target.kind === 'node' && !args.skipSmoke) {
@@ -97,9 +94,7 @@ function printDryRun(target, paths) {
   if (target.kind === 'node') {
     process.stdout.write(`env example=${paths.envExamplePath}\n`);
     process.stdout.write(`secrets=${paths.secretsPath}\n`);
-    process.stdout.write(
-      `restart POST /apps/${target.appId}/components/${target.componentId}/actions {type:restart}\n`,
-    );
+    process.stdout.write(`restart ssh ${restartNodeCommand()}\n`);
     process.stdout.write(
       `smoke ssh curl http://127.0.0.1:${target.port}${target.smokePath}\n`,
     );

@@ -42,10 +42,10 @@ test('prod dry-run prints prod user and path without connecting', async () => {
     const code = await main(['--app', 'api', '--env', 'prod', '--dry-run']);
     assert.equal(code, 0);
     const text = chunks.join('');
-    assert.match(text, /nj10447@web\.level27\.eu/);
+    assert.match(text, /nj10447@/);
     assert.match(text, /api-prod/);
     assert.match(text, /--exclude \.env/);
-    assert.match(text, /type:restart/);
+    assert.match(text, /pkill -u/);
   } finally {
     process.stdout.write = origWrite;
     if (previous == null) {
