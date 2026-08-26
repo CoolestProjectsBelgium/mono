@@ -189,6 +189,7 @@
     "invalidType": "Alleen afbeeldingen kunnen worden geüpload."
   },
   "participantPending": "Uitnodiging open",
+  "participantNameLabel": "Naam",
   "participantStatusLabel": "Status",
   "participantStatusPending": "Token nog niet gebruikt",
   "participantStatusRegistered": "Geregistreerd",

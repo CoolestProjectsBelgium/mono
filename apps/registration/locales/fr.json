@@ -189,6 +189,7 @@
     "invalidType": "Seules les images peuvent être envoyées."
   },
   "participantPending": "Invitation en attente",
+  "participantNameLabel": "Nom",
   "participantStatusLabel": "Statut",
   "participantStatusPending": "Token pas encore utilisé",
   "participantStatusRegistered": "Inscrit·e",
