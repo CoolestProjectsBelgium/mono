@@ -8,7 +8,7 @@
       <table v-if="participants.length" class="w-full text-left text-sm">
         <thead>
           <tr class="border-b">
-            <th class="py-2">{{ $t('label_Voornaam:') }}</th>
+            <th class="py-2">{{ $t('participantNameLabel') }}</th>
             <th class="py-2">{{ $t('participantStatusLabel') }}</th>
             <th class="py-2" />
           </tr>
@@ -58,19 +58,10 @@
                   type="button"
                   class="text-blue-600 hover:underline disabled:opacity-50"
                   data-testid="change-owner"
-                  :disabled="changingOwnerId === p.id || removingParticipantId === p.id"
+                  :disabled="changingOwnerId === p.id"
                   @click="onChangeOwner(p)"
                 >
                   {{ changingOwnerId === p.id ? $t('pleaseWait') : $t('changeOwner.button') }}
-                </button>
-                <button
-                  type="button"
-                  class="text-red-600 hover:underline disabled:opacity-50"
-                  data-testid="remove-participant"
-                  :disabled="removingParticipantId === p.id || changingOwnerId === p.id"
-                  @click="onRemove(p)"
-                >
-                  {{ removingParticipantId === p.id ? $t('pleaseWait') : $t('Delete') }}
                 </button>
               </div>
             </td>
@@ -97,13 +88,11 @@ defineProps<{
   inviteUnavailable?: boolean
   adding?: boolean
   addDisabled?: boolean
-  removingParticipantId?: number | null
   changingOwnerId?: number | null
 }>()
 
 const emit = defineEmits<{
   add: []
-  remove: [participant: ParticipantDto]
   changeOwner: [participant: ParticipantDto]
   copy: [token: string]
   copyToken: [token: string]
@@ -111,10 +100,6 @@ const emit = defineEmits<{
 
 function onAdd() {
   emit('add')
-}
-
-function onRemove(participant: ParticipantDto) {
-  emit('remove', participant)
 }
 
 function onChangeOwner(participant: ParticipantDto) {
