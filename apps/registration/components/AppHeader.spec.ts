@@ -16,6 +16,14 @@ describe('AppHeader', () => {
         stubs: { LanguageSwitcher: true },
       },
     })
+    expect(wrapper.get('header').classes()).toContain('sticky')
+    const logo = wrapper.get('[data-testid="site-logo"]')
+    expect(logo.attributes('alt')).toBe('Coolest Projects Belgium')
+    expect(logo.attributes('src')).toContain('logo-coolest-projects-belgium.png')
+    expect(logo.classes()).toContain('h-20')
+    expect(wrapper.get('[data-testid="site-logo-link"]').classes()).not.toContain('lg:absolute')
+    expect(wrapper.find('[data-testid="site-logo-spacer"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Coolest Projects')
     expect(wrapper.text()).toContain('Inloggen')
     expect(wrapper.text()).not.toContain('Uitloggen')
     const current = wrapper.find('nav [aria-current="page"]')

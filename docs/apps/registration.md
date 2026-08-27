@@ -22,6 +22,8 @@ Nuxt 3 SPA for participant registration, magic-link login, project management, p
 
 Local URL (via proxy): `https://registration.coolestprojects.localhost:8443`
 
+Header home link is the Coolest Projects Belgium mark (`public/logo-coolest-projects-belgium.png`), 80px in the sticky header. Tab icons are the CoderDojo Belgium pack (`favicon.ico`, 16×16, 32×32, apple-touch) in `public/`.
+
 ## Talks to
 
 - `apps/api` at `https://api.coolestprojects.localhost:8443` — `RegistrationController`, `LoginController`, `ProjectinfoController`, `UserinfoController`, `ParticipantController`, `AppController` (`/settings`, catalogs); cross-origin with `credentials: 'include'` (API `CORS_ORIGINS`)

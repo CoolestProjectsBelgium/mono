@@ -1,8 +1,15 @@
 <template>
   <header class="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
-    <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-      <NuxtLink :to="localePath('/')" class="flex items-center gap-2">
-        <span class="text-xl font-display font-bold text-primary">Coolest Projects</span>
+    <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-y-2 px-4 py-3">
+      <NuxtLink :to="localePath('/')" class="flex shrink-0 items-center" data-testid="site-logo-link">
+        <img
+          src="/logo-coolest-projects-belgium.png"
+          alt="Coolest Projects Belgium"
+          width="189"
+          height="141"
+          class="h-20 w-auto"
+          data-testid="site-logo"
+        >
       </NuxtLink>
       <nav class="flex items-center gap-4" aria-label="Main navigation">
         <NuxtLink
