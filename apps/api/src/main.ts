@@ -8,19 +8,22 @@ import { env } from 'process';
 import { AppModule } from './app.module';
 import { configureSecurity } from './bootstrap-security';
 import { buildAppCookieOptions } from './cookie-options';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const config = app.get(ConfigService);
+
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
   configureSecurity(app);
 
-  app.use(cookieParser([env.JWT_KEY!, env.ADMINJS_COOKIE_SECRET!]));
+  app.use(cookieParser([config.get('api.jwt')!, config.get('adminjs.secret')!]));
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (!req.cookies.anonId) {
       const anonId = randomUUID();
-      const anonCookieOptions = buildAppCookieOptions(req);
+      const anonCookieOptions = buildAppCookieOptions(config, req);
 
       res.cookie('anonId', anonId, {
         httpOnly: true,
@@ -36,9 +39,9 @@ async function bootstrap() {
     next();
   });
 
-  const csrfCookieOptions = buildAppCookieOptions({ secure: true, headers: { 'x-forwarded-proto': 'https' } });
+  const csrfCookieOptions = buildAppCookieOptions(config, { secure: true, headers: { 'x-forwarded-proto': 'https' } });
   const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
-    getSecret: () => process.env.CSRF_SECRET!,
+    getSecret: () => config.get('api.csrf')!,
 
     cookieOptions: {
       sameSite: csrfCookieOptions.sameSite,
@@ -70,7 +73,7 @@ async function bootstrap() {
 
   app.use(doubleCsrfProtection);
 
-  const config = new DocumentBuilder()
+  const document_config = new DocumentBuilder()
     .setTitle('Coolestprojects registration')
     .setDescription(
       "This api exposes the api's for the Coolestproject registration website, voting system, event setup.",
@@ -80,7 +83,7 @@ async function bootstrap() {
     .addBearerAuth()
     .addCookieAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, document_config);
   SwaggerModule.setup('api', app, document);
 
   await app.listen(env.API_PORT || 3001);

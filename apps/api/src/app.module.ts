@@ -30,11 +30,15 @@ import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
 import { EmailLog } from '@coolestprojects/database';
 
+import configuration from './config/configuration.js';
+
+
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
-      isGlobal: true, // Makes the config available globally
+      isGlobal: true,
+      load: [configuration]
     }),
     AuthModule,
     SequelizeModule.forRootAsync({
@@ -42,17 +46,16 @@ import { EmailLog } from '@coolestprojects/database';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
-          dialect: configService.get('DB_DIALECT'),
-          host: configService.get('DB_HOST'),
-          port: configService.get('DB_PORT'),
-          username: configService.get('DB_USER'),
-          password: configService.get('DB_PASSWORD'),
-          database: configService.get('DB_NAME'),
+          dialect: configService.get('database.dialect'),
+          host: configService.get('database.host'),
+          port: configService.get('database.port'),
+          username: configService.get('database.user'),
+          password: configService.get('database.password'),
+          database: configService.get('database.name'),
           synchronize: true,
           // Add new model columns in local/dev without dropping data (synchronize alone only creates tables).
-          sync: process.env.NODE_ENV === 'production' ? undefined : { alter: true },
+          sync: configService.get('enviroment') === 'production' ? undefined : { alter: true },
           autoLoadModels: true,
-          //sync: { force: true },
           models: [
             Event,
             User,

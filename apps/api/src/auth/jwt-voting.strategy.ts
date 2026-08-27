@@ -3,13 +3,16 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { Account } from '@coolestprojects/database';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class JwtVotingStrategy extends PassportStrategy(Strategy, 'voting') {
-  constructor() {
+  constructor(
+    private configService: ConfigService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.VOTING_KEY!,
+      secretOrKey: configService.get("voting.jwt")!,
     });
   }
 

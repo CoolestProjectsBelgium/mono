@@ -13,6 +13,8 @@ import eventLoginRouter from './components/login/router.js'
 import {
   sequelize,
 } from './database.js'
+import 'dotenv/config'; 
+
 
 const SequelizeStore = connectSessionSequelize(session.Store)
 

@@ -16,6 +16,7 @@ import { SettingDto } from './dto/setting.dto';
 import { Registration } from '@coolestprojects/database';
 import { User } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AppService {
@@ -32,6 +33,7 @@ export class AppService {
     private readonly userModel: typeof User,
     @InjectModel(Project)
     private readonly projectModel: typeof Project,
+    private configService: ConfigService,
   ) {}
   async findAllQuestions(info: InfoDto): Promise<QuestionDto[]> {
     const questions = await this.questionModel.findAll({
@@ -141,7 +143,7 @@ export class AppService {
       minAge: event.minAge,
 
       guardianAge: event.minGuardianAge,
-      enviroment: process.env.NODE_ENV || 'production',
+      enviroment: this.configService.get('enviroment') || 'production',
       waitingListActive,
       maxUploadSize: event.maxFileSize || 1024 * 1024 * 1024 * 5, // 5 gigs in bytes
 
