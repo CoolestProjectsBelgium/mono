@@ -53,13 +53,13 @@ describe('login page token activation', () => {
     routeQuery.value = {}
   })
 
-  it('activates token from query on mount and navigates to /user', async () => {
+  it('activates token from query on mount and navigates to /project', async () => {
     routeQuery.value = { token: 'abc-token' }
     activateWithTokenMock.mockResolvedValue('ok')
     await mountSuspended(LoginPage)
     await vi.waitFor(() => {
       expect(activateWithTokenMock).toHaveBeenCalledWith('abc-token')
-      expect(replaceMock).toHaveBeenCalledWith('/user')
+      expect(replaceMock).toHaveBeenCalledWith('/project')
     })
   })
 
@@ -72,7 +72,7 @@ describe('login page token activation', () => {
       expect(wrapper.find('form').exists()).toBe(true)
       expect(replaceMock).toHaveBeenCalledWith('/login')
     })
-    expect(replaceMock).not.toHaveBeenCalledWith('/user')
+    expect(replaceMock).not.toHaveBeenCalledWith('/project')
   })
 })
 

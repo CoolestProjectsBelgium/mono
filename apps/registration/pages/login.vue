@@ -51,7 +51,7 @@ async function activateFromQuery(token: string | undefined) {
   try {
     const result = await activateWithToken(token)
     if (result === 'ok') {
-      await router.replace(localePath('/user'))
+      await router.replace(localePath('/project'))
       return
     }
     activationError.value = result

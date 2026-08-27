@@ -160,6 +160,7 @@
   "registrationSuccess": {
     "title": "Check je e-mail",
     "body": "We hebben een bevestigingslink gestuurd naar {email}. Klik op de link in die e-mail om verder te gaan.",
+    "spamHint": "Kijk ook in je spamfolder als je de e-mail niet meteen ziet.",
     "loginCta": "Inloggen",
     "homeCta": "Terug naar de startpagina"
   },

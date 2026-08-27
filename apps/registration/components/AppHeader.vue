@@ -5,16 +5,47 @@
         <span class="text-xl font-display font-bold text-primary">Coolest Projects</span>
       </NuxtLink>
       <nav class="flex items-center gap-4" aria-label="Main navigation">
-        <NuxtLink :to="localePath('/')" class="text-sm hover:text-primary">{{ $t('info') }}</NuxtLink>
-        <NuxtLink :to="localePath('/rules')" class="text-sm hover:text-primary">{{ $t('Rules') }}</NuxtLink>
+        <NuxtLink
+          :to="localePath('/')"
+          :class="navLinkClass('/')"
+          :aria-current="isActive('/') ? 'page' : undefined"
+        >
+          {{ $t('info') }}
+        </NuxtLink>
+        <NuxtLink
+          :to="localePath('/rules')"
+          :class="navLinkClass('/rules')"
+          :aria-current="isActive('/rules') ? 'page' : undefined"
+        >
+          {{ $t('Rules') }}
+        </NuxtLink>
         <template v-if="authStore.isLoggedIn">
-          <NuxtLink :to="localePath('/user')" class="text-sm hover:text-primary">{{ $t('User') }}</NuxtLink>
-          <NuxtLink :to="localePath('/project')" class="text-sm hover:text-primary">{{ $t('Project') }}</NuxtLink>
-          <button type="button" class="text-sm hover:text-primary" @click="onLogout">
+          <NuxtLink
+            :to="localePath('/user')"
+            :class="navLinkClass('/user')"
+            :aria-current="isActive('/user') ? 'page' : undefined"
+          >
+            {{ $t('User') }}
+          </NuxtLink>
+          <NuxtLink
+            :to="localePath('/project')"
+            :class="navLinkClass('/project')"
+            :aria-current="isActive('/project') ? 'page' : undefined"
+          >
+            {{ $t('Project') }}
+          </NuxtLink>
+          <button type="button" class="text-sm text-gray-600 hover:text-primary" @click="onLogout">
             {{ $t('Logout') }}
           </button>
         </template>
-        <NuxtLink v-else :to="localePath('/login')" class="text-sm hover:text-primary">{{ $t('Login') }}</NuxtLink>
+        <NuxtLink
+          v-else
+          :to="localePath('/login')"
+          :class="navLinkClass('/login')"
+          :aria-current="isActive('/login') ? 'page' : undefined"
+        >
+          {{ $t('Login') }}
+        </NuxtLink>
         <LanguageSwitcher />
       </nav>
     </div>
@@ -22,9 +53,22 @@
 </template>
 
 <script setup lang="ts">
+import { isHeaderNavActive } from '~/utils/header-nav'
+
 const localePath = useLocalePath()
+const route = useRoute()
 const authStore = useAuthStore()
 const { logout } = useAuth()
+
+function isActive(itemPath: string): boolean {
+  return isHeaderNavActive(route.path, itemPath)
+}
+
+function navLinkClass(itemPath: string): string {
+  return isActive(itemPath)
+    ? 'text-sm font-semibold text-primary'
+    : 'text-sm text-gray-600 hover:text-primary'
+}
 
 async function onLogout() {
   await logout()

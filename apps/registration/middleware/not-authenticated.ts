@@ -11,6 +11,6 @@ export default defineNuxtRouteMiddleware((to) => {
   }
   if (hydrateAuthStoreFromStorage()) {
     const localePath = useLocalePath()
-    return navigateTo(localePath('/user'))
+    return navigateTo(localePath('/project'))
   }
 })

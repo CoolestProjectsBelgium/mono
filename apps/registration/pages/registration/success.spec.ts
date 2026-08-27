@@ -23,6 +23,7 @@ const i18n = createI18n({
       registrationSuccess: {
         title: 'Check your email',
         body: 'We sent a confirmation link to {email}. Click the link in that email to continue.',
+        spamHint: 'Also check your spam folder if you don\'t see the email.',
         loginCta: 'Login',
         homeCta: 'Back to homepage',
       },
@@ -54,6 +55,7 @@ describe('registration success page', () => {
     await vi.waitFor(() => {
       expect(wrapper.text()).toContain('Check your email')
       expect(wrapper.text()).toContain('you@example.com')
+      expect(wrapper.text()).toContain('Also check your spam folder')
     })
     expect(navigateToMock).not.toHaveBeenCalled()
   })
