@@ -41,6 +41,7 @@ export interface AttachmentDto {
   id: string
   name: string
   thumbnailUrl: string
+  delete_possible?: boolean
 }
 
 export interface OwnProjectDto {

@@ -3,9 +3,12 @@ import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { setActivePinia, createPinia } from 'pinia'
 import ProjectPage from './project.vue'
 import type { ProjectDto } from '~/types/api'
+import { activeSettingsFixture } from '~/fixtures/settings'
 
 const {
   fetchProjectMock,
+  fetchSettingsMock,
+  fetchAttachmentsMock,
   updateProjectMock,
   leaveProjectMock,
   deleteProjectMock,
@@ -14,6 +17,8 @@ const {
   notifyMock,
 } = vi.hoisted(() => ({
   fetchProjectMock: vi.fn(),
+  fetchSettingsMock: vi.fn(),
+  fetchAttachmentsMock: vi.fn(),
   updateProjectMock: vi.fn(),
   leaveProjectMock: vi.fn(),
   deleteProjectMock: vi.fn(),
@@ -43,7 +48,13 @@ vi.mock('~/composables/useParticipant', () => ({
 
 vi.mock('~/composables/useSettings', () => ({
   useSettings: () => ({
-    fetchSettings: vi.fn().mockResolvedValue({ maxParticipants: 4 }),
+    fetchSettings: fetchSettingsMock,
+  }),
+}))
+
+vi.mock('~/composables/useAttachments', () => ({
+  useAttachments: () => ({
+    fetchAttachments: fetchAttachmentsMock,
   }),
 }))
 
@@ -124,7 +135,16 @@ vi.mock('~/components/FormSection.vue', () => ({
 mockNuxtImport('navigateTo', () => navigateToMock)
 mockNuxtImport('useLocalePath', () => () => (path: string) => path)
 mockNuxtImport('useI18n', () => () => ({
-  t: (key: string) => key,
+  t: (key: string, params?: Record<string, string>) => {
+    if (!params) {
+      return key
+    }
+    return Object.entries(params).reduce(
+      (message, [name, value]) => message.replaceAll(`{${name}}`, value),
+      key,
+    )
+  },
+  d: (value: Date) => value.toISOString().slice(0, 10),
 }))
 
 const coworkerProject: ProjectDto = {
@@ -147,10 +167,14 @@ describe('project page coworker leave', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     fetchProjectMock.mockReset()
+    fetchSettingsMock.mockReset()
+    fetchAttachmentsMock.mockReset()
     leaveProjectMock.mockReset()
     navigateToMock.mockReset()
     notifyMock.mockReset()
     fetchProjectMock.mockResolvedValue(coworkerProject)
+    fetchSettingsMock.mockResolvedValue(activeSettingsFixture)
+    fetchAttachmentsMock.mockResolvedValue([])
     leaveProjectMock.mockResolvedValue(true)
     navigateToMock.mockResolvedValue(undefined)
   })
@@ -217,12 +241,16 @@ describe('project page owner delete', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     fetchProjectMock.mockReset()
+    fetchSettingsMock.mockReset()
+    fetchAttachmentsMock.mockReset()
     updateProjectMock.mockReset()
     deleteProjectMock.mockReset()
     changeOwnerMock.mockReset()
     navigateToMock.mockReset()
     notifyMock.mockReset()
     fetchProjectMock.mockResolvedValue(ownerProject)
+    fetchSettingsMock.mockResolvedValue(activeSettingsFixture)
+    fetchAttachmentsMock.mockResolvedValue([])
     deleteProjectMock.mockResolvedValue(true)
     changeOwnerMock.mockResolvedValue(undefined)
     navigateToMock.mockResolvedValue(undefined)
@@ -290,6 +318,27 @@ describe('project page owner delete', () => {
       expect(navigateToMock).toHaveBeenCalledWith('/no_project')
       expect(notifyMock).toHaveBeenCalledWith('success', 'message_successChange')
     })
+  })
+
+  it('shows a red photo deadline warning when no pictures are uploaded', async () => {
+    const wrapper = await mountSuspended(ProjectPage)
+    await vi.waitFor(() => {
+      const warning = wrapper.get('[data-testid="photo-deadline-warning"]')
+      expect(warning.classes()).toContain('text-red-600')
+      expect(warning.text()).toContain('Je hebt nog geen foto')
+      expect(warning.text()).toContain('23:59')
+    })
+  })
+
+  it('hides the photo deadline warning when pictures are already uploaded', async () => {
+    fetchAttachmentsMock.mockResolvedValue([
+      { id: '1', name: 'Photo', thumbnailUrl: '/thumb/1' },
+    ])
+    const wrapper = await mountSuspended(ProjectPage)
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-testid="photos-link"]').exists()).toBe(true)
+    })
+    expect(wrapper.find('[data-testid="photo-deadline-warning"]').exists()).toBe(false)
   })
 
   it('transfers ownership after confirmation and refreshes project', async () => {

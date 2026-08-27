@@ -67,6 +67,10 @@ Global: `InfoInterceptor` on all responses.
 
 `POST /login`, `POST /login/logout`, `POST /login/mailToken` → auth cookies/JWT via `AuthModule` and `TokensService`.
 
+`PATCH /userinfo` updates the profile but never writes `User.email`: the address is the login identity for magic-link auth.
+
+`UserCookieInterceptor` refreshes the participant `jwt` cookie on authenticated responses. Routes that also accept the AdminJS session cookie (`GET /projectinfo/attachments/:id`, `GET /projectinfo/attachments/original/:id`) can resolve to an admin principal without a participant id; the interceptor skips those so an open admin session in the same browser cannot overwrite a participant session.
+
 ### Email templates
 
 Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](../../apps/api/src/mailer/seed-email-templates.ts) and is inserted by `seedDatabase` in [`apps/api/src/seeder/seed.ts`](../../apps/api/src/seeder/seed.ts). After changing templates, rebuild the API and re-run `npm run seed-db --workspace=apps/api` on a fresh database (or replace `EmailTemplates` rows for the active event). In the Dev Container, captured mail appears at http://localhost:18025.
@@ -74,6 +78,8 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 ### Project management
 
 `GET|POST|PATCH|DELETE /projectinfo` plus attachments and participant routes → `Project`, `UserProject`, `Attachment` models.
+
+- `DELETE /projectinfo/attachments/:id` (owner): removes a photo unless `confirmed` or `internal` is true; `null` counts as unconfirmed so seeded and newly uploaded files can be deleted
 
 - `DELETE /projectinfo` (owner alone): sets `Project.deletedAt` and soft-deletes all active `UserProject` rows for that project; rejected when registered co-participants exist
 - `POST /projectinfo/change-owner/:newOwnerId`: transfers `isOwner` while both memberships remain active

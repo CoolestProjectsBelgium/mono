@@ -5,7 +5,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Attachment, Event, Project, UserProject } from '@coolestprojects/database';
 import sharp from 'sharp';
-import { Op } from 'sequelize';
 
 @Injectable()
 export class FileUploadService {
@@ -64,14 +63,17 @@ export class FileUploadService {
       mimetype: file.mimetype,
       filepath: filepath,
       thumbnailPath: path.join(folderPath, thumbnailName),
+      confirmed: false,
+      internal: false,
     });
   }
 
 
   async deleteFile(userId: number, attachmentId: number): Promise<void> {
-    const attachment = await this.attachmentModel.findOne({ where: { id: attachmentId, confirmed: false, [Op.or]: [{ internal: false }, { internal: null }] } });
+    const attachment = await this.attachmentModel.findByPk(attachmentId);
 
-    if (!attachment) {
+    // Treat null like false: seeded and newly uploaded photos often leave these unset.
+    if (!attachment || attachment.confirmed === true || attachment.internal === true) {
       throw new Error('Attachment not found');
     }
 

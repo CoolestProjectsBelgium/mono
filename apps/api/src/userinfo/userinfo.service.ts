@@ -59,7 +59,7 @@ export class UserinfoService {
     }
 
     user.language = updateUserDto.language;
-    user.email = updateUserDto.email;
+    // The email address is the login identity, so profile updates never change it.
     user.firstname = updateUserDto.firstname;
     user.lastname = updateUserDto.lastname;
     user.sex = updateUserDto.sex;

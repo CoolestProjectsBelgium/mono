@@ -13,6 +13,7 @@
   "Delete": "Delete",
   "eigenProject": "I have my own project",
   "emailAddressLabel": "Email Address",
+  "emailLockedHint": "Your email address cannot be changed.",
   "emailAddressPlaceholder": "Email Address",
   "EnterToken": "Enter Token",
   "Ik schrijf me in": "I register",
@@ -165,6 +166,9 @@
     "homeCta": "Back to homepage"
   },
   "noProject": { "message": "You don't have a project yet. Create one or join an existing project." },
+  "project": {
+    "photoDeadlineWarning": "You have not uploaded any pictures yet. Please upload them before {projectClosedDate} 23:59."
+  },
   "upload": {
     "photoTitle": "Photos",
     "selectPhoto": "Select your photo",

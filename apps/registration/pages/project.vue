@@ -12,7 +12,18 @@
       message-key="apiUnavailable.default"
       class="mt-4"
     />
-    <template v-else-if="isProjectOwner" data-testid="project-owner-view">
+    <template v-else>
+    <p
+      v-if="showPhotoDeadlineWarning"
+      class="mt-4 font-medium text-red-600"
+      data-testid="photo-deadline-warning"
+      role="alert"
+    >
+      {{ $t('project.photoDeadlineWarning', {
+        projectClosedDate: formatLongDate(settings?.projectClosedDate),
+      }) }}
+    </p>
+    <template v-if="isProjectOwner" data-testid="project-owner-view">
       <form class="mt-6" @submit.prevent="onSave" @keydown.enter="onFormKeydown">
         <OwnProjectForm
           :model-value="ownProjectForm"
@@ -136,11 +147,12 @@
       :loading="changingOwnerId != null"
       @confirm="onConfirmChangeOwner"
     />
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ProjectDto, SettingDto, ParticipantDto } from '~/types/api'
+import type { ProjectDto, SettingDto, ParticipantDto, AttachmentDto } from '~/types/api'
 import { clearFieldError, mapZodIssuesToFieldErrors, scrollToFirstFieldError } from '~/utils/validation/map-field-errors'
 import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createOwnProjectSchema } from '~/utils/validation/user'
@@ -152,13 +164,16 @@ definePageMeta({ middleware: 'authenticated' })
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+const { formatLongDate } = useLongDate()
 const { fetchProject, updateProject, deleteProject, changeOwner } = useProjectinfo()
 const { generateInviteToken, leaveProject, copyInviteUrl, copyInviteToken } = useParticipant()
 const { fetchSettings } = useSettings()
+const { fetchAttachments } = useAttachments()
 const { notify } = useNotification()
 
 const project = ref<ProjectDto | null>(null)
 const settings = ref<SettingDto | null>(null)
+const attachments = ref<AttachmentDto[] | null>(null)
 const loading = ref(true)
 const loadError = ref(false)
 const inviteUnavailable = ref(false)
@@ -178,6 +193,12 @@ const coParticipantCount = computed(() =>
 )
 
 const isProjectOwner = computed(() => checkIsProjectOwner(project.value))
+
+const showPhotoDeadlineWarning = computed(() =>
+  attachments.value !== null
+  && attachments.value.length === 0
+  && Boolean(settings.value?.projectClosedDate),
+)
 
 const coworkerParticipants = computed(() =>
   project.value?.own_project?.participants ?? [],
@@ -223,13 +244,16 @@ onMounted(async () => {
   loading.value = true
   loadError.value = false
   try {
-    const [fetchedProject, fetchedSettings] = await Promise.all([
+    const attachmentsPromise = fetchAttachments().catch(() => null)
+    const [fetchedProject, fetchedSettings, fetchedAttachments] = await Promise.all([
       fetchProject(),
       fetchSettings(),
+      attachmentsPromise,
     ])
     project.value = fetchedProject
     syncOwnProjectForm(fetchedProject)
     settings.value = fetchedSettings
+    attachments.value = fetchedAttachments
     if (!fetchedProject?.own_project && !fetchedProject?.other_project) {
       await navigateTo(localePath('/no_project'))
     }
@@ -237,6 +261,7 @@ onMounted(async () => {
   catch {
     loadError.value = true
     project.value = null
+    attachments.value = null
   }
   finally {
     loading.value = false
