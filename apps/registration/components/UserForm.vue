@@ -140,6 +140,73 @@
         </template>
       </FormField>
     </div>
+    <fieldset data-testid="affiliation" class="mt-6 rounded-lg border border-gray-200 bg-gray-50/80 p-4">
+      <legend class="px-1 text-sm font-medium text-gray-700">{{ $t('label_via') }}</legend>
+      <div class="mt-3 flex flex-col gap-2">
+        <label class="flex items-center gap-2">
+          <input
+            type="radio"
+            name="via_type"
+            value="dojo"
+            :checked="model.via_type === 'dojo'"
+            :disabled="disabled"
+            @change="setViaType('dojo')"
+          />
+          {{ $t('via_dojo') }}
+        </label>
+        <label class="flex items-center gap-2">
+          <input
+            type="radio"
+            name="via_type"
+            value="other"
+            :checked="model.via_type === 'other'"
+            :disabled="disabled"
+            @change="setViaType('other')"
+          />
+          {{ $t('via_other') }}
+        </label>
+        <label class="flex items-center gap-2">
+          <input
+            type="radio"
+            name="via_type"
+            value="na"
+            :checked="model.via_type === ''"
+            :disabled="disabled"
+            @change="setViaType('')"
+          />
+          {{ $t('via_na') }}
+        </label>
+      </div>
+      <div v-if="model.via_type === 'dojo'" class="mt-4">
+        <DojoSearchField
+          v-model="model.via"
+          :label="$t('placeholder_via_dojo')"
+          :placeholder="$t('placeholder_via_dojo')"
+          :disabled="disabled"
+          :error="errors?.via"
+          @clear-error="emit('clear-error', 'via')"
+        />
+      </div>
+      <FormField
+        v-else-if="model.via_type === 'other'"
+        class="mt-4"
+        field-id="via"
+        :label="$t('label_via_other_name')"
+        :error="errors?.via"
+      >
+        <template #default="{ inputId, inputClass, ariaInvalid, ariaDescribedby }">
+          <input
+            :id="inputId"
+            v-model="model.via"
+            :class="inputClass"
+            :disabled="disabled"
+            :aria-invalid="ariaInvalid"
+            :aria-describedby="ariaDescribedby"
+            @input="emit('clear-error', 'via')"
+          />
+        </template>
+      </FormField>
+    </fieldset>
     <div v-if="showGuardianFields" id="guardian-section" class="mt-6 grid gap-4 md:grid-cols-2">
       <h3 class="col-span-full text-lg font-semibold">{{ $t('Informatie van je ouders/voogd') }}</h3>
       <FormField
@@ -184,6 +251,7 @@
 <script setup lang="ts">
 import type { SettingDto, TshirtDto, UserDto } from '~/types/api'
 import { createEmptyAddress } from '~/utils/registration-payload'
+import type { ViaType } from '~/utils/dojos/types'
 import {
   formatBirthMonth as formatMonth,
   getAgeBounds,
@@ -197,6 +265,10 @@ const model = defineModel<UserDto>({ required: true })
 
 if (!model.value.address) {
   model.value.address = createEmptyAddress()
+}
+
+if (model.value.via_type !== 'dojo' && model.value.via_type !== 'other') {
+  model.value.via_type = ''
 }
 
 const props = defineProps<{
@@ -232,6 +304,12 @@ const tshirtOptions = computed(() => props.tshirts ?? [])
 
 function formatTshirtLabel(name: string): string {
   return te(name) ? t(name) : name
+}
+
+function setViaType(type: ViaType) {
+  model.value.via_type = type
+  model.value.via = ''
+  emit('clear-error', 'via')
 }
 
 const yearOptions = computed(() => (ageBounds.value ? getEligibleYears(ageBounds.value) : []))

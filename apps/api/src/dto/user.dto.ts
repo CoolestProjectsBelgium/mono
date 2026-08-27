@@ -19,6 +19,8 @@ export class UserDto {
   gsm_guardian!: string;
   email_guardian!: string;
   via!: string;
+  @ApiProperty({ enum: ['dojo', 'other', ''], required: false })
+  via_type!: 'dojo' | 'other' | '';
   medical!: string;
   delete_possible?: boolean;
   address!: AddressDto;

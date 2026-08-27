@@ -13,6 +13,7 @@ import { Sequelize } from 'sequelize-typescript';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { QuestionUser } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
+import { normalizeAffiliation } from '../affiliation/normalize-affiliation';
 
 @Injectable()
 export class RegistrationService {
@@ -48,6 +49,11 @@ export class RegistrationService {
     if (!info.registrationOpen) {
       throw new Error('Registration is not open for this event.');
     }
+
+    const affiliation = normalizeAffiliation(
+      createRegistrationDto.user.via_type,
+      createRegistrationDto.user.via,
+    );
 
     const emailUserFound = await this.userModel.count({
       where: {
@@ -98,7 +104,8 @@ export class RegistrationService {
         createRegistrationDto.user.gsm_guardian?.trim() || null,
       email_guardian:
         createRegistrationDto.user.email_guardian?.trim() || null,
-      via: createRegistrationDto.user.via,
+      via: affiliation.via,
+      via_type: affiliation.via_type,
       medical: createRegistrationDto.user.medical,
       tshirtId: createRegistrationDto.user.t_size,
       birthmonth: new Date(
@@ -260,6 +267,7 @@ export class RegistrationService {
           birthmonth: r.birthmonth,
           tshirtId: r.tshirtId,
           via: r.via,
+          via_type: r.via_type,
           medical: r.medical,
           internalinfo: r.internalinfo,
 

@@ -22,6 +22,7 @@ export interface UserDto {
   gsm_guardian: string
   email_guardian: string
   via: string
+  via_type: '' | 'dojo' | 'other'
   medical: string
   delete_possible?: boolean
   address: AddressDto

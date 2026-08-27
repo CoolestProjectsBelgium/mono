@@ -28,6 +28,7 @@ describe('UserForm', () => {
         municipality_name: '',
       },
       via: '',
+      via_type: '',
       medical: '',
       delete_possible: false,
     })
@@ -74,6 +75,7 @@ describe('UserForm', () => {
         municipality_name: '',
       },
       via: '',
+      via_type: '',
       medical: '',
       delete_possible: false,
     })
@@ -120,6 +122,7 @@ describe('UserForm', () => {
         municipality_name: 'Mechelen',
       },
       via: '',
+      via_type: '',
       medical: '',
       delete_possible: false,
     })
@@ -167,6 +170,7 @@ describe('UserForm', () => {
         municipality_name: '',
       },
       via: '',
+      via_type: '',
       medical: '',
       delete_possible: false,
     })
@@ -194,5 +198,104 @@ describe('UserForm', () => {
 
     expect(model.value.month).toBe(-1)
     expect(wrapper.find('#month').findAll('option')).toHaveLength(8)
+  })
+
+  it('shows the dojo search field when CoderDojo is selected', async () => {
+    const model = ref({
+      email: '',
+      firstname: '',
+      lastname: '',
+      year: 2008,
+      month: 5,
+      gsm: '',
+      sex: 'm' as const,
+      t_size: 0,
+      email_guardian: '',
+      gsm_guardian: '',
+      general_questions: [],
+      mandatory_approvals: [],
+      language: 'nl',
+      address: {
+        postalcode: 0,
+        street: '',
+        house_number: '',
+        box_number: '',
+        municipality_name: '',
+      },
+      via: '',
+      via_type: '' as const,
+      medical: '',
+      delete_possible: false,
+    })
+
+    const wrapper = await mountSuspended(UserForm, {
+      props: {
+        modelValue: model.value,
+        settings: activeSettingsFixture,
+        'onUpdate:modelValue': (value: typeof model.value) => {
+          model.value = value
+        },
+      },
+      global: {
+        stubs: {
+          FormSection: { template: '<div><slot /></div>', props: ['title'] },
+        },
+      },
+    })
+
+    expect(wrapper.find('#via').exists()).toBe(false)
+    await wrapper.get('[data-testid="affiliation"] input[value="dojo"]').setValue(true)
+    await wrapper.vm.$nextTick()
+    expect(model.value.via_type).toBe('dojo')
+    expect(wrapper.find('#via').exists()).toBe(true)
+  })
+
+  it('shows a not-applicable option', async () => {
+    const model = ref({
+      email: '',
+      firstname: '',
+      lastname: '',
+      year: 2008,
+      month: 5,
+      gsm: '',
+      sex: 'm' as const,
+      t_size: 0,
+      email_guardian: '',
+      gsm_guardian: '',
+      general_questions: [],
+      mandatory_approvals: [],
+      language: 'nl',
+      address: {
+        postalcode: 0,
+        street: '',
+        house_number: '',
+        box_number: '',
+        municipality_name: '',
+      },
+      via: '',
+      via_type: '' as const,
+      medical: '',
+      delete_possible: false,
+    })
+
+    const wrapper = await mountSuspended(UserForm, {
+      props: {
+        modelValue: model.value,
+        settings: activeSettingsFixture,
+        'onUpdate:modelValue': (value: typeof model.value) => {
+          model.value = value
+        },
+      },
+      global: {
+        stubs: {
+          FormSection: { template: '<div><slot /></div>', props: ['title'] },
+        },
+      },
+    })
+
+    const na = wrapper.get('[data-testid="affiliation"] input[value="na"]')
+    expect((na.element as HTMLInputElement).checked).toBe(true)
+    expect(wrapper.text()).toContain('Niet van toepassing')
+    expect(wrapper.text()).not.toContain('Niet verplicht')
   })
 })

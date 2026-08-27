@@ -33,8 +33,8 @@ Most domain models extend `BaseEventModel` (adds `eventId` FK to `Event`). `Even
 |-------|---------|------|
 | `Event` | `Model` | Event config, dates, limits, floorplan |
 | `Account` | — | Admin/staff accounts (AdminJS auth) |
-| `User` | `BaseEventModel` | Participant user (`postalcode`, `municipality_name`, `tshirtId`, profile fields) |
-| `Registration` | `BaseEventModel` | Registration record |
+| `User` | `BaseEventModel` | Participant user (`postalcode`, `municipality_name`, `tshirtId`, `via` / `via_type` affiliation, profile fields) |
+| `Registration` | `BaseEventModel` | Registration record (`via` / `via_type` copied to User on activate) |
 | `Project` | `BaseEventModel` | Submitted project (`deletedAt` soft-delete) |
 | `UserProject` | `BaseEventModel` | User↔project link, voucher, owner flag (`deletedAt` soft-delete) |
 | `Question` | `BaseEventModel` | Registration question |
@@ -64,7 +64,7 @@ Exports are listed in `packages/database/src/index.ts`.
 
 ### Registration data
 
-`User` + `Registration` + `QuestionRegistration` / `QuestionUser` + optional `Tshirt` selections.
+`User` + `Registration` + `QuestionRegistration` / `QuestionUser` + optional `Tshirt` selections. Optional affiliation is `via_type` (`dojo` \| `other` \| null) plus `via` (dojo name without the `Dojo` prefix, or free-text organisation). Null `via_type` is the not-applicable choice.
 
 ### Project + voting
 
