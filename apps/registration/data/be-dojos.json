@@ -1,0 +1,362 @@
+[
+  {
+    "name": "Aalter"
+  },
+  {
+    "name": "Aarschot"
+  },
+  {
+    "name": "Adem"
+  },
+  {
+    "name": "Anneessens-Funck"
+  },
+  {
+    "name": "Ans"
+  },
+  {
+    "name": "Asse"
+  },
+  {
+    "name": "Ath"
+  },
+  {
+    "name": "Aywaille"
+  },
+  {
+    "name": "Baarle"
+  },
+  {
+    "name": "Balen"
+  },
+  {
+    "name": "Beersel"
+  },
+  {
+    "name": "Berchem"
+  },
+  {
+    "name": "Beveren"
+  },
+  {
+    "name": "Bilzen"
+  },
+  {
+    "name": "Borgerhout"
+  },
+  {
+    "name": "Borsbeek"
+  },
+  {
+    "name": "Boutersem"
+  },
+  {
+    "name": "Braine l'Alleud"
+  },
+  {
+    "name": "Brecht"
+  },
+  {
+    "name": "Bree"
+  },
+  {
+    "name": "Brugge"
+  },
+  {
+    "name": "Clavier"
+  },
+  {
+    "name": "De Pinte"
+  },
+  {
+    "name": "Deinze"
+  },
+  {
+    "name": "Denderleeuw"
+  },
+  {
+    "name": "Diest"
+  },
+  {
+    "name": "Diksmuide"
+  },
+  {
+    "name": "Dilbeek"
+  },
+  {
+    "name": "Evergem"
+  },
+  {
+    "name": "Fabota Leuven"
+  },
+  {
+    "name": "Forest (1190)"
+  },
+  {
+    "name": "Gavere"
+  },
+  {
+    "name": "Geel"
+  },
+  {
+    "name": "Gembloux"
+  },
+  {
+    "name": "Genk"
+  },
+  {
+    "name": "Gent"
+  },
+  {
+    "name": "Geraardsbergen"
+  },
+  {
+    "name": "Gerpinnes"
+  },
+  {
+    "name": "Gilly"
+  },
+  {
+    "name": "Haaltert"
+  },
+  {
+    "name": "Halle"
+  },
+  {
+    "name": "Ham"
+  },
+  {
+    "name": "Hasselt"
+  },
+  {
+    "name": "Hechtel-Eksel"
+  },
+  {
+    "name": "Hemiksem"
+  },
+  {
+    "name": "Herent"
+  },
+  {
+    "name": "Herentals"
+  },
+  {
+    "name": "Herselt"
+  },
+  {
+    "name": "Heusden-Zolder"
+  },
+  {
+    "name": "Hoogstraten"
+  },
+  {
+    "name": "Houthalen"
+  },
+  {
+    "name": "Ichtegem (\\/Eernegem)"
+  },
+  {
+    "name": "Ieper"
+  },
+  {
+    "name": "izegem"
+  },
+  {
+    "name": "Kalmthout"
+  },
+  {
+    "name": "Kessel-Lo"
+  },
+  {
+    "name": "Kortenberg"
+  },
+  {
+    "name": "Kortrijk"
+  },
+  {
+    "name": "Kortrijk Quindo"
+  },
+  {
+    "name": "Kruibeke"
+  },
+  {
+    "name": "Laken"
+  },
+  {
+    "name": "Lanaken"
+  },
+  {
+    "name": "Lede"
+  },
+  {
+    "name": "Leopoldsburg"
+  },
+  {
+    "name": "Lessines"
+  },
+  {
+    "name": "Liège"
+  },
+  {
+    "name": "Liège Chiroux"
+  },
+  {
+    "name": "Lier"
+  },
+  {
+    "name": "Lommel"
+  },
+  {
+    "name": "Londerzeel"
+  },
+  {
+    "name": "Louvain-La-Neuve (LLN)"
+  },
+  {
+    "name": "Maaseik"
+  },
+  {
+    "name": "Maldegem"
+  },
+  {
+    "name": "Marche"
+  },
+  {
+    "name": "Mechelen Technopolis"
+  },
+  {
+    "name": "Meerhout"
+  },
+  {
+    "name": "Meise"
+  },
+  {
+    "name": "MolenDojo (Molenbeek)"
+  },
+  {
+    "name": "Mons"
+  },
+  {
+    "name": "Monty"
+  },
+  {
+    "name": "Namur"
+  },
+  {
+    "name": "Nazareth"
+  },
+  {
+    "name": "Ninove"
+  },
+  {
+    "name": "Oostende"
+  },
+  {
+    "name": "Overijse"
+  },
+  {
+    "name": "Poperinge"
+  },
+  {
+    "name": "Ramillies"
+  },
+  {
+    "name": "Roeselare"
+  },
+  {
+    "name": "Rotselaar"
+  },
+  {
+    "name": "SBSO Baken"
+  },
+  {
+    "name": "Sint-Katelijne Waver"
+  },
+  {
+    "name": "Sint-Niklaas"
+  },
+  {
+    "name": "Sint-Pieters-Leeuw"
+  },
+  {
+    "name": "Sivry"
+  },
+  {
+    "name": "Soignies"
+  },
+  {
+    "name": "Staden"
+  },
+  {
+    "name": "Stekene"
+  },
+  {
+    "name": "Temse"
+  },
+  {
+    "name": "Ternat"
+  },
+  {
+    "name": "Tielt"
+  },
+  {
+    "name": "Tienen"
+  },
+  {
+    "name": "Torhout"
+  },
+  {
+    "name": "Tournai - Port'ouverte"
+  },
+  {
+    "name": "Turnhout"
+  },
+  {
+    "name": "Uccle"
+  },
+  {
+    "name": "Veurne"
+  },
+  {
+    "name": "Villers-la-Ville"
+  },
+  {
+    "name": "Vilvoorde"
+  },
+  {
+    "name": "Waregem"
+  },
+  {
+    "name": "Waterloo"
+  },
+  {
+    "name": "Westerlo"
+  },
+  {
+    "name": "Wijnegem"
+  },
+  {
+    "name": "Zele"
+  },
+  {
+    "name": "Zelzate"
+  },
+  {
+    "name": "Zonnebeke"
+  },
+  {
+    "name": "Zottegem"
+  },
+  {
+    "name": "Zulte"
+  },
+  {
+    "name": "Zwalm"
+  },
+  {
+    "name": "Zwijnaarde"
+  },
+  {
+    "name": "Zwijndrecht"
+  }
+]

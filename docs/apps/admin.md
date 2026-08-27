@@ -18,6 +18,7 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 | `apps/admin/src/database.ts` | Sequelize connection |
 | `apps/admin/src/components/` | Custom AdminJS components (`Login`, `Dashboard`) |
 | `npm run start:dev --workspace=apps/admin` | Dev server (port 3000 in Dev Container) |
+| `apps/admin/.adminjs/` | Generated frontend bundle (`entry.js`, `bundle.js`); created on start via `ComponentLoader` / `admin.watch()`; gitignored |
 
 Local URL (via proxy): `https://admin.coolestprojects.localhost:8443` (redirects to `/admin`)
 

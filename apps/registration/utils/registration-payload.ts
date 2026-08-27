@@ -1,4 +1,6 @@
 import type { RegistrationDto, UserDto, ProjectDto } from '~/types/api'
+import { normalizeViaType } from '~/utils/dojos/affiliation'
+import { stripDojoPrefix } from '~/utils/dojos/parse-dojo-html'
 
 export interface RegistrationFormState {
   user: UserDto
@@ -58,6 +60,7 @@ export function createEmptyUser(): UserDto {
     gsm_guardian: '',
     email_guardian: '',
     via: '',
+    via_type: '',
     medical: '',
     address: createEmptyAddress(),
   }
@@ -84,6 +87,10 @@ export function hydrateUserProfile(
   return {
     ...defaults,
     ...saved,
+    via_type: normalizeViaType(saved.via_type),
+    via: normalizeViaType(saved.via_type) === 'dojo'
+      ? stripDojoPrefix(saved.via ?? '')
+      : (saved.via ?? defaults.via),
     address: {
       ...defaults.address,
       ...saved.address,
@@ -107,6 +114,10 @@ export function hydrateRegistrationForm(
     user: {
       ...defaults.user,
       ...saved.user,
+      via_type: normalizeViaType(saved.user?.via_type),
+      via: normalizeViaType(saved.user?.via_type) === 'dojo'
+        ? stripDojoPrefix(saved.user?.via ?? '')
+        : (saved.user?.via ?? defaults.user.via),
       address: {
         ...defaults.user.address,
         ...saved.user?.address,

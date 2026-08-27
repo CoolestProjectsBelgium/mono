@@ -76,6 +76,9 @@ export class User extends BaseEventModel {
   @Column(DataType.STRING(255))
   via!: string;
 
+  @Column({ type: DataType.ENUM('dojo', 'other'), allowNull: true })
+  declare via_type: 'dojo' | 'other' | null;
+
   @Column(DataType.STRING(255))
   medical!: string;
 

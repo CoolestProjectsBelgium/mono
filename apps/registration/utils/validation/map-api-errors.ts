@@ -49,6 +49,11 @@ const API_MESSAGE_PATTERNS: Array<{
     i18nKey: 'validation_year',
   },
   {
+    test: /affiliation/i,
+    fieldErrors: { via: 'validation_via' },
+    i18nKey: 'validation_via',
+  },
+  {
     test: /file validation failed/i,
     fieldErrors: { 'photo-file': 'validation_uploadTooLarge' },
     i18nKey: 'validation_uploadTooLarge',

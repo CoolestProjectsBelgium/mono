@@ -2,6 +2,10 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   ssr: false, // SPA mode for voting application
+  experimental: {
+    // Required for ssr:false dev server on Nuxt 3.21.7+ (rollupOptions.input regression).
+    viteEnvironmentApi: true,
+  },
 
   modules: [
     '@nuxt/ui',

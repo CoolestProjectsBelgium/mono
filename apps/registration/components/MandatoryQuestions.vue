@@ -11,7 +11,19 @@
         />
         <span>
           <strong>{{ approval.name }}</strong>
-          <p class="text-sm text-gray-600">{{ approval.description }}</p>
+          <p class="text-sm text-gray-600">
+            <template v-for="(part, index) in descriptionParts(approval.description)" :key="index">
+              <NuxtLink
+                v-if="part.type === 'link'"
+                :to="localePath('/rules')"
+                class="text-primary hover:underline"
+                @click.stop
+              >
+                {{ part.text }}
+              </NuxtLink>
+              <template v-else>{{ part.text }}</template>
+            </template>
+          </p>
         </span>
       </label>
     </div>
@@ -23,6 +35,7 @@
 
 <script setup lang="ts">
 import type { ApprovalDto } from '~/types/api'
+import { linkifyRulesDescription } from '~/utils/linkify-rules-description'
 
 defineProps<{
   approvals: ApprovalDto[]
@@ -34,6 +47,12 @@ const emit = defineEmits<{
 }>()
 
 const model = defineModel<string[]>({ required: true })
+const localePath = useLocalePath()
+const { t } = useI18n()
+
+function descriptionParts(description: string) {
+  return linkifyRulesDescription(description, t('rulesLinkWord'), t('Rules'))
+}
 
 function onToggle(id: string, checked: boolean) {
   emit('clear-error')

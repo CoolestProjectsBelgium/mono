@@ -11,7 +11,8 @@
     "postinstall": "nuxt prepare && node ./scripts/patch-vitest-environment.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed:postal-codes": "node ./scripts/seed-postal-codes.mjs"
+    "seed:postal-codes": "node ./scripts/seed-postal-codes.mjs",
+    "seed:dojos": "node ./scripts/seed-dojos.mjs"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.0",

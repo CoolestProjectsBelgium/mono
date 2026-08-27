@@ -42,4 +42,9 @@ describe('map-api-errors', () => {
     const result = mapApiMessageToFieldErrors('File validation failed', t)
     expect(result.fieldErrors['photo-file']).toBe('validation_uploadTooLarge')
   })
+
+  it('maps affiliation validation to via', () => {
+    const result = mapApiMessageToFieldErrors('Validation: affiliation name is required.', t)
+    expect(result.fieldErrors.via).toBe('validation_via')
+  })
 })

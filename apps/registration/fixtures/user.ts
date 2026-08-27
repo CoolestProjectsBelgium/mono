@@ -15,7 +15,8 @@ export const userFixture: UserDto = {
   t_size: 2,
   gsm_guardian: '',
   email_guardian: '',
-  via: 'dojo',
+  via: '',
+  via_type: '',
   medical: '',
   delete_possible: true,
   address: {

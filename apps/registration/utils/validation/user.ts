@@ -6,6 +6,7 @@ import {
   isGuardianRequired,
 } from '~/utils/birth-date'
 import { isValidPostalMunicipalityPair } from '~/utils/postal-codes/search-postal-codes'
+import { isAffiliationComplete, normalizeViaType } from '~/utils/dojos/affiliation'
 
 const BELGIAN_GSM_REGEX = /^((\+|00)32\s?|0)([1-9][0-9]\d{6})\d?$/
 
@@ -45,6 +46,8 @@ export function createPersonalFieldsSchema(settings: {
     gsm_guardian: z.string().optional(),
     t_size: z.number().min(1),
     address: addressSchema,
+    via_type: z.enum(['', 'dojo', 'other']).optional(),
+    via: z.string().optional(),
   }).superRefine((data, ctx) => {
     if (!getEligibleYears(bounds).includes(data.year)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['year'], message: 'Invalid birth year' })
@@ -63,6 +66,15 @@ export function createPersonalFieldsSchema(settings: {
       if (!data.gsm_guardian || !BELGIAN_GSM_REGEX.test(data.gsm_guardian)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['gsm_guardian'], message: 'Guardian phone required' })
       }
+    }
+
+    const viaType = normalizeViaType(data.via_type)
+    if (!isAffiliationComplete(viaType, data.via ?? '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['via'],
+        message: viaType === 'dojo' ? 'Unknown dojo' : 'Affiliation name required',
+      })
     }
   })
 }

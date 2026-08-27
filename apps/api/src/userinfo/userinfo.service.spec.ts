@@ -19,6 +19,7 @@ describe('UserinfoService', () => {
     gsm_guardian: '',
     email_guardian: '',
     via: '',
+    via_type: null,
     medical: '',
     postalcode: 1000,
     municipality_name: 'Brussel',
@@ -27,6 +28,7 @@ describe('UserinfoService', () => {
   } as unknown as User;
 
   beforeEach(async () => {
+    Object.assign(mockUser, { via: '', via_type: null, email_guardian: '' });
     findByPk = jest.fn().mockResolvedValue(mockUser);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -56,7 +58,14 @@ describe('UserinfoService', () => {
     expect(dto.address.municipality_name).toBe('Brussel');
   });
 
-  it('stores null for empty guardian email on update', async () => {
+  it('maps affiliation to dto', async () => {
+    Object.assign(mockUser, { via: 'Dojo Balen', via_type: 'dojo' });
+    const dto = await service.getUserInfo(1);
+    expect(dto.via).toBe('Dojo Balen');
+    expect(dto.via_type).toBe('dojo');
+  });
+
+  it('clears affiliation on update when type is omitted', async () => {
     await service.updateUser(1, {
       id: 1,
       language: 'nl',
@@ -73,6 +82,7 @@ describe('UserinfoService', () => {
       gsm_guardian: '',
       email_guardian: '  ',
       via: '',
+      via_type: '',
       medical: '',
       delete_possible: true,
       address: {
@@ -85,6 +95,8 @@ describe('UserinfoService', () => {
     });
 
     expect(mockUser.email_guardian).toBeNull();
+    expect(mockUser.via).toBe('');
+    expect(mockUser.via_type).toBeNull();
     expect(mockUser.save).toHaveBeenCalled();
   });
 });

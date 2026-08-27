@@ -62,6 +62,8 @@ vi.mock('~/components/CtaButton.vue', () => ({
 
 mockNuxtImport('useI18n', () => () => ({
   t: (key: string) => key,
+  te: () => false,
+  locale: { value: 'nl' },
 }))
 
 describe('user page profile load', () => {
@@ -87,6 +89,21 @@ describe('user page profile load', () => {
     expect(firstname.exists()).toBe(true)
     expect((firstname.element as HTMLInputElement).value).toBe('Test')
     expect((wrapper.find('#lastname').element as HTMLInputElement).value).toBe('User')
+  })
+
+  it('shows stored dojo affiliation', async () => {
+    fetchUserMock.mockResolvedValue({
+      ...userFixture,
+      via_type: 'dojo',
+      via: 'Dojo Balen',
+    })
+
+    const wrapper = await mountSuspended(UserPage)
+    await flushPromises()
+
+    const via = wrapper.find('#via')
+    expect(via.exists()).toBe(true)
+    expect((via.element as HTMLInputElement).value).toBe('Balen')
   })
 
   it('shows t-shirt size options from API', async () => {

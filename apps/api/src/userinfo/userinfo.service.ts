@@ -5,6 +5,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
 import { UserDto } from '../dto/user.dto';
+import { normalizeAffiliation } from '../affiliation/normalize-affiliation';
 
 @Injectable()
 export class UserinfoService {
@@ -30,6 +31,7 @@ export class UserinfoService {
       gsm_guardian: user.gsm_guardian ?? '',
       email_guardian: user.email_guardian ?? '',
       via: user.via ?? '',
+      via_type: user.via_type ?? '',
       medical: user.medical ?? '',
       delete_possible: true,
       address: {
@@ -66,7 +68,9 @@ export class UserinfoService {
     user.gsm_guardian = updateUserDto.gsm_guardian;
     // Empty string fails Sequelize @IsEmail; store null when absent (same as registration).
     user.email_guardian = updateUserDto.email_guardian?.trim() || null;
-    user.via = updateUserDto.via;
+    const affiliation = normalizeAffiliation(updateUserDto.via_type, updateUserDto.via);
+    user.via = affiliation.via;
+    user.via_type = affiliation.via_type;
     user.medical = updateUserDto.medical;
     user.postalcode = updateUserDto.address.postalcode;
     user.municipality_name = updateUserDto.address.municipality_name;

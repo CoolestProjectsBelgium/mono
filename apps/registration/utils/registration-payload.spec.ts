@@ -65,6 +65,20 @@ describe('hydrateRegistrationForm', () => {
       postalcode: 0,
     })
     expect(hydrated.user.email).toBe('saved@example.com')
+    expect(hydrated.user.via_type).toBe('')
+  })
+
+  it('strips the Dojo prefix from saved dojo names', () => {
+    const hydrated = hydrateRegistrationForm({
+      user: {
+        ...userFixture,
+        via_type: 'dojo',
+        via: 'Dojo Balen',
+      },
+    })
+
+    expect(hydrated.user.via_type).toBe('dojo')
+    expect(hydrated.user.via).toBe('Balen')
   })
 })
 
@@ -96,5 +110,15 @@ describe('hydrateUserProfile', () => {
 
     expect(hydrated.address.postalcode).toBe(2400)
     expect(hydrated.address.municipality_name).toBe(userFixture.address.municipality_name)
+  })
+
+  it('strips the Dojo prefix from saved dojo names', () => {
+    const hydrated = hydrateUserProfile({
+      ...userFixture,
+      via_type: 'dojo',
+      via: 'Dojo Balen',
+    })
+
+    expect(hydrated.via).toBe('Balen')
   })
 })
