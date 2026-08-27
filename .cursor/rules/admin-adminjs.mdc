@@ -37,6 +37,7 @@ Use `addEventFilter`, `canCreate`, `canAccessResourceFieldFilter`, `andAccess` h
 - `@adminjs/passwords` for `Account` password hashing
 - `ComponentLoader` for custom components; override `Login`, add `Dashboard`
 - Custom components are `.tsx` files referenced by path in `componentLoader`
+- Do not commit `apps/admin/.adminjs/` — AdminJS regenerates `entry.js` and `bundle.js` on start
 
 ## After model changes
 
