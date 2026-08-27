@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import { UserinfoService } from './userinfo.service';
 import { User } from '@coolestprojects/database';
+import { UserDto } from '../dto/user.dto';
 
 describe('UserinfoService', () => {
   let service: UserinfoService;
@@ -27,8 +28,41 @@ describe('UserinfoService', () => {
     save: jest.fn().mockResolvedValue(undefined),
   } as unknown as User;
 
+  const updatePayload: UserDto = {
+    id: 1,
+    language: 'nl',
+    email: 'test@example.com',
+    firstname: 'Test',
+    lastname: 'User',
+    sex: 'x',
+    gsm: '123',
+    general_questions: [],
+    mandatory_approvals: [],
+    year: 2010,
+    month: 5,
+    t_size: 2,
+    gsm_guardian: '',
+    email_guardian: '  ',
+    via: '',
+    via_type: '',
+    medical: '',
+    delete_possible: true,
+    address: {
+      street: '',
+      house_number: '',
+      municipality_name: 'Brussel',
+      box_number: '',
+      postalcode: 1000,
+    },
+  };
+
   beforeEach(async () => {
-    Object.assign(mockUser, { via: '', via_type: null, email_guardian: '' });
+    Object.assign(mockUser, {
+      via: '',
+      via_type: null,
+      email_guardian: '',
+      email: 'test@example.com',
+    });
     findByPk = jest.fn().mockResolvedValue(mockUser);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -66,37 +100,21 @@ describe('UserinfoService', () => {
   });
 
   it('clears affiliation on update when type is omitted', async () => {
-    await service.updateUser(1, {
-      id: 1,
-      language: 'nl',
-      email: 'test@example.com',
-      firstname: 'Test',
-      lastname: 'User',
-      sex: 'x',
-      gsm: '123',
-      general_questions: [],
-      mandatory_approvals: [],
-      year: 2010,
-      month: 5,
-      t_size: 2,
-      gsm_guardian: '',
-      email_guardian: '  ',
-      via: '',
-      via_type: '',
-      medical: '',
-      delete_possible: true,
-      address: {
-        street: '',
-        house_number: '',
-        municipality_name: 'Brussel',
-        box_number: '',
-        postalcode: 1000,
-      },
-    });
+    await service.updateUser(1, { ...updatePayload });
 
     expect(mockUser.email_guardian).toBeNull();
     expect(mockUser.via).toBe('');
     expect(mockUser.via_type).toBeNull();
     expect(mockUser.save).toHaveBeenCalled();
+  });
+
+  it('keeps the stored email when the payload tries to change it', async () => {
+    const dto = await service.updateUser(1, {
+      ...updatePayload,
+      email: 'attacker@example.com',
+    });
+
+    expect(mockUser.email).toBe('test@example.com');
+    expect(dto.email).toBe('test@example.com');
   });
 });

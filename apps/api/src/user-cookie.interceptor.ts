@@ -12,6 +12,24 @@ import { ConfigService } from '@nestjs/config';
 
 export { buildAppCookieOptions, buildUserCookieOptions } from './cookie-options';
 
+/**
+ * Routes such as `GET /projectinfo/attachments/:id` also accept an AdminJS session
+ * cookie. Those principals carry no participant id, so refreshing the `jwt` cookie
+ * for them would replace a participant session with a token for no user.
+ */
+export function resolveParticipantUserId(user: unknown): number | null {
+  if (!user || typeof user !== 'object') {
+    return null;
+  }
+  const candidate = user as { id?: unknown; isAdmin?: unknown };
+  if (candidate.isAdmin === true) {
+    return null;
+  }
+  const id =
+    typeof candidate.id === 'string' ? Number(candidate.id) : candidate.id;
+  return typeof id === 'number' && Number.isInteger(id) ? id : null;
+}
+
 @Injectable()
 export class UserCookieInterceptor implements NestInterceptor {
   constructor(private readonly tokensService: TokensService, 
@@ -34,7 +52,16 @@ export class UserCookieInterceptor implements NestInterceptor {
               this.tokensService.generateLoginToken(user.id),
               buildAppCookieOptions(this.config, request),
             );
+          const userId = resolveParticipantUserId(request.user);
+          if (userId === null) {
+            return;
           }
+          clearLegacyJwtCookies(this.config,response, request);
+          response.cookie(
+            'jwt',
+            this.tokensService.generateLoginToken(userId),
+            buildAppCookieOptions(this.config,request),
+          );
         },
       }),
     );

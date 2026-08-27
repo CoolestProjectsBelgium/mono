@@ -2,6 +2,7 @@
   <div class="mx-auto max-w-md">
     <h1 class="text-3xl font-bold">{{ $t('registrationSuccess.title') }}</h1>
     <p class="mt-4">{{ $t('registrationSuccess.body', { email }) }}</p>
+    <p class="mt-2 text-gray-600">{{ $t('registrationSuccess.spamHint') }}</p>
     <div class="mt-6 flex flex-wrap gap-4">
       <CtaButton variant="primary" :to="localePath('/login')">
         {{ $t('registrationSuccess.loginCta') }}

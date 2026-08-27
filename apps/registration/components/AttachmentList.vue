@@ -49,7 +49,7 @@
                 {{ $t('attachments.download') }}
               </button>
               <button
-                v-if="canDelete"
+                v-if="canDelete && attachment.delete_possible !== false"
                 type="button"
                 class="text-red-600 hover:underline disabled:opacity-50"
                 data-testid="attachment-delete"

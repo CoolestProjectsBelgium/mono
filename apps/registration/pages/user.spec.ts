@@ -91,6 +91,18 @@ describe('user page profile load', () => {
     expect((wrapper.find('#lastname').element as HTMLInputElement).value).toBe('User')
   })
 
+  it('shows the email address but does not allow editing it', async () => {
+    fetchUserMock.mockResolvedValue(userFixture)
+
+    const wrapper = await mountSuspended(UserPage)
+    await flushPromises()
+
+    const email = wrapper.find('#email')
+    expect((email.element as HTMLInputElement).value).toBe('test@example.com')
+    expect((email.element as HTMLInputElement).disabled).toBe(true)
+    expect(wrapper.find('[data-testid="email-locked-hint"]').exists()).toBe(true)
+  })
+
   it('shows stored dojo affiliation', async () => {
     fetchUserMock.mockResolvedValue({
       ...userFixture,

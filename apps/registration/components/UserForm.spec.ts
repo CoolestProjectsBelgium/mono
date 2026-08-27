@@ -50,6 +50,8 @@ describe('UserForm', () => {
     })
 
     expect(wrapper.find('#email-error').text()).toBe('validation_email')
+    expect((wrapper.find('#email').element as HTMLInputElement).disabled).toBe(false)
+    expect(wrapper.find('[data-testid="email-locked-hint"]').exists()).toBe(false)
   })
 
   it('shows postal code field error', async () => {

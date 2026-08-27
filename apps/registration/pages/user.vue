@@ -15,6 +15,7 @@
           :tshirts="flatTshirts"
           :settings="settings"
           :errors="fieldErrors"
+          lock-email
           @clear-error="onClearError"
         />
         <div class="mt-6 flex gap-4">

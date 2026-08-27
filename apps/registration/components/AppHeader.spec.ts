@@ -18,6 +18,9 @@ describe('AppHeader', () => {
     })
     expect(wrapper.text()).toContain('Inloggen')
     expect(wrapper.text()).not.toContain('Uitloggen')
+    const current = wrapper.find('nav [aria-current="page"]')
+    expect(current.exists()).toBe(true)
+    expect(current.text()).toBe('Info')
   })
 
   it('shows user nav when authenticated', async () => {

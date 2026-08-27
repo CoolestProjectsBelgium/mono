@@ -7,6 +7,7 @@ const { navigateToMock } = vi.hoisted(() => ({
 }))
 
 mockNuxtImport('navigateTo', () => navigateToMock)
+mockNuxtImport('useLocalePath', () => () => (path: string) => path)
 
 describe('not-authenticated middleware', () => {
   beforeEach(async () => {
@@ -18,7 +19,7 @@ describe('not-authenticated middleware', () => {
     useAuthStore().setExpires('2099-01-01T00:00:00.000Z')
     const { default: middleware } = await import('./not-authenticated')
     await middleware({ query: {} } as never)
-    expect(navigateToMock).toHaveBeenCalledWith('/user')
+    expect(navigateToMock).toHaveBeenCalledWith('/project')
   })
 
   it('allows login page when a magic-link token is present', async () => {

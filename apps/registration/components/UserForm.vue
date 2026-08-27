@@ -34,11 +34,14 @@
             v-model="model.email"
             type="email"
             :class="inputClass"
-            :disabled="disabled"
+            :disabled="disabled || lockEmail"
             :aria-invalid="ariaInvalid"
             :aria-describedby="ariaDescribedby"
             @input="emit('clear-error', 'email')"
           />
+          <p v-if="lockEmail" class="mt-1 text-sm text-gray-500" data-testid="email-locked-hint">
+            {{ $t('emailLockedHint') }}
+          </p>
         </template>
       </FormField>
       <FormField field-id="gsm" :label="$t('label_mobiel nummer (+32):')" :error="errors?.gsm">
@@ -277,6 +280,8 @@ const props = defineProps<{
   showGuardian?: boolean
   settings?: SettingDto | null
   errors?: Record<string, string>
+  /** Profile editing: the email address is the login identity and stays fixed. */
+  lockEmail?: boolean
 }>()
 
 const emit = defineEmits<{
