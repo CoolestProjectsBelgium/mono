@@ -5,16 +5,15 @@ import { Account } from '@coolestprojects/database'
 import AdminJS from 'adminjs'
 import connectSessionSequelize from 'connect-session-sequelize'
 import express from 'express'
+import { DataTypes } from 'sequelize';
 import session from 'express-session'
 import { andAccess, canAccessResourceFieldFilter, canAccessResourceRoleFilter, filterEventId } from './authorisations.js'
 import { componentLoader, Components, Handlers } from './components/index.js'
 import { Authenticate } from './components/login/authenticate.js'
 import eventLoginRouter from './components/login/router.js'
-import {
-  sequelize,
-} from './database.js'
 import 'dotenv/config'; 
-
+import importExportFeature from '@adminjs/import-export';
+import {  sequelize,} from './database.js'
 
 const SequelizeStore = connectSessionSequelize(session.Store)
 
@@ -90,7 +89,8 @@ const start = async () => {
       { resource: sequelize.models.Award },
       {
         resource: sequelize.models.Project,
-        options: {
+        features: [  importExportFeature({ componentLoader })],
+        options: { 
           listProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           filterProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           showProperties: [
@@ -123,8 +123,10 @@ const start = async () => {
           },
         },
       },
+     
       {
         resource: sequelize.models.Attachment,
+        features: [  importExportFeature({ componentLoader })],
         options: {
           listProperties: ['id', 'projectId', 'confirmed', 'internal', 'size', 'mimetype'],
           filterProperties: ['id', 'projectId', 'eventId'],
@@ -162,11 +164,16 @@ const start = async () => {
         },
       },
       { resource: sequelize.models.VoteCategory },
-      { resource: sequelize.models.EventTable },
-      { resource: sequelize.models.User },
+      { resource: sequelize.models.EventTable, 
+        features: [  importExportFeature({ componentLoader })]  
+      },
+      { resource: sequelize.models.User,
+        features: [  importExportFeature({ componentLoader })],
+       },
       { resource: sequelize.models.UserProject },
       {
-        resource: sequelize.models.Tshirt, options: {
+        resource: sequelize.models.Tshirt, 
+          options: {
           properties: {
             eventId: { isVisible: false },
           },
@@ -191,6 +198,40 @@ const start = async () => {
       { resource: sequelize.models.QuestionRegistration },
       { resource: sequelize.models.Registration },
       { resource: sequelize.models.TshirtGroupTranslation },
+      {
+        resource: sequelize.define('view_user_project_summary', {
+          id: { type: DataTypes.INTEGER, primaryKey: true }, 
+          firstname: { type: DataTypes.STRING },
+          lastname: { type: DataTypes.STRING },
+          email: { type: DataTypes.STRING },
+          tshirt_name: { type: DataTypes.STRING },
+          project_name: { type: DataTypes.STRING },
+          isOwner: { type: DataTypes.BOOLEAN },
+          photo: { type: DataTypes.STRING },
+          contact: { type: DataTypes.STRING },
+          approved: { type: DataTypes.STRING }
+        }, { 
+          tableName: 'view_user_project_summary',
+          timestamps: false,
+          freezeTableName: true
+        }),
+        features: [ importExportFeature({ componentLoader }) ],
+        options: {
+          label: 'User Project Overzicht gebruikt voor export',
+          actions: {
+            // We verwijderen de acties die je niet wilt zien
+            new: { isRemoved: true },
+            edit: { isRemoved: true },
+            delete: { isRemoved: true },
+        // We zetten de selectie uit op het hoogste niveau van de lijst-actie
+            list: {
+              options: {
+                isSelectionEnabled: false, // Voor v7 moet dit vaak hier staan
+              }
+            }
+          },
+        }
+      },
     ],
     componentLoader,
   })

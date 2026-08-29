@@ -119,70 +119,50 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
 /*
 SELECT 
     q.id AS question_id,
-    q.name, 
-    COUNT(uq.questionId) AS total_answers
+	  q.name AS name,
+    COUNT(uq.questionId) AS total_answers,
+    qt.description AS description
 FROM 
      `Questions` q
-LEFT JOIN 
-   `QuestionUsers` uq ON q.id = uq.questionId
+LEFT JOIN  `QuestionTranslations` qt ON q.id = qt.questionId AND qt.language = 'nl'
+LEFT JOIN `QuestionUsers` uq ON q.id = uq.questionId AND uq.eventId = 1
 GROUP BY 
-    q.id;
-
+    q.id, qt.description;
 */
 
 async function getQuestions(eventId: number, language: string = 'nl'): Promise<DashboardTableItem[]> {
-  // Questions
-  let questionsData: DashboardTableItem[] = []
+  let questionsData: DashboardTableItem[] = [];
   try {
-    const questionCounts = await QuestionUser.findAll({
-      attributes: [
-        'questionId',
-        [sequelize.fn('COUNT', sequelize.col('QuestionUser.questionId')), 'total']
-      ],
-      where: {
-        eventId
-      },
-      group: [
-        'QuestionUser.questionId', 
-        'questionId',
-        'question.name',
-        'question.translations.id',
-        'question.translations.description'
-      //  'userId'
+    // We gebruiken een RAW SQL query omdat dit exact doet wat je wilt: 
+    // Een LEFT JOIN om vragen met 0 antwoorden mee te nemen.
+    const sql = `
+      SELECT 
+          q.id AS question_id,
+          q.name AS name,
+          COUNT(uq.questionId) AS total_answers,
+          qt.description AS description
+      FROM Questions q
+      LEFT JOIN QuestionTranslations qt ON q.id = qt.questionId AND qt.language = :language
+      LEFT JOIN QuestionUsers uq ON q.id = uq.questionId AND uq.eventId = :eventId
+      GROUP BY q.id, q.name, qt.description
+      ORDER BY q.id;
+    `;
+    // Voer de query uit met bindings voor veiligheid tegen SQL-injectie
+      const results: any[] = await sequelize.query(sql, {
+        replacements: { eventId, language },
+        type: (sequelize as any).QueryTypes.SELECT // <--- Dit omzeilt de import-eis
+      });
+    //console.log('Raw database result:', results);
+    // Map de ruwe data naar jouw DashboardTableItem formaat
+    questionsData = results.map((item) => ({
+      id: item.question_id,
+      total: Number(item.total_answers) || 0,
+      short: item.name || '',
+      description: item.description || '' // Als je de beschrijving ook nodig hebt, voeg deze toe aan de SELECT in SQL
+    }));
 
-      ],
-      include: [{
-        model: Question,
-        as: 'question',
-        attributes: ['id', 'name'],
-        include: [{
-          model: QuestionTranslation,
-          as: 'translations',
-          attributes: ['id', 'description'],
-          where: { language: language }
-        }],
-      }]
-    }) as (QuestionUserModel & { total: number | string; question: QuestionModel })[]
-
-   console.log('Question counts:', questionCounts.map(item => ({
-      questionId: item.questionId,
-      total: item.get('total'),
-      name: item.question?.name,
-      description: item.question?.translations?.[0]?.description
-    }))) 
-    
-    
-    questionsData = questionCounts.map((item) => {
-      const translation = item.question?.translations?.[0]
-      return {
-        id: item.questionId,
-        total: Number(item.get('total')) || 0,
-        short: item.question?.name || '',
-        description: translation?.description || '',
-      }
-    })
   } catch (err: any) {
-    console.error('Sequelize Fout bij het ophalen van question statistieken:', err.message)
+    console.error('Fout bij het ophalen van question statistieken:', err.message);
   }
 
   return questionsData;
