@@ -31,7 +31,8 @@ services:
       CORS_ORIGINS: "https://registration.coolestprojects.localhost:8443,http://localhost:3004"
       API_BASE_URL: "https://api.coolestprojects.localhost:8443"
 
-      CRON_JOB: "*/1 * * * *"
+      CRON_JOB_MAIL: "*/1 * * * *"
+      CRON_JOB_BOUNCE: "*/1 * * * *"
 
       # file configuration
       UPLOAD_ROOT: /tmp/uploads

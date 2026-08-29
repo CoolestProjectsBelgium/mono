@@ -32,7 +32,6 @@ import { EmailLog } from '@coolestprojects/database';
 
 import configuration from './config/configuration.js';
 
-
 @Module({
   imports: [
     ScheduleModule.forRoot(),
