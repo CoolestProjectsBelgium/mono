@@ -13,6 +13,7 @@ import { CronJob } from 'cron';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import Imap from 'imap';
 import { simpleParser, ParsedMail } from 'mailparser';
+import { EmailLog } from '@coolestprojects/database';
 
 
 @Injectable()
@@ -32,7 +33,8 @@ export class BackgroundService implements OnModuleInit {
     private readonly attachmentModel: typeof Attachment,
     private configService: ConfigService,
     private readonly schedulerRegistry: SchedulerRegistry,
-
+    @InjectModel(EmailLog)
+    private readonly emaillogModel: typeof EmailLog,
   ) { }
 
   private readonly logger = new Logger(BackgroundService.name);
@@ -96,46 +98,22 @@ export class BackgroundService implements OnModuleInit {
 
       for (const message of messages) {
         try {
-          const email = this.extractBouncedEmail(message.parsed);
+          const messageId = this.extractIdentifier(message.parsed);
+          const mailMessage = await this.emaillogModel.findOne({ where: { "messageId": messageId } })
 
-          if (!email) {
-            this.logger.warn(
-              'Could not determine bounced email address',
-            );
-
-            // Delete it so we don't process it forever
-            await message.delete();
-
+          if (!mailMessage) {
+            this.logger.debug("email not in email log")
             continue;
           }
 
-          this.logger.log(
-            `Bounce detected for ${email}`,
-          );
+          mailMessage.status = 'bounced';
+          mailMessage.error = message.parsed.text
 
-          const [updated] = await this.userModel.update(
-            {
-              emailBounced: true,
-            },
-            {
-              where: {
-                email,
-              },
-            },
-          );
-
-          if (updated > 0) {
-            this.logger.log(
-              `Marked ${email} as bounced`,
-            );
-          } else {
-            this.logger.warn(
-              `No user found for bounced email: ${email}`,
-            );
-          }
+          await mailMessage.save()
 
           // Only delete after DB processing has completed
           await message.delete();
+
         } catch (error) {
           this.logger.error(
             `Failed to process bounce message`,
@@ -257,32 +235,31 @@ export class BackgroundService implements OnModuleInit {
 
   }
 
-  private extractBouncedEmail(
+  private extractIdentifier(
     mail: ParsedMail,
   ): string | null {
-    const text = mail.text || '';
+    // Check headers first
+    const inReplyTo = mail.inReplyTo;
 
-    const patterns = [
-      /Final-Recipient:\s*rfc822;\s*([^\s<>]+)/i,
-
-      /Original-Recipient:\s*rfc822;\s*([^\s<>]+)/i,
-
-      /(?:recipient|to):\s*<?([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})>?/i,
-
-      /<([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})>/i,
-    ];
-
-    for (const pattern of patterns) {
-      const match = text.match(pattern);
-
-      if (match?.[1]) {
-        return match[1]
-          .trim()
-          .toLowerCase();
-      }
+    if (inReplyTo) {
+      return inReplyTo.replace(/[<>]/g, '').trim();
     }
 
-    return null;
+    const references = mail.references;
+
+    if (references?.length) {
+      return references[0]
+        .replace(/[<>]/g, '')
+        .trim();
+    }
+
+    const text = mail.text || '';
+
+    const match = text.match(
+      /(?:Original-Message-ID|Message-ID):\s*<?([^>\s]+)>?/i,
+    );
+
+    return match?.[1]?.trim() ?? null
   }
 
   private deleteMessage(

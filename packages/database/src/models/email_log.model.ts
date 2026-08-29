@@ -15,7 +15,7 @@ export class EmailLog extends BaseEventModel {
   @Column
   declare messageId: string;
 
-  @Column({ type: DataType.ENUM('sent', 'failed'), allowNull: false })
+  @Column({ type: DataType.ENUM('sent', 'failed', 'bounced'), allowNull: false })
   declare status: string;
 
   @Column({ type: DataType.TEXT, allowNull: true })
