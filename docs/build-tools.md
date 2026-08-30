@@ -32,7 +32,7 @@ Live estate (app `coolestprojects`, id `21746`) is documented in the sibling Ope
 2. Copy keys from `build_tools/env/api-dev.env.example` into `build_tools/secrets/api-dev.env` and fill blanks (`DB_HOST`, `DB_PASSWORD`, JWT, CSRF, …). Get DB host/password from the `db-dev` connection string in CP4.
 3. From the Dev Container: `node build_tools/bin/deploy.mjs --app api --env dev`
 
-If remote `app/.env` already exists, deploy leaves it unchanged. If it is missing, deploy uploads `example + secrets` once.
+If remote `app/.env` already exists, deploy leaves it unchanged. If it is missing, deploy uploads `example + secrets` once. Level27 MySQL schema name matches the db user (`db35160` on dest, `db35161` on prod), not `coolestproject`.
 
 ### Apps
 
