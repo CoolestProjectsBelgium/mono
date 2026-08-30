@@ -22,6 +22,7 @@
         <UserForm
           v-model="draft.form.user"
           :tshirts="flatTshirts"
+          :dojos="dojos ?? []"
           :settings="settings"
           :show-guardian="showGuardian"
           :errors="fieldErrors"
@@ -79,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ApprovalDto, QuestionDto, SettingDto, TshirtGroupDto } from '~/types/api'
+import type { ApprovalDto, DojoDto, QuestionDto, SettingDto, TshirtGroupDto } from '~/types/api'
 import { isGuardianRequired } from '~/utils/birth-date'
 import { setRegistrationSuccess } from '~/utils/registration-success'
 import { clearFieldError, scrollToFirstFieldError } from '~/utils/validation/map-field-errors'
@@ -95,7 +96,7 @@ const localePath = useLocalePath()
 const { t } = useI18n()
 const authStore = useAuthStore()
 const draft = useRegistrationDraftStore()
-const { fetchTshirts, fetchQuestions, fetchApprovals, submitRegistration } = useRegistration()
+const { fetchTshirts, fetchQuestions, fetchApprovals, fetchDojos, submitRegistration } = useRegistration()
 const { fetchSettings } = useSettings()
 const { joinProject } = useParticipant()
 const { notify } = useNotification()
@@ -108,6 +109,7 @@ const fieldErrors = ref<Record<string, string>>({})
 const tshirtGroups = ref<TshirtGroupDto[] | null>(null)
 const approvals = ref<ApprovalDto[] | null>(null)
 const questions = ref<QuestionDto[] | null>(null)
+const dojos = ref<DojoDto[] | null>(null)
 const settings = ref<SettingDto | null>(null)
 
 const isLoggedInJoin = computed(() =>
@@ -140,11 +142,12 @@ onMounted(async () => {
 })
 
 async function loadCatalogs() {
-  const [tshirtsResult, questionsResult, approvalsResult, settingsResult] = await Promise.allSettled([
+  const [tshirtsResult, questionsResult, approvalsResult, settingsResult, dojosResult] = await Promise.allSettled([
     fetchTshirts(),
     fetchQuestions(),
     fetchApprovals(),
     fetchSettings(),
+    fetchDojos(),
   ])
   if (tshirtsResult.status === 'fulfilled') {
     tshirtGroups.value = tshirtsResult.value
@@ -157,6 +160,9 @@ async function loadCatalogs() {
   }
   if (settingsResult.status === 'fulfilled') {
     settings.value = settingsResult.value
+  }
+  if (dojosResult.status === 'fulfilled') {
+    dojos.value = dojosResult.value
   }
 }
 
@@ -234,6 +240,7 @@ async function onSubmit() {
     approvals.value ?? [],
     questionIds,
     t,
+    dojos.value ?? [],
   )
 
   if (errors) {

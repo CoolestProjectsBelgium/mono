@@ -4,13 +4,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
+import { Affiliation } from '@coolestprojects/database';
 import { UserDto } from '../dto/user.dto';
-import { normalizeAffiliation } from '../affiliation/normalize-affiliation';
+import { resolveAffiliation } from '../affiliation/resolve-affiliation';
 
 @Injectable()
 export class UserinfoService {
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
+    @InjectModel(Affiliation) private readonly affiliationModel: typeof Affiliation,
   ) {}
 
   mapUserToDto(user: User): UserDto {
@@ -68,7 +70,12 @@ export class UserinfoService {
     user.gsm_guardian = updateUserDto.gsm_guardian;
     // Empty string fails Sequelize @IsEmail; store null when absent (same as registration).
     user.email_guardian = updateUserDto.email_guardian?.trim() || null;
-    const affiliation = normalizeAffiliation(updateUserDto.via_type, updateUserDto.via);
+    const affiliation = await resolveAffiliation(
+      this.affiliationModel,
+      user.eventId,
+      updateUserDto.via_type,
+      updateUserDto.via,
+    );
     user.via = affiliation.via;
     user.via_type = affiliation.via_type;
     user.medical = updateUserDto.medical;

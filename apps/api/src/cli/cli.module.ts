@@ -10,6 +10,7 @@ import { EventService } from '../event/event.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Account } from '@coolestprojects/database';
+import { Affiliation } from '@coolestprojects/database';
 import { Attachment } from '@coolestprojects/database';
 import { Award } from '@coolestprojects/database';
 import { Certificate } from '@coolestprojects/database';
@@ -80,6 +81,7 @@ import { AdminSession } from '@coolestprojects/database';
             EmailTemplate,
             EmailLog,
             AdminSession,
+            Affiliation,
           ],
         };
       },
@@ -105,7 +107,8 @@ import { AdminSession } from '@coolestprojects/database';
       AdminSession,
       Attachment,
       Vote,
-      VoteCategory
+      VoteCategory,
+      Affiliation,
     ]),
   ],
   providers: [

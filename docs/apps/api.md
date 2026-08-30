@@ -38,7 +38,7 @@ Key env vars (set in `.devcontainer/docker-compose.yml`): `DB_*`, `JWT_KEY`, `AP
 
 | Module / area | Controller | Service | Role |
 |---------------|------------|---------|------|
-| `app` | `AppController` | `AppService` | Tshirts, questions, approvals, settings |
+| `app` | `AppController` | `AppService` | Tshirts, questions, dojos, approvals, settings |
 | `auth` | (module) | — | Passport strategies, JWT |
 | `login` | `LoginController` | — | Login, logout, mail token |
 | `registration` | `RegistrationController` | `RegistrationService` | New participant registration |
@@ -90,7 +90,7 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 
 ### Shared reads
 
-`GET /tshirts`, `GET /questions`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /settings` includes `maxAttachments` (currently 10; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.
+`GET /tshirts`, `GET /questions`, `GET /dojos`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /dojos` returns event-scoped `Affiliation` names (CoderDojo catalog). `GET /settings` includes `maxAttachments` (currently 10; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.
 
 ## Out of scope / unknowns
 

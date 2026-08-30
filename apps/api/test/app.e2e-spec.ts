@@ -182,6 +182,21 @@ describe('AppController (e2e)', () => {
     });
   }
 
+  it('/dojos (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/dojos')
+      .expect(200)
+      .expect((res) => {
+        const body = JSON.parse(res.text) as Array<{ id: number; name: string }>;
+        expect(Array.isArray(body)).toBe(true);
+        for (const entry of body) {
+          expect(typeof entry.id).toBe('number');
+          expect(typeof entry.name).toBe('string');
+          expect(entry.name.length).toBeGreaterThan(0);
+        }
+      });
+  });
+
   //TODO: Add wrong event id for /questions (GET) ????
 
   // Test for /approvals (GET)

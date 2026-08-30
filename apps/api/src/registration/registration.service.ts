@@ -13,7 +13,8 @@ import { Sequelize } from 'sequelize-typescript';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { QuestionUser } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
-import { normalizeAffiliation } from '../affiliation/normalize-affiliation';
+import { Affiliation } from '@coolestprojects/database';
+import { resolveAffiliation } from '../affiliation/resolve-affiliation';
 
 @Injectable()
 export class RegistrationService {
@@ -40,6 +41,8 @@ export class RegistrationService {
     private readonly questionRegistrationModel: typeof QuestionRegistration,
     @InjectModel(UserProject)
     private readonly userProjectModel: typeof UserProject,
+    @InjectModel(Affiliation)
+    private readonly affiliationModel: typeof Affiliation,
   ) { }
 
   async create(
@@ -50,7 +53,9 @@ export class RegistrationService {
       throw new Error('Registration is not open for this event.');
     }
 
-    const affiliation = normalizeAffiliation(
+    const affiliation = await resolveAffiliation(
+      this.affiliationModel,
+      info.currentEvent,
       createRegistrationDto.user.via_type,
       createRegistrationDto.user.via,
     );

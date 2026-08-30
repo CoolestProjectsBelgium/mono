@@ -199,6 +199,25 @@ const start = async () => {
       { resource: sequelize.models.Registration },
       { resource: sequelize.models.TshirtGroupTranslation },
       {
+        resource: sequelize.models.Affiliation,
+        options: {
+          properties: {
+            eventId: { isVisible: false },
+          },
+          actions: {
+            list: {
+              before: filterEventId("eventId")
+            },
+            search: {
+              before: filterEventId("eventId")
+            },
+            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
+          }
+        }
+      },
+      {
         resource: sequelize.define('view_user_project_summary', {
           id: { type: DataTypes.INTEGER, primaryKey: true }, 
           firstname: { type: DataTypes.STRING },

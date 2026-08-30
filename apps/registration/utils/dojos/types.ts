@@ -1,4 +1,5 @@
 export interface DojoEntry {
+  id?: number
   name: string
 }
 

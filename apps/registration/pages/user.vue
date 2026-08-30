@@ -13,6 +13,7 @@
         <UserForm
           v-model="profile"
           :tshirts="flatTshirts"
+          :dojos="dojos ?? []"
           :settings="settings"
           :errors="fieldErrors"
           lock-email
@@ -37,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import type { SettingDto, TshirtGroupDto, UserDto } from '~/types/api'
+import type { DojoDto, SettingDto, TshirtGroupDto, UserDto } from '~/types/api'
 import { clearFieldError, mapZodIssuesToFieldErrors, scrollToFirstFieldError } from '~/utils/validation/map-field-errors'
 import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
 import { createUserProfileSchema } from '~/utils/validation/user'
@@ -50,12 +51,13 @@ definePageMeta({ middleware: 'authenticated' })
 const { t } = useI18n()
 const { fetchUser, updateUser, deleteUser, getProfileState } = useUserinfo()
 const { fetchSettings } = useSettings()
-const { fetchTshirts } = useRegistration()
+const { fetchTshirts, fetchDojos } = useRegistration()
 const { notify } = useNotification()
 
 const profile = ref<UserDto | null>(null)
 const settings = ref<SettingDto | null>(null)
 const tshirtGroups = ref<TshirtGroupDto[] | null>(null)
+const dojos = ref<DojoDto[] | null>(null)
 const loading = ref(true)
 const loadError = ref(false)
 const fieldErrors = ref<Record<string, string>>({})
@@ -67,10 +69,11 @@ onMounted(async () => {
   loading.value = true
   loadError.value = false
   try {
-    const [userResult, settingsResult, tshirtsResult] = await Promise.allSettled([
+    const [userResult, settingsResult, tshirtsResult, dojosResult] = await Promise.allSettled([
       fetchUser(),
       fetchSettings(),
       fetchTshirts(),
+      fetchDojos(),
     ])
     if (userResult.status === 'fulfilled') {
       profile.value = userResult.value ? hydrateUserProfile(userResult.value) : null
@@ -87,6 +90,9 @@ onMounted(async () => {
     }
     if (tshirtsResult.status === 'fulfilled') {
       tshirtGroups.value = tshirtsResult.value
+    }
+    if (dojosResult.status === 'fulfilled') {
+      dojos.value = dojosResult.value
     }
   }
   catch {
@@ -120,7 +126,7 @@ async function onSave() {
     maxAge: settings.value.maxAge,
     guardianAge: settings.value.guardianAge,
     officialStartDate: settings.value.officialStartDate,
-  }).safeParse(profile.value)
+  }, dojos.value ?? []).safeParse(profile.value)
 
   if (!result.success) {
     fieldErrors.value = mapZodIssuesToFieldErrors(result.error.issues, t)

@@ -58,6 +58,7 @@ import { searchDojos } from '~/utils/dojos/search-dojos'
 const model = defineModel<string>({ required: true })
 
 const props = defineProps<{
+  dojos?: DojoEntry[]
   fieldId?: string
   label: string
   placeholder?: string
@@ -97,7 +98,7 @@ function syncInputFromModel() {
 }
 
 function runSearch(query: string) {
-  results.value = searchDojos(query)
+  results.value = searchDojos(props.dojos ?? [], query)
   isOpen.value = results.value.length > 0
   highlightedIndex.value = results.value.length > 0 ? 0 : -1
 }

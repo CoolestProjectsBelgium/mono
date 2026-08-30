@@ -1,4 +1,4 @@
-import type { ApprovalDto, QuestionDto, TshirtGroupDto } from '~/types/api'
+import type { ApprovalDto, QuestionDto, TshirtGroupDto, DojoDto } from '~/types/api'
 import { buildRegistrationPayload, type RegistrationFormState } from '~/utils/registration-payload'
 import { getApiErrorMessage } from '~/utils/api-response'
 import { mapApiMessageToFieldErrors } from '~/utils/validation/map-api-errors'
@@ -20,6 +20,10 @@ export function useRegistration() {
 
   async function fetchQuestions(): Promise<QuestionDto[] | null> {
     return apiFetch<QuestionDto[]>('/questions', { headers: langHeaders() })
+  }
+
+  async function fetchDojos(): Promise<DojoDto[] | null> {
+    return apiFetch<DojoDto[]>('/dojos', { headers: langHeaders() })
   }
 
   async function fetchApprovals(): Promise<ApprovalDto[] | null> {
@@ -46,6 +50,7 @@ export function useRegistration() {
   return {
     fetchTshirts,
     fetchQuestions,
+    fetchDojos,
     fetchApprovals,
     submitRegistration,
     buildRegistrationPayload,

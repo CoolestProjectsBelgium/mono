@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import { UserinfoService } from './userinfo.service';
 import { User } from '@coolestprojects/database';
+import { Affiliation } from '@coolestprojects/database';
 import { UserDto } from '../dto/user.dto';
 
 describe('UserinfoService', () => {
@@ -71,6 +72,12 @@ describe('UserinfoService', () => {
           provide: getModelToken(User),
           useValue: {
             findByPk,
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken(Affiliation),
+          useValue: {
             findOne: jest.fn(),
           },
         },

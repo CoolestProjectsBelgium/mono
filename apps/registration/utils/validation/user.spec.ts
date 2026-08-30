@@ -6,6 +6,7 @@ import {
   createUserProfileSchema,
   createUserSchema,
 } from '~/utils/validation/user'
+import { dojoFixture } from '~/fixtures/dojos'
 
 const settings = {
   minAge: activeSettingsFixture.minAge,
@@ -88,7 +89,7 @@ describe('createUserSchema', () => {
   })
 
   it('requires a known dojo when type is dojo', () => {
-    const schema = createUserSchema(settings)
+    const schema = createUserSchema(settings, dojoFixture)
     const result = schema.safeParse({
       ...validAdultUser,
       via_type: 'dojo',
@@ -108,7 +109,7 @@ describe('createUserSchema', () => {
   })
 
   it('accepts a known dojo name', () => {
-    const schema = createUserSchema(settings)
+    const schema = createUserSchema(settings, dojoFixture)
     const result = schema.safeParse({
       ...validAdultUser,
       via_type: 'dojo',

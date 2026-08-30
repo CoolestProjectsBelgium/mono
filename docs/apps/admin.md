@@ -40,6 +40,7 @@ Sequelize models registered in `apps/admin/src/database.ts` must include every a
 | `UserProject` | Membership/voucher link; has its own `deletedAt` |
 | `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden |
 | `Event` | Event-scoped access for non-superadmin roles |
+| `Affiliation` | Event-scoped CoderDojo catalog (`name`); same list as `GET /dojos` |
 
 The dashboard handler in [`apps/admin/src/components/dashboard/handler.ts`](../../apps/admin/src/components/dashboard/handler.ts)
 exports `DashboardResponse` and `DashboardTableItem` for reuse by TSX components. It returns the same complete

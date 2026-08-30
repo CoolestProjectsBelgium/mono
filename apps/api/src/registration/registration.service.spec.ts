@@ -9,6 +9,7 @@ import {
   Registration,
   User,
   UserProject,
+  Affiliation,
 } from '@coolestprojects/database';
 import { MailerService } from '../mailer/mailer.service';
 import { TokensService } from '../tokens/tokens.service';
@@ -27,7 +28,7 @@ describe('RegistrationService', () => {
         { provide: TokensService, useValue: {} },
         { provide: getConnectionToken(), useValue: {} },
         { provide: getModelToken(Event), useValue: {} },
-        { provide: getModelToken(Project), useValue: {} },
+        { provide: getModelToken(Project), useValue: { findByPk: jest.fn().mockResolvedValue({ id: 1, deletedAt: null }) } },
         { provide: getModelToken(Registration), useValue: {} },
         { provide: getModelToken(User), useValue: {} },
         { provide: getModelToken(Question), useValue: {} },
@@ -37,6 +38,7 @@ describe('RegistrationService', () => {
           provide: getModelToken(UserProject),
           useValue: { findOne: userProjectFindOne },
         },
+        { provide: getModelToken(Affiliation), useValue: {} },
       ],
     }).compile();
 

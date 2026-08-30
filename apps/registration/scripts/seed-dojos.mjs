@@ -1,8 +1,9 @@
 /**
- * Regenerates data/be-dojos.json from CoderDojo Belgium map marker titles.
+ * Regenerates apps/api/src/seeder/be-dojos.json from CoderDojo Belgium map marker titles.
  *
  * Source: https://coderdojobelgium.be/nl/dojos
  * Parses unique <h3> club names from the embedded map, not the session table.
+ * The API seeder loads this file into the Affiliations table.
  *
  * Usage: npm run seed:dojos -w @coolestprojects/registration
  */
@@ -38,7 +39,7 @@ function parseDojoNamesFromHtml(html) {
 }
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const outputPath = join(root, 'data', 'be-dojos.json')
+const outputPath = join(root, '..', 'api', 'src', 'seeder', 'be-dojos.json')
 
 const response = await fetch(SOURCE_URL)
 if (!response.ok) {

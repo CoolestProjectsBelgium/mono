@@ -1,5 +1,6 @@
-import { Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
+import { Affiliation, Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
+import { loadSeedDojoNames } from './load-seed-dojos';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 
@@ -23,6 +24,7 @@ export async function seedDatabase(
   questionUserModel: typeof QuestionUser,
   voteCategoryModel: typeof VoteCategory,
   voteModel: typeof Vote,
+  affiliationModel: typeof Affiliation,
 ) {
   const eventBeginDate = new Date();
   eventBeginDate.setDate(new Date().getDate() - 100);
@@ -88,6 +90,13 @@ export async function seedDatabase(
       mandatory: 1,
     },
   ]);
+  await affiliationModel.bulkCreate(
+    loadSeedDojoNames().map((name) => ({
+      eventId: event.id,
+      name,
+    })),
+  );
+
   await questionTranslationModel.bulkCreate([
     {
       eventId: event.id,

@@ -102,6 +102,11 @@ export interface TshirtDto {
   name: string
 }
 
+export interface DojoDto {
+  id: number
+  name: string
+}
+
 export interface TshirtGroupDto {
   group: string
   items: TshirtDto[]

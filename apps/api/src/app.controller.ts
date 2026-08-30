@@ -5,6 +5,7 @@ import { TshirtGroupDto } from './dto/tshirt-group.dto';
 import { QuestionDto } from './dto/question.dto';
 import { ApprovalDto } from './dto/approval.dto';
 import { SettingDto } from './dto/setting.dto';
+import { DojoDto } from './dto/dojo.dto';
 import { Info } from './info.decorator';
 import { InfoDto } from './dto/info.dto';
 
@@ -23,6 +24,12 @@ export class AppController {
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   findAllQuestions(@Info() info: InfoDto): Promise<QuestionDto[]> {
     return this.appService.findAllQuestions(info);
+  }
+
+  @Get('dojos')
+  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  findAllDojos(@Info() info: InfoDto): Promise<DojoDto[]> {
+    return this.appService.findAllDojos(info);
   }
 
   @Get('approvals')

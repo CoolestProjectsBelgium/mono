@@ -183,6 +183,7 @@
       <div v-if="model.via_type === 'dojo'" class="mt-4">
         <DojoSearchField
           v-model="model.via"
+          :dojos="dojoOptions"
           :label="$t('placeholder_via_dojo')"
           :placeholder="$t('placeholder_via_dojo')"
           :disabled="disabled"
@@ -252,6 +253,7 @@
 </template>
 
 <script setup lang="ts">
+import type { DojoEntry } from '~/utils/dojos/types'
 import type { SettingDto, TshirtDto, UserDto } from '~/types/api'
 import { createEmptyAddress } from '~/utils/registration-payload'
 import type { ViaType } from '~/utils/dojos/types'
@@ -276,6 +278,7 @@ if (model.value.via_type !== 'dojo' && model.value.via_type !== 'other') {
 
 const props = defineProps<{
   tshirts?: TshirtDto[]
+  dojos?: DojoEntry[]
   disabled?: boolean
   showGuardian?: boolean
   settings?: SettingDto | null
@@ -306,6 +309,7 @@ const guardianRequired = computed(() => {
 const showGuardianFields = computed(() => props.showGuardian ?? guardianRequired.value)
 
 const tshirtOptions = computed(() => props.tshirts ?? [])
+const dojoOptions = computed(() => props.dojos ?? [])
 
 function formatTshirtLabel(name: string): string {
   return te(name) ? t(name) : name

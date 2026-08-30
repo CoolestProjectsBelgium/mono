@@ -6,10 +6,11 @@ import { userFixture } from '~/fixtures/user'
 import { activeSettingsFixture } from '~/fixtures/settings'
 import UserPage from './user.vue'
 
-const { fetchUserMock, fetchSettingsMock, fetchTshirtsMock, updateUserMock } = vi.hoisted(() => ({
+const { fetchUserMock, fetchSettingsMock, fetchTshirtsMock, fetchDojosMock, updateUserMock } = vi.hoisted(() => ({
   fetchUserMock: vi.fn(),
   fetchSettingsMock: vi.fn(),
   fetchTshirtsMock: vi.fn(),
+  fetchDojosMock: vi.fn(),
   updateUserMock: vi.fn(),
 }))
 
@@ -31,6 +32,7 @@ vi.mock('~/composables/useSettings', () => ({
 vi.mock('~/composables/useRegistration', () => ({
   useRegistration: () => ({
     fetchTshirts: fetchTshirtsMock,
+    fetchDojos: fetchDojosMock,
   }),
 }))
 
@@ -73,10 +75,12 @@ describe('user page profile load', () => {
     fetchUserMock.mockReset()
     fetchSettingsMock.mockReset()
     fetchTshirtsMock.mockReset()
+    fetchDojosMock.mockReset()
     fetchSettingsMock.mockResolvedValue(activeSettingsFixture)
     fetchTshirtsMock.mockResolvedValue([
       { group: 'kids', items: [{ id: 1, name: 'kid_3-4' }, { id: 2, name: 'kid_5-6' }] },
     ])
+    fetchDojosMock.mockResolvedValue([{ id: 1, name: 'Balen' }])
   })
 
   it('shows personal info from API in form fields', async () => {

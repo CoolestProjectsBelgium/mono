@@ -75,6 +75,7 @@ describe('registration page submit', () => {
       if (url === '/tshirts') return Promise.resolve([])
       if (url === '/questions') return Promise.resolve([])
       if (url === '/approvals') return Promise.resolve([{ id: 1, name: 'Rules', description: 'Agree' }])
+      if (url === '/dojos') return Promise.resolve([{ id: 1, name: 'Balen' }])
       if (url === '/registration') return Promise.resolve({})
       return Promise.resolve(null)
     })

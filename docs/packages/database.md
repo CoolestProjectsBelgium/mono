@@ -53,6 +53,7 @@ Most domain models extend `BaseEventModel` (adds `eventId` FK to `Event`). `Even
 | `Message` | `BaseEventModel` | Messages |
 | `EmailTemplate` | `BaseEventModel` | Email templates |
 | `EventTable` | `BaseEventModel` | Event table/seating |
+| `Affiliation` | `BaseEventModel` | CoderDojo catalog (`name` without the `Dojo` prefix); served as `GET /dojos` |
 
 Exports are listed in `packages/database/src/index.ts`.
 
@@ -64,7 +65,7 @@ Exports are listed in `packages/database/src/index.ts`.
 
 ### Registration data
 
-`User` + `Registration` + `QuestionRegistration` / `QuestionUser` + optional `Tshirt` selections. Optional affiliation is `via_type` (`dojo` \| `other` \| null) plus `via` (dojo name without the `Dojo` prefix, or free-text organisation). Null `via_type` is the not-applicable choice.
+`User` + `Registration` + `QuestionRegistration` / `QuestionUser` + optional `Tshirt` selections. Optional affiliation is `via_type` (`dojo` \| `other` \| null) plus `via` (dojo name without the `Dojo` prefix, or free-text organisation). Null `via_type` is the not-applicable choice. Known dojo names live in `Affiliation` for the event; registration and profile updates reject unknown dojo names.
 
 ### Project + voting
 

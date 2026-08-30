@@ -7,6 +7,7 @@ import {
 } from '~/utils/birth-date'
 import { isValidPostalMunicipalityPair } from '~/utils/postal-codes/search-postal-codes'
 import { isAffiliationComplete, normalizeViaType } from '~/utils/dojos/affiliation'
+import type { DojoEntry } from '~/utils/dojos/types'
 
 const BELGIAN_GSM_REGEX = /^((\+|00)32\s?|0)([1-9][0-9]\d{6})\d?$/
 
@@ -26,12 +27,15 @@ const addressSchema = z.object({
   }
 })
 
-export function createPersonalFieldsSchema(settings: {
-  minAge: number
-  maxAge: number
-  guardianAge: number
-  officialStartDate: string
-}) {
+export function createPersonalFieldsSchema(
+  settings: {
+    minAge: number
+    maxAge: number
+    guardianAge: number
+    officialStartDate: string
+  },
+  knownDojos: DojoEntry[] = [],
+) {
   const bounds = getAgeBounds(settings)
 
   return z.object({
@@ -69,7 +73,7 @@ export function createPersonalFieldsSchema(settings: {
     }
 
     const viaType = normalizeViaType(data.via_type)
-    if (!isAffiliationComplete(viaType, data.via ?? '')) {
+    if (!isAffiliationComplete(viaType, data.via ?? '', knownDojos)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['via'],
@@ -79,26 +83,32 @@ export function createPersonalFieldsSchema(settings: {
   })
 }
 
-export function createUserSchema(settings: {
-  minAge: number
-  maxAge: number
-  guardianAge: number
-  officialStartDate: string
-}) {
-  return createPersonalFieldsSchema(settings).and(
+export function createUserSchema(
+  settings: {
+    minAge: number
+    maxAge: number
+    guardianAge: number
+    officialStartDate: string
+  },
+  knownDojos: DojoEntry[] = [],
+) {
+  return createPersonalFieldsSchema(settings, knownDojos).and(
     z.object({
       mandatory_approvals: z.array(z.string()).min(1),
     }),
   )
 }
 
-export function createUserProfileSchema(settings: {
-  minAge: number
-  maxAge: number
-  guardianAge: number
-  officialStartDate: string
-}) {
-  return createPersonalFieldsSchema(settings)
+export function createUserProfileSchema(
+  settings: {
+    minAge: number
+    maxAge: number
+    guardianAge: number
+    officialStartDate: string
+  },
+  knownDojos: DojoEntry[] = [],
+) {
+  return createPersonalFieldsSchema(settings, knownDojos)
 }
 
 export function createOwnProjectSchema() {

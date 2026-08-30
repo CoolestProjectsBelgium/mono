@@ -13,9 +13,11 @@ import { InfoDto } from './dto/info.dto';
 import { Op } from 'sequelize';
 import { ApprovalDto } from './dto/approval.dto';
 import { SettingDto } from './dto/setting.dto';
+import { DojoDto } from './dto/dojo.dto';
 import { Registration } from '@coolestprojects/database';
 import { User } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
+import { Affiliation } from '@coolestprojects/database';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -33,6 +35,8 @@ export class AppService {
     private readonly userModel: typeof User,
     @InjectModel(Project)
     private readonly projectModel: typeof Project,
+    @InjectModel(Affiliation)
+    private readonly affiliationModel: typeof Affiliation,
     private configService: ConfigService,
   ) {}
   async findAllQuestions(info: InfoDto): Promise<QuestionDto[]> {
@@ -56,6 +60,18 @@ export class AppService {
         negative: question.translations[0].negative,
       };
     });
+  }
+
+  async findAllDojos(info: InfoDto): Promise<DojoDto[]> {
+    const dojos = await this.affiliationModel.findAll({
+      attributes: ['id', 'name'],
+      where: { eventId: info.currentEvent },
+      order: [['name', 'ASC']],
+    });
+    return dojos.map((dojo) => ({
+      id: dojo.id,
+      name: dojo.name,
+    }));
   }
 
   async findAllApprovals(info: InfoDto): Promise<ApprovalDto[]> {

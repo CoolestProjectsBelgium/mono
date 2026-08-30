@@ -46,4 +46,12 @@ describe('useRegistration', () => {
     expect(questions).toHaveLength(1)
     expect(mockFetch).toHaveBeenCalledWith('/questions', expect.any(Object))
   })
+
+  it('GET /dojos', async () => {
+    mockFetch.mockResolvedValue([{ id: 1, name: 'Balen' }])
+    const { fetchDojos } = await callComposable(() => useRegistration())
+    const dojos = await fetchDojos()
+    expect(dojos).toEqual([{ id: 1, name: 'Balen' }])
+    expect(mockFetch).toHaveBeenCalledWith('/dojos', expect.any(Object))
+  })
 })
