@@ -43,6 +43,7 @@ async function bootstrap() {
   const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     getSecret: () => config.get('api.csrf')!,
 
+    // csrf-csrf defaults to a __Host- cookie name; do not set Domain.
     cookieOptions: {
       sameSite: csrfCookieOptions.sameSite,
       secure: csrfCookieOptions.secure,

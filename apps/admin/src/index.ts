@@ -31,6 +31,9 @@ const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000')
 
 const start = async () => {
   const app = express()
+  // TLS is terminated in front of Node (Dev Container proxy and Level27). Without this,
+  // express-session sees HTTP and will not Set-Cookie when cookie.secure is true.
+  app.set('trust proxy', 1)
 
   AdminJS.registerAdapter({
     Resource: AdminJSSequelize.Resource,
@@ -271,7 +274,8 @@ const start = async () => {
     secret: process.env.ADMINJS_COOKIE_SECRET + "",
     cookie: {
       httpOnly: process.env.NODE_ENV === 'production',
-      secure: process.env.NODE_ENV === 'production',
+      // 'auto' + trust proxy: Secure on HTTPS (dest / local proxy), not on direct HTTP.
+      secure: 'auto',
       sameSite: 'lax',
       maxAge: 8 * 60 * 60 * 1000,
       domain: process.env.COOKIE_DOMAIN,

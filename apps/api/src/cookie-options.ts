@@ -13,9 +13,10 @@ export function buildAppCookieOptions(config: ConfigService, request: CookieRequ
     || request.secure
     || request.headers?.['x-forwarded-proto'] === 'https';
 
-  const rawDomain = config.get('enviroment')!?.trim();
+  // COOKIE_DOMAIN, never NODE_ENV — Domain=.production is rejected by the browser.
+  const rawDomain = config.get('cookies.domain')?.trim();
   const isLocalhostDev = Boolean(rawDomain?.endsWith('.localhost'));
-  const isNonProduction = config.get('enviroment')!  !== 'production';
+  const isNonProduction = config.get('enviroment') !== 'production';
   const corsHasLocalhost = parseCorsOrigins().some((origin) =>
     origin.includes('.localhost'),
   );
