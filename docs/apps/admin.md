@@ -18,9 +18,11 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 | `apps/admin/src/database.ts` | Sequelize connection (`import 'dotenv/config'` first — ESM evaluates this module before `index.ts` body) |
 | `apps/admin/src/components/` | Custom AdminJS components (`Login`, `Dashboard`) |
 | `npm run start:dev --workspace=apps/admin` | Dev server (port 3000 in Dev Container) |
-| `apps/admin/.adminjs/` | Generated frontend bundle (`entry.js`, `bundle.js`); created on start via `ComponentLoader` / `admin.watch()`; gitignored |
+| `apps/admin/.adminjs/` | Generated frontend bundle (`entry.js`, `bundle.js`); `admin.initialize()` in production, `admin.watch()` in dev; gitignored |
 
 Local URL (via proxy): `https://admin.coolestprojects.localhost:8443` (redirects to `/admin`)
+
+On Level27, listen on `ADMINJS_PORT` **3000** (component port). Agency terminates TLS on 443 in front of Node — do not set `ADMINJS_PORT=443`.
 
 Default seed logins (from API seeder): `superadmin` / `admin` / `jury` — passwords are set in `apps/api/src/seeder/seed.ts`.
 
@@ -51,6 +53,8 @@ allowing at most one confirmed attachment per project; saving a confirmed image 
 
 The `VotingOverview` page shows event-scoped vote totals, votes over time, and a project/category vote breakdown. It
 refreshes automatically every 15 seconds and displays the last successful update when a refresh request fails.
+Chart components import Recharts from `recharts/es6/...` (not the package barrel) so AdminJS production Rollup does
+not pull the CJS `lib/` graph that crashes the dest bundle.
 
 The `Tables` page supports selecting two tables and swapping their project assignments while keeping assignments scoped
 to the selected event.

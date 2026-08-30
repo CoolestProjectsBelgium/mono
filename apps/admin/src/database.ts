@@ -56,7 +56,7 @@ export const sequelize = new Sequelize({
         Vote,
         Affiliation,
     ],
-    logging: true,
+    logging: process.env.NODE_ENV === 'production' ? false : console.log,
 } as any)
 
 await sequelize.authenticate()

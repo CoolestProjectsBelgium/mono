@@ -255,6 +255,13 @@ const start = async () => {
     componentLoader,
   })
 
+  if (process.env.NODE_ENV === 'production') {
+    await admin.initialize()
+    process.env.ADMIN_JS_SKIP_BUNDLE = 'true'
+  } else {
+    await admin.watch()
+  }
+
   const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
     cookiePassword: process.env.ADMINJS_COOKIE_SECRET!,
     cookieName: 'adminjs',
@@ -283,11 +290,16 @@ const start = async () => {
 
   app.use(admin.options.rootPath, adminRouter)
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`AdminJS started on http://0.0.0.0:${PORT}${admin.options.rootPath}`)
+  await new Promise<void>((resolve, reject) => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`AdminJS started on http://0.0.0.0:${PORT}${admin.options.rootPath}`)
+      resolve()
+    })
+    server.on('error', reject)
   })
-
-  admin.watch()
 }
 
-start()
+start().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})

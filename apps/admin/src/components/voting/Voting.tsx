@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { ApiClient } from 'adminjs';
-import {
-	Bar,
-	BarChart,
-	CartesianGrid,
-	 Line,
-	 LineChart,
-	 Legend,
-	ResponsiveContainer,
-	Tooltip,
-	XAxis,
-	YAxis,
-} from 'recharts';
+import { Bar } from 'recharts/es6/cartesian/Bar.js';
+import { CartesianGrid } from 'recharts/es6/cartesian/CartesianGrid.js';
+import { Line } from 'recharts/es6/cartesian/Line.js';
+import { XAxis } from 'recharts/es6/cartesian/XAxis.js';
+import { YAxis } from 'recharts/es6/cartesian/YAxis.js';
+import { BarChart } from 'recharts/es6/chart/BarChart.js';
+import { LineChart } from 'recharts/es6/chart/LineChart.js';
+import { Legend } from 'recharts/es6/component/Legend.js';
+import { ResponsiveContainer } from 'recharts/es6/component/ResponsiveContainer.js';
+import { Tooltip } from 'recharts/es6/component/Tooltip.js';
 import { Box, H2, Text } from '@adminjs/design-system';
 import { VotingOverview } from './handler.js';
 
