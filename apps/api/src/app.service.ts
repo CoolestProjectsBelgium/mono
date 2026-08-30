@@ -160,6 +160,7 @@ export class AppService {
 
       maxRegistration: event.maxRegistration,
       maxParticipants: event.maxVoucher,
+      maxAttachments: 10,
 
       // info object
       isRegistrationOpen: info.registrationOpen,

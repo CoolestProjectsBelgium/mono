@@ -36,6 +36,19 @@ describe('UploadAttachments', () => {
     expect(wrapper.find('[data-testid="attachment-display-name"]').exists()).toBe(false)
   })
 
+  it('defaults maxAttachments when the prop is omitted', async () => {
+    const wrapper = await mountSuspended(UploadAttachments, {
+      props: { maxUploadSize: 1024, attachmentCount: 0 },
+      global: {
+        stubs: {
+          FormSection: { template: '<div><slot /></div>', props: ['title'] },
+        },
+      },
+    })
+
+    expect(wrapper.props('maxAttachments')).toBe(10)
+  })
+
   it('shows inline error for oversized file without uploading', async () => {
     const wrapper = await mountSuspended(UploadAttachments, {
       props: { ...defaultProps, maxUploadSize: 10 },

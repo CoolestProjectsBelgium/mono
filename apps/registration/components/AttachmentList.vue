@@ -85,15 +85,16 @@
 
 <script setup lang="ts">
 import type { AttachmentDto } from '~/types/api'
-import { resolveMaxAttachments } from '~/utils/attachment'
+import { MAX_PROJECT_ATTACHMENTS, resolveMaxAttachments } from '~/utils/attachment'
 import { inferAttachmentMediaKind } from '~/utils/attachment-media'
 
 const props = withDefaults(defineProps<{
   attachments: AttachmentDto[]
-  maxAttachments: number
+  maxAttachments?: number
   disabled?: boolean
   canDelete?: boolean
 }>(), {
+  maxAttachments: MAX_PROJECT_ATTACHMENTS,
   canDelete: true,
 })
 

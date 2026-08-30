@@ -29,7 +29,7 @@ Header home link is the Coolest Projects Belgium mark (`public/logo-coolest-proj
 - `apps/api` at `https://api.coolestprojects.localhost:8443` — `RegistrationController`, `LoginController`, `ProjectinfoController`, `UserinfoController`, `ParticipantController`, `AppController` (`/settings`, catalogs); cross-origin with `credentials: 'include'` (API `CORS_ORIGINS`)
 - Auth: magic-link JWT → signed httpOnly `jwt` cookie (`jwt-cookiecombo`); CSRF via `GET /csrf-token` + `x-csrf-token` on mutating requests
 - Affiliation: three radios on `UserForm` (CoderDojo, other organisation, not applicable). Dojo names are a committed snapshot without the `Dojo` prefix (`data/be-dojos.json`); refresh with `npm run seed:dojos`. Stored on `User`/`Registration` as `via_type` + `via` (`via_type` null = not applicable).
-- Attachments: multipart `POST /projectinfo/attachments`, list `GET /projectinfo/attachments`, delete `DELETE /projectinfo/attachments/:id`
+- Attachments: multipart `POST /projectinfo/attachments`, list `GET /projectinfo/attachments`, delete `DELETE /projectinfo/attachments/:id`. Photo count cap is `GET /settings` `maxAttachments` (API default 10); the upload page falls back to that same default if the field is missing.
 - Participant invites: `POST /projectinfo/participant` returns `{ project_code }`; unused vouchers listed on `GET /projectinfo` as `pending` participants with `token`
 
 ## Key flows

@@ -93,6 +93,16 @@ describe('upload page', () => {
     expect(wrapper.get('[data-testid="attachment-list"]').text()).toBe('1')
   })
 
+  it('defaults maxAttachments when settings omit it', async () => {
+    fetchSettingsMock.mockResolvedValue({ maxUploadSize: 1024 })
+    fetchProjectMock.mockResolvedValue(ownerProject)
+
+    const wrapper = await mountSuspended(UploadPage)
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.getComponent({ ref: 'uploadRef' }).props('maxAttachments')).toBe(10)
+  })
+
   it('shows attachment list without upload form for coworkers', async () => {
     fetchProjectMock.mockResolvedValue({
       is_owner: false,
