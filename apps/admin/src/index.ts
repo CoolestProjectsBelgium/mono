@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import AdminJSExpress from '@adminjs/express'
 import passwordsFeature from '@adminjs/passwords'
 import * as AdminJSSequelize from '@adminjs/sequelize'
@@ -11,7 +12,6 @@ import { andAccess, canAccessResourceFieldFilter, canAccessResourceRoleFilter, f
 import { componentLoader, Components, Handlers } from './components/index.js'
 import { Authenticate } from './components/login/authenticate.js'
 import eventLoginRouter from './components/login/router.js'
-import 'dotenv/config'; 
 import importExportFeature from '@adminjs/import-export';
 import {  sequelize,} from './database.js'
 

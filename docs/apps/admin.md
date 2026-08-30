@@ -15,7 +15,7 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 | Path / command | Role |
 |----------------|------|
 | `apps/admin/src/index.ts` | AdminJS app bootstrap, resources, auth |
-| `apps/admin/src/database.ts` | Sequelize connection |
+| `apps/admin/src/database.ts` | Sequelize connection (`import 'dotenv/config'` first — ESM evaluates this module before `index.ts` body) |
 | `apps/admin/src/components/` | Custom AdminJS components (`Login`, `Dashboard`) |
 | `npm run start:dev --workspace=apps/admin` | Dev server (port 3000 in Dev Container) |
 | `apps/admin/.adminjs/` | Generated frontend bundle (`entry.js`, `bundle.js`); created on start via `ComponentLoader` / `admin.watch()`; gitignored |
