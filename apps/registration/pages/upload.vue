@@ -6,7 +6,7 @@
       ref="uploadRef"
       :max-upload-size="settings.maxUploadSize"
       :attachment-count="attachments.length"
-      :max-attachments="settings.maxAttachments"
+      :max-attachments="maxAttachments"
       class="mt-6"
       @upload-start="uploading = true"
       @upload-end="uploading = false"
@@ -19,7 +19,7 @@
     <AttachmentList
       v-if="settings"
       :attachments="attachments"
-      :max-attachments="settings.maxAttachments"
+      :max-attachments="maxAttachments"
       :disabled="uploading"
       :can-delete="isProjectOwner"
       class="mt-6"
@@ -32,6 +32,7 @@
 import type { AttachmentDto, ProjectDto, SettingDto } from '~/types/api'
 import { isProjectOwner as checkIsProjectOwner, hasProjectMembership } from '~/utils/project-routing'
 import { hydrateAuthStoreFromStorage } from '~/utils/auth-storage'
+import { resolveMaxAttachments } from '~/utils/attachment'
 
 definePageMeta({ middleware: 'authenticated' })
 
@@ -52,6 +53,7 @@ async function refreshAttachments() {
 }
 
 const isProjectOwner = computed(() => checkIsProjectOwner(project.value))
+const maxAttachments = computed(() => resolveMaxAttachments(settings.value?.maxAttachments))
 
 onMounted(async () => {
   try {

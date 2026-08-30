@@ -94,7 +94,7 @@ export interface SettingDto {
   isProjectClosed: boolean
   maxRegistration: number
   maxParticipants: number
-  maxAttachments: number
+  maxAttachments?: number
 }
 
 export interface TshirtDto {

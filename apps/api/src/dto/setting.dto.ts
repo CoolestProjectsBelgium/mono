@@ -19,4 +19,6 @@ export class SettingDto {
     isProjectClosed!: boolean;
     maxRegistration!: number;
     maxParticipants!: number;
+    /** Client upload cap; not stored on Event (matches registration MAX_PROJECT_ATTACHMENTS). */
+    maxAttachments!: number;
 }

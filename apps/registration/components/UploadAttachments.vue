@@ -35,14 +35,16 @@
 </template>
 
 <script setup lang="ts">
-import { isAttachmentLimitReached, resolveMaxAttachments } from '~/utils/attachment'
+import { isAttachmentLimitReached, MAX_PROJECT_ATTACHMENTS, resolveMaxAttachments } from '~/utils/attachment'
 import { formatFileSize, validateUploadFile } from '~/utils/validation/upload'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   maxUploadSize: number
   attachmentCount: number
-  maxAttachments: number
-}>()
+  maxAttachments?: number
+}>(), {
+  maxAttachments: MAX_PROJECT_ATTACHMENTS,
+})
 
 const { uploadFile } = useAttachments()
 const { notify } = useNotification()
