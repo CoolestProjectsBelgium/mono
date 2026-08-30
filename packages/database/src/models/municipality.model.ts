@@ -20,5 +20,11 @@ export class Municipality extends BaseEventModel {
     postalcode!: number;
 
     @Column(DataType.STRING(30))
-    municipality_name!: string;
+    municipality_name_nl!: string;
+
+    @Column(DataType.STRING(30))
+    municipality_name_fr!: string;
+
+    @Column(DataType.STRING(30))
+    municipality_name_de!: string;
 }
