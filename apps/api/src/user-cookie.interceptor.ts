@@ -10,7 +10,7 @@ import { TokensService } from './tokens/tokens.service';
 import { buildAppCookieOptions, clearLegacyJwtCookies } from './cookie-options';
 import { ConfigService } from '@nestjs/config';
 
-export { buildAppCookieOptions, buildUserCookieOptions } from './cookie-options';
+export { buildAppCookieOptions } from './cookie-options';
 
 /**
  * Routes such as `GET /projectinfo/attachments/:id` also accept an AdminJS session
