@@ -1,4 +1,5 @@
-import 'dotenv/config'
+import { APP_DIR } from './adminjs-env.js'
+import path from 'node:path'
 import AdminJSExpress from '@adminjs/express'
 import passwordsFeature from '@adminjs/passwords'
 import * as AdminJSSequelize from '@adminjs/sequelize'
@@ -255,10 +256,7 @@ const start = async () => {
     componentLoader,
   })
 
-  if (process.env.NODE_ENV === 'production') {
-    await admin.initialize()
-    process.env.ADMIN_JS_SKIP_BUNDLE = 'true'
-  } else {
+  if (process.env.NODE_ENV !== 'production') {
     await admin.watch()
   }
 
@@ -287,6 +285,11 @@ const start = async () => {
   app.get('/', (_req, res) => {
     res.redirect(admin.options.rootPath)
   })
+
+  app.use(
+    `${admin.options.rootPath}/frontend/assets`,
+    express.static(path.join(APP_DIR, 'frontend', 'assets')),
+  )
 
   app.use(admin.options.rootPath, adminRouter)
 

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { bundleAdminComponents } from './admin-bundle.mjs';
 import { run } from './run.mjs';
 
 /**
@@ -134,6 +135,26 @@ export function buildWorkspace(input) {
 }
 
 /**
+ * AdminJS Rollup resolves `Login` to `.js` before `.tsx`. Dist compiled
+ * React files would be bundled instead of the sources dest initialize() needs.
+ * @param {string} stageDir
+ */
+export function stripCompiledAdminComponents(stageDir) {
+  const files = [
+    ['login', 'Login'],
+    ['dashboard', 'Dashboard'],
+    ['pictures', 'PictureSelector'],
+    ['voting', 'Voting'],
+    ['tables', 'Tables'],
+  ];
+  for (const [dir, name] of files) {
+    for (const ext of ['.js', '.d.ts', '.js.map']) {
+      fs.rmSync(path.join(stageDir, 'components', dir, `${name}${ext}`), { force: true });
+    }
+  }
+}
+
+/**
  * @param {{
  *   repoRoot: string,
  *   target: object,
@@ -182,12 +203,20 @@ export function packApp(input) {
       extraDirs,
     });
 
+    if (target.app === 'admin') {
+      stripCompiledAdminComponents(stageDir);
+    }
+
     if (!input.skipNpmInstall) {
       runImpl('npm', ['install', '--omit=dev'], {
         cwd: stageDir,
         stdio: 'inherit',
         env: { PUPPETEER_SKIP_DOWNLOAD: '1' },
       });
+    }
+
+    if (target.app === 'admin' && !input.skipNpmInstall) {
+      bundleAdminComponents({ stageDir, runImpl });
     }
     return stageDir;
   }

@@ -18,13 +18,13 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 | `apps/admin/src/database.ts` | Sequelize connection (`import 'dotenv/config'` first — ESM evaluates this module before `index.ts` body) |
 | `apps/admin/src/components/` | Custom AdminJS components (`Login`, `Dashboard`) |
 | `npm run start:dev --workspace=apps/admin` | Dev server (port 3000 in Dev Container) |
-| `apps/admin/.adminjs/` | Generated frontend bundle (`entry.js`, `bundle.js`); `admin.initialize()` in production, `admin.watch()` in dev; gitignored |
+| `apps/admin/.adminjs/` | Pack-time Rollup output. Copied to `frontend/assets/components.bundle.js` and served statically on dest — dest does **not** run `initialize()`. Gitignored. |
 
 Local URL (via proxy): `https://admin.coolestprojects.localhost:8443` (redirects to `/admin`)
 
 On Level27, listen on `ADMINJS_PORT` **3000** (component port). Agency terminates TLS on 443 in front of Node — do not set `ADMINJS_PORT=443`.
 
-Default seed logins (from API seeder): `superadmin` / `admin` / `jury` — passwords are set in `apps/api/src/seeder/seed.ts`.
+Default seed logins (from API seeder): `superadmin` / `admin` / `jury` — passwords match the account name (`apps/api/src/seeder/seed.ts`). Dest also has `dylan` (super_admin), `dylan-admin`, and `dylan-jury`.
 
 ## Talks to
 

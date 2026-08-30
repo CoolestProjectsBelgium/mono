@@ -36,8 +36,8 @@ Use `addEventFilter`, `canCreate`, `canAccessResourceFieldFilter`, `andAccess` h
 - `@adminjs/sequelize` adapter for resources
 - `@adminjs/passwords` for `Account` password hashing
 - `ComponentLoader` for custom components; override `Login`, add `Dashboard`
-- Custom components are `.tsx` files referenced by path in `componentLoader`
-- Do not commit `apps/admin/.adminjs/` — AdminJS regenerates `entry.js` and `bundle.js` on start
+- Custom components are `.tsx` files referenced by path in `componentLoader` (`apps/admin/src/components/loader.ts`)
+- Do not commit `apps/admin/.adminjs/` — pack copies `frontend/assets/components.bundle.js`; dest serves it and skips `initialize()`
 
 ## After model changes
 

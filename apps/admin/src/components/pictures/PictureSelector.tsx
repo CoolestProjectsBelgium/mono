@@ -15,7 +15,7 @@ import {
     H2
 } from '@adminjs/design-system';
 
-import { GroupedAttachments, PictureAttachment } from '../pictures/handler.js'
+import type { GroupedAttachments, PictureAttachment } from '../pictures/handler.js'
 
 export const PictureHandlerPage: React.FC = () => {
     const [data, setData] = useState<GroupedAttachments>({});

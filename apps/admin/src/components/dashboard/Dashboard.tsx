@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { ApiClient } from 'adminjs'
-import { DashboardResponse } from './handler.js'
+import type { DashboardResponse } from './handler.js'
 
 import {
     Box,

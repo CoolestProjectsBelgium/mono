@@ -1,19 +1,8 @@
-import { ComponentLoader } from 'adminjs'
+export { componentLoader, Components } from './loader.js'
 import { Handler as DashboardHandler } from './dashboard/handler.js'
 import { Handler as PictureHandler } from './pictures/handler.js'
 import { Handler as VotingHandler } from './voting/handler.js'
 import { Handler as TablesHandler } from './tables/handler.js'
-
-const componentLoader = new ComponentLoader()
-
-componentLoader.override('Login', './login/Login');
-
-const Components = {
-  Dashboard: componentLoader.add('Dashboard', './dashboard/Dashboard'),
-  PictureSelector: componentLoader.add('PictureSelector', './pictures/PictureSelector'),
-  VotingOverview: componentLoader.add('VotingOverview', './voting/Voting'),
-  Tables: componentLoader.add('Tables', './tables/Tables'),
-}
 
 const Handlers = {
   Dashboard: DashboardHandler,
@@ -22,4 +11,4 @@ const Handlers = {
   Tables: TablesHandler,
 }
 
-export { componentLoader, Components, Handlers }
+export { Handlers }

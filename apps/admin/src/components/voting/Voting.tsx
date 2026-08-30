@@ -11,7 +11,7 @@ import { Legend } from 'recharts/es6/component/Legend.js';
 import { ResponsiveContainer } from 'recharts/es6/component/ResponsiveContainer.js';
 import { Tooltip } from 'recharts/es6/component/Tooltip.js';
 import { Box, H2, Text } from '@adminjs/design-system';
-import { VotingOverview } from './handler.js';
+import type { VotingOverview } from './handler.js';
 
 const api = new ApiClient();
 const refreshInterval = 15000;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ApiClient } from 'adminjs';
 import { Box, Button, CheckBox, H2, Table, TableBody, TableCell, TableHead, TableRow, Text } from '@adminjs/design-system';
-import { TableOverview } from './handler.js';
+import type { TableOverview } from './handler.js';
 
 const api = new ApiClient();
 

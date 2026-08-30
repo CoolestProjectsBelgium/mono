@@ -26,7 +26,7 @@ function makeRepo() {
   fs.writeFileSync(path.join(root, 'apps', 'api', 'dist', 'main.js'), 'console.log("api")');
   fs.writeFileSync(path.join(root, 'apps', 'api', 'dist', 'app.module.js'), 'export {}');
 
-  fs.mkdirSync(path.join(root, 'apps', 'admin', 'dist', 'components'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'apps', 'admin', 'dist', 'components', 'login'), { recursive: true });
   fs.mkdirSync(path.join(root, 'apps', 'admin', 'src', 'components', 'login'), { recursive: true });
   fs.writeFileSync(
     path.join(root, 'apps', 'admin', 'package.json'),
@@ -36,6 +36,10 @@ function makeRepo() {
   fs.writeFileSync(
     path.join(root, 'apps', 'admin', 'dist', 'components', 'index.js'),
     'export {}',
+  );
+  fs.writeFileSync(
+    path.join(root, 'apps', 'admin', 'dist', 'components', 'login', 'Login.js'),
+    'export default {}',
   );
   fs.writeFileSync(
     path.join(root, 'apps', 'admin', 'src', 'components', 'login', 'Login.tsx'),
@@ -99,6 +103,7 @@ test('admin stage writes ESM main.js wrapper and keeps component sources', () =>
   assert.equal(fs.existsSync(path.join(stageDir, 'index.js')), true);
   assert.equal(fs.existsSync(path.join(stageDir, 'components', 'index.js')), true);
   assert.equal(fs.existsSync(path.join(stageDir, 'components', 'login', 'Login.tsx')), true);
+  assert.equal(fs.existsSync(path.join(stageDir, 'components', 'login', 'Login.js')), false);
   fs.rmSync(root, { recursive: true, force: true });
 });
 

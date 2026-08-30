@@ -46,7 +46,7 @@ If remote `app/.env` already exists, deploy leaves it unchanged. If it is missin
 
 `--env prod` uses the matching `*-prod` component. Prod is manual only.
 
-Pack Node apps on **Linux** (Dev Container) so `sharp` / `bcrypt` native addons match Agency. Puppeteer Chromium is skipped (`PUPPETEER_SKIP_DOWNLOAD=1`).
+Pack Node apps on **Linux** (Dev Container) so `sharp` / `bcrypt` native addons match Agency. Puppeteer Chromium is skipped (`PUPPETEER_SKIP_DOWNLOAD=1`). Admin pack Rollup-builds custom components once, then copies `frontend/assets/components.bundle.js` into the artifact. Dest serves that file; it does not compile AdminJS at boot. `.adminjs/` is rsync-excluded.
 
 Smoke for Node: SSH `curl` to `http://127.0.0.1:<port>/api` (or `/admin`). `api-dev.coolestprojects-test.be` may not be in DNS yet. If Node exits immediately, check the remote `app/.env` (`DB_HOST` must reach `db-dev`); deploy never overwrites an existing `.env`.
 
