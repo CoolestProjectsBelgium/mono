@@ -41,9 +41,6 @@ export function buildAppCookieOptions(config: ConfigService, request: CookieRequ
   };
 }
 
-/** @deprecated use buildAppCookieOptions */
-export const buildUserCookieOptions = buildAppCookieOptions;
-
 export function clearLegacyJwtCookies(
   config: ConfigService,
   res: Pick<Response, 'clearCookie'>,
