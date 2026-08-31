@@ -1,0 +1,58 @@
+CREATE OR REPLACE VIEW view_Export_all AS
+SELECT 
+u.id AS id, -- <--- VERANDER DIT: noem het gewoon 'id' i.p.v. 'user_id'
+
+-- Velden van Users
+u.eventId AS user_event_id,
+u.email,u.lastname, u.firstname,  
+u.language AS user_language,
+
+-- Velden van de koppeltabel UserProjects (om rol te zien)
+up.isOwner,
+
+-- STATUS VAN DE VRAGEN (Vraag 1, 2 en 3)
+-- We kijken per vraag of er een match is in de QuestionUsers tabel
+CASE WHEN qu1.questionId IS NOT NULL THEN 'ja' ELSE 'neen' END AS photo,
+CASE WHEN qu2.questionId IS NOT NULL THEN 'ja' ELSE 'neen' END AS contact,
+CASE WHEN qu3.questionId IS NOT NULL THEN 'ja' ELSE 'neen' END AS approved,
+
+-- Velden van tshirt 
+t.name AS tshirt_name,
+
+-- Velden van Users
+u.postalcode,
+u.municipality_name,
+u.sex,
+u.birthmonth,
+u.via as via_Coderdojo,
+u.gsm,
+u.gsm_guardian,
+u.internalinfo AS user_internal_info,
+u.email_guardian,
+u.tshirtId,
+u.medical,
+u.last_token,
+
+-- Velden van Projects
+p.id AS project_id,
+p.name AS project_name, 
+p.eventId AS project_event_id,
+p.description,
+p.type AS project_type,
+p.internalInformation AS project_internal_info,
+p.language AS project_language,
+p.maxVoucher,
+
+-- Velden van de koppeltabel UserProjects (om rol te zien)
+up.voucherGuid,
+up.projectId,
+up.userId
+
+FROM UserProjects up
+
+JOIN Users u ON up.userId = u.id
+LEFT JOIN Tshirts t ON u.tshirtId = t.id 
+JOIN Projects p ON up.projectId = p.id
+LEFT JOIN QuestionUsers qu1 ON u.id = qu1.userId AND qu1.questionId = 1
+LEFT JOIN QuestionUsers qu2 ON u.id = qu2.userId AND qu2.questionId = 2
+LEFT JOIN QuestionUsers qu3 ON u.id = qu3.userId AND qu3.questionId = 3;

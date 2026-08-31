@@ -4,6 +4,7 @@ import {
     Award,
     Event,
     EventTable,
+    EmailTemplate,
     Project,
     Question,
     QuestionRegistration,
@@ -55,6 +56,8 @@ export const sequelize = new Sequelize({
         Attachment,
         Vote,
         Affiliation,
+        EmailTemplate,
+        Vote
     ],
     logging: process.env.NODE_ENV === 'production' ? false : console.log,
 } as any)

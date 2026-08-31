@@ -172,9 +172,13 @@ const start = async () => {
       { resource: sequelize.models.EventTable, 
         features: [  importExportFeature({ componentLoader })]  
       },
+      {resource: sequelize.models.EmailTemplate, 
+        features: [  importExportFeature({ componentLoader })]  
+      },  
       { resource: sequelize.models.User,
         features: [  importExportFeature({ componentLoader })],
        },
+  
       { resource: sequelize.models.UserProject },
       {
         resource: sequelize.models.Tshirt, 
@@ -201,8 +205,73 @@ const start = async () => {
       { resource: sequelize.models.TshirtTranslation },
       { resource: sequelize.models.QuestionTranslation },
       { resource: sequelize.models.QuestionRegistration },
-      { resource: sequelize.models.Registration },
+      { resource: sequelize.models.Registration, 
+        features: [ importExportFeature({ componentLoader }) ],
+      }, 
       { resource: sequelize.models.TshirtGroupTranslation },
+
+      { resource: sequelize.define('view_Export_all', {
+              id:             { type: DataTypes.INTEGER, primaryKey: true }, // u.id AS id
+              user_event_id:  { type: DataTypes.STRING },                   // u.eventId AS user_event_id
+              email:          { type: DataTypes.STRING },                   // u.email
+              lastname:       { type: DataTypes.STRING },                   // u.lastname
+              firstname:      { type: DataTypes.STRING },                   // u.firstname
+              user_language:   { type: DataTypes.STRING },                  // u.language AS user_language
+              isOwner:        { type: DataTypes.BOOLEAN },                 // up.isOwner
+              photo:          { type: DataTypes.STRING },                  // CASE ... AS photo
+              contact:        { type: DataTypes.STRING },                  // CASE ... AS contact
+              approved:       { type: DataTypes.STRING },                  // CASE ... AS approved
+              tshirt_name:    { type: DataTypes.STRING },                 // t.name AS tshirt_name
+              postalcode:     { type: DataTypes.STRING },                 // u.postalcode
+              municipality_name: { type: DataTypes.STRING },             // u.municipality_name
+              sex:           { type: DataTypes.STRING },                  // u.sex
+              birthmonth:      { type: DataTypes.STRING },                // u.birthmonth
+              via_Coderdojo:   { type: DataTypes.STRING },               // u.via AS via_Coderdojo
+              gsm:            { type: DataTypes.STRING },                 // u.gsm
+              gsm_guardian:    { type: DataTypes.STRING },                // u.gsm_guardian
+              user_internal_info: { type: DataTypes.STRING },             // u.internalinfo AS user_internal_info
+              email_guardian:  { type: DataTypes.STRING },               // u.email_guardian
+              tshirtId:        { type: DataTypes.STRING },                // u.tshirtId
+              medical:         { type: DataTypes.STRING },                // u.medical
+              last_token:      { type: DataTypes.STRING },                // u.last_token
+              project_id:      { type: DataTypes.STRING },               // p.id AS project_id
+              project_event_id: { type: DataTypes.STRING },              // p.eventId AS project_event_id
+              description:     { type: DataTypes.STRING },               // p.description
+              project_type:    { type: DataTypes.STRING },               // p.type AS project_type
+              project_internal_info: { type: DataTypes.STRING },         // p.internalInformation AS project_internal_info
+              project_language:  { type: DataTypes.STRING },              // p.language AS project_language
+              maxVoucher:       { type: DataTypes.STRING },               // p.maxVoucher
+              voucherGuid:      { type: DataTypes.STRING },               // up.voucherGuid
+              projectId:        { type: DataTypes.STRING },               // up.projectId
+              userId:          { type: DataTypes.STRING }                 // up.userId
+        }, { 
+          tableName: 'view_Export_all',
+          timestamps: false,
+          freezeTableName: true
+        }),
+        features: [ importExportFeature({ componentLoader }) ],
+        options: {
+          label: 'Export full User, Project, Questions report',
+    // VERPLICHT IN v7: Dit bepaalt exact welke kolommen in de 'list' tabel staan én de volgorde ervan
+    listProperties: [
+      'email', 'lastname', 'firstname', 'user_language', 'isOwner', 'photo',
+      'contact', 'approved', 'tshirt_name', 'postalcode', 'municipality_name', 'sex', 'birthmonth',
+      'via_Coderdojo', 'gsm', 'gsm_guardian', 'user_internal_info', 'email_guardian', 'tshirtId',
+      'medical', 'last_token', 'project_id', 'project_event_id', 'description', 'project_type',
+      'project_internal_info', 'project_language', 'maxVoucher', 'voucherGuid', 'projectId', 'userId','id', 'user_event_id'
+    ],
+        actions: {
+          // Verberg en blokkeer de standaard CRUD-acties
+            new: { isVisible: false, isAccessible: false },
+            edit: { isVisible: false, isAccessible: false },
+            delete: { isVisible: false, isAccessible: false },
+            show: { isVisible: false, isAccessible: false },
+          // Verberg de bulk-verwijderoptie waardoor de selectievakjes in de 'list' verdwijnen
+            bulkDelete: { isVisible: false, isAccessible: false },
+         },
+
+        }
+      },
       {
         resource: sequelize.models.Affiliation,
         options: {
