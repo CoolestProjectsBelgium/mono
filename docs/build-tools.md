@@ -19,7 +19,7 @@ Pack monorepo apps into the layout Level27 components already expect, rsync them
 | `node build_tools/bin/deploy-all.mjs --env dev` | Publish all five test apps (continues on failure) |
 | `node build_tools/bin/deploy-all.mjs --env prod` | Publish all five production apps |
 | `.github/workflows/deploy-test.yml` | Push to `test-env` or **Run workflow** → `deploy-all --env dev` |
-| `.github/workflows/deploy-prod.yml` | Push to `main` or **Run workflow** → `deploy-all --env prod` (requires approval) |
+| `.github/workflows/deploy-prod.yml` | Push to `production` or **Run workflow** → `deploy-all --env prod` |
 | `node build_tools/bin/deploy.mjs --app api --env prod --dry-run` | Print prod targets; no SSH |
 | `npm run test:build-tools` | Unit tests |
 | `npm run deploy -- --app api --env dev` | Same single-app CLI via root script |
@@ -33,8 +33,8 @@ Live estate (app `coolestprojects`, id `21746`) is documented in the sibling Ope
 ### Release flow
 
 ```text
-feature branch → merge test-env → CI deploys dev → verify
-              → merge main      → CI deploys prod (approval) → verify
+feature branch → merge test-env    → CI deploys dev → verify
+              → merge production → CI deploys prod → verify
 ```
 
 Test and prod use the **same** deploy script. Schema changes are applied automatically on api deploy (see [Database package](packages/database.md)).
@@ -65,13 +65,13 @@ CI does not need `build_tools/secrets/*.env` when remote `.env` files already ex
 
 ### GitHub Actions (production)
 
-Workflow: [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod.yml). Triggers on push to `main` and `workflow_dispatch`. Uses GitHub Environment **`production`** — configure **required reviewers** under **Settings → Environments → production** so prod deploys need a one-click approval.
+Workflow: [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod.yml). Triggers on push to `production` and `workflow_dispatch`. Same shape as the test workflow: one job on `ubuntu-latest` (Node 24, `npm ci`, `rsync`). Deploys api → admin → registration → voting → eventguide via `deploy-all.mjs --env prod`. Concurrency group `deploy-prod` never cancels an in-flight rsync.
 
 **One-time prod CI setup:**
 
 1. Attach the same CI **public** SSH key to all five `*-prod` components (`nj10447`, `nj10449`, `vd35114`).
 2. Ensure api-prod remote `.env` includes `DB_SYNC_ALTER=true` (see env example).
-3. Merge to `main` or run **Deploy production** from the Actions tab.
+3. Push to `production` or run **Deploy production** from the Actions tab.
 
 ### Schema on deploy (api only)
 

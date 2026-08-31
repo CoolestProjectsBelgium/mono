@@ -8,8 +8,8 @@ const workflowPath = path.join(REPO_ROOT, '.github', 'workflows', 'deploy-prod.y
 
 test('deploy-prod workflow contract', () => {
   const yaml = fs.readFileSync(workflowPath, 'utf8');
-  assert.match(yaml, /branches:\s*\n\s*-\s*main/);
-  assert.match(yaml, /environment:\s*production/);
+  assert.match(yaml, /branches:\s*\n\s*-\s*production/);
+  assert.doesNotMatch(yaml, /^\s*environment:/m);
   assert.match(yaml, /node-version:\s*['"]24['"]/);
   assert.match(yaml, /deploy-all\.mjs --env prod/);
   assert.doesNotMatch(yaml, /--env dev/);
