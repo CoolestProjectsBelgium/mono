@@ -52,9 +52,8 @@ import configuration from './config/configuration.js';
           username: configService.get('database.user'),
           password: configService.get('database.password'),
           database: configService.get('database.name'),
-          synchronize: true,
-          // Add new model columns in local/dev without dropping data (synchronize alone only creates tables).
-          sync: configService.get('enviroment') === 'production' ? undefined : { alter: true },
+          synchronize: configService.get('database.synchronize'),
+          sync: configService.get('database.sync'),
           autoLoadModels: true,
           models: [
             Event,

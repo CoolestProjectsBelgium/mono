@@ -22,8 +22,8 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
     throw new Error(`--env is required.\n${usage()}`);
   }
 
-  if (args.env !== 'dev') {
-    throw new Error('deploy-all only supports --env dev (prod deploys stay manual per app).');
+  if (args.env !== 'dev' && args.env !== 'prod') {
+    throw new Error('deploy-all only supports --env dev or --env prod.');
   }
 
   const { committed } = loadTargets();
@@ -54,13 +54,14 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
 }
 
 function usage() {
-  return `Publish every Level27 app to the test (dev) estate.
+  return `Publish every Level27 app to the test (dev) or production estate.
 
 Usage:
   node build_tools/bin/deploy-all.mjs --env dev
+  node build_tools/bin/deploy-all.mjs --env prod
 
 Options:
-  --env            dev only (prod is manual per app via deploy.mjs)
+  --env            dev | prod
 `;
 }
 

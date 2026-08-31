@@ -25,6 +25,10 @@ export function parseArgs(argv) {
       args.skipRestart = true;
       continue;
     }
+    if (token === '--skip-views') {
+      args.skipViews = true;
+      continue;
+    }
     if (token === '--help' || token === '-h') {
       args.help = true;
       continue;
@@ -62,6 +66,7 @@ Options:
   --skip-build     Use existing dist / generate output
   --skip-npm-install
   --skip-restart   Skip SSH pkill of node main.js (systemd respawns it)
+  --skip-views     Skip applying admin SQL views (api deploy only)
   --skip-smoke     Skip public URL HTTP smoke check
 `;
 }

@@ -79,6 +79,8 @@ test('api stage has main.js, database vendor, no .env', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(stageDir, 'package.json'), 'utf8'));
   assert.equal(pkg.dependencies['@coolestprojects/database'], 'file:./vendor/database');
   assert.equal(pkg.devDependencies, undefined);
+  assert.equal(fs.existsSync(path.join(stageDir, 'sql-views')), true);
+  assert.equal(fs.existsSync(path.join(stageDir, 'apply-views.cjs')), true);
   fs.rmSync(root, { recursive: true, force: true });
 });
 

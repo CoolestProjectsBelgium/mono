@@ -1,3 +1,5 @@
+import { buildSequelizeSyncOptions } from './database-sync.js';
+
 export default () => ({
   enviroment: process.env.NODE_ENV,
   database: {
@@ -7,6 +9,7 @@ export default () => ({
     name: process.env.DB_NAME,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
+    ...buildSequelizeSyncOptions(),
   },
   mailing: {
     host: process.env.SMTP_HOST,

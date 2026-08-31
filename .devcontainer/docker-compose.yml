@@ -13,6 +13,7 @@ services:
       DB_NAME: coolestproject
       DB_USER: coolestproject
       DB_PASSWORD: Se84KCCCJlnfkdfv
+      DB_SYNC_ALTER: "true"
 
       # AdminJS configuration
       ADMINJS_COOKIE_SECRET: nic2;To97Di\lF8zC'V{'[_

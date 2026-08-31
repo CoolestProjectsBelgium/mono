@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { bundleAdminComponents } from './admin-bundle.mjs';
 import { run } from './run.mjs';
+import { stageSqlViews } from './sql-views.mjs';
 
 /**
  * @param {string} from
@@ -205,6 +206,10 @@ export function packApp(input) {
 
     if (target.app === 'admin') {
       stripCompiledAdminComponents(stageDir);
+    }
+
+    if (target.app === 'api') {
+      stageSqlViews({ repoRoot, stageDir });
     }
 
     if (!input.skipNpmInstall) {
