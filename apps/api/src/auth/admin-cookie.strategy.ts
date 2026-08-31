@@ -6,7 +6,7 @@ import { AdminAuthenticationService } from './adminauth.service';
 @Injectable()
 export class AdminCookieStrategy extends PassportStrategy(
   Strategy,
-  'admin-cookie',
+  'mandatory-admin-cookie',
 ) {
   constructor(
     private readonly adminAuth: AdminAuthenticationService,
