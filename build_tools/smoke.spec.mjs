@@ -1,47 +1,36 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  buildSmokeProbeCommand,
-  probeLocalhost,
+  buildSmokeUrl,
+  probeUrl,
   SMOKE_OK_CODES,
-  smokeLocalhost,
+  smokePublicUrl,
 } from './lib/smoke.mjs';
 
-test('buildSmokeProbeCommand uses node fetch against localhost', () => {
-  const command = buildSmokeProbeCommand({ port: 3001, smokePath: '/api' });
-  assert.match(command, /^node -e /);
-  assert.match(command, /127\.0\.0\.1:3001\/api/);
+test('buildSmokeUrl joins publicUrl and smokePath', () => {
+  assert.equal(
+    buildSmokeUrl({
+      publicUrl: 'https://api-dev.coolestprojects-test.be',
+      smokePath: '/api',
+    }),
+    'https://api-dev.coolestprojects-test.be/api',
+  );
 });
 
-test('probeLocalhost returns null when ssh probe fails', () => {
-  const code = probeLocalhost({
-    sshUser: 'u',
-    sshHost: 'h',
-    port: 3001,
-    smokePath: '/api',
-    runImpl: () => {
-      throw new Error('exited 7');
-    },
+test('probeUrl returns null when fetch fails', async () => {
+  const code = await probeUrl('https://example.test/api', async () => {
+    throw new Error('network');
   });
   assert.equal(code, null);
 });
 
-test('smokeLocalhost retries until a success code', async () => {
+test('smokePublicUrl retries until a success code', async () => {
   let calls = 0;
   const sleeps = [];
-  const code = await smokeLocalhost(
+  const code = await smokePublicUrl(
     {
-      sshUser: 'u',
-      sshHost: 'h',
-      port: 3001,
+      publicUrl: 'https://api-dev.coolestprojects-test.be',
       smokePath: '/api',
-      runImpl: () => {
-        calls += 1;
-        if (calls < 3) {
-          throw new Error('exited 7');
-        }
-        return { stdout: '200\n' };
-      },
     },
     {
       attempts: 5,
@@ -49,6 +38,13 @@ test('smokeLocalhost retries until a success code', async () => {
       initialDelayMs: 0,
       sleep: async (ms) => {
         sleeps.push(ms);
+      },
+      fetchImpl: async () => {
+        calls += 1;
+        if (calls < 3) {
+          throw new Error('network');
+        }
+        return { status: 200 };
       },
     },
   );
@@ -58,23 +54,21 @@ test('smokeLocalhost retries until a success code', async () => {
   assert.ok(sleeps.length >= 2);
 });
 
-test('smokeLocalhost fails after exhausting attempts', async () => {
+test('smokePublicUrl fails after exhausting attempts', async () => {
   await assert.rejects(
-    () => smokeLocalhost(
+    () => smokePublicUrl(
       {
-        sshUser: 'u',
-        sshHost: 'h',
-        port: 3000,
+        publicUrl: 'https://admin-dev.coolestprojects-test.be',
         smokePath: '/admin',
-        runImpl: () => {
-          throw new Error('exited 7');
-        },
       },
       {
         attempts: 2,
         intervalMs: 0,
         initialDelayMs: 0,
         sleep: async () => {},
+        fetchImpl: async () => {
+          throw new Error('network');
+        },
       },
     ),
     /did not return 200\/301\/302 after 2 attempts/,

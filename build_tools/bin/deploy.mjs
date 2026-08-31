@@ -8,7 +8,7 @@ import { packApp } from '../lib/pack.mjs';
 import { BUILD_TOOLS_ROOT, loadTargets, resolveTarget } from '../lib/targets.mjs';
 import { buildRsyncArgs, rsyncDestination } from '../lib/rsync.mjs';
 import { run } from '../lib/run.mjs';
-import { smokeLocalhost } from '../lib/smoke.mjs';
+import { smokePublicUrl } from '../lib/smoke.mjs';
 import { remoteFileExists, restartNodeCommand, sshExec, uploadTextFile } from '../lib/ssh.mjs';
 
 async function main(argv = process.argv.slice(2)) {
@@ -74,7 +74,7 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   if (target.kind === 'node' && !args.skipSmoke) {
-    await smokeLocalhost(target);
+    await smokePublicUrl(target);
   }
 
   process.stdout.write('Deploy finished.\n');
@@ -95,7 +95,7 @@ function printDryRun(target, paths) {
     process.stdout.write(`secrets=${paths.secretsPath}\n`);
     process.stdout.write(`restart ssh ${restartNodeCommand()}\n`);
     process.stdout.write(
-      `smoke ssh node fetch http://127.0.0.1:${target.port}${target.smokePath}\n`,
+      `smoke fetch ${target.publicUrl}${target.smokePath}\n`,
     );
   }
 }

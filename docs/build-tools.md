@@ -64,7 +64,7 @@ CI does not need `build_tools/secrets/*.env` when remote `.env` files already ex
 
 Pack Node apps on **Linux** (Dev Container) so `sharp` / `bcrypt` native addons match Agency. Puppeteer Chromium is skipped (`PUPPETEER_SKIP_DOWNLOAD=1`). Admin pack Rollup-builds custom components once, then copies `frontend/assets/components.bundle.js` into the artifact. Dest serves that file; it does not compile AdminJS at boot. `.adminjs/` is rsync-excluded.
 
-Smoke for Node: SSH `node -e fetch(...)` to `http://127.0.0.1:<port>/api` (or `/admin`) — not `curl`, which Level27 SSH shells often lack — with up to ~60s of retries while systemd respawns the process. `api-dev.coolestprojects-test.be` may not be in DNS yet. If smoke still fails, check the remote `app/.env` (`DB_HOST` must reach `db-dev`) and whether `node main.js` is running; deploy never overwrites an existing `.env`.
+Smoke for Node: `fetch` the component `publicUrl` + `smokePath` (e.g. `https://api-dev.coolestprojects-test.be/api`) from the deploy runner, with up to ~60s of retries while systemd respawns the process. Do not probe `127.0.0.1:<port>` over SSH — Level27 Node components listen in an isolated network namespace (`IP_NS`), so localhost from the SSH shell never reaches the app. If smoke still fails, check the remote `app/.env` (`DB_HOST` must reach `db-dev`) and whether `node main.js` is running; deploy never overwrites an existing `.env`.
 
 ## Talks to
 

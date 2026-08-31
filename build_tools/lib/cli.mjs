@@ -62,6 +62,6 @@ Options:
   --skip-build     Use existing dist / generate output
   --skip-npm-install
   --skip-restart   Skip SSH pkill of node main.js (systemd respawns it)
-  --skip-smoke     Skip SSH localhost HTTP smoke check
+  --skip-smoke     Skip public URL HTTP smoke check
 `;
 }

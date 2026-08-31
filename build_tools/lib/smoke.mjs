@@ -1,5 +1,3 @@
-import { sshExec } from './ssh.mjs';
-
 export const SMOKE_OK_CODES = new Set(['200', '301', '302']);
 export const SMOKE_DEFAULT_ATTEMPTS = 12;
 export const SMOKE_DEFAULT_INTERVAL_MS = 5000;
@@ -10,51 +8,53 @@ function sleep(ms) {
 }
 
 /**
- * Level27 node SSH shells often lack curl; Node 24 is always available on those hosts.
- *
- * @param {{ port: number, smokePath: string }} input
+ * @param {{ publicUrl: string, smokePath: string }} target
  * @returns {string}
  */
-export function buildSmokeProbeCommand(input) {
-  const smokePath = input.smokePath.startsWith('/') ? input.smokePath : `/${input.smokePath}`;
-  const url = `http://127.0.0.1:${input.port}${smokePath}`;
-  const js = `fetch(${JSON.stringify(url)}).then((r)=>process.stdout.write(String(r.status))).catch(()=>process.exit(1))`;
-  return `node -e ${JSON.stringify(js)}`;
+export function buildSmokeUrl(target) {
+  if (!target.publicUrl) {
+    throw new Error('Smoke check requires publicUrl on the deploy target.');
+  }
+  const base = target.publicUrl.replace(/\/$/, '');
+  const smokePath = target.smokePath.startsWith('/') ? target.smokePath : `/${target.smokePath}`;
+  return `${base}${smokePath}`;
 }
 
 /**
- * @param {{ sshUser: string, sshHost: string, port: number, smokePath: string, runImpl?: Function }} input
- * @returns {string | null}
+ * @param {string} url
+ * @param {typeof fetch} [fetchImpl]
+ * @returns {Promise<string | null>}
  */
-export function probeLocalhost(input) {
-  const command = buildSmokeProbeCommand(input);
+export async function probeUrl(url, fetchImpl = fetch) {
   try {
-    const result = sshExec({ ...input, command });
-    return result.stdout.trim();
+    const response = await fetchImpl(url, { redirect: 'manual' });
+    return String(response.status);
   } catch {
     return null;
   }
 }
 
 /**
- * Poll localhost over SSH until the app responds or attempts are exhausted.
+ * Poll the component public URL until it responds or attempts are exhausted.
+ * Level27 Node apps listen inside a network namespace (IP_NS), so SSH
+ * localhost probes against 127.0.0.1 never reach the process.
  *
- * @param {{ sshUser: string, sshHost: string, port: number, smokePath: string, runImpl?: Function }} input
- * @param {{ attempts?: number, intervalMs?: number, initialDelayMs?: number, sleep?: (ms: number) => Promise<void> }} [options]
+ * @param {{ publicUrl: string, smokePath: string }} target
+ * @param {{ attempts?: number, intervalMs?: number, initialDelayMs?: number, sleep?: (ms: number) => Promise<void>, fetchImpl?: typeof fetch }} [options]
  */
-export async function smokeLocalhost(input, options = {}) {
+export async function smokePublicUrl(target, options = {}) {
   const attempts = options.attempts ?? SMOKE_DEFAULT_ATTEMPTS;
   const intervalMs = options.intervalMs ?? SMOKE_DEFAULT_INTERVAL_MS;
   const initialDelayMs = options.initialDelayMs ?? SMOKE_INITIAL_DELAY_MS;
   const sleepImpl = options.sleep ?? sleep;
-  const smokePath = input.smokePath.startsWith('/') ? input.smokePath : `/${input.smokePath}`;
-  const url = `http://127.0.0.1:${input.port}${smokePath}`;
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const url = buildSmokeUrl(target);
 
   await sleepImpl(initialDelayMs);
 
   let lastCode = null;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const code = probeLocalhost(input);
+    const code = await probeUrl(url, fetchImpl);
     lastCode = code;
     if (code && SMOKE_OK_CODES.has(code)) {
       if (attempt > 1) {
