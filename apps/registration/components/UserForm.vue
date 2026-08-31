@@ -136,9 +136,13 @@
             @change="emit('clear-error', 't_size')"
           >
             <option :value="0">{{ $t('MakeChoice') }}</option>
-            <option v-for="shirt in tshirtOptions" :key="shirt.id" :value="shirt.id">
-              {{ formatTshirtLabel(shirt.name) }}
-            </option>
+            <template v-for="group in tshirtGroupOptions" :key="group.group">
+              <optgroup :label="formatTshirtLabel(group.group)">
+                <option v-for="shirt in group.items" :key="shirt.id" :value="shirt.id">
+                  {{ formatTshirtLabel(shirt.name) }}
+                </option>
+              </optgroup>
+            </template>
           </select>
         </template>
       </FormField>
@@ -254,7 +258,7 @@
 
 <script setup lang="ts">
 import type { DojoEntry } from '~/utils/dojos/types'
-import type { SettingDto, TshirtDto, UserDto } from '~/types/api'
+import type { SettingDto, TshirtGroupDto, UserDto } from '~/types/api'
 import { createEmptyAddress } from '~/utils/registration-payload'
 import type { ViaType } from '~/utils/dojos/types'
 import {
@@ -277,7 +281,7 @@ if (model.value.via_type !== 'dojo' && model.value.via_type !== 'other') {
 }
 
 const props = defineProps<{
-  tshirts?: TshirtDto[]
+  tshirtGroups?: TshirtGroupDto[]
   dojos?: DojoEntry[]
   disabled?: boolean
   showGuardian?: boolean
@@ -308,7 +312,7 @@ const guardianRequired = computed(() => {
 
 const showGuardianFields = computed(() => props.showGuardian ?? guardianRequired.value)
 
-const tshirtOptions = computed(() => props.tshirts ?? [])
+const tshirtGroupOptions = computed(() => props.tshirtGroups ?? [])
 const dojoOptions = computed(() => props.dojos ?? [])
 
 function formatTshirtLabel(name: string): string {

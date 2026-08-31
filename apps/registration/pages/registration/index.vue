@@ -21,7 +21,7 @@
       <form class="mt-6 space-y-6" @submit.prevent="onSubmit" @reset.prevent="onReset" @keydown.enter="onFormKeydown">
         <UserForm
           v-model="draft.form.user"
-          :tshirts="flatTshirts"
+          :tshirt-groups="tshirtGroups ?? []"
           :dojos="dojos ?? []"
           :settings="settings"
           :show-guardian="showGuardian"
@@ -114,10 +114,6 @@ const settings = ref<SettingDto | null>(null)
 
 const isLoggedInJoin = computed(() =>
   authStore.isLoggedIn && Boolean(route.query.token),
-)
-
-const flatTshirts = computed(() =>
-  tshirtGroups.value?.flatMap(g => g.items) ?? [],
 )
 
 const showGuardian = computed(() => {

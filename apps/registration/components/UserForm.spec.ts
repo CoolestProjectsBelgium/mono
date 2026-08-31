@@ -252,6 +252,60 @@ describe('UserForm', () => {
     expect(wrapper.find('#via').exists()).toBe(true)
   })
 
+  it('renders t-shirt sizes grouped by API group', async () => {
+    const model = ref({
+      email: '',
+      firstname: '',
+      lastname: '',
+      year: 2008,
+      month: 5,
+      gsm: '',
+      sex: 'm' as const,
+      t_size: 0,
+      email_guardian: '',
+      gsm_guardian: '',
+      general_questions: [],
+      mandatory_approvals: [],
+      language: 'nl',
+      address: {
+        postalcode: 0,
+        street: '',
+        house_number: '',
+        box_number: '',
+        municipality_name: '',
+      },
+      via: '',
+      via_type: '' as const,
+      medical: '',
+      delete_possible: false,
+    })
+
+    const wrapper = await mountSuspended(UserForm, {
+      props: {
+        modelValue: model.value,
+        settings: activeSettingsFixture,
+        tshirtGroups: [
+          { group: 'kids', items: [{ id: 1, name: 'kid_3-4' }] },
+          { group: 'adults', items: [{ id: 2, name: 'adult_M' }] },
+        ],
+        'onUpdate:modelValue': (value: typeof model.value) => {
+          model.value = value
+        },
+      },
+      global: {
+        stubs: {
+          FormSection: { template: '<div><slot /></div>', props: ['title'] },
+        },
+      },
+    })
+
+    const groups = wrapper.findAll('#t_size optgroup')
+    expect(groups).toHaveLength(2)
+    expect(groups[0]!.attributes('label')).toBe('kids')
+    expect(groups[1]!.attributes('label')).toBe('adults')
+    expect(wrapper.findAll('#t_size option')).toHaveLength(3)
+  })
+
   it('shows a not-applicable option', async () => {
     const model = ref({
       email: '',
