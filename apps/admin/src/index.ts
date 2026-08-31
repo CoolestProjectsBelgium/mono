@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { APP_DIR } from './adminjs-env.js'
 import path from 'node:path'
 import AdminJSExpress from '@adminjs/express'
