@@ -12,7 +12,7 @@
       <form class="mt-6" @submit.prevent="onSave" @keydown.enter="onFormKeydown">
         <UserForm
           v-model="profile"
-          :tshirts="flatTshirts"
+          :tshirt-groups="tshirtGroups ?? []"
           :dojos="dojos ?? []"
           :settings="settings"
           :errors="fieldErrors"
@@ -63,7 +63,6 @@ const loadError = ref(false)
 const fieldErrors = ref<Record<string, string>>({})
 const formError = ref<string | null>(null)
 const profileState = computed(() => getProfileState(profile.value))
-const flatTshirts = computed(() => tshirtGroups.value?.flatMap(g => g.items) ?? [])
 
 onMounted(async () => {
   loading.value = true

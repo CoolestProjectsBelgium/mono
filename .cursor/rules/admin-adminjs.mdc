@@ -37,7 +37,7 @@ Use `addEventFilter`, `canCreate`, `canAccessResourceFieldFilter`, `andAccess` h
 - `@adminjs/passwords` for `Account` password hashing
 - `ComponentLoader` for custom components; override `Login`, add `Dashboard`
 - Custom components are `.tsx` files referenced by path in `componentLoader` (`apps/admin/src/components/loader.ts`)
-- Do not commit `apps/admin/.adminjs/` — pack copies `frontend/assets/components.bundle.js`; dest serves it and skips `initialize()`
+- Do not commit `apps/admin/.adminjs/` or `apps/admin/src/.adminjs/` — pack copies `frontend/assets/components.bundle.js`; dest serves it and skips `initialize()`
 
 ## After model changes
 

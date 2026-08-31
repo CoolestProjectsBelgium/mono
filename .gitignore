@@ -244,6 +244,7 @@ apps/admin/src/components/DashboardOrig.tsx
 apps/admin/src/components/Dashboard2.tsx
 # AdminJS frontend bundle (generated on admin start by ComponentLoader / admin.watch())
 apps/admin/.adminjs/
+apps/admin/src/.adminjs/
 
 # Level27 publish tooling
 build_tools/secrets/*.env
