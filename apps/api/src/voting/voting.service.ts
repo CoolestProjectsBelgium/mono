@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Account, Event, Vote, Project, VoteCategory, EventTable } from '@coolestprojects/database';
+import { Account, Event, Vote, Project, VoteCategory, EventTable, Award } from '@coolestprojects/database';
 import { Sequelize } from 'sequelize-typescript';
 import { InjectModel } from '@nestjs/sequelize';
 import { Op, QueryTypes } from 'sequelize';
@@ -24,6 +24,8 @@ export class VotingService {
         private readonly voteCategoryModel: typeof VoteCategory,
         @InjectModel(EventTable)
         private readonly eventTableModel: typeof EventTable,
+        @InjectModel(Award)
+        private readonly awardModel: typeof Award,
     ) { }
 
     private readonly events$ = new Subject<VotingEvent>();
@@ -149,6 +151,53 @@ export class VotingService {
         }
 
         return { id: account.id, email: account.email, eventId: activeEvent.id };
+    }
+
+    async generateAwards(eventId: number): Promise<void> {
+        const activeEvent = await this.eventModel.findByPk(eventId);
+
+        if (!activeEvent) {
+            throw new Error("No Event Found");
+        }
+
+        if (activeEvent.votingOpen) {
+            throw new Error("Voting is open, please close first");
+        }
+
+        const projects = await this.projectModel.findAll({
+            where: {
+                eventId: eventId,
+                deletedAt: null
+            }
+        })
+
+        await this.awardModel.bulkCreate(projects.map((p) => ({ eventId: eventId, projectId: p.id })), { ignoreDuplicates: true });
+    }
+
+    async assignAward(eventId: number, awardId: number, categoryId: number){
+        const activeEvent = await this.eventModel.findByPk(eventId);
+
+        if (!activeEvent) {
+            throw new Error("No Event Found");
+        }
+
+        if (activeEvent.votingOpen) {
+            throw new Error("Voting is open, please close first");
+        }
+
+        const award = await this.awardModel.findOne({
+            where: {
+                eventId: eventId,
+                id: awardId
+            }
+        })
+
+        if(!award) {
+            throw new Error("Award not found");
+        }
+
+        award.categoryId = awardId;
+        award.save();
     }
 
     async calculateVotes(eventId: number): Promise<VotesCalculationDto[]> {
