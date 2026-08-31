@@ -1,12 +1,19 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  buildSmokeProbeCommand,
   probeLocalhost,
   SMOKE_OK_CODES,
   smokeLocalhost,
 } from './lib/smoke.mjs';
 
-test('probeLocalhost returns null when ssh curl fails', () => {
+test('buildSmokeProbeCommand uses node fetch against localhost', () => {
+  const command = buildSmokeProbeCommand({ port: 3001, smokePath: '/api' });
+  assert.match(command, /^node -e /);
+  assert.match(command, /127\.0\.0\.1:3001\/api/);
+});
+
+test('probeLocalhost returns null when ssh probe fails', () => {
   const code = probeLocalhost({
     sshUser: 'u',
     sshHost: 'h',

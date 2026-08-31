@@ -10,12 +10,24 @@ function sleep(ms) {
 }
 
 /**
+ * Level27 node SSH shells often lack curl; Node 24 is always available on those hosts.
+ *
+ * @param {{ port: number, smokePath: string }} input
+ * @returns {string}
+ */
+export function buildSmokeProbeCommand(input) {
+  const smokePath = input.smokePath.startsWith('/') ? input.smokePath : `/${input.smokePath}`;
+  const url = `http://127.0.0.1:${input.port}${smokePath}`;
+  const js = `fetch(${JSON.stringify(url)}).then((r)=>process.stdout.write(String(r.status))).catch(()=>process.exit(1))`;
+  return `node -e ${JSON.stringify(js)}`;
+}
+
+/**
  * @param {{ sshUser: string, sshHost: string, port: number, smokePath: string, runImpl?: Function }} input
  * @returns {string | null}
  */
 export function probeLocalhost(input) {
-  const smokePath = input.smokePath.startsWith('/') ? input.smokePath : `/${input.smokePath}`;
-  const command = `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:${input.port}${smokePath}`;
+  const command = buildSmokeProbeCommand(input);
   try {
     const result = sshExec({ ...input, command });
     return result.stdout.trim();

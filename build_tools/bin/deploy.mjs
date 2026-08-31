@@ -95,7 +95,7 @@ function printDryRun(target, paths) {
     process.stdout.write(`secrets=${paths.secretsPath}\n`);
     process.stdout.write(`restart ssh ${restartNodeCommand()}\n`);
     process.stdout.write(
-      `smoke ssh curl http://127.0.0.1:${target.port}${target.smokePath}\n`,
+      `smoke ssh node fetch http://127.0.0.1:${target.port}${target.smokePath}\n`,
     );
   }
 }
