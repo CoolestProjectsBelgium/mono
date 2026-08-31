@@ -9,6 +9,7 @@ import { BUILD_TOOLS_ROOT, loadTargets, resolveTarget } from '../lib/targets.mjs
 import { buildRsyncArgs, rsyncDestination } from '../lib/rsync.mjs';
 import { run } from '../lib/run.mjs';
 import { smokePublicUrl } from '../lib/smoke.mjs';
+import { remoteApplyViewsCommand } from '../lib/sql-views.mjs';
 import { remoteFileExists, restartNodeCommand, sshExec, uploadTextFile } from '../lib/ssh.mjs';
 
 async function main(argv = process.argv.slice(2)) {
@@ -68,6 +69,11 @@ async function main(argv = process.argv.slice(2)) {
   const rsyncArgs = buildRsyncArgs({ source: stageDir, destination: dest });
   run('rsync', rsyncArgs, { stdio: 'inherit' });
 
+  if (target.app === 'api' && !args.skipViews) {
+    process.stdout.write('Applying SQL views via SSH...\n');
+    sshExec({ ...target, command: remoteApplyViewsCommand(target) });
+  }
+
   if (target.kind === 'node' && !args.skipRestart) {
     process.stdout.write('Restarting node via SSH (systemd respawn)...\n');
     sshExec({ ...target, command: restartNodeCommand() });
@@ -90,6 +96,9 @@ function printDryRun(target, paths) {
   process.stdout.write(
     `rsync ${buildRsyncArgs({ source: paths.stageDir, destination: paths.dest }).join(' ')}\n`,
   );
+  if (target.app === 'api') {
+    process.stdout.write(`apply views ssh ${remoteApplyViewsCommand(target)}\n`);
+  }
   if (target.kind === 'node') {
     process.stdout.write(`env example=${paths.envExamplePath}\n`);
     process.stdout.write(`secrets=${paths.secretsPath}\n`);

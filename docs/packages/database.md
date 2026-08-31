@@ -75,13 +75,24 @@ Exports are listed in `packages/database/src/index.ts`.
 
 `Account` model used by AdminJS with role-based resource access in `apps/admin`.
 
+### Schema changes (models + views)
+
+| Change | Developer edits | Applied on |
+|--------|-----------------|------------|
+| Table/column | `packages/database/src/models/*.ts` | API boot when `DB_SYNC_ALTER=true` (Level27 test + prod) or `DB_SYNCHRONIZE=true` (Dev Container) |
+| SQL view | `apps/admin/src/components/admin/SQL-data/*` + AdminJS column defs in `apps/admin/src/index.ts` | `node apply-views.cjs` during **api** deploy (before restart) |
+
+Level27 uses `NODE_ENV=production`; schema flags are explicit (`DB_SYNC_ALTER`, `DB_SYNCHRONIZE`), not tied to `NODE_ENV`.
+
+Deploy does not overwrite remote `.env`. Add `DB_SYNC_ALTER=true` to existing api-dev and api-prod `.env` once. See [build-tools.md](../build-tools.md).
+
 ### TypeScript class fields
 
 `packages/database/tsconfig.json` sets `useDefineForClassFields: false` (ES2022 would otherwise default to `true`). Emitting real instance fields shadows sequelize-typescript getters — association access like `question.translations[0]` then returns `undefined` and catalog endpoints 500. Prefer `declare` on model properties when adding fields.
 
 ## Out of scope / unknowns
 
-- Migration files (API uses `synchronize: true` in dev — verify production strategy)
+- Hand-written Umzug migration files for routine column adds (use `DB_SYNC_ALTER` instead)
 - Model validation rules beyond Sequelize column definitions
 - Indexes and performance tuning
 

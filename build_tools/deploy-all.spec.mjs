@@ -55,10 +55,29 @@ test('deploy-all records non-zero exit codes as failures', async () => {
   assert.equal(calls.length, listApps(loadTargets().committed).length);
 });
 
-test('deploy-all rejects prod', async () => {
+test('deploy-all invokes all apps for prod', async () => {
+  const { committed } = loadTargets();
+  const expectedApps = listApps(committed);
+  const calls = [];
+
+  const code = await main(['--env', 'prod'], {
+    deployMain: async (argv) => {
+      calls.push([...argv]);
+      return 0;
+    },
+  });
+
+  assert.equal(code, 0);
+  assert.deepEqual(
+    calls.map((argv) => argv.join(' ')),
+    expectedApps.map((app) => `--app ${app} --env prod`),
+  );
+});
+
+test('deploy-all rejects unknown env', async () => {
   await assert.rejects(
-    () => main(['--env', 'prod'], { deployMain: async () => 0 }),
-    /only supports --env dev/,
+    () => main(['--env', 'staging'], { deployMain: async () => 0 }),
+    /only supports --env dev or --env prod/,
   );
 });
 

@@ -1,10 +1,10 @@
 # Level27 publish tooling
 
-Manual deploy CLI and GitHub Actions workflow for the Coolest Projects Agency hosting estate on [Level27](https://level27.be). CI calls the same `deploy.mjs` / `deploy-all.mjs` commands as local operators.
+Manual deploy CLI and GitHub Actions workflows for the Coolest Projects Agency hosting estate on [Level27](https://level27.be). CI calls the same `deploy.mjs` / `deploy-all.mjs` commands as local operators.
 
 ## Purpose
 
-Pack monorepo apps into the layout Level27 components already expect, rsync them over SSH, create a remote `.env` **only if it is missing**, and restart Node by sending SIGTERM to `node main.js` so the Agency systemd unit respawns it.
+Pack monorepo apps into the layout Level27 components already expect, rsync them over SSH, create a remote `.env` **only if it is missing**, apply admin SQL views on **api** deploy, and restart Node by sending SIGTERM to `node main.js` so the Agency systemd unit respawns it.
 
 ## Stack
 
@@ -17,7 +17,9 @@ Pack monorepo apps into the layout Level27 components already expect, rsync them
 |----------------|------|
 | `node build_tools/bin/deploy.mjs --app api --env dev` | Pack and publish one app |
 | `node build_tools/bin/deploy-all.mjs --env dev` | Publish all five test apps (continues on failure) |
+| `node build_tools/bin/deploy-all.mjs --env prod` | Publish all five production apps |
 | `.github/workflows/deploy-test.yml` | Push to `test-env` or **Run workflow** → `deploy-all --env dev` |
+| `.github/workflows/deploy-prod.yml` | Push to `main` or **Run workflow** → `deploy-all --env prod` (requires approval) |
 | `node build_tools/bin/deploy.mjs --app api --env prod --dry-run` | Print prod targets; no SSH |
 | `npm run test:build-tools` | Unit tests |
 | `npm run deploy -- --app api --env dev` | Same single-app CLI via root script |
@@ -28,6 +30,15 @@ Pack monorepo apps into the layout Level27 components already expect, rsync them
 
 Live estate (app `coolestprojects`, id `21746`) is documented in the sibling OpenTofu repo. This CLI does not create components.
 
+### Release flow
+
+```text
+feature branch → merge test-env → CI deploys dev → verify
+              → merge main      → CI deploys prod (approval) → verify
+```
+
+Test and prod use the **same** deploy script. Schema changes are applied automatically on api deploy (see [Database package](packages/database.md)).
+
 ### First-time setup
 
 1. Copy `build_tools/targets.local.json.example` to `build_tools/targets.local.json` and set `sshHost` (or export `L27_SSH_HOST`). Attach your SSH key to the component in CP4.
@@ -35,6 +46,8 @@ Live estate (app `coolestprojects`, id `21746`) is documented in the sibling Ope
 3. From the Dev Container: `node build_tools/bin/deploy.mjs --app api --env dev`
 
 If remote `app/.env` already exists, deploy leaves it unchanged. If it is missing, deploy uploads `example + secrets` once. Level27 MySQL schema name matches the db user (`db35160` on dest, `db35161` on prod), not `coolestproject`.
+
+**Existing api `.env` files:** add `DB_SYNC_ALTER=true` manually on api-dev and api-prod so model changes apply on API restart (deploy does not overwrite `.env`).
 
 ### GitHub Actions (test estate)
 
@@ -48,19 +61,36 @@ Workflow: [`.github/workflows/deploy-test.yml`](../.github/workflows/deploy-test
 4. Add repository variable `L27_SSH_HOST` (same hostname as local `targets.local.json`).
 5. Push to `test-env` or run **Deploy test** from the Actions tab.
 
-CI does not need `build_tools/secrets/*.env` when remote `.env` files already exist. Prod (`--env prod`) is never invoked by this workflow; use `deploy.mjs` manually per app.
+CI does not need `build_tools/secrets/*.env` when remote `.env` files already exist.
+
+### GitHub Actions (production)
+
+Workflow: [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod.yml). Triggers on push to `main` and `workflow_dispatch`. Uses GitHub Environment **`production`** — configure **required reviewers** under **Settings → Environments → production** so prod deploys need a one-click approval.
+
+**One-time prod CI setup:**
+
+1. Attach the same CI **public** SSH key to all five `*-prod` components (`nj10447`, `nj10449`, `vd35114`).
+2. Ensure api-prod remote `.env` includes `DB_SYNC_ALTER=true` (see env example).
+3. Merge to `main` or run **Deploy production** from the Actions tab.
+
+### Schema on deploy (api only)
+
+After rsync, before API restart:
+
+1. SSH: `node apply-views.cjs` in the remote `app/` directory (reads `sql-views/` bundled from `apps/admin/src/components/admin/SQL-data/`).
+2. API restart runs Sequelize with `DB_SYNC_ALTER=true` → `sync({ alter: true })` for model/table columns.
+
+Skip view apply: `deploy.mjs --skip-views`.
 
 ### Apps
 
-| `--app` | `--env dev` | Kind |
-|---------|-------------|------|
-| `api` | `api-dev` (`nj10446`, `app`, port 3001) | Node 24, `node main.js` |
-| `admin` | `admin-dev` (`nj10448`, `app`, port 3000) | Node 24, `node main.js` |
-| `registration` | `registration-dev` (`vd35113`, `public_html/registration`) | Static (Nuxt generate) |
-| `voting` | `voting-dev` (`vd35113`, `public_html/voting`) | Static (Nuxt generate) |
-| `eventguide` | `eventguide-dev` (`vd35113`, `public_html/eventguide`) | Static copy |
-
-`--env prod` uses the matching `*-prod` component. Prod is manual only.
+| `--app` | `--env dev` | `--env prod` | Kind |
+|---------|-------------|--------------|------|
+| `api` | `api-dev` (`nj10446`) | `api-prod` (`nj10447`) | Node 24, `node main.js` |
+| `admin` | `admin-dev` (`nj10448`) | `admin-prod` (`nj10449`) | Node 24, `node main.js` |
+| `registration` | `registration-dev` (`vd35113`) | `registration-prod` (`vd35114`) | Static (Nuxt generate) |
+| `voting` | `voting-dev` (`vd35113`) | `voting-prod` (`vd35114`) | Static (Nuxt generate) |
+| `eventguide` | `eventguide-dev` (`vd35113`) | `eventguide-prod` (`vd35114`) | Static copy |
 
 Pack Node apps on **Linux** (Dev Container) so `sharp` / `bcrypt` native addons match Agency. Puppeteer Chromium is skipped (`PUPPETEER_SKIP_DOWNLOAD=1`). Admin pack Rollup-builds custom components once, then copies `frontend/assets/components.bundle.js` into the artifact. Dest serves that file; it does not compile AdminJS at boot. `.adminjs/` is rsync-excluded.
 
@@ -71,15 +101,14 @@ Smoke for Node: `fetch` the component `publicUrl` + `smokePath` (e.g. `https://a
 - `apps/api`, `apps/admin`, `packages/database` (build + pack)
 - `apps/registration`, `apps/voting`, `apps/eventguide` (static)
 - Agency SSH (rsync + Node restart)
+- MySQL (view SQL via api deploy; DDL via API `DB_SYNC_ALTER` on restart)
 - Does not call the Level27 CP4 API (nodejs components reject `{type:restart}`)
 - Does not apply OpenTofu; does not create DNS or SSL
 
 ## Out of scope / unknowns
 
 - Path-filtered “only changed apps” deploys
-- Prod GitHub Actions workflow
 - Presentation (no Level27 component)
-- Sequelize migrations (`synchronize: true` remains an app concern)
 - SSH `known_hosts` pinning (deploy uses `StrictHostKeyChecking=accept-new`)
 
 ## Status
