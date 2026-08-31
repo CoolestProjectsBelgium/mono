@@ -154,7 +154,10 @@ export class VotingService {
             throw new Error("No Event Found");
         }
 
-        activeEvent.votingStartDate = new Date();
+        if(activeEvent.votingStartDate > new Date()){
+            activeEvent.votingStartDate = new Date();
+        }
+
         activeEvent.votingEndDate = new Date(new Date().getDate() + duration);
         await activeEvent.save();
     }
@@ -223,7 +226,7 @@ export class VotingService {
             throw new Error("Award not found");
         }
 
-        award.categoryId = awardId;
+        award.categoryId = categoryId;
         await award.save();
     }
 
