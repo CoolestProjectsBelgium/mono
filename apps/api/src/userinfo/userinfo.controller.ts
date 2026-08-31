@@ -21,7 +21,7 @@ export class UserinfoController {
   constructor(private readonly userinfoService: UserinfoService) {}
 
   @Get()
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   getUserInfo(@Request() req: { user: { id: number } }): Promise<UserDto> {
@@ -29,14 +29,14 @@ export class UserinfoController {
   }
 
   @Delete()
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   deleteUser(@Request() req: { user: { id: number } }) {
     return this.userinfoService.deleteUser(req.user.id);
   }
 
   @Patch()
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async updateUser(

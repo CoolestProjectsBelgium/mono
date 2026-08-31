@@ -1,4 +1,4 @@
-import { Column, Table, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import { Column, Table, ForeignKey, BelongsTo, DataType } from 'sequelize-typescript';
 import { Project } from './project.model';
 import { VoteCategory } from './vote_category.model';
 import { Account } from './account.model';
@@ -14,16 +14,12 @@ export class Award extends BaseEventModel {
   project!: Project;
 
   @ForeignKey(() => VoteCategory)
-  @Column
+  @Column({ allowNull: true })
   categoryId!: number;
 
   @BelongsTo(() => VoteCategory)
   category!: VoteCategory;
 
-  @ForeignKey(() => Account)
-  @Column
-  jurorId!: number;
-
-  @BelongsTo(() => Account)
-  juror!: Account;
+  @Column(DataType.TEXT('long'))
+  text!: String;
 }

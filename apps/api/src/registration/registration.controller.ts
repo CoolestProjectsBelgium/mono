@@ -1,9 +1,10 @@
-import { Controller, Body, Post, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Body, Post, HttpException, HttpStatus, BadRequestException, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { RegistrationService } from './registration.service';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Info } from '../info.decorator';
 import { InfoDto } from '../dto/info.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('registration')
 @ApiTags('registration')
@@ -14,6 +15,7 @@ export class RegistrationController {
   @ApiResponse({ status: 201, description: 'Successfully created registration.' })
   @ApiResponse({ status: 400, description: 'Validation failed.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @UseGuards(AuthGuard('optional-admin-cookie'))
   async create(
     @Info() info: InfoDto,
     @Body() createRegistrationDto: RegistrationDto,

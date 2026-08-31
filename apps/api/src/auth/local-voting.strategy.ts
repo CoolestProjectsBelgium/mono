@@ -1,11 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
-import { Account } from '@coolestprojects/database';
+import { Account, Event } from '@coolestprojects/database';
+import { Op } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class VotingLoginStrategy extends PassportStrategy(Strategy, 'voting_login') {
-  constructor(private accountModel: typeof Account) {
+  constructor(private accountModel: typeof Account, private eventModel: typeof Event) {
     super({ usernameField: 'username', passwordField: 'password' });
   }
 
@@ -17,6 +19,18 @@ export class VotingLoginStrategy extends PassportStrategy(Strategy, 'voting_logi
     if (!account) throw new UnauthorizedException();
     if (!account.verifyPassword(password)) throw new UnauthorizedException();
 
-    return { id: account.id, email: account.email, user: account.email };
+    const activeEvent = await this.eventModel.findOne({
+      where: {
+        eventBeginDate: { [Op.lt]: Sequelize.literal('CURDATE()') },
+        eventEndDate: { [Op.gt]: Sequelize.literal('CURDATE()') },
+      },
+      attributes: ['id'],
+    });
+
+    if(!activeEvent){
+      throw new UnauthorizedException();
+    }
+
+    return { id: account.id, email: account.email, user: account.email, eventId: activeEvent.id };
   }
 }

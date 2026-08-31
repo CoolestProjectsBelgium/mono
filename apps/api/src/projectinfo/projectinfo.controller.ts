@@ -24,7 +24,7 @@ export class ProjectinfoController {
 
   @Get()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async getProject(@Request() req: any): Promise<OwnProjectDto> {
     return this.projectService.getProjectInfo(req.user.id);
@@ -32,7 +32,7 @@ export class ProjectinfoController {
 
   @Post()
   @ApiResponse({ status: 500, description: 'Internal  server error.' })
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async createProject(
     @Request() req: any,
@@ -43,7 +43,7 @@ export class ProjectinfoController {
 
   @Patch()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async updateProject(
     @Request() req: any,
@@ -54,7 +54,7 @@ export class ProjectinfoController {
 
   @Delete()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async deleteProject(@Request() req: any,): Promise<void> {
     return await this.projectService.deleteProject(req.user.id);
@@ -62,7 +62,7 @@ export class ProjectinfoController {
 
   @Get('attachments')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async getAttachments(@Request() req: any) {
     return await this.projectService.getAttachments(req.user.id);
@@ -70,7 +70,7 @@ export class ProjectinfoController {
 
   @Get('attachments/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard(['cookie', 'jwt-cookiecombo']))
+  @UseGuards(AuthGuard(['mandatory-admin-cookie', 'jwt-user']))
   @UseInterceptors(UserCookieInterceptor)
   async getAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
     let result: StreamableFile;
@@ -84,7 +84,7 @@ export class ProjectinfoController {
 
   @Get('attachments/original/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard(['cookie']))
+  @UseGuards(AuthGuard(['mandatory-admin-cookie']))
   @UseInterceptors(UserCookieInterceptor)
   async getAttachmentOriginal(@Request() req: any, @Param('attachmentId') attachmentId: number) {
     return await this.projectService.getAttachment(req.user.adminUser.eventId, attachmentId);;
@@ -92,14 +92,14 @@ export class ProjectinfoController {
 
   @Delete('attachments/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async deleteAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
     return await this.fileUploadService.deleteFile(req.user.id, attachmentId);
   }
 
   @Post('attachments')
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(
     FileInterceptor('file'),
     FileValidationInterceptor,
@@ -116,7 +116,7 @@ export class ProjectinfoController {
   }
 
   @Post('participant')
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async createVoucher(
     @Request() req: any,
@@ -125,7 +125,7 @@ export class ProjectinfoController {
   }
 
   @Delete('participant/:voucherGuid')
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async deleteVoucher(
     @Request() req: any,
@@ -135,7 +135,7 @@ export class ProjectinfoController {
   }
 
   @Post('change-owner/:newOwnerId')
-  @UseGuards(AuthGuard('jwt-cookiecombo'))
+  @UseGuards(AuthGuard('jwt-user'))
   @UseInterceptors(UserCookieInterceptor)
   async changeProjectOwner(
     @Request() req: any,

@@ -29,6 +29,7 @@ import { UserCookieInterceptor } from './user-cookie.interceptor';
 import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
 import { EmailLog } from '@coolestprojects/database';
+import { AdminAuthenticationService } from './auth/adminauth.service'
 
 import configuration from './config/configuration.js';
 
@@ -137,6 +138,7 @@ import configuration from './config/configuration.js';
     EventguideService,
     UserinfoService,
     UserCookieInterceptor,
+    AdminAuthenticationService
   ],
   exports: [],
 })

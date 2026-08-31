@@ -77,7 +77,7 @@ export class VotingController {
       skipProjectId = JSON.parse(query.skipProject);
     } catch { }
 
-    return await this.votingService.getProjects(skipProjectId, languages, req.user.id)
+    return await this.votingService.getProjects(req.user.eventId, skipProjectId, languages, req.user.id)
   }
 
   @Post('projects/:projectId')
@@ -91,6 +91,6 @@ export class VotingController {
       id: v.id,
       value: v.value || 0
     }));
-    await this.votingService.submitVotes(projectId, req.user.id, votes)
+    await this.votingService.submitVotes(req.user.eventId, projectId, req.user.id, votes)
   }
 }
