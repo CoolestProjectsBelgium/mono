@@ -1,6 +1,6 @@
 # Level27 publish tooling
 
-Manual deploy CLI for the Coolest Projects Agency hosting estate on [Level27](https://level27.be). GitHub Actions is a later wrapper around this same command.
+Manual deploy CLI and GitHub Actions workflow for the Coolest Projects Agency hosting estate on [Level27](https://level27.be). CI calls the same `deploy.mjs` / `deploy-all.mjs` commands as local operators.
 
 ## Purpose
 
@@ -15,10 +15,12 @@ Pack monorepo apps into the layout Level27 components already expect, rsync them
 
 | Path / command | Role |
 |----------------|------|
-| `node build_tools/bin/deploy.mjs --app api --env dev` | Pack and publish |
+| `node build_tools/bin/deploy.mjs --app api --env dev` | Pack and publish one app |
+| `node build_tools/bin/deploy-all.mjs --env dev` | Publish all five test apps (continues on failure) |
+| `.github/workflows/deploy-test.yml` | Push to `test-env` or **Run workflow** → `deploy-all --env dev` |
 | `node build_tools/bin/deploy.mjs --app api --env prod --dry-run` | Print prod targets; no SSH |
 | `npm run test:build-tools` | Unit tests |
-| `npm run deploy -- --app api --env dev` | Same CLI via root script |
+| `npm run deploy -- --app api --env dev` | Same single-app CLI via root script |
 | `build_tools/targets.json` | Component IDs, users, paths |
 | `build_tools/targets.local.json` | SSH host (gitignored) |
 | `build_tools/env/<app>-<env>.env.example` | Known Level27 facts |
@@ -33,6 +35,20 @@ Live estate (app `coolestprojects`, id `21746`) is documented in the sibling Ope
 3. From the Dev Container: `node build_tools/bin/deploy.mjs --app api --env dev`
 
 If remote `app/.env` already exists, deploy leaves it unchanged. If it is missing, deploy uploads `example + secrets` once. Level27 MySQL schema name matches the db user (`db35160` on dest, `db35161` on prod), not `coolestproject`.
+
+### GitHub Actions (test estate)
+
+Workflow: [`.github/workflows/deploy-test.yml`](../.github/workflows/deploy-test.yml). Triggers on push to `test-env` and `workflow_dispatch`. One job on `ubuntu-latest` (Node 24, `npm ci`, `rsync`). Deploys api → admin → registration → voting → eventguide via `deploy-all.mjs --env dev`. If one app fails, the rest still deploy; the job is red if any failed. Concurrency group `deploy-test` never cancels an in-flight rsync.
+
+**One-time CI setup** (outside git):
+
+1. Generate a dedicated ed25519 key pair for CI.
+2. Attach the **public** key to all five `*-dev` components in Level27 CP4 (`nj10446`, `nj10448`, `vd35113` — see table below).
+3. In the repo: **Settings → Secrets and variables → Actions**, add repository secret `L27_SSH_PRIVATE_KEY` (full PEM, including headers).
+4. Add repository variable `L27_SSH_HOST` (same hostname as local `targets.local.json`).
+5. Push to `test-env` or run **Deploy test** from the Actions tab.
+
+CI does not need `build_tools/secrets/*.env` when remote `.env` files already exist. Prod (`--env prod`) is never invoked by this workflow; use `deploy.mjs` manually per app.
 
 ### Apps
 
@@ -60,10 +76,11 @@ Smoke for Node: SSH `curl` to `http://127.0.0.1:<port>/api` (or `/admin`). `api-
 
 ## Out of scope / unknowns
 
-- GitHub Actions workflow YAML (call this CLI later)
+- Path-filtered “only changed apps” deploys
+- Prod GitHub Actions workflow
 - Presentation (no Level27 component)
 - Sequelize migrations (`synchronize: true` remains an app concern)
-- Attaching a CI deploy key (components currently have an operator SSH key)
+- SSH `known_hosts` pinning (deploy uses `StrictHostKeyChecking=accept-new`)
 
 ## Status
 
