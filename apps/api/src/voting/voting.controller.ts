@@ -29,7 +29,6 @@ export class VotingController {
   @UseGuards(AuthGuard('mandatory-admin-cookie'))
   receiveEvent(@Body() event: VotingEvent) {
     this.votingService.publish(event);
-
     return { success: true };
   }
 

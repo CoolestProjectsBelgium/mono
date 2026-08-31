@@ -135,7 +135,20 @@ export class VotingService {
         if (!account) {
             throw new Error("Account not found");
         }
-        return { id: account.id, email: account.email };
+
+        const activeEvent = await this.eventModel.findOne({
+            where: {
+                eventBeginDate: { [Op.lt]: Sequelize.literal('CURDATE()') },
+                eventEndDate: { [Op.gt]: Sequelize.literal('CURDATE()') },
+            },
+            attributes: ['id'],
+        });
+
+        if (!activeEvent) {
+            throw new Error("No Active Event Found");
+        }
+
+        return { id: account.id, email: account.email, eventId: activeEvent.id };
     }
 
     async calculateVotes(eventId: number): Promise<VotesCalculationDto[]> {
