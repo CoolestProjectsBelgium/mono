@@ -71,11 +71,10 @@ async function main(argv = process.argv.slice(2)) {
   if (target.kind === 'node' && !args.skipRestart) {
     process.stdout.write('Restarting node via SSH (systemd respawn)...\n');
     sshExec({ ...target, command: restartNodeCommand() });
-    await new Promise((resolve) => setTimeout(resolve, 2500));
   }
 
   if (target.kind === 'node' && !args.skipSmoke) {
-    smokeLocalhost(target);
+    await smokeLocalhost(target);
   }
 
   process.stdout.write('Deploy finished.\n');
