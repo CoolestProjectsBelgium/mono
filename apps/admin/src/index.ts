@@ -108,7 +108,26 @@ const start = async () => {
           delete: { isAccessible: andAccess(canAccessResourceFieldFilter("id"), canAccessResourceRoleFilter("admin")) },
         }
       },
-      { resource: sequelize.models.Award, options: { navigation: configEvents } },
+      {
+        resource: sequelize.models.Award, options: {
+          actions: {
+            list: {
+              before: filterEventId("id"),
+            },
+            search: {
+              before: filterEventId("id"),
+            },
+          },
+          navigation: configEvents, properties: {
+            text: {
+              type: 'textarea',
+              props: {
+                rows: 20,
+              },
+            },
+          },
+        }
+      },
       {
         resource: sequelize.models.Project,
         features: [importExportFeature({ componentLoader })],
