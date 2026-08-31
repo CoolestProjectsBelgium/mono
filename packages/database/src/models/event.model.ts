@@ -32,6 +32,22 @@ export class Event extends Model {
   @Column
   declare eventEndDate: Date;
 
+  @Column
+  declare votingStartDate: Date;
+  @Column 
+  declare votingEndDate: Date;
+
+  @Column({
+    type: DataType.VIRTUAL,
+    get() {
+      return (
+        this.getDataValue('votingStartDate') > Date.now() &&
+        this.getDataValue('votingEndDate') < Date.now()
+      );
+    },
+  })
+  declare votingOpen: boolean;
+
   @Column({
     type: DataType.VIRTUAL,
     get() {
