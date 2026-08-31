@@ -822,7 +822,12 @@ export async function seedDatabase(
       account_type: 'jury',
     },
   ]);
-
+  const voteCategories = await voteCategoryModel.bulkCreate([
+    { eventId: event.id, name: 'Creativity', min: 1, max: 10, public: true, optional: false },
+    { eventId: event.id, name: 'Technical skill', min: 1, max: 10, public: true, optional: false },
+    { eventId: event.id, name: 'Presentation', min: 1, max: 5, public: true, optional: true },
+  ]);
+  /**/ 
   const registration = await registrationModel.bulkCreate([
     {
       eventId: event.id,
@@ -910,12 +915,6 @@ export async function seedDatabase(
     { name: 'Test Project 6', eventId: event.id, language: 'fr', description: 'Test Description 6', maxVoucher: 3, deletedAt: new Date() }
   ]);
 
-  const voteCategories = await voteCategoryModel.bulkCreate([
-    { eventId: event.id, name: 'Creativity', min: 1, max: 10, public: true, optional: false },
-    { eventId: event.id, name: 'Technical skill', min: 1, max: 10, public: true, optional: false },
-    { eventId: event.id, name: 'Presentation', min: 1, max: 5, public: true, optional: true },
-  ]);
-
 
   const voteStart = Date.now() - 3 * 24 * 60 * 60 * 1000;
   await voteModel.bulkCreate([
@@ -977,5 +976,5 @@ export async function seedDatabase(
     { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '4.png'), name: 'attachment 4', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_4.png') },
     { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '5.png'), name: 'attachment 5', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_5.png') }
   ])
-
+/**/
 }
