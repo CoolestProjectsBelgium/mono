@@ -132,6 +132,33 @@ export class VotingService {
         };
     }
 
+    async closeVotingNow(eventId: number){
+        const activeEvent = await this.eventModel.findByPk(eventId);
+
+        if (!activeEvent) {
+            throw new Error("No Event Found");
+        }
+
+        if (!activeEvent.votingOpen) {
+            throw new Error("Voting is not open");
+        }
+
+        activeEvent.votingEndDate = new Date();
+        await activeEvent.save();
+    }
+
+    async openVotingWithDuration(eventId: number, duration: number){
+        const activeEvent = await this.eventModel.findByPk(eventId);
+
+        if (!activeEvent) {
+            throw new Error("No Event Found");
+        }
+
+        activeEvent.votingStartDate = new Date();
+        activeEvent.votingEndDate = new Date(new Date().getDate() + duration);
+        await activeEvent.save();
+    }
+
     async getAccount(id: number): Promise<AccountDto> {
         const account = await Account.findByPk(id);
         if (!account) {
@@ -197,7 +224,7 @@ export class VotingService {
         }
 
         award.categoryId = awardId;
-        award.save();
+        await award.save();
     }
 
     async calculateVotes(eventId: number): Promise<VotesCalculationDto[]> {

@@ -48,12 +48,11 @@ export class VotingController {
   async login(@Req() req: any, @Res() res: Response) {
     console.log('user:', req.user);
 
-    
     const account = await this.votingService.getAccount(req.user.id);
     if (!account) return res.status(403).send();
 
     const token = this.votingJwtService.sign(
-      { id: account.id, email: account.email },
+      { id: account.id, email: account.email, eventId: account.eventId },
       { expiresIn: '12h' },
     );
 
