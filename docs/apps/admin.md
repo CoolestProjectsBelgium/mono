@@ -18,7 +18,7 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 | `apps/admin/src/database.ts` | Sequelize connection (`import 'dotenv/config'` first — ESM evaluates this module before `index.ts` body) |
 | `apps/admin/src/components/` | Custom AdminJS components (`Login`, `Dashboard`) |
 | `npm run start:dev --workspace=apps/admin` | Dev server (port 3000 in Dev Container) |
-| `apps/admin/src/.adminjs/` | Dev-time Rollup output (`bundle.js`, `entry.js`). Gitignored. Pack copies to `frontend/assets/components.bundle.js` on deploy — dest does **not** run `initialize()`. |
+| `apps/admin/.adminjs/`, `apps/admin/src/.adminjs/` | Dev-time Rollup output (`bundle.js`, `entry.js`). Gitignored. Pack copies to `frontend/assets/components.bundle.js` on deploy — dest does **not** run `initialize()`. |
 
 Local URL (via proxy): `https://admin.coolestprojects.localhost:8443` (redirects to `/admin`)
 
