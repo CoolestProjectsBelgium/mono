@@ -6,13 +6,14 @@ import { Op, QueryTypes } from 'sequelize';
 import { VotesCalculationDto } from '../dto/votescalc.dto';
 import { ProjectVoteDto } from '../dto/projectvote.dto';
 import { VoteDto } from '../dto/vote.dto';
+import { Subject } from 'rxjs';
+import { Observable } from 'rxjs';
+import { VotingEvent } from '../dto/votingevent.dto';
 
 @Injectable()
 export class VotingService {
     constructor(
         private readonly sequelize: Sequelize,
-        @InjectModel(Account)
-        private readonly accountModel: typeof Account,
         @InjectModel(Event)
         private readonly eventModel: typeof Event,
         @InjectModel(Vote)
@@ -24,6 +25,16 @@ export class VotingService {
         @InjectModel(EventTable)
         private readonly eventTableModel: typeof EventTable,
     ) { }
+
+    private readonly events$ = new Subject<VotingEvent>();
+
+    publish(event: VotingEvent) {
+        this.events$.next(event);
+    }
+
+    stream(): Observable<VotingEvent> {
+        return this.events$.asObservable();
+    }
 
     async submitVotes(
         eventId: number,

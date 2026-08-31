@@ -6,7 +6,7 @@ import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
-export class VotingLoginStrategy extends PassportStrategy(Strategy, 'voting_login') {
+export class VotingLoginStrategy extends PassportStrategy(Strategy, 'login-voting') {
   constructor(private accountModel: typeof Account, private eventModel: typeof Event) {
     super({ usernameField: 'username', passwordField: 'password' });
   }

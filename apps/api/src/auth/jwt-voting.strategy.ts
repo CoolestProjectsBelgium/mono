@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { InjectModel } from '@nestjs/sequelize';
-import { Account } from '@coolestprojects/database';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class JwtVotingStrategy extends PassportStrategy(Strategy, 'voting') {
+export class JwtVotingStrategy extends PassportStrategy(Strategy, 'jwt-voting') {
   constructor(
     private configService: ConfigService,
   ) {

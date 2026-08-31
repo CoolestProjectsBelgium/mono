@@ -1,7 +1,6 @@
 import { Column, Table, ForeignKey, BelongsTo, DataType } from 'sequelize-typescript';
 import { Project } from './project.model';
 import { VoteCategory } from './vote_category.model';
-import { Account } from './account.model';
 import { BaseEventModel } from './base_event.model';
 
 @Table
