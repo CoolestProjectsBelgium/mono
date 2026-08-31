@@ -209,8 +209,26 @@ const start = async () => {
         features: [ importExportFeature({ componentLoader }) ],
       }, 
       { resource: sequelize.models.TshirtGroupTranslation },
-
-      { resource: sequelize.define('view_Export_all', {
+            {
+        resource: sequelize.models.Affiliation,
+        options: {
+          properties: {
+            eventId: { isVisible: false },
+          },
+          actions: {
+            list: {
+              before: filterEventId("eventId")
+            },
+            search: {
+              before: filterEventId("eventId")
+            },
+            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
+          }
+        }
+      },
+      { resource: sequelize.define('view_Export_all',  {
               id:             { type: DataTypes.INTEGER, primaryKey: true }, // u.id AS id
               user_event_id:  { type: DataTypes.STRING },                   // u.eventId AS user_event_id
               email:          { type: DataTypes.STRING },                   // u.email
@@ -272,25 +290,7 @@ const start = async () => {
 
         }
       },
-      {
-        resource: sequelize.models.Affiliation,
-        options: {
-          properties: {
-            eventId: { isVisible: false },
-          },
-          actions: {
-            list: {
-              before: filterEventId("eventId")
-            },
-            search: {
-              before: filterEventId("eventId")
-            },
-            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
-          }
-        }
-      },
+
       {
         resource: sequelize.define('view_user_project_summary', {
           id: { type: DataTypes.INTEGER, primaryKey: true }, 
@@ -312,17 +312,14 @@ const start = async () => {
         options: {
           label: 'User Project Overzicht gebruikt voor export',
           actions: {
-            // We verwijderen de acties die je niet wilt zien
-            new: { isRemoved: true },
-            edit: { isRemoved: true },
-            delete: { isRemoved: true },
-        // We zetten de selectie uit op het hoogste niveau van de lijst-actie
-            list: {
-              options: {
-                isSelectionEnabled: false, // Voor v7 moet dit vaak hier staan
-              }
-            }
-          },
+            // Verberg en blokkeer de standaard CRUD-acties
+            new: { isVisible: false, isAccessible: false },
+            edit: { isVisible: false, isAccessible: false },
+            delete: { isVisible: false, isAccessible: false },
+            show: { isVisible: false, isAccessible: false },
+            // Verberg de bulk-verwijderoptie waardoor de selectievakjes in de 'list' verdwijnen
+            bulkDelete: { isVisible: false, isAccessible: false },
+            },
         }
       },
     ],
