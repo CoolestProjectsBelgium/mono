@@ -57,7 +57,6 @@ export const sequelize = new Sequelize({
         Vote,
         Affiliation,
         EmailTemplate,
-        Vote
     ],
     logging: process.env.NODE_ENV === 'production' ? false : console.log,
 } as any)
