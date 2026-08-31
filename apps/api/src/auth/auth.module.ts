@@ -17,6 +17,8 @@ import { Question } from '@coolestprojects/database';
 import { QuestionUser } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
 import { AdminCookieStrategy } from './admin-cookie.strategy';
+import { OptionalAdminCookieStrategy } from './admin-optional-strategy';
+import { AdminAuthenticationService } from './adminauth.service';
 
 export const VOTING_JWT = Symbol('VOTING_JWT');
 export const AUTH_JWT = Symbol('AUTH_JWT');
@@ -44,7 +46,7 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
       },
     }
     ),
-  }, MailerService, TokensService, RegistrationService, JwtStrategy, JwtVotingStrategy, AdminCookieStrategy],
+  }, MailerService, TokensService, RegistrationService, JwtStrategy, JwtVotingStrategy, AdminCookieStrategy, OptionalAdminCookieStrategy, AdminAuthenticationService],
   exports: [AUTH_JWT, VOTING_JWT],
 })
 export class AuthModule { }

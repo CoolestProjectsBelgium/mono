@@ -7,7 +7,7 @@ import { User } from '@coolestprojects/database';
 import { RegistrationService } from '../registration/registration.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt-user') {
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
     private readonly registrationService: RegistrationService,

@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-cookie';
 import { AdminAuthenticationService } from './adminauth.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
-export class AdminCookieStrategy extends PassportStrategy(
+export class OptionalAdminCookieStrategy extends PassportStrategy(
   Strategy,
-  'admin-cookie',
+  'optional-admin-cookie',
 ) {
   constructor(
     private readonly adminAuth: AdminAuthenticationService,
@@ -17,7 +17,11 @@ export class AdminCookieStrategy extends PassportStrategy(
     });
   }
 
-  validate(token: string) {
-    return this.adminAuth.validate(token);
+  async validate(token: string) {
+    try {
+       return await this.adminAuth.validate(token);
+    } catch (UnauthorizedException) {
+      return null
+    }
   }
 }
