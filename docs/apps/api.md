@@ -61,7 +61,7 @@ Global: `InfoInterceptor` on all responses.
 
 ### Registration
 
-`POST /registration` → `RegistrationService` creates `User`, `Registration`, related `Question*` / `Tshirt*` records.
+`POST /registration` is public: `OptionalAdminCookieGuard` attaches an admin principal when a valid AdminJS cookie is present, but a missing or invalid cookie must not 401. `RegistrationService` creates `User`, `Registration`, related `Question*` / `Tshirt*` records.
 
 ### Login / session
 

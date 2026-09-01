@@ -1,7 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-cookie';
 import { AdminAuthenticationService } from './adminauth.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class OptionalAdminCookieStrategy extends PassportStrategy(
@@ -19,9 +19,9 @@ export class OptionalAdminCookieStrategy extends PassportStrategy(
 
   async validate(token: string) {
     try {
-       return await this.adminAuth.validate(token);
-    } catch (UnauthorizedException) {
-      return null
+      return await this.adminAuth.validate(token);
+    } catch {
+      return null;
     }
   }
 }

@@ -4,7 +4,7 @@ import { RegistrationService } from './registration.service';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Info } from '../info.decorator';
 import { InfoDto } from '../dto/info.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { OptionalAdminCookieGuard } from '../auth/optional-admin-cookie.guard';
 
 @Controller('registration')
 @ApiTags('registration')
@@ -15,7 +15,7 @@ export class RegistrationController {
   @ApiResponse({ status: 201, description: 'Successfully created registration.' })
   @ApiResponse({ status: 400, description: 'Validation failed.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @UseGuards(AuthGuard('optional-admin-cookie'))
+  @UseGuards(OptionalAdminCookieGuard)
   async create(
     @Info() info: InfoDto,
     @Body() createRegistrationDto: RegistrationDto,
