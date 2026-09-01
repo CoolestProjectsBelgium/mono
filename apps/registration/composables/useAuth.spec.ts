@@ -3,6 +3,7 @@ import { setActivePinia, createPinia, type Pinia } from 'pinia'
 import { callComposable } from '~/tests/composable-utils'
 import { mockFetch } from '~/tests/setup'
 import { clearCsrfToken } from '~/utils/csrf-token'
+import { ApiError } from '~/composables/useApiClient'
 
 function mockCsrfThen(response: unknown) {
   mockFetch
@@ -69,6 +70,36 @@ describe('useAuth', () => {
       .mockRejectedValueOnce({ statusCode: 401, message: 'Unauthorized' })
     const { activateWithToken } = await callComposable(() => useAuth(), pinia)
     const ok = await activateWithToken('abc-token')
+    expect(ok).toBe('invalid')
+    expect(useAuthStore(pinia).isLoggedIn).toBe(false)
+  })
+
+  it('activateWithToken returns alreadyUsed for consumed registration links', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+      .mockRejectedValueOnce(new ApiError('Registration already activated', 409))
+    const { activateWithToken } = await callComposable(() => useAuth(), pinia)
+    const ok = await activateWithToken('used-token')
+    expect(ok).toBe('alreadyUsed')
+    expect(useAuthStore(pinia).isLoggedIn).toBe(false)
+  })
+
+  it('activateWithToken returns unavailable for server errors', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+      .mockRejectedValueOnce(new ApiError('Internal server error', 500))
+    const { activateWithToken } = await callComposable(() => useAuth(), pinia)
+    const ok = await activateWithToken('bad-token')
+    expect(ok).toBe('unavailable')
+    expect(useAuthStore(pinia).isLoggedIn).toBe(false)
+  })
+
+  it('activateWithToken returns invalid for unauthorized responses', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ csrfToken: 'csrf-token' })
+      .mockRejectedValueOnce(new ApiError('Invalid token', 401))
+    const { activateWithToken } = await callComposable(() => useAuth(), pinia)
+    const ok = await activateWithToken('bad-token')
     expect(ok).toBe('invalid')
     expect(useAuthStore(pinia).isLoggedIn).toBe(false)
   })

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { verify } from 'jsonwebtoken';
 import { getModelToken } from '@nestjs/sequelize';
 import { LoginController } from './login.controller';
@@ -44,6 +45,7 @@ describe('LoginController', () => {
         { provide: MailerService, useValue: mailerService },
         { provide: getModelToken(User), useValue: userModel },
         { provide: getModelToken(Registration), useValue: registrationModel },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
         UserCookieInterceptor,
       ],
     }).compile();
@@ -71,6 +73,19 @@ describe('LoginController', () => {
     await expect(
       controller.activateLogin({ jwt: 'bad' }, {}),
     ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('does not set session when registration token was already consumed', async () => {
+    (verify as jest.Mock).mockReturnValue({ registrationID: 13 });
+    registrationService.activateRegistration.mockRejectedValue(
+      new ConflictException('Registration already activated'),
+    );
+
+    const req: { user?: User } = {};
+    await expect(
+      controller.activateLogin({ jwt: 'used-token' }, req),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(req.user).toBeUndefined();
   });
 
   it('sends login mail for known users', async () => {

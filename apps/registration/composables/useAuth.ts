@@ -2,7 +2,7 @@ import type { LoginDto, LoginMailDto, LoginActivateDto } from '~/types/api'
 import { getApiErrorMessage, hasApiData } from '~/utils/api-response'
 import { ApiError } from '~/composables/useApiClient'
 
-export type ActivateLoginResult = 'ok' | 'invalid' | 'unavailable'
+export type ActivateLoginResult = 'ok' | 'invalid' | 'alreadyUsed' | 'unavailable'
 
 export function useAuth() {
   const { apiFetch } = useApiClient()
@@ -48,6 +48,9 @@ export function useAuth() {
     catch (error) {
       if (error instanceof ApiError && error.statusCode === 401) {
         return 'invalid'
+      }
+      if (error instanceof ApiError && error.statusCode === 409) {
+        return 'alreadyUsed'
       }
       if (!(error instanceof ApiError) || !error.statusCode || error.statusCode >= 500) {
         return 'unavailable'

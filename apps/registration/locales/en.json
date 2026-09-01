@@ -160,7 +160,8 @@
   },
   "login": {
     "linkSent": "If your email is known to us, you will receive a login link.",
-    "linkExpired": "The login link has expired or is invalid."
+    "linkExpired": "The login link has expired or is invalid.",
+    "linkAlreadyUsed": "Your account is already set up. Please sign in below."
   },
   "registrationSuccess": {
     "title": "Check your email",

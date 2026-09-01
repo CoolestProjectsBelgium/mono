@@ -74,6 +74,18 @@ describe('login page token activation', () => {
     })
     expect(replaceMock).not.toHaveBeenCalledWith('/project')
   })
+
+  it('shows already used banner and login form when confirmation link was consumed', async () => {
+    routeQuery.value = { token: 'used-token' }
+    activateWithTokenMock.mockResolvedValue('alreadyUsed')
+    const wrapper = await mountSuspended(LoginPage)
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-testid="expired-banner"]').text()).toBe('login.linkAlreadyUsed')
+      expect(wrapper.find('form').exists()).toBe(true)
+      expect(replaceMock).toHaveBeenCalledWith('/login')
+    })
+    expect(replaceMock).not.toHaveBeenCalledWith('/project')
+  })
 })
 
 describe('login page form submit', () => {

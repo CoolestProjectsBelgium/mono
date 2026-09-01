@@ -160,7 +160,8 @@
   },
   "login": {
     "linkSent": "Als je e-mailadres bij ons bekend is, ontvang je een loginlink.",
-    "linkExpired": "De loginlink is verlopen of ongeldig."
+    "linkExpired": "De loginlink is verlopen of ongeldig.",
+    "linkAlreadyUsed": "Je account is al aangemaakt. Log hieronder in."
   },
   "registrationSuccess": {
     "title": "Check je e-mail",

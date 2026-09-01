@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Registration } from '@coolestprojects/database';
 import { InfoDto } from '../dto/info.dto';
@@ -231,6 +231,7 @@ export class RegistrationService {
     let user: User;
     let joinedViaVoucher = false;
     let coworkerProjectId: number | null = null;
+    let ownerProjectId: number | null = null;
 
     try {
       const r = await this.registrationModel.findOne({
@@ -240,7 +241,7 @@ export class RegistrationService {
       });
 
       if (!r) {
-        throw new Error('Registration not found');
+        throw new ConflictException('Registration already activated');
       }
 
       const e = await this.eventModel.findByPk(r.eventId, {
@@ -334,6 +335,7 @@ export class RegistrationService {
           },
           { transaction },
         );
+        ownerProjectId = createdProject.id;
       }
 
       await this.questionUser.bulkCreate(
@@ -361,6 +363,9 @@ export class RegistrationService {
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new Error('Transaction commit failed: ' + error);
     }
 
@@ -375,12 +380,7 @@ export class RegistrationService {
         await this.mailerService.welcomeMailCoWorker(user, project, loginToken);
         await this.mailerService.notifyProjectOwner();
       } else {
-        const project = await this.projectModel.findOne({
-          where: {
-            ownerId: user.id,
-            eventId: user.eventId,
-          },
-        });
+        const project = await this.projectModel.findByPk(ownerProjectId!);
         if (!project) {
           throw new Error('Project not found for owner welcome mail');
         }

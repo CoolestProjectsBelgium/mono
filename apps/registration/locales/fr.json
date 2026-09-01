@@ -160,7 +160,8 @@
   },
   "login": {
     "linkSent": "Si ton e-mail est connu, tu recevras un lien de connexion.",
-    "linkExpired": "Le lien de connexion a expiré ou est invalide."
+    "linkExpired": "Le lien de connexion a expiré ou est invalide.",
+    "linkAlreadyUsed": "Ton compte est déjà créé. Connecte-toi ci-dessous."
   },
   "registrationSuccess": {
     "title": "Vérifie ton e-mail",

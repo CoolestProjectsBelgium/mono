@@ -3,7 +3,9 @@
     <h1 class="text-3xl font-bold">{{ $t('titleLogin') }}</h1>
     <ApiUnavailableBanner
       v-if="activationError"
-      :message-key="activationError === 'unavailable' ? 'apiUnavailable.default' : 'login.linkExpired'"
+      :message-key="activationMessageKey"
+      :hide-title="activationError !== 'unavailable'"
+      :variant="activationError === 'alreadyUsed' ? 'info' : 'warning'"
       class="mt-4"
     />
     <p v-if="activating" class="mt-6 text-gray-600">{{ $t('pleaseWait') }}</p>
@@ -41,6 +43,16 @@ const email = ref('')
 const loading = ref(false)
 const activating = ref(false)
 const activationError = ref<Exclude<ActivateLoginResult, 'ok'> | null>(null)
+
+const activationMessageKey = computed(() => {
+  if (activationError.value === 'unavailable') {
+    return 'apiUnavailable.default'
+  }
+  if (activationError.value === 'alreadyUsed') {
+    return 'login.linkAlreadyUsed'
+  }
+  return 'login.linkExpired'
+})
 
 async function activateFromQuery(token: string | undefined) {
   if (!token || activating.value) return
