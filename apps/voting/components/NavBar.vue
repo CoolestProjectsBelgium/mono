@@ -24,10 +24,10 @@
         <div class="flex items-center gap-3 border-r border-gray-800 pr-4">
           <div class="hidden md:block text-right">
             <p class="text-xs text-gray-500 font-medium">Logged in as</p>
-            <p class="text-sm text-gray-200 font-semibold">{{ user?.name || 'Jury Member' }}</p>
+            <p class="text-sm text-gray-200 font-semibold">{{ user?.email || 'Jury Member' }}</p>
           </div>
           <UAvatar
-            :alt="user?.name || 'Jury'"
+            :alt="user?.email || 'Jury'"
             size="sm"
             class="bg-gradient-to-r from-primary-500 to-indigo-500 text-white"
           />

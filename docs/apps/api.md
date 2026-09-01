@@ -88,7 +88,7 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 
 ### Voting
 
-`POST /auth/login`, `GET /projects`, `POST /projects/:projectId` → `VotingService` with `Vote`, `VoteCategory`, `UserProject`.
+`POST /auth/login`, `GET /projects`, `POST /projects/:projectId` → `VotingService` with `Vote`, `VoteCategory`, `UserProject`. The voting SPA sends `x-csrf-token` on mutating requests (same pattern as registration). Jury login uses Passport strategy `login-voting` (`VotingLoginStrategy` in `auth/local-voting.strategy.ts`, registered in `AuthModule`).
 
 ### Shared reads
 
@@ -99,7 +99,7 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 - Full OpenAPI/Swagger route catalog (use controller source)
 - Background job schedule details
 - Production secrets and Azure blob configuration
-- Whether voting sends `x-csrf-token` on mutating API calls
+- Whether other frontends send `x-csrf-token` on mutating API calls (registration and voting do)
 
 ## Status
 

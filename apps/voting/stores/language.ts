@@ -1,17 +1,17 @@
 import { defineStore } from 'pinia'
 
 interface LanguageState {
-  languages: number[]
+  languages: string[]
 }
 
 export const useLanguageStore = defineStore('language', {
   state: (): LanguageState => ({
-    languages: []
+    languages: [],
   }),
   actions: {
-    updateLanguages(languages: number[]) {
+    updateLanguages(languages: string[]) {
       this.languages = languages
-    }
+    },
   },
-  persist: true // Automatically persist store to localStorage
+  persist: true,
 })

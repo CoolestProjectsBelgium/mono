@@ -22,8 +22,16 @@
           </div>
         </template>
 
+        <UAlert
+          v-if="errorMessage"
+          color="red"
+          variant="soft"
+          icon="i-heroicons-exclamation-triangle"
+          :title="errorMessage"
+          class="mb-4"
+        />
+
         <form class="space-y-6" @submit.prevent="userLogin">
-          <!-- Username Group -->
           <UFormGroup label="Username" size="lg" name="username" class="text-gray-300">
             <UInput
               v-model="loginData.username"
@@ -36,7 +44,6 @@
             />
           </UFormGroup>
 
-          <!-- Password Group -->
           <UFormGroup label="Password" size="lg" name="password" class="text-gray-300">
             <UInput
               v-model="loginData.password"
@@ -66,23 +73,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { formatLoginError } from '~/utils/login-error'
+import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({
-  layout: false // If using layouts
+  layout: false,
 })
 
+const authStore = useAuthStore()
 const { login } = useAuth()
 const toast = useToast()
 
 const loginData = reactive({
   username: '',
-  password: ''
+  password: '',
 })
 const loading = ref(false)
+const errorMessage = ref('')
+
+onMounted(() => {
+  authStore.clearSession()
+  clearCsrfToken()
+})
 
 const userLogin = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     await login(loginData)
     toast.add({
@@ -90,17 +107,21 @@ const userLogin = async () => {
       description: 'You have logged in successfully.',
       color: 'green',
       icon: 'i-heroicons-check-circle',
-      timeout: 3000
+      timeout: 3000,
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error(error)
+    const description = formatLoginError(error)
+    errorMessage.value = description
     toast.add({
       title: 'Authentication Failed',
-      description: 'Please check your credentials and try again.',
+      description,
       color: 'red',
-      icon: 'i-heroicons-exclamation-triangle'
+      icon: 'i-heroicons-exclamation-triangle',
     })
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }

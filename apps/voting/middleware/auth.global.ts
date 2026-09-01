@@ -1,28 +1,37 @@
-export default defineNuxtRouteMiddleware(async (to, from) => {
-  const { loggedIn, token, fetchUser, logout } = useAuth()
-  
-  // Routes that don't require authentication
+export default defineNuxtRouteMiddleware(async (to) => {
+  const { loggedIn, fetchUser, logout } = useAuth()
+  const authStore = useAuthStore()
+
   const publicRoutes = ['/login']
-  
-  // If user is not logged in and trying to access a protected route
-  if (!loggedIn.value && !publicRoutes.includes(to.path)) {
-    // If we have a token stored, try to fetch user (restore session)
-    if (token.value) {
+
+  if (to.path === '/login') {
+    if (authStore.jwt) {
       try {
         await fetchUser()
-      } catch (error) {
-        // Token is invalid, logout and redirect
+        if (loggedIn.value && authStore.user) {
+          return navigateTo('/')
+        }
+      }
+      catch {
+        authStore.clearSession()
+        clearCsrfToken()
+      }
+    }
+    return
+  }
+
+  if (!loggedIn.value && !publicRoutes.includes(to.path)) {
+    if (authStore.jwt) {
+      try {
+        await fetchUser()
+      }
+      catch {
         await logout()
         return navigateTo('/login')
       }
-    } else {
-      // No token, redirect to login
+    }
+    else {
       return navigateTo('/login')
     }
-  }
-  
-  // If user is logged in but trying to access login page, redirect to home
-  if (loggedIn.value && to.path === '/login') {
-    return navigateTo('/')
   }
 })

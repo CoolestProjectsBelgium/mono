@@ -43,7 +43,6 @@
             </label>
           </div>
 
-          <!-- Loading state placeholder -->
           <div v-else class="space-y-3 py-2">
             <USkeleton v-for="i in 3" :key="i" class="h-[60px] w-full bg-slate-800" />
           </div>
@@ -68,23 +67,22 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { LanguageOption } from '~/types/api'
 import { useLanguageStore } from '~/stores/language'
-
-interface Language {
-  id: number
-  text: string
-}
+import { useProjectStore } from '~/stores/project'
 
 const languageStore = useLanguageStore()
+const projectStore = useProjectStore()
 const toast = useToast()
-const languages = ref<Language[]>([])
-const selected = ref<number[]>([...languageStore.languages])
+const languages = ref<LanguageOption[]>([])
+const selected = ref<string[]>([...languageStore.languages])
 
-const toggleLanguage = (id: number) => {
+const toggleLanguage = (id: string) => {
   const index = selected.value.indexOf(id)
   if (index === -1) {
     selected.value.push(id)
-  } else {
+  }
+  else {
     selected.value.splice(index, 1)
   }
 }
@@ -95,25 +93,26 @@ const setLanguages = () => {
       title: 'Selection Required',
       description: 'Please select at least one language to continue.',
       color: 'amber',
-      icon: 'i-heroicons-exclamation-triangle'
+      icon: 'i-heroicons-exclamation-triangle',
     })
     return
   }
 
   languageStore.updateLanguages(selected.value)
+  projectStore.clearProject()
   navigateTo('/')
 }
 
-// Fetch languages on setup
 try {
-  languages.value = await useApiFetch<Language[]>('/voting/languages')
-} catch (error) {
+  languages.value = await useApiFetch<LanguageOption[]>('/languages')
+}
+catch (error) {
   console.error('Failed to load languages:', error)
   toast.add({
     title: 'Error loading languages',
     description: 'Could not connect to the API server.',
     color: 'red',
-    icon: 'i-heroicons-exclamation-circle'
+    icon: 'i-heroicons-exclamation-circle',
   })
 }
 </script>

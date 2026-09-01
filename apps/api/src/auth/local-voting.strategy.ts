@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+import { InjectModel } from '@nestjs/sequelize';
 import { Strategy } from 'passport-local';
 import { Account, Event } from '@coolestprojects/database';
 import { Op } from 'sequelize';
@@ -7,7 +8,10 @@ import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class VotingLoginStrategy extends PassportStrategy(Strategy, 'login-voting') {
-  constructor(private accountModel: typeof Account, private eventModel: typeof Event) {
+  constructor(
+    @InjectModel(Account) private readonly accountModel: typeof Account,
+    @InjectModel(Event) private readonly eventModel: typeof Event,
+  ) {
     super({ usernameField: 'username', passwordField: 'password' });
   }
 

@@ -16,7 +16,7 @@ Source of truth for Coolest Projects monorepo architecture and per-package orien
 |-----|-----|--------|
 | API | [apps/api.md](apps/api.md) | deep |
 | Admin | [apps/admin.md](apps/admin.md) | stub |
-| Voting | [apps/voting.md](apps/voting.md) | stub |
+| Voting | [apps/voting.md](apps/voting.md) | deep |
 | Registration | [apps/registration.md](apps/registration.md) | stub |
 | Event guide | [apps/eventguide.md](apps/eventguide.md) | stub |
 | Presentation | [apps/presentation.md](apps/presentation.md) | stub |

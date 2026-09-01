@@ -64,7 +64,7 @@ DB and app secrets are set in `docker-compose.yml` on the `workspace` service (`
 
 Mail: the Dev Container sets `SMTP_HOST=mailhog`, `SMTP_PORT=1025`, and `SMTP_FROM`. Captured mail appears in MailHog at http://localhost:18025 (SMTP on host port `11025`). If `SMTP_HOST` is unset, the API logs the message (including activation URL) and skips sending so registration still succeeds.
 
-Voting app API base URL: `NUXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:3001` in `nuxt.config.ts`).
+Voting app API base URL: `NUXT_PUBLIC_API_BASE_URL` (defaults to `https://api.coolestprojects.localhost:8443` in `nuxt.config.ts`). On `https://voting.coolestprojects.localhost:8443`, the app calls the API same-origin: the TLS proxy forwards `/csrf-token`, `/auth`, `/languages`, `/projects` to port 3001 (rebuild the `proxy` container after changing `proxy.conf`). Port-forward users on `http://localhost:3005` hit Nitro server routes that proxy the same paths. Trust the dev CA (`.devcontainer/certs/pki/ca.crt`) if you call `api.coolestprojects.localhost` directly from the browser.
 
 Registration app API base URL: `API_BASE_URL` (defaults to `https://api.coolestprojects.localhost:8443` in `nuxt.config.ts`). The API must list the registration origin in `CORS_ORIGINS` (set in compose for local dev).
 

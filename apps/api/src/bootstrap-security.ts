@@ -25,7 +25,7 @@ export function configureSecurity(app: INestApplication): void {
     app.enableCors({
       origin: corsOrigins,
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      allowedHeaders: ['Content-Type', 'Accept', 'Accept-Language', 'x-csrf-token'],
+      allowedHeaders: ['Content-Type', 'Accept', 'Accept-Language', 'Authorization', 'x-csrf-token'],
       credentials: true,
     });
   }

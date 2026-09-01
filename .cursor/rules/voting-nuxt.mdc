@@ -27,7 +27,7 @@ Read [docs/apps/voting.md](../../docs/apps/voting.md) first.
 ## API
 
 - SPA mode (`ssr: false` in `nuxt.config.ts`)
-- API base URL: `runtimeConfig.public.apiBaseURL` from `NUXT_PUBLIC_API_BASE_URL` (default `http://localhost:3001`)
+- API base URL: `runtimeConfig.public.apiBaseURL` from `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`)
 - Voting endpoints on API root (`/auth/login`, `/projects`, etc.) — see `VotingController`
 - Do **not** import `@coolestprojects/database`
 

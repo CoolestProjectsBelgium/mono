@@ -29,8 +29,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBaseURL: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
-    }
+      apiBaseURL:
+        process.env.NUXT_PUBLIC_API_BASE_URL
+        || 'https://api.coolestprojects.localhost:8443',
+    },
   },
 
   typescript: {
@@ -39,6 +41,24 @@ export default defineNuxtConfig({
   },
 
   colorMode: {
-    preference: 'dark'
-  }
+    preference: 'dark',
+  },
+
+  routeRules: {
+    '/csrf-token': { proxy: 'http://127.0.0.1:3001/csrf-token' },
+    '/auth/**': { proxy: 'http://127.0.0.1:3001/auth/**' },
+    '/languages': { proxy: 'http://127.0.0.1:3001/languages' },
+    '/projects/**': { proxy: 'http://127.0.0.1:3001/projects/**' },
+  },
+
+  vite: {
+    server: {
+      allowedHosts: ['voting.coolestprojects.localhost'],
+      hmr: {
+        protocol: 'wss',
+        host: 'voting.coolestprojects.localhost',
+        clientPort: 8443,
+      },
+    },
+  },
 })
