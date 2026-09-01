@@ -105,6 +105,7 @@ import configuration from './config/configuration.js';
       EventTable,
       Vote,
       VoteCategory,
+      Award,
       Attachment,
       EmailLog,
       Affiliation,
