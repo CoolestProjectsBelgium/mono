@@ -8,7 +8,7 @@ const approvals: ApprovalDto[] = [
   {
     id: 3,
     name: 'Approved',
-    description: 'Lees zeker onze regels. Ga je akkoord?',
+    description: 'Ga je akkoord met onze regels?',
   },
 ]
 
@@ -37,7 +37,8 @@ describe('MandatoryQuestions', () => {
     expect(link.exists()).toBe(true)
     expect(link.text()).toBe('regels')
     expect(link.attributes('href')).toContain('/rules')
-    expect(wrapper.text()).toContain('Lees zeker onze regels. Ga je akkoord?')
+    expect(wrapper.text()).toContain('Ga je akkoord met onze regels?')
+    expect(wrapper.text()).not.toContain('Approved')
   })
 
   it('appends a rules link when the description has no rules word', async () => {
@@ -64,5 +65,6 @@ describe('MandatoryQuestions', () => {
     expect(link.exists()).toBe(true)
     expect(link.text()).toBe('Reglement')
     expect(link.attributes('href')).toContain('/rules')
+    expect(wrapper.text()).not.toContain('Approved')
   })
 })

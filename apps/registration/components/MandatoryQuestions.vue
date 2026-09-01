@@ -10,20 +10,17 @@
           @change="onToggle(String(approval.id), ($event.target as HTMLInputElement).checked)"
         />
         <span>
-          <strong>{{ approval.name }}</strong>
-          <p class="text-sm text-gray-600">
-            <template v-for="(part, index) in descriptionParts(approval.description)" :key="index">
-              <NuxtLink
-                v-if="part.type === 'link'"
-                :to="localePath('/rules')"
-                class="text-primary hover:underline"
-                @click.stop
-              >
-                {{ part.text }}
-              </NuxtLink>
-              <template v-else>{{ part.text }}</template>
-            </template>
-          </p>
+          <template v-for="(part, index) in descriptionParts(approval.description)" :key="index">
+            <NuxtLink
+              v-if="part.type === 'link'"
+              :to="localePath('/rules')"
+              class="text-primary hover:underline"
+              @click.stop
+            >
+              {{ part.text }}
+            </NuxtLink>
+            <template v-else>{{ part.text }}</template>
+          </template>
         </span>
       </label>
     </div>

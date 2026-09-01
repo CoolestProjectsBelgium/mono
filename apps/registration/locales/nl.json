@@ -1,5 +1,9 @@
 {
   "skipToContent": "Ga naar inhoud",
+  "nav": {
+    "openMenu": "Menu openen",
+    "closeMenu": "Menu sluiten"
+  },
   "languageSwitcher": "Taal kiezen",
   "agree": "Door je te registreren ga je akkoord met de volgende regels:",
   "Aanpassen": "Aanpassen",

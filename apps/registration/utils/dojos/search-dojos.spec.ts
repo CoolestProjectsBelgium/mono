@@ -3,6 +3,10 @@ import { dojoFixture } from '~/fixtures/dojos'
 import { isKnownDojoName, searchDojos } from './search-dojos'
 
 describe('searchDojos', () => {
+  it('returns no results for an empty query', () => {
+    expect(searchDojos(dojoFixture, '')).toEqual([])
+  })
+
   it('finds dojos by substring', () => {
     const matches = searchDojos(dojoFixture, 'balen')
     expect(matches.some(entry => entry.name === 'Balen')).toBe(true)

@@ -117,7 +117,9 @@ function onInput() {
 }
 
 function onFocus() {
-  runSearch(inputText.value)
+  if (inputText.value.trim()) {
+    runSearch(inputText.value)
+  }
 }
 
 function onBlur() {
@@ -144,7 +146,7 @@ function selectEntry(entry: DojoEntry) {
 
 function onKeydown(event: KeyboardEvent) {
   if (!isOpen.value || results.value.length === 0) {
-    if (event.key === 'ArrowDown') {
+    if (event.key === 'ArrowDown' && inputText.value.trim()) {
       runSearch(inputText.value)
     }
     return

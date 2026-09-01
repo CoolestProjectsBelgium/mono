@@ -1,5 +1,9 @@
 {
   "skipToContent": "Skip to content",
+  "nav": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
   "languageSwitcher": "Choose language",
   "agree": "By registering you agree to the following rules:",
   "Aanpassen": "Change",

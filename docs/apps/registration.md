@@ -22,7 +22,7 @@ Nuxt 3 SPA for participant registration, magic-link login, project management, p
 
 Local URL (via proxy): `https://registration.coolestprojects.localhost:8443`
 
-Header home link is the Coolest Projects Belgium mark (`public/logo-coolest-projects-belgium.png`), 80px in the sticky header. Tab icons are the CoderDojo Belgium pack (`favicon.ico`, 16×16, 32×32, apple-touch) in `public/`.
+Header home link is the Coolest Projects Belgium mark (`public/logo-coolest-projects-belgium.png`): 48px tall below `lg` (1024px), 80px from `lg` up. Below `lg`, nav links live in a hamburger overlay panel (logo + language switcher stay in the bar); from `lg` up the horizontal link row is shown. Tab icons are the CoderDojo Belgium pack (`favicon.ico`, 16×16, 32×32, apple-touch) in `public/`.
 
 ## Talks to
 

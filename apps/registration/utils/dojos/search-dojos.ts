@@ -10,7 +10,7 @@ export function isKnownDojoName(dojos: DojoEntry[], name: string): boolean {
 export function searchDojos(dojos: DojoEntry[], query: string, limit = 10): DojoEntry[] {
   const normalizedQuery = normalizeSearchText(query)
   if (!normalizedQuery) {
-    return dojos.slice(0, limit)
+    return []
   }
 
   const matches: DojoEntry[] = []

@@ -201,9 +201,9 @@ describe('AppController (e2e)', () => {
 
   // Test for /approvals (GET)
   const expected_approvals_outputs = {
-    en: '[{"id":3,"name":"Approved","description":"Be sure to read our rules. Do you agree"}]',
-    nl: '[{"id":3,"name":"Approved","description":"Lees zeker onze regels. Ga je akkoord?"}]',
-    fr: '[{"id":3,"name":"Approved","description":"Assure-toi de lire nos règles. Es-tu d\'accord ?"}]',
+    en: '[{"id":3,"name":"Approved","description":"Do you agree to our rules?"}]',
+    nl: '[{"id":3,"name":"Approved","description":"Ga je akkoord met onze regels?"}]',
+    fr: '[{"id":3,"name":"Approved","description":"Es-tu d\'accord avec nos règles ?"}]',
   };
 
   for (const [lang, expected] of Object.entries(expected_approvals_outputs)) {

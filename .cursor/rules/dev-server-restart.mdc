@@ -7,6 +7,8 @@ alwaysApply: true
 
 After **material** changes to an app under `apps/` (routes, components, services, config that affects runtime), restart that app's dev server in the Dev Container so the user can verify immediately.
 
+**Never start or restart app dev servers on the host.** Always use `docker exec` against `coolestproject-dev-workspace` (see below). If the container is not running, start it first (`docker start coolestproject-dev-workspace coolestproject-dev-proxy`).
+
 ## Port map (workspace container)
 
 | App | Port | Restart command (inside container) |

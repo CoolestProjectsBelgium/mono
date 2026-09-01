@@ -122,7 +122,7 @@ export async function seedDatabase(
       questionId: questions[2].id,
       positive: 'Yes',
       negative: 'No',
-      description: 'Be sure to read our rules. Do you agree',
+      description: 'Do you agree to our rules?',
     },
     {
       eventId: event.id,
@@ -148,7 +148,7 @@ export async function seedDatabase(
       questionId: questions[2].id,
       positive: 'Ja',
       negative: 'Nee',
-      description: 'Lees zeker onze regels. Ga je akkoord?',
+      description: 'Ga je akkoord met onze regels?',
     },
     {
       eventId: event.id,
@@ -175,7 +175,7 @@ export async function seedDatabase(
       questionId: questions[2].id,
       positive: 'Qui',
       negative: 'Non',
-      description: "Assure-toi de lire nos règles. Es-tu d'accord ?",
+      description: "Es-tu d'accord avec nos règles ?",
     },
   ]);
 
