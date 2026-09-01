@@ -34,7 +34,6 @@
   },
   "dependencies": {
     "@nestjs/cli": "^11.0.23",
-    "@oxc-parser/binding-win32-x64-msvc": "^0.148.0",
     "unstorage": "^1.10.2"
   }
 }
