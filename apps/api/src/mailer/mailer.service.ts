@@ -211,7 +211,7 @@ export class MailerService {
     const language = user.language ?? 'en';
     const to = this.formatRecipients(user.email, user.email_guardian);
     const context = this.buildRegistrationContext(user, event);
-    await this.sendMail(MailTemplates.waiting, language, event, to, context);
+    await this.sendMail(MailTemplates.waiting, language, event, to, context, user);
   }
 
   async welcomeMailOwner(user: User, project: Project, token: string) {
@@ -271,7 +271,7 @@ export class MailerService {
     );
   }
 
-  async emailExistsMail(user: UserDto, eventId: number) {
+  async emailExistsMail(user: User | Registration, eventId: number) {
     const event = await this.eventModel.findByPk(eventId);
     if (!event) {
       throw new Error('Event not found');
@@ -288,6 +288,7 @@ export class MailerService {
       event,
       user.email,
       context,
+      user
     );
   }
 

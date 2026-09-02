@@ -60,29 +60,30 @@ export class RegistrationService {
       createRegistrationDto.user.via,
     );
 
-    const emailUserFound = await this.userModel.count({
+    const userFound = await this.userModel.findOne({
       where: {
         email: createRegistrationDto.user.email,
         eventId: info.currentEvent,
       },
     });
-    if (emailUserFound > 0) {
+
+    if (userFound) {
       await this.mailerService.emailExistsMail(
-        createRegistrationDto.user,
+        userFound,
         info.currentEvent,
       );
       return;
     }
 
-    const emailRegistrationFound = await this.registrationModel.count({
+    const emailRegistrationFound = await this.registrationModel.findOne({
       where: {
         email: createRegistrationDto.user.email,
         eventId: info.currentEvent,
       },
     });
-    if (emailRegistrationFound > 0) {
+    if (emailRegistrationFound) {
       await this.mailerService.emailExistsMail(
-        createRegistrationDto.user,
+        emailRegistrationFound,
         info.currentEvent,
       );
       return;
