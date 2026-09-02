@@ -1,4 +1,3 @@
-export * from './models/certificate.model';
 export * from './models/project.model';
 export * from './models/question.model';
 export * from './models/question_user.model';
@@ -24,3 +23,4 @@ export * from './models/email_log.model';
 export * from './models/admin_sessions.model';
 export * from './models/affiliation.model';
 export * from './models/municipality.model'
+export * from './models/slide.model';

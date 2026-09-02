@@ -2,16 +2,49 @@ import { Injectable } from '@nestjs/common';
 import { StreamableFile } from '@nestjs/common';
 import puppeteer from 'puppeteer';
 import { Readable } from 'stream';
+import { Slide, Event, Project } from '@coolestprojects/database';
+import { InjectModel } from '@nestjs/sequelize';
 
 @Injectable()
 export class PresentationService {
-    async generateSlideDeck() {
+    constructor(
+        @InjectModel(Slide)
+        private readonly slideModel: typeof Slide,
+        @InjectModel(Event)
+        private readonly eventModel: typeof Event,
+        @InjectModel(Project)
+        private readonly projectModel: typeof Project,
+    ) { }
 
-        const test = [
-            { "type": "loopProjects", "view": "project-detail" },
-            { "type": "sponsor" },
-            { "type": "map" }
-        ]
+    async generateSlideDeck(eventId: number): Promise<void> {
+        const slides = await this.slideModel.findAll({
+            where: { eventId },
+            order: [['position', 'ASC']],
+        });
+
+        for (const slide of slides) {
+            let data: Event | Project[] | null = null;
+            switch (slide.datasource) {
+                case 'project':
+                    data = await this.projectModel.findAll({ where: { eventId } });
+                    break;
+                case 'event':
+                    data = await this.eventModel.findOne({ where: { id: eventId } });
+                    break;
+                default:
+                    break;
+            }
+
+            const template = Handlebars.compile(slide.html, { noEscape: true });
+            // if the slidedeck is a list we generate a slide for each item in the list, otherwise we generate a single slide
+            for (const d of (data instanceof Array ? data : [data])) {
+                if (d) {
+                    const image = await this.generateSlide(d, template);
+                    //todo save image
+                }
+            }
+
+        }
     }
 
     async getSlideList(eventId: number) {
@@ -34,7 +67,7 @@ export class PresentationService {
         ]
     }
 
-    async generateSlide(eventId: number, index: number): Promise<StreamableFile> {
+    async generateSlide(data: Event | Project | null, html: HandlebarsTemplateDelegate): Promise<StreamableFile> {
         const browser = await puppeteer.launch({
             headless: true,
         });
@@ -48,33 +81,7 @@ export class PresentationService {
                 deviceScaleFactor: 2,
             });
 
-            await page.setContent(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body {
-              margin: 0;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              width: 800px;
-              height: 400px;
-              background: linear-gradient(135deg, #4CAF50, #2196F3);
-              font-family: Arial, sans-serif;
-            }
-
-            h1 {
-              color: white;
-              font-size: 64px;
-            }
-          </style>
-        </head>
-        <body>
-          <h1>Hello World 👋</h1>
-        </body>
-        </html>
-      `);
+            await page.setContent(html(data));
 
             const image = await page.screenshot({
                 type: 'png',
@@ -84,6 +91,7 @@ export class PresentationService {
                 type: 'image/png',
                 disposition: 'inline',
             });
+
         } finally {
             await browser.close();
         }
