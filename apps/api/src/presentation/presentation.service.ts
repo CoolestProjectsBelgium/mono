@@ -4,6 +4,11 @@ import puppeteer from 'puppeteer';
 import { Readable } from 'stream';
 import { Slide, Event, Project } from '@coolestprojects/database';
 import { InjectModel } from '@nestjs/sequelize';
+import * as path from 'path';
+import { mkdirSync } from 'fs';
+import Handlebars from 'handlebars';
+import { ConfigService } from '@nestjs/config';
+import { writeFileSync, existsSync } from 'fs';
 
 @Injectable()
 export class PresentationService {
@@ -14,9 +19,18 @@ export class PresentationService {
         private readonly eventModel: typeof Event,
         @InjectModel(Project)
         private readonly projectModel: typeof Project,
+        private configService: ConfigService
     ) { }
 
     async generateSlideDeck(eventId: number): Promise<void> {
+        const folderPath = path.join(
+            this.configService.get('api.upload_root')!,
+            'presentation',
+            eventId.toString()
+        );
+
+        mkdirSync(folderPath, { recursive: true });
+
         const slides = await this.slideModel.findAll({
             where: { eventId },
             order: [['position', 'ASC']],
@@ -37,17 +51,21 @@ export class PresentationService {
 
             const template = Handlebars.compile(slide.html, { noEscape: true });
             // if the slidedeck is a list we generate a slide for each item in the list, otherwise we generate a single slide
-            for (const d of (data instanceof Array ? data : [data])) {
+            for (const [index, d] of (data instanceof Array ? data : [data]).entries()) {
                 if (d) {
+                    const filePath = path.join(folderPath, `${slide.position}-${index}-${d.updatedAt?.toISOString()}.png`); // TODO delete old files when index changes or updatedAt changes
+                    if(existsSync(filePath)) {
+                        continue;
+                    }
                     const image = await this.generateSlide(d, template);
-                    //todo save image
+                    writeFileSync(filePath, image);
                 }
             }
 
         }
     }
 
-    async getSlideList(eventId: number) {
+    async getSlideList(eventId: number, timestamp: Date) {
         return [
             {
                 index: 1,
@@ -67,7 +85,7 @@ export class PresentationService {
         ]
     }
 
-    async generateSlide(data: Event | Project | null, html: HandlebarsTemplateDelegate): Promise<StreamableFile> {
+    async generateSlide(data: Event | Project | null, html: HandlebarsTemplateDelegate): Promise<Uint8Array> {
         const browser = await puppeteer.launch({
             headless: true,
         });
@@ -87,10 +105,7 @@ export class PresentationService {
                 type: 'png',
             });
 
-            return new StreamableFile(Readable.from(image), {
-                type: 'image/png',
-                disposition: 'inline',
-            });
+            return image
 
         } finally {
             await browser.close();

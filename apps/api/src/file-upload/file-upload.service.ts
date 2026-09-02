@@ -5,12 +5,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Attachment, Event, Project, UserProject } from '@coolestprojects/database';
 import sharp from 'sharp';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FileUploadService {
   public constructor(
     @InjectModel(UserProject) private readonly userProjectModel: typeof UserProject,
     @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment,
+    private configService: ConfigService
   ) { }
 
   async generateThumbnail(file: MulterFile): Promise<Buffer> {
@@ -26,7 +28,7 @@ export class FileUploadService {
       throw new Error('File Error');
     }
 
-    if (!process.env.UPLOAD_ROOT) {
+    if (!this.configService.get('api.upload_root')) {
       throw new Error('UPLOAD_ROOT environment variable is not set');
     }
 
@@ -39,7 +41,7 @@ export class FileUploadService {
     }
 
     const folderPath = path.join(
-      process.env.UPLOAD_ROOT,
+      this.configService.get('api.upload_root')!,
       project.event.folderName,
       `project_${project.project.id}`,
     );

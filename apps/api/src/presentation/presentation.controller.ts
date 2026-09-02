@@ -11,11 +11,11 @@ export class PresentationController {
 
     @Get()
     async getSlideList(@Info() info: InfoDto) : Promise<SlideDto[]> {
-        return this.presentationService.getSlideList(info.currentEvent);
+        //return this.presentationService.getSlideList(info.currentEvent);
     }
 
     @Post("generate")
     async generateSlide(@Info() info: InfoDto, index: number) : Promise<StreamableFile>{
-        return this.presentationService.generateSlide(info.currentEvent, index);
+        //return this.presentationService.generateSlide(info.currentEvent, index);
     }
 }
