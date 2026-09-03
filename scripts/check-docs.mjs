@@ -38,7 +38,6 @@ const REQUIRED_FILES = [
   'docs/architecture.md',
   'docs/local-setup.md',
   'docs/build-tools.md',
-  'docs/legacy-import.md',
   ...WORKSPACES.apps.map((name) => `docs/apps/${name}.md`),
   ...WORKSPACES.packages.map((name) => `docs/packages/${name}.md`),
   '.cursor/rules/repo-docs.mdc',
@@ -56,7 +55,6 @@ const LINK_CHECK_ROOTS = [
   'docs/architecture.md',
   'docs/local-setup.md',
   'docs/build-tools.md',
-  'docs/legacy-import.md',
   ...WORKSPACES.apps.map((name) => `docs/apps/${name}.md`),
   ...WORKSPACES.packages.map((name) => `docs/packages/${name}.md`),
   ...WORKSPACES.apps.map((name) => `apps/${name}/README.md`),
@@ -239,7 +237,6 @@ function main() {
     checkStubSections(`docs/packages/${pkg}.md`);
   }
   checkStubSections('docs/build-tools.md');
-  checkStubSections('docs/legacy-import.md');
 
   checkDeepSections();
   checkReadmePointers();

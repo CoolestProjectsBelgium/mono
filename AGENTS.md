@@ -24,7 +24,6 @@ npm workspaces monorepo (`package.json`):
 - Per-app pages: [docs/apps/](docs/apps/)
 - Shared package: [docs/packages/database.md](docs/packages/database.md)
 - Level27 publish: [docs/build-tools.md](docs/build-tools.md) (`build_tools/`)
-- Legacy dump conversion: [docs/legacy-import.md](docs/legacy-import.md)
 
 ## Before you change code
 
