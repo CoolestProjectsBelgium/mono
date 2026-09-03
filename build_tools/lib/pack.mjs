@@ -252,6 +252,9 @@ export function packApp(input) {
 
     const exclude = ['node_modules', '.nuxt', '.output', 'dist'];
     if (target.generate === 'copy') {
+      if (target.app === 'cdj-web-int') {
+        assertCdjWebIntImagesPresent(workspaceDir);
+      }
       stageStaticLayout({
         sourceDir,
         stageDir,
@@ -266,4 +269,28 @@ export function packApp(input) {
   }
 
   throw new Error(`Unsupported kind ${target.kind}`);
+}
+
+/**
+ * @param {string} workspaceDir
+ */
+export function assertCdjWebIntImagesPresent(workspaceDir) {
+  const imagesDir = path.join(workspaceDir, 'images');
+  if (!fs.existsSync(imagesDir)) {
+    throw new Error('apps/cdj-web-int/images/ is missing. Run `npm run archive-cpbe` first.');
+  }
+  const entries = fs.readdirSync(imagesDir, { withFileTypes: true });
+  const hasFiles = entries.some((entry) => {
+    if (entry.isFile()) {
+      return true;
+    }
+    if (entry.isDirectory()) {
+      const nested = fs.readdirSync(path.join(imagesDir, entry.name));
+      return nested.length > 0;
+    }
+    return false;
+  });
+  if (!hasFiles) {
+    throw new Error('apps/cdj-web-int/images/ is empty. Run `npm run archive-cpbe` first.');
+  }
 }

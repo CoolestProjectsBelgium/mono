@@ -27,7 +27,7 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
   }
 
   const { committed } = loadTargets();
-  const apps = listApps(committed);
+  const apps = listApps(committed, { deployAll: true });
   const failures = [];
 
   for (const app of apps) {

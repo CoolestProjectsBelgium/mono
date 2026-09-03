@@ -147,6 +147,28 @@
         "publicUrl": "https://eventguide.coolestprojects-test.be",
         "smokePath": "/"
       }
+    },
+    "cdj-web-int": {
+      "kind": "static",
+      "workspace": "apps/cdj-web-int",
+      "generate": "copy",
+      "operatorOnly": true,
+      "dev": {
+        "componentId": 74477,
+        "componentName": "cdj-web-int",
+        "sshUser": "vd35113",
+        "remotePath": "public_html/cdj-web-int",
+        "publicUrl": "https://cdj-web-int.coolestprojects-test.be",
+        "smokePath": "/"
+      },
+      "prod": {
+        "componentId": 74478,
+        "componentName": "cdj-web-int",
+        "sshUser": "vd35114",
+        "remotePath": "public_html/cdj-web-int",
+        "publicUrl": "https://coderdojobelgium.be/cpbe",
+        "smokePath": "/"
+      }
     }
   }
 }

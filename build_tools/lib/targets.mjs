@@ -72,6 +72,11 @@ export function resolveTarget(input) {
   };
 }
 
-export function listApps(committed) {
-  return Object.keys(committed.apps);
+export function listApps(committed, options = {}) {
+  return Object.keys(committed.apps).filter((name) => {
+    if (options.deployAll && committed.apps[name].operatorOnly) {
+      return false;
+    }
+    return true;
+  });
 }

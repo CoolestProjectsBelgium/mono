@@ -1,0 +1,14 @@
+{
+  "name": "@coolestprojects/cdj-web-int",
+  "version": "1.0.0",
+  "description": "Archived Coolest Projects Belgium public project galleries",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "npx http-server -o /"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

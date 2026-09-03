@@ -91,6 +91,9 @@ Skip view apply: `deploy.mjs --skip-views`.
 | `registration` | `registration-dev` (`vd35113`) | `registration-prod` (`vd35114`) | Static (Nuxt generate) |
 | `voting` | `voting-dev` (`vd35113`) | `voting-prod` (`vd35114`) | Static (Nuxt generate) |
 | `eventguide` | `eventguide-dev` (`vd35113`) | `eventguide-prod` (`vd35114`) | Static copy |
+| `cdj-web-int` | `cdj-web-int` on `static-dev` (`vd35113`) | `cdj-web-int` on `static-prod` (`vd35114`) | Static copy; operator-only deploy |
+
+`cdj-web-int` is **not** in `deploy-all`. Run `npm run archive-cpbe` (downloads gitignored photos), then `npm run deploy -- --app cdj-web-int --env prod` (rsync to `public_html/cdj-web-int`). Pack fails if `apps/cdj-web-int/images/` is empty.
 
 Pack Node apps on **Linux** (Dev Container) so `sharp` / `bcrypt` native addons match Agency. Puppeteer Chromium is skipped (`PUPPETEER_SKIP_DOWNLOAD=1`). Admin pack Rollup-builds custom components once, then copies `frontend/assets/components.bundle.js` into the artifact. Dest serves that file; it does not compile AdminJS at boot. `.adminjs/` is rsync-excluded.
 

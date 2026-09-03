@@ -5,7 +5,7 @@ import { listApps, loadTargets } from './lib/targets.mjs';
 
 test('deploy-all invokes all apps in targets.json order', async () => {
   const { committed } = loadTargets();
-  const expectedApps = listApps(committed);
+  const expectedApps = listApps(committed, { deployAll: true });
   const calls = [];
 
   const code = await main(['--env', 'dev'], {
@@ -24,7 +24,7 @@ test('deploy-all invokes all apps in targets.json order', async () => {
 
 test('deploy-all continues after a failure and exits non-zero', async () => {
   const { committed } = loadTargets();
-  const expectedApps = listApps(committed);
+  const expectedApps = listApps(committed, { deployAll: true });
   const calls = [];
 
   const code = await main(['--env', 'dev'], {
@@ -52,12 +52,12 @@ test('deploy-all records non-zero exit codes as failures', async () => {
   });
 
   assert.equal(code, 1);
-  assert.equal(calls.length, listApps(loadTargets().committed).length);
+  assert.equal(calls.length, listApps(loadTargets().committed, { deployAll: true }).length);
 });
 
 test('deploy-all invokes all apps for prod', async () => {
   const { committed } = loadTargets();
-  const expectedApps = listApps(committed);
+  const expectedApps = listApps(committed, { deployAll: true });
   const calls = [];
 
   const code = await main(['--env', 'prod'], {
@@ -79,6 +79,12 @@ test('deploy-all rejects unknown env', async () => {
     () => main(['--env', 'staging'], { deployMain: async () => 0 }),
     /only supports --env dev or --env prod/,
   );
+});
+
+test('deploy-all excludes operator-only apps such as cdj-web-int', () => {
+  const { committed } = loadTargets();
+  assert.ok(listApps(committed).includes('cdj-web-int'));
+  assert.ok(!listApps(committed, { deployAll: true }).includes('cdj-web-int'));
 });
 
 test('deploy-all requires --env', async () => {

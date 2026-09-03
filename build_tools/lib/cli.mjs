@@ -60,7 +60,7 @@ Usage:
   node build_tools/bin/deploy.mjs --app api --env prod --dry-run
 
 Options:
-  --app            api | admin | registration | voting | eventguide
+  --app            api | admin | registration | voting | eventguide | cdj-web-int
   --env            dev | prod
   --dry-run        Print actions; do not rsync, restart, or write .env
   --skip-build     Use existing dist / generate output

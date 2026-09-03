@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { packApp, stageNodeLayout } from './lib/pack.mjs';
+import { packApp, stageNodeLayout, assertCdjWebIntImagesPresent } from './lib/pack.mjs';
 
 function makeRepo() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cdj-pack-'));
@@ -49,6 +49,13 @@ function makeRepo() {
   fs.mkdirSync(path.join(root, 'apps', 'eventguide'), { recursive: true });
   fs.writeFileSync(path.join(root, 'apps', 'eventguide', 'index.html'), '<h1>guide</h1>');
   fs.writeFileSync(path.join(root, 'apps', 'eventguide', 'package.json'), '{}');
+
+  fs.mkdirSync(path.join(root, 'apps', 'cdj-web-int', 'data', '1'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'apps', 'cdj-web-int', 'images', '1'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'apps', 'cdj-web-int', 'images', '1', 'a.png'), 'png');
+  fs.writeFileSync(path.join(root, 'apps', 'cdj-web-int', 'data', '1', 'projects.json'), '[]');
+  fs.writeFileSync(path.join(root, 'apps', 'cdj-web-int', 'index.html'), '<h1>cdj-web-int</h1>');
+  fs.writeFileSync(path.join(root, 'apps', 'cdj-web-int', 'package.json'), '{}');
 
   return root;
 }
@@ -126,6 +133,50 @@ test('eventguide copies html and skips package.json', () => {
   });
   assert.equal(fs.existsSync(path.join(stageDir, 'index.html')), true);
   assert.equal(fs.existsSync(path.join(stageDir, 'package.json')), false);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test('cdj-web-int copies data and images and skips package.json', () => {
+  const root = makeRepo();
+  const stageDir = path.join(root, 'stage-cdj-web-int');
+  packApp({
+    repoRoot: root,
+    stageDir,
+    skipBuild: true,
+    skipNpmInstall: true,
+    target: {
+      app: 'cdj-web-int',
+      kind: 'static',
+      workspace: 'apps/cdj-web-int',
+      generate: 'copy',
+    },
+  });
+  assert.equal(fs.existsSync(path.join(stageDir, 'index.html')), true);
+  assert.equal(fs.existsSync(path.join(stageDir, 'data', '1', 'projects.json')), true);
+  assert.equal(fs.existsSync(path.join(stageDir, 'images', '1', 'a.png')), true);
+  assert.equal(fs.existsSync(path.join(stageDir, 'package.json')), false);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test('cdj-web-int pack fails when images directory is empty', () => {
+  const root = makeRepo();
+  fs.rmSync(path.join(root, 'apps', 'cdj-web-int', 'images'), { recursive: true, force: true });
+  fs.mkdirSync(path.join(root, 'apps', 'cdj-web-int', 'images'), { recursive: true });
+  assert.throws(
+    () => packApp({
+      repoRoot: root,
+      stageDir: path.join(root, 'stage-cdj-web-int-empty'),
+      skipBuild: true,
+      skipNpmInstall: true,
+      target: {
+        app: 'cdj-web-int',
+        kind: 'static',
+        workspace: 'apps/cdj-web-int',
+        generate: 'copy',
+      },
+    }),
+    /archive-cpbe/,
+  );
   fs.rmSync(root, { recursive: true, force: true });
 });
 

@@ -7,6 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "check-docs": "node scripts/check-docs.mjs",
     "test:build-tools": "node scripts/test-build-tools.mjs",
+    "archive-cpbe": "node scripts/archive-cpbe/dump.mjs",
+    "archive-cpbe:test": "node --test scripts/archive-cpbe/*.spec.mjs",
     "deploy": "node build_tools/bin/deploy.mjs"
   },
   "keywords": [],
@@ -17,6 +19,7 @@
     "packages/database",
     "apps/admin",
     "apps/api",
+    "apps/cdj-web-int",
     "apps/eventguide",
     "apps/presentation",
     "apps/registration",

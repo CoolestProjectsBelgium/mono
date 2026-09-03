@@ -19,6 +19,7 @@ Source of truth for Coolest Projects monorepo architecture and per-package orien
 | Voting | [apps/voting.md](apps/voting.md) | deep |
 | Registration | [apps/registration.md](apps/registration.md) | stub |
 | Event guide | [apps/eventguide.md](apps/eventguide.md) | stub |
+| CDJ web INT gallery | [apps/cdj-web-int.md](apps/cdj-web-int.md) | stub |
 | Presentation | [apps/presentation.md](apps/presentation.md) | stub |
 
 ## Packages
