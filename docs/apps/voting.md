@@ -47,7 +47,7 @@ Local URL (via proxy): `https://voting.coolestprojects.localhost:8443`
 
 Jury account (`account_type: 'jury'`) posts credentials to `POST /auth/login`. JWT is stored in Pinia (`auth` store, persisted). Global middleware redirects unauthenticated users to `/login`.
 
-Seeded dev login: `jury` / `jury` (see `apps/api` seeder).
+Seeded dev login: `jury` / `jury` (see `apps/api` seeder). Six test projects are linked to event tables (`en`, `nl`, `fr`); select languages on `/language` before voting.
 
 ### Language filter
 

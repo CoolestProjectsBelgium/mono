@@ -21,6 +21,7 @@ Central NestJS HTTP API for Coolest Projects. Serves registration, login, projec
 | `apps/api/src/cli.ts` | CLI entry (`nestjs-command`) |
 | `npm run start:dev --workspace=apps/api` | Dev server (port 3001) |
 | `npm run seed-db --workspace=apps/api` | Seed DB via `event:init` CLI |
+| `npm run seed-voting --workspace=apps/api` | Ensure jury voting test projects (links projects to event tables; runs full seed if DB is empty) |
 
 Local URL (via proxy): `https://api.coolestprojects.localhost:8443`
 
@@ -89,6 +90,8 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 ### Voting
 
 `POST /auth/login`, `GET /projects`, `POST /projects/:projectId` → `VotingService` with `Vote`, `VoteCategory`, `UserProject`. The voting SPA sends `x-csrf-token` on mutating requests (same pattern as registration). Jury login uses Passport strategy `login-voting` (`VotingLoginStrategy` in `auth/local-voting.strategy.ts`, registered in `AuthModule`).
+
+Dev seed data (`apps/api/src/seeder/seed-voting-fixtures.ts`): six table-linked projects across `en` / `nl` / `fr` (e.g. Line Following Robot, Slimme Kas, Station Météo Junior). Projects must be assigned to an `EventTable` row or `GET /projects` returns `finished`. Vote categories are jury-only (`public: false`). Re-apply fixtures with `npm run seed-voting --workspace=apps/api` (clears existing votes for the `jury` account).
 
 ### Shared reads
 

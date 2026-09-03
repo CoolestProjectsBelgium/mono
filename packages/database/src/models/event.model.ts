@@ -41,8 +41,8 @@ export class Event extends Model {
     type: DataType.VIRTUAL,
     get() {
       return (
-        this.getDataValue('votingStartDate') > Date.now() &&
-        this.getDataValue('votingEndDate') < Date.now()
+        this.getDataValue('votingStartDate') < Date.now() &&
+        this.getDataValue('votingEndDate') > Date.now()
       );
     },
   })

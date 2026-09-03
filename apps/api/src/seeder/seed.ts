@@ -1,6 +1,10 @@
 import { Affiliation, Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import { loadSeedDojoNames } from './load-seed-dojos';
+import {
+  assignProjectsToEventTables,
+  VOTING_TEST_PROJECTS,
+} from './seed-voting-fixtures';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 
@@ -44,6 +48,12 @@ export async function seedDatabase(
   const eventEndDate = new Date();
   eventEndDate.setDate(new Date().getDate() + 40);
 
+  const votingStartDate = new Date();
+  votingStartDate.setDate(new Date().getDate() - 1);
+
+  const votingEndDate = new Date();
+  votingEndDate.setDate(new Date().getDate() + 30);
+
   const event = await eventModel.create({
     floorplanPath: 'floorplan_active.svg',
     minAge: 7,
@@ -58,6 +68,8 @@ export async function seedDatabase(
     officialStartDate: officialStartDate,
     // Must be in the future: InfoInterceptor requires eventBeginDate < now < eventEndDate
     eventEndDate: eventEndDate,
+    votingStartDate,
+    votingEndDate,
     maxFileSize: 2147483647,
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
     folderName: 'coolestprojects',
@@ -823,9 +835,9 @@ export async function seedDatabase(
     },
   ]);
   const voteCategories = await voteCategoryModel.bulkCreate([
-    { eventId: event.id, name: 'Creativity', min: 1, max: 10, public: true, optional: false },
-    { eventId: event.id, name: 'Technical skill', min: 1, max: 10, public: true, optional: false },
-    { eventId: event.id, name: 'Presentation', min: 1, max: 5, public: true, optional: true },
+    { eventId: event.id, name: 'Creativity', min: 1, max: 10, public: false, optional: false },
+    { eventId: event.id, name: 'Technical skill', min: 1, max: 10, public: false, optional: false },
+    { eventId: event.id, name: 'Presentation', min: 1, max: 5, public: false, optional: true },
   ]);
   /**/ 
   const registration = await registrationModel.bulkCreate([
@@ -907,14 +919,14 @@ export async function seedDatabase(
   ]);
 
   const projects = await projectModel.bulkCreate([
-    { name: 'Test Project 1', eventId: event.id, language: 'en', description: 'Test Description 1', maxVoucher: 3 },
-    { name: 'Test Project 2', eventId: event.id, language: 'en', description: 'Test Description 2', maxVoucher: 3 },
-    { name: 'Test Project 3', eventId: event.id, language: 'nl', description: 'Test Description 3', maxVoucher: 2 },
-    { name: 'Test Project 4', eventId: event.id, language: 'nl', description: 'Test Description 4', maxVoucher: 5 },
-    { name: 'Test Project 5', eventId: event.id, language: 'fr', description: 'Test Description 5', maxVoucher: 3 },
-    { name: 'Test Project 6', eventId: event.id, language: 'fr', description: 'Test Description 6', maxVoucher: 3, deletedAt: new Date() }
+    ...VOTING_TEST_PROJECTS.map((project) => ({
+      ...project,
+      eventId: event.id,
+    })),
+    { name: 'Archived Voting Project', eventId: event.id, language: 'fr', type: 'Technology', description: 'Soft-deleted project for voting edge cases.', maxVoucher: 3, deletedAt: new Date() },
   ]);
 
+  await assignProjectsToEventTables(event.id, eventTableModel, projects);
 
   const voteStart = Date.now() - 3 * 24 * 60 * 60 * 1000;
   await voteModel.bulkCreate([
@@ -922,15 +934,12 @@ export async function seedDatabase(
     { eventId: event.id, accountId: accounts[1].id, categoryId: voteCategories[1].id, amount: 2, createdAt: new Date(voteStart + 1 * 10 * 60 * 1000), projectId: projects[0].id },
     { eventId: event.id, accountId: accounts[1].id, categoryId: voteCategories[2].id, amount: 5, createdAt: new Date(voteStart + 2 * 10 * 60 * 1000), projectId: projects[0].id },
 
-    { eventId: event.id, accountId: accounts[2].id, categoryId: voteCategories[0].id, amount: 1, createdAt: new Date(voteStart + 3 * 10 * 60 * 1000), projectId: projects[1].id },
-    { eventId: event.id, accountId: accounts[2].id, categoryId: voteCategories[1].id, amount: 10, createdAt: new Date(voteStart + 4 * 10 * 60 * 1000), projectId: projects[1].id },
-    { eventId: event.id, accountId: accounts[2].id, categoryId: voteCategories[2].id, amount: 4, createdAt: new Date(voteStart + 5 * 10 * 60 * 1000), projectId: projects[1].id },
+    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[0].id, amount: 1, createdAt: new Date(voteStart + 3 * 10 * 60 * 1000), projectId: projects[1].id },
+    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[1].id, amount: 10, createdAt: new Date(voteStart + 4 * 10 * 60 * 1000), projectId: projects[1].id },
+    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[2].id, amount: 4, createdAt: new Date(voteStart + 5 * 10 * 60 * 1000), projectId: projects[1].id },
 
-    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[0].id, amount: 7, createdAt: new Date(voteStart + 6 * 10 * 60 * 1000), projectId: projects[2].id },
-    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[1].id, amount: 7, createdAt: new Date(voteStart + 7 * 10 * 60 * 1000), projectId: projects[2].id },
-
-    { eventId: event.id, accountId: accounts[4].id, categoryId: voteCategories[0].id, amount: 5, createdAt: new Date(voteStart + 9 * 10 * 60 * 1000), projectId: projects[3].id },
-    { eventId: event.id, accountId: accounts[4].id, categoryId: voteCategories[1].id, amount: 6, createdAt: new Date(voteStart + 10 * 10 * 60 * 1000), projectId: projects[3].id },
+    { eventId: event.id, accountId: accounts[4].id, categoryId: voteCategories[0].id, amount: 7, createdAt: new Date(voteStart + 6 * 10 * 60 * 1000), projectId: projects[2].id },
+    { eventId: event.id, accountId: accounts[4].id, categoryId: voteCategories[1].id, amount: 7, createdAt: new Date(voteStart + 7 * 10 * 60 * 1000), projectId: projects[2].id },
   ]);
 
   const users = await userModel.bulkCreate([

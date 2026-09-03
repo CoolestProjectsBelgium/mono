@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Command } from 'nestjs-command';
 import { seedDatabase } from '../seeder/seed';
+import { ensureVotingTestProjects } from '../seeder/seed-voting-fixtures';
 
 @Injectable()
 export class EventCommand {
@@ -75,6 +76,31 @@ export class EventCommand {
       this.voteCategoryModel,
       this.voteModel,
       this.affiliationModel,
+    );
+  }
+
+  @Command({
+    command: 'event:seed-voting',
+    describe: 'Add jury voting test projects to the active event',
+  })
+  async seedVotingProjects() {
+    const hasEvents = await this.eventModel.count();
+    if (hasEvents === 0) {
+      console.log('Database is empty; running full seed (includes voting fixtures)...');
+      await this.initEventDB();
+      return;
+    }
+
+    const result = await ensureVotingTestProjects(
+      this.eventModel,
+      this.eventTableModel,
+      this.projectModel,
+      this.voteCategoryModel,
+      this.voteModel,
+      this.accountModel,
+    );
+    console.log(
+      `Voting fixtures ready: ${result.created} projects created, ${result.linked} projects linked to tables.`,
     );
   }
 }

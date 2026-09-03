@@ -85,7 +85,7 @@ export class VotingService {
                 },
                 eventId: activeEvent.id,
                 deletedAt: null,
-                project_lang: { [Op.in]: languages },
+                language: { [Op.in]: languages },
             },
             include: [{ model: this.eventTableModel, required: true }],
             attributes: {

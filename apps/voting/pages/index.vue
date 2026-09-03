@@ -24,6 +24,7 @@ import { useLanguageStore } from '~/stores/language'
 import { useProjectStore } from '~/stores/project'
 import { buildProjectsQuery, isFinishedResponse } from '~/utils/projects-query'
 import { mapCategoriesToVotes } from '~/utils/vote-mapper'
+import { getApiErrorMessage } from '~/utils/api-response'
 
 definePageMeta({
   layout: 'default',
@@ -59,7 +60,7 @@ const loadNextProject = async (skipProjectId?: number) => {
   }
   catch (error) {
     console.error('Failed to load next project:', error)
-    notify('error', 'Failed to load projects. Please make sure the API is online.')
+    notify('error', getApiErrorMessage(error) ?? 'Failed to load projects. Please make sure the API is online.')
   }
 }
 
@@ -78,7 +79,7 @@ const submitResult = async (updatedProject: ProjectVote) => {
   }
   catch (error) {
     console.error('Submission failed:', error)
-    notify('error', 'Unable to submit vote. Please try again.')
+    notify('error', getApiErrorMessage(error) ?? 'Unable to submit vote. Please try again.')
   }
 }
 
