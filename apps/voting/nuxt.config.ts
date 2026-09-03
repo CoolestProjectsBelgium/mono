@@ -1,30 +1,35 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
-  ssr: false, // SPA mode for voting application
+  ssr: false,
   experimental: {
-    // Required for ssr:false dev server on Nuxt 3.21.7+ (rollupOptions.input regression).
     viteEnvironmentApi: true,
   },
+  devtools: { enabled: false },
 
   modules: [
-    '@nuxt/ui',
+    '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
-    '@pinia-plugin-persistedstate/nuxt'
+    '@pinia-plugin-persistedstate/nuxt',
   ],
+
+  css: ['~/assets/css/main.css'],
 
   app: {
     head: {
-      title: 'Coolest Projects Belgium - Voting',
+      title: 'Coolest Projects Belgium - Jury Voting',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Voting application for Coolest Projects Belgium' }
+        { name: 'description', content: 'Jury voting application for Coolest Projects Belgium' },
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-      ]
-    }
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
+        { rel: 'shortcut icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+      ],
+    },
   },
 
   runtimeConfig: {
@@ -37,12 +42,19 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
-    shim: false
+    shim: false,
   },
 
-  colorMode: {
-    preference: 'dark',
+  pinia: {
+    storesDirs: ['./stores/**'],
   },
+
+  components: [
+    {
+      path: '~/components',
+      ignore: ['**/*.spec.ts'],
+    },
+  ],
 
   routeRules: {
     '/csrf-token': { proxy: 'http://127.0.0.1:3001/csrf-token' },

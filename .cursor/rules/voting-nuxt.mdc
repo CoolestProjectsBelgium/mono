@@ -11,30 +11,33 @@ Read [docs/apps/voting.md](../../docs/apps/voting.md) first.
 ## Layout
 
 - `pages/` — file-based routes
-- `stores/` — Pinia stores (e.g. `language.ts`)
+- `layouts/` — `default` (constrained main) and `fullwidth` (login)
+- `stores/` — Pinia stores (`auth`, `language`, `project`)
 - `composables/` — shared Vue composables
-- `middleware/` — route middleware
-- `components/` — Vue SFCs
+- `middleware/` — global `auth.global.ts`
+- `components/` — Vue SFCs (registration-style shell: `AppHeader`, `AppFooter`, `CtaButton`, etc.)
 - `nuxt.config.ts` — Nuxt config
 
 ## Stack
 
 - Nuxt 3, Vue 3, TypeScript (ESM)
+- Tailwind CSS (`@nuxtjs/tailwindcss`) — same tokens as registration (`primary` `#00AEA9`)
 - Pinia with `@pinia/nuxt` and persisted state (`@pinia-plugin-persistedstate/nuxt`)
-- Nuxt UI (`@nuxt/ui`)
 - Vitest for tests (`npm run test --workspace=apps/voting`)
 
 ## API
 
 - SPA mode (`ssr: false` in `nuxt.config.ts`)
-- API base URL: `runtimeConfig.public.apiBaseURL` from `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`)
+- API base URL: `runtimeConfig.public.apiBaseURL` from `NUXT_PUBLIC_API_BASE_URL`
 - Voting endpoints on API root (`/auth/login`, `/projects`, etc.) — see `VotingController`
+- Jury auth: username/password → JWT Bearer in Pinia (not cookie session like registration)
 - Do **not** import `@coolestprojects/database`
 
 ## Conventions
 
 - Use Pinia stores for client state that persists across routes
-- Call API via composables or stores — keep pages thin
+- Call API via `useApiClient` / `useApiFetch` — keep pages thin
+- Notifications via `useNotification` + `AppNotification` (not Nuxt UI toasts)
 - Dev port 3005 in Dev Container; proxy at `voting.coolestprojects.localhost`
 
 ## Tests

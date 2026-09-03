@@ -1,5 +1,6 @@
 import type { FetchOptions } from 'ofetch'
 import { useAuthStore } from '~/stores/auth'
+import { getApiErrorMessage } from '~/utils/api-response'
 import { resolveApiBase } from '~/utils/api-base'
 import { clearCsrfToken, ensureCsrfToken, isUnsafeMethod } from '~/utils/csrf-token'
 
@@ -74,6 +75,7 @@ export function useApiClient() {
       const fetchError = error as { statusCode?: number, status?: number, message?: string }
       const statusCode = fetchError.statusCode ?? fetchError.status
       const message = responseErrorMessage
+        ?? getApiErrorMessage(error)
         ?? fetchError.message
         ?? 'API request failed'
 

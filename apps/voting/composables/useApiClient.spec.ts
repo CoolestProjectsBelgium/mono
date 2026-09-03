@@ -57,6 +57,17 @@ describe('useApiClient', () => {
     }))
   })
 
+  it('uses getApiErrorMessage for failed requests', async () => {
+    useAuthStore().setJwt('expired')
+    mockFetch.mockRejectedValue({ statusCode: 403, data: { message: 'invalid csrf token' } })
+
+    const { apiFetch } = await callComposable(() => useApiClient(), pinia)
+
+    await expect(apiFetch('/auth/user')).rejects.toMatchObject({
+      message: 'invalid csrf token',
+    })
+  })
+
   it('clears session and redirects on 401 when authenticated', async () => {
     useAuthStore().setJwt('expired')
     mockFetch.mockRejectedValue({ statusCode: 401, message: 'Unauthorized' })

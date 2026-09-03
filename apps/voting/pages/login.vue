@@ -1,73 +1,51 @@
 <template>
-  <div class="relative min-h-screen bg-slate-950 text-gray-100 flex items-center justify-center p-4 overflow-hidden">
-    <!-- Rich ambient background glowing blobs -->
-    <div class="absolute -top-40 -left-40 w-96 h-96 bg-primary-600 rounded-full blur-3xl opacity-10 animate-pulse"></div>
-    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600 rounded-full blur-3xl opacity-10 animate-pulse"></div>
+  <div class="mx-auto flex min-h-[60vh] max-w-md items-center px-4 py-12">
+    <div class="w-full">
+      <h1 class="text-3xl font-bold">Jury voting</h1>
+      <p class="mt-2 text-gray-600">
+        Sign in to score projects for Coolest Projects Belgium.
+      </p>
 
-    <div class="w-full max-w-md z-10">
-      <UCard
-        class="border border-gray-800 bg-slate-900/40 backdrop-blur shadow-2xl transition-all duration-300 hover:border-gray-700/80"
-      >
-        <template #header>
-          <div class="text-center">
-            <div class="mx-auto h-12 w-12 rounded-xl bg-primary-500/10 flex items-center justify-center mb-4 border border-primary-500/20">
-              <UIcon name="i-heroicons-lock-closed" class="h-6 w-6 text-primary-400" />
-            </div>
-            <h1 class="text-3xl font-extrabold text-white tracking-tight">
-              Sign In
-            </h1>
-            <p class="text-sm text-gray-400 mt-2">
-              Coolest Projects Belgium — Jury Portal
-            </p>
-          </div>
-        </template>
+      <AlertBanner
+        v-if="errorMessage"
+        variant="error"
+        :message="errorMessage"
+        class="mt-6"
+      />
 
-        <UAlert
-          v-if="errorMessage"
-          color="red"
-          variant="soft"
-          icon="i-heroicons-exclamation-triangle"
-          :title="errorMessage"
-          class="mb-4"
-        />
-
-        <form class="space-y-6" @submit.prevent="userLogin">
-          <UFormGroup label="Username" size="lg" name="username" class="text-gray-300">
-            <UInput
+      <form class="mt-6 space-y-4" @submit.prevent="userLogin">
+        <FormField label="Username" field-id="username">
+          <template #default="{ inputId, inputClass }">
+            <input
+              :id="inputId"
               v-model="loginData.username"
               type="text"
+              :class="inputClass"
               placeholder="Enter your username"
-              icon="i-heroicons-user"
-              color="gray"
-              class="w-full"
+              autocomplete="username"
               required
-            />
-          </UFormGroup>
+            >
+          </template>
+        </FormField>
 
-          <UFormGroup label="Password" size="lg" name="password" class="text-gray-300">
-            <UInput
+        <FormField label="Password" field-id="password">
+          <template #default="{ inputId, inputClass }">
+            <input
+              :id="inputId"
               v-model="loginData.password"
               type="password"
+              :class="inputClass"
               placeholder="Enter your password"
-              icon="i-heroicons-key-value"
-              color="gray"
-              class="w-full"
+              autocomplete="current-password"
               required
-            />
-          </UFormGroup>
+            >
+          </template>
+        </FormField>
 
-          <UButton
-            type="submit"
-            color="primary"
-            size="lg"
-            block
-            :loading="loading"
-            class="font-bold tracking-wider hover:scale-[1.01] active:scale-[0.99] transition-transform"
-          >
-            Authenticate
-          </UButton>
-        </form>
-      </UCard>
+        <CtaButton variant="primary" type="submit" :disabled="loading" class="w-full justify-center">
+          {{ loading ? 'Signing in…' : 'Sign in' }}
+        </CtaButton>
+      </form>
     </div>
   </div>
 </template>
@@ -78,12 +56,12 @@ import { formatLoginError } from '~/utils/login-error'
 import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({
-  layout: false,
+  layout: 'fullwidth',
 })
 
 const authStore = useAuthStore()
 const { login } = useAuth()
-const toast = useToast()
+const { notify } = useNotification()
 
 const loginData = reactive({
   username: '',
@@ -102,24 +80,13 @@ const userLogin = async () => {
   errorMessage.value = ''
   try {
     await login(loginData)
-    toast.add({
-      title: 'Welcome Back!',
-      description: 'You have logged in successfully.',
-      color: 'green',
-      icon: 'i-heroicons-check-circle',
-      timeout: 3000,
-    })
+    notify('success', 'You have signed in successfully.')
   }
   catch (error) {
     console.error(error)
     const description = formatLoginError(error)
     errorMessage.value = description
-    toast.add({
-      title: 'Authentication Failed',
-      description,
-      color: 'red',
-      icon: 'i-heroicons-exclamation-triangle',
-    })
+    notify('error', description)
   }
   finally {
     loading.value = false

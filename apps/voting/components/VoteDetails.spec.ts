@@ -33,17 +33,7 @@ function mountVoteDetails() {
     `,
   })
 
-  return mount(Wrapper, {
-    global: {
-      stubs: {
-        UButton: { template: '<button type="button" @click="$attrs.onClick"><slot /></button>' },
-        UCard: { template: '<div><slot name="header" /><slot /><slot name="footer" /></div>' },
-        UBadge: { template: '<span><slot /></span>' },
-        UIcon: true,
-        UModal: { template: '<div><slot /></div>' },
-      },
-    },
-  })
+  return mount(Wrapper)
 }
 
 describe('VoteDetails', () => {
@@ -74,18 +64,8 @@ describe('VoteDetails', () => {
       },
       template: '<VoteDetails v-model="model" @next="skipped = true" />',
     })
-    const wrapper = mount(Wrapper, {
-      global: {
-        stubs: {
-          UButton: { template: '<button type="button" @click="$attrs.onClick"><slot /></button>' },
-          UCard: { template: '<div><slot name="header" /><slot /><slot name="footer" /></div>' },
-          UBadge: { template: '<span><slot /></span>' },
-          UIcon: true,
-          UModal: { template: '<div><slot /></div>' },
-        },
-      },
-    })
-    const skipButton = wrapper.findAll('button').find(button => button.text().includes('Skip Project'))
+    const wrapper = mount(Wrapper)
+    const skipButton = wrapper.findAll('button').find(button => button.text().includes('Skip project'))
     await skipButton?.trigger('click')
     expect(wrapper.vm.skipped).toBe(true)
   })

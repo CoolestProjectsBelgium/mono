@@ -1,18 +1,19 @@
 <template>
-  <div class="min-h-screen bg-slate-950 text-gray-100 flex flex-col">
-    <NavBar />
-    <main class="flex-grow flex items-center justify-center">
-      <VoteDetails
-        v-if="project && Object.keys(project).length"
-        v-model="project"
-        @submit="submitResult"
-        @next="skipProject"
+  <div>
+    <VoteDetails
+      v-if="project && Object.keys(project).length"
+      v-model="project"
+      @submit="submitResult"
+      @next="skipProject"
+    />
+    <div v-else class="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <div
+        class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"
+        role="status"
+        aria-label="Loading"
       />
-      <div v-else class="flex flex-col items-center justify-center p-8 gap-4 text-center">
-        <UIcon name="i-heroicons-arrow-path" class="h-10 w-10 text-primary-500 animate-spin" />
-        <p class="text-gray-400 font-medium">Loading next project details...</p>
-      </div>
-    </main>
+      <p class="font-medium text-gray-600">Loading next project…</p>
+    </div>
   </div>
 </template>
 
@@ -24,9 +25,13 @@ import { useProjectStore } from '~/stores/project'
 import { buildProjectsQuery, isFinishedResponse } from '~/utils/projects-query'
 import { mapCategoriesToVotes } from '~/utils/vote-mapper'
 
+definePageMeta({
+  layout: 'default',
+})
+
 const languageStore = useLanguageStore()
 const projectStore = useProjectStore()
-const toast = useToast()
+const { notify } = useNotification()
 const project = ref<ProjectVote | null>(projectStore.project)
 
 const loadNextProject = async (skipProjectId?: number) => {
@@ -54,12 +59,7 @@ const loadNextProject = async (skipProjectId?: number) => {
   }
   catch (error) {
     console.error('Failed to load next project:', error)
-    toast.add({
-      title: 'Failed to load projects',
-      description: 'Please make sure your server is online and active.',
-      color: 'red',
-      icon: 'i-heroicons-exclamation-circle',
-    })
+    notify('error', 'Failed to load projects. Please make sure the API is online.')
   }
 }
 
@@ -72,24 +72,13 @@ const submitResult = async (updatedProject: ProjectVote) => {
       body: votes,
     })
 
-    toast.add({
-      title: 'Vote Recorded',
-      description: 'Your rating was submitted successfully.',
-      color: 'green',
-      icon: 'i-heroicons-check-circle',
-      timeout: 2000,
-    })
+    notify('success', 'Your rating was submitted successfully.')
 
     await loadNextProject()
   }
   catch (error) {
     console.error('Submission failed:', error)
-    toast.add({
-      title: 'Submission Error',
-      description: 'Unable to submit vote. Please try again.',
-      color: 'red',
-      icon: 'i-heroicons-x-circle',
-    })
+    notify('error', 'Unable to submit vote. Please try again.')
   }
 }
 

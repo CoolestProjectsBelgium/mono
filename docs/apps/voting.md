@@ -4,20 +4,21 @@
 
 Nuxt 3 SPA for Coolest Projects Belgium jury voting. Jurors log in, pick project languages to review, score one random unrated project at a time (with skip), and see a finished screen when no projects remain for the current language filter.
 
-Converted from the legacy [coolestproject-voting](https://github.com/CoolestProjectsBelgium/coolestproject-voting) Nuxt 2 app; same flow, Nuxt 3 + Nuxt UI, backed by the monorepo API.
+Converted from the legacy [coolestproject-voting](https://github.com/CoolestProjectsBelgium/coolestproject-voting) Nuxt 2 app; same flow, Nuxt 3 + Tailwind (registration-style shell), backed by the monorepo API.
 
 ## Stack
 
 - Nuxt 3, Vue 3, TypeScript (SPA: `ssr: false`)
+- Tailwind CSS — same design tokens as registration (`primary` `#00AEA9`, `AppHeader` / `AppFooter` shell)
 - Pinia with persisted state (`language`, `project`, `auth` stores)
-- Nuxt UI, Vitest (`@nuxt/test-utils`)
+- Vitest (`@nuxt/test-utils`)
 
 ## Entrypoints
 
 | Path / command | Role |
 |----------------|------|
 | `apps/voting/pages/login.vue` | Jury username/password login |
-| `apps/voting/pages/language.vue` | Language filter (`nl`, `fr`, `en`) |
+| `apps/voting/pages/language.vue` | Project language filter (`nl`, `fr`, `en`) |
 | `apps/voting/pages/index.vue` | Score / skip current project |
 | `apps/voting/pages/finished.vue` | All projects voted for current filter |
 | `apps/voting/composables/useAuth.ts` | Login session (Pinia JWT) |
