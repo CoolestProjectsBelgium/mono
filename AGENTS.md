@@ -13,6 +13,7 @@ npm workspaces monorepo (`package.json`):
 | `apps/voting` | `@coolestprojects/voting` | Nuxt 3 voting UI |
 | `apps/registration` | `@coolestprojects/registration` | Registration static site |
 | `apps/eventguide` | `@coolestprojects/eventguide` | Event guide static site |
+| `apps/cpbe` | `@coolestprojects/cpbe` | Archived CPBE project galleries (CDJ-WEB-INT) |
 | `apps/presentation` | `@coolestprojects/presentation` | Presentation static site |
 | `packages/database` | `@coolestprojects/database` | Shared Sequelize models |
 
@@ -31,16 +32,17 @@ npm workspaces monorepo (`package.json`):
 2. If the page is `Status: stub` and you make a **material** change (new behavior, routes, models, config), expand that doc in the same change — fill in the sections you relied on and move toward `deep` if warranted.
 3. Do not invent architecture; use **Out of scope / unknowns** sections as signals for gaps.
 4. Do not duplicate long prose into `.cursor/rules/` — rules are short conventions only.
+5. **Admin is a different stack.** `apps/admin` is AdminJS 7 + Express (`@adminjs/design-system`, resource options, page handlers). Do not apply Nest modules/DI/guards or `.agents/skills/nestjs-best-practices` there. Use `.agents/skills/adminjs/SKILL.md` instead.
 
 ## Cursor rules
 
 | Rule | Scope |
 |------|-------|
 | `repo-docs.mdc` | Always — expand stub docs when touched |
-| `api-nestjs.mdc` | `apps/api/**` |
+| `api-nestjs.mdc` | `apps/api/**` (NestJS) |
 | `database-sequelize.mdc` | `packages/database/**` |
-| `admin-adminjs.mdc` | `apps/admin/**` |
-| `voting-nuxt.mdc` | `apps/voting/**` |
+| `admin-adminjs.mdc` | `apps/admin/**` (AdminJS + Express — not Nest, not Nuxt) |
+| `voting-nuxt.mdc` | `apps/voting/**` (Nuxt 3) |
 
 ## Verify docs
 

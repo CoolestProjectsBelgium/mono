@@ -6,9 +6,12 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 
 ## Stack
 
-- AdminJS 7, Express, `@adminjs/sequelize`
-- TypeScript (ESM), `tsx` for dev
+- AdminJS 7 on **Express** (`@adminjs/express`, `@adminjs/sequelize`) — **not** NestJS and **not** Nuxt
+- TypeScript ESM (`"type": "module"`, `.js` extensions in local imports), `tsx` for dev
+- Custom UI: React bundled by AdminJS `ComponentLoader` (Rollup), using `@adminjs/design-system`
 - `@coolestprojects/database` for models and Sequelize connection
+
+Do not add Nest modules, controllers, guards, or `@adminjs/nestjs`. Do not use Vue, Tailwind, or Nuxt UI here. The only Nest leftover is `@nestjs/config` `ConfigService` in `database.ts` for `DB_*` env.
 
 ## Entrypoints
 
@@ -16,7 +19,8 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 |----------------|------|
 | `apps/admin/src/index.ts` | AdminJS app bootstrap, resources, auth |
 | `apps/admin/src/database.ts` | Sequelize connection (`import 'dotenv/config'` first — ESM evaluates this module before `index.ts` body) |
-| `apps/admin/src/components/` | Custom AdminJS components (`Login`, `Dashboard`) |
+| `apps/admin/src/components/` | Custom AdminJS UI: `loader.ts` + per-page `*.tsx` + server `handler.ts` |
+| `apps/admin/src/authorisations.ts` | Event/role filters for resource actions |
 | `npm run start:dev --workspace=apps/admin` | Dev server (port 3000 in Dev Container) |
 | `apps/admin/.adminjs/`, `apps/admin/src/.adminjs/` | Dev-time Rollup output (`bundle.js`, `entry.js`). Gitignored. Pack copies to `frontend/assets/components.bundle.js` on deploy — dest does **not** run `initialize()`. |
 
@@ -33,6 +37,14 @@ Default seed logins (from API seeder): `superadmin` / `admin` / `jury` — passw
 - Does not call `apps/api` over HTTP
 
 Sequelize models registered in `apps/admin/src/database.ts` must include every association target (including through-models like `UserProject`). Omitting one crashes AdminJS boot with `X has not been defined`.
+
+## How to extend
+
+**CRUD:** add or tighten a resource in [`apps/admin/src/index.ts`](../../apps/admin/src/index.ts) (`properties`, `actions`, `features`). Scope by event with helpers in [`authorisations.ts`](../../apps/admin/src/authorisations.ts).
+
+**Custom screen:** register an AdminJS `pages` (or `dashboard`) entry with a `ComponentLoader` component and a server `handler`. The handler runs in Node and may use Sequelize + `context.currentAdmin`. The `.tsx` file runs in the AdminJS bundle: import UI from `@adminjs/design-system`, data via `ApiClient` from `adminjs`, and `import type` from the handler only. Recharts must be imported from `recharts/es6/...` (not the package barrel) or dest Rollup pulls CJS and crashes.
+
+Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables. Login is an override (`componentLoader.override('Login', …)`), not a page.
 
 ## Key resources
 
@@ -61,8 +73,7 @@ to the selected event.
 
 ## Out of scope / unknowns
 
-- Full custom AdminJS action catalog beyond the above
-- Production session/cookie configuration
+- Full custom AdminJS action catalog beyond the pages above
 - How judge voting dashboard integrates with live voting app
 
 ## Status

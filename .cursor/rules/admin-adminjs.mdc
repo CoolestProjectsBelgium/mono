@@ -6,39 +6,31 @@ alwaysApply: false
 
 # Admin (AdminJS)
 
-Read [docs/apps/admin.md](../../docs/apps/admin.md) first.
+Read [docs/apps/admin.md](../../docs/apps/admin.md) first. This app is **AdminJS 7 + Express**, not Nest and not Nuxt.
+
+Do **not** apply `.agents/skills/nestjs-best-practices` or voting/registration UI patterns here.
+
+## Wrong vs right
+
+- No Nest modules, controllers, services, guards, pipes, interceptors, or new `@nestjs/*` imports. `database.ts` already uses `ConfigService` for `DB_*` — leave that; do not spread Nest further.
+- No Vue, Tailwind, Nuxt UI, Pinia, or MUI.
+- No `@adminjs/nestjs`. Mount with `@adminjs/express`.
+- CRUD belongs in resource `options` / `actions` / `features` in `index.ts`, not new Nest-style routes.
+- Custom screens: AdminJS `pages` + `ComponentLoader` + server `handler.ts` + React `*.tsx`.
+
+## Two runtimes
+
+**Server** (`handler.ts`, `index.ts`, `authorisations.ts`): Sequelize, Express, `context.currentAdmin`. Export `Handler` as `(request, response, context) => data`.
+
+**Client** (`*.tsx`, bundled by AdminJS Rollup — not Vite/Nuxt):
+
+- UI from `@adminjs/design-system`; `styled` from `@adminjs/design-system/styled-components`
+- Data via `ApiClient` (`getDashboard`, `getPage`, `recordAction`) — do not import `sequelize` or Node APIs
+- `import type` from handlers only
+- Recharts: `recharts/es6/...` (never the package barrel)
 
 ## Layout
 
-- `apps/admin/src/index.ts` — AdminJS bootstrap, resource definitions, auth, role checks
-- `apps/admin/src/database.ts` — Sequelize instance with model list
-- `apps/admin/src/components/` — custom AdminJS React components (`Login`, `Dashboard`)
-- ESM package (`"type": "module"`); use `.js` extensions in local imports
-
-## Data access
-
-- Import models from `@coolestprojects/database`
-- Direct MySQL via Sequelize — does **not** call `apps/api` over HTTP
-- DB config from env (`DB_*`) via `@nestjs/config` `ConfigService`
-
-## Roles
-
-Defined in `index.ts`:
-
-- `superadmin` — full access
-- `admin` — event-scoped resources (`currentAdmin.eventId`)
-- `judge` — voting dashboard and own votes
-
-Use `addEventFilter`, `canCreate`, `canAccessResourceFieldFilter`, `andAccess` helpers for event scoping.
-
-## AdminJS patterns
-
-- `@adminjs/sequelize` adapter for resources
-- `@adminjs/passwords` for `Account` password hashing
-- `ComponentLoader` for custom components; override `Login`, add `Dashboard`
-- Custom components are `.tsx` files referenced by path in `componentLoader` (`apps/admin/src/components/loader.ts`)
-- Do not commit `apps/admin/.adminjs/` or `apps/admin/src/.adminjs/` — pack copies `frontend/assets/components.bundle.js`; dest serves it and skips `initialize()`
-
-## After model changes
-
-Rebuild database package and restart admin dev server.
+- ESM (`"type": "module"`); local imports use `.js` extensions
+- Register components in `components/loader.ts`; wire handlers in `components/index.ts`
+- Do not commit `.adminjs/` — pack copies `frontend/assets/components.bundle.js`
