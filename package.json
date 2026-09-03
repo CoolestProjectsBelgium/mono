@@ -7,6 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "check-docs": "node scripts/check-docs.mjs",
     "test:build-tools": "node scripts/test-build-tools.mjs",
+    "legacy-import": "npm run build --workspace=packages/database && node scripts/legacy-import/convert.mjs",
+    "legacy-import:test": "node scripts/legacy-import/test.mjs",
     "deploy": "node build_tools/bin/deploy.mjs"
   },
   "keywords": [],

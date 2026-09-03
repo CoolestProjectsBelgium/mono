@@ -250,3 +250,6 @@ apps/admin/src/.adminjs/
 build_tools/secrets/*.env
 build_tools/targets.local.json
 build_tools/.stage/
+
+# Legacy dump conversion output (may contain PII)
+scripts/legacy-import/out/
