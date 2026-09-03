@@ -20,6 +20,8 @@ import { AdminCookieStrategy } from './admin-cookie.strategy';
 import { OptionalAdminCookieStrategy } from './admin-optional-strategy';
 import { AdminAuthenticationService } from './adminauth.service';
 import { VotingLoginStrategy } from './local-voting.strategy';
+import { JwtVotingAuthGuard } from './jwt-voting-auth.guard';
+import { VotingLoginAuthGuard } from './local-voting-auth.guard';
 
 export const VOTING_JWT = Symbol('VOTING_JWT');
 export const AUTH_JWT = Symbol('AUTH_JWT');
@@ -47,7 +49,7 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
       },
     }
     ),
-  }, MailerService, TokensService, RegistrationService, JwtStrategy, JwtVotingStrategy, VotingLoginStrategy, AdminCookieStrategy, OptionalAdminCookieStrategy, AdminAuthenticationService],
-  exports: [AUTH_JWT, VOTING_JWT],
+  }, MailerService, TokensService, RegistrationService, JwtStrategy, JwtVotingStrategy, VotingLoginStrategy, AdminCookieStrategy, OptionalAdminCookieStrategy, AdminAuthenticationService, JwtVotingAuthGuard, VotingLoginAuthGuard],
+  exports: [AUTH_JWT, VOTING_JWT, JwtVotingAuthGuard, VotingLoginAuthGuard],
 })
 export class AuthModule { }

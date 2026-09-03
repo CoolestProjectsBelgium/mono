@@ -15,6 +15,8 @@ import { Sse, MessageEvent } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
+import { JwtVotingAuthGuard } from '../auth/jwt-voting-auth.guard';
+import { VotingLoginAuthGuard } from '../auth/local-voting-auth.guard';
 import { VOTING_JWT } from '../auth/auth.module';
 import { ProjectVoteDto } from '../dto/projectvote.dto';
 import { VotingService } from './voting.service';
@@ -33,7 +35,7 @@ export class VotingController {
   }
 
   @Sse('sse')
-  @UseGuards(AuthGuard('jwt-voting'))
+  @UseGuards(JwtVotingAuthGuard)
   sse(): Observable<MessageEvent> {
     return this.votingService.stream().pipe(
       map((event): MessageEvent => ({
@@ -44,7 +46,7 @@ export class VotingController {
   }
 
   @Post('auth/login')
-  @UseGuards(AuthGuard('login-voting'))
+  @UseGuards(VotingLoginAuthGuard)
   async login(@Req() req: any, @Res() res: Response) {
     console.log('user:', req.user);
 
@@ -60,20 +62,20 @@ export class VotingController {
   }
 
   @Post('auth/logout')
-  @UseGuards(AuthGuard('jwt-voting'))
+  @UseGuards(JwtVotingAuthGuard)
   async logout(@Res() res: Response) {
     return res.send();
   }
 
   @Get('auth/user')
-  @UseGuards(AuthGuard('jwt-voting'))
+  @UseGuards(JwtVotingAuthGuard)
   async getUser(@Req() req: any): Promise<AccountDto> {
     const account = await this.votingService.getAccount(req.user.id);
     return account
   }
 
   @Get('languages')
-  @UseGuards(AuthGuard('jwt-voting'))
+  @UseGuards(JwtVotingAuthGuard)
   async languages() {
     return [
       { id: 'nl', text: 'Dutch' },
@@ -83,7 +85,7 @@ export class VotingController {
   }
 
   @Get('projects')
-  @UseGuards(AuthGuard('jwt-voting'))
+  @UseGuards(JwtVotingAuthGuard)
   async getProjects(@Req() req: any, @Query() query: any): Promise<ProjectVoteDto | VoteMessage> {
 
     let languages = ['nl', 'fr', 'en'];
@@ -100,7 +102,7 @@ export class VotingController {
   }
 
   @Post('projects/:projectId')
-  @UseGuards(AuthGuard('jwt-voting'))
+  @UseGuards(JwtVotingAuthGuard)
   async submitVotes(
     @Req() req: any,
     @Param('projectId') projectId: number,
