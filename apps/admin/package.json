@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsx --test src/components/email-templates/*.spec.ts",
     "start:dev": "tsx watch src/index.ts",
     "build": "tsc"
   },
@@ -23,6 +23,7 @@
     "dotenv": "^17.4.1",
     "express-formidable": "^1.2.0",
     "express-session": "^1.19.0",
+    "handlebars": "^4.7.9",
     "mysql2": "^3.24.2",
     "recharts": "2.15.4",
     "sequelize-typescript": "^2.1.6"

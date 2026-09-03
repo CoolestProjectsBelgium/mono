@@ -44,7 +44,7 @@ Sequelize models registered in `apps/admin/src/database.ts` must include every a
 
 **Custom screen:** register an AdminJS `pages` (or `dashboard`) entry with a `ComponentLoader` component and a server `handler`. The handler runs in Node and may use Sequelize + `context.currentAdmin`. The `.tsx` file runs in the AdminJS bundle: import UI from `@adminjs/design-system`, data via `ApiClient` from `adminjs`, and `import type` from the handler only. Recharts must be imported from `recharts/es6/...` (not the package barrel) or dest Rollup pulls CJS and crashes.
 
-Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables. Login is an override (`componentLoader.override('Login', …)`), not a page.
+Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables, **EmailTemplates**. Login is an override (`componentLoader.override('Login', …)`), not a page.
 
 ## Key resources
 
@@ -55,6 +55,7 @@ Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables. Login
 | `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden |
 | `Event` | Event-scoped access for non-superadmin roles |
 | `Affiliation` | Event-scoped CoderDojo catalog (`name`); same list as `GET /dojos` |
+| `EmailTemplate` | Event-scoped CRUD + import/export; prefer **EmailTemplates** page for editing copy |
 
 The dashboard handler in [`apps/admin/src/components/dashboard/handler.ts`](../../apps/admin/src/components/dashboard/handler.ts)
 exports `DashboardResponse` and `DashboardTableItem` for reuse by TSX components. It returns the same complete
@@ -71,8 +72,24 @@ not pull the CJS `lib/` graph that crashes the dest bundle.
 The `Tables` page supports selecting two tables and swapping their project assignments while keeping assignments scoped
 to the selected event.
 
+The **EmailTemplates** page (`apps/admin/src/components/email-templates/`) lets staff pick a mail template slug and
+language (`nl` / `en` / `fr`) for the logged-in event, edit subject + HTML + plain text, preview with Handlebars dummy
+data, and save via AdminJS `recordAction` on the `EmailTemplates` resource (`edit`). It does not call `apps/api`; preview compiles in the page handler with
+`Handlebars.compile(..., { noEscape: true })` on bodies — same compile flag as [`MailerService`](../../apps/api/src/mailer/mailer.service.ts).
+Before save/preview, the client pretty-prints HTML (Handlebars tokens masked first) and shows non-blocking lint warnings.
+TinyMCE loads from CDN for visual HTML editing; use the Source tab for `{{#if}}` block helpers. Judges cannot access this page.
+The `EmailTemplate` CRUD resource remains available (event-scoped list/search) as an escape hatch.
+
+| Path | Role |
+|------|------|
+| `email-templates/handler.ts` | Load/save/preview via Sequelize |
+| `email-templates/render-preview.ts` | Dummy context + Handlebars compile |
+| `email-templates/format-html.ts` | Mask tokens, pretty-print, lint |
+| `npm run test --workspace=apps/admin` | Unit tests for helpers |
+
 ## Out of scope / unknowns
 
+- HTML/PDF export for translators (deferred)
 - Full custom AdminJS action catalog beyond the pages above
 - How judge voting dashboard integrates with live voting app
 

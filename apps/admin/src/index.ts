@@ -77,6 +77,15 @@ const start = async () => {
         handler: Handlers.Tables,
         icon: 'Table',
       },
+      EmailTemplates: {
+        component: Components.EmailTemplates,
+        handler: Handlers.EmailTemplates,
+        icon: 'Mail',
+        // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
+        label: 'Email templates',
+        isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
+          currentAdmin?.role !== 'judge',
+      },
     },
     resources: [
       {
@@ -219,7 +228,18 @@ const start = async () => {
         features: [importExportFeature({ componentLoader })],
         options: {
           navigation: configNavigation,
-        }
+          actions: {
+            list: {
+              before: filterEventId('eventId'),
+            },
+            search: {
+              before: filterEventId('eventId'),
+            },
+            edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            show: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            delete: { isAccessible: canAccessResourceFieldFilter('eventId') },
+          },
+        },
       },
       {
         resource: sequelize.models.User,

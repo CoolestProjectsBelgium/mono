@@ -9,6 +9,7 @@ const Components = {
   PictureSelector: componentLoader.add('PictureSelector', './pictures/PictureSelector.tsx'),
   VotingOverview: componentLoader.add('VotingOverview', './voting/Voting.tsx'),
   Tables: componentLoader.add('Tables', './tables/Tables.tsx'),
+  EmailTemplates: componentLoader.add('EmailTemplates', './email-templates/EmailTemplates.tsx'),
 }
 
 export { componentLoader, Components }
