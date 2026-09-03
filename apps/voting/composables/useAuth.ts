@@ -1,5 +1,14 @@
 import type { LoginCredentials, LoginResponse, VotingUser } from '~/types/api'
 import { useAuthStore } from '~/stores/auth'
+import { useVotingSessionStore } from '~/stores/votingSession'
+
+function syncVotingWindowFromUser(user: VotingUser | null) {
+  if (!user?.votingStartDate || !user?.votingEndDate) {
+    return
+  }
+
+  useVotingSessionStore().setVotingWindow(user.votingStartDate, user.votingEndDate)
+}
 
 export function useAuth() {
   const { apiFetch } = useApiClient()
@@ -28,7 +37,9 @@ export function useAuth() {
     if (!authStore.jwt) {
       return
     }
-    authStore.setUser(await apiFetch<VotingUser>('/auth/user'))
+    const user = await apiFetch<VotingUser>('/auth/user')
+    authStore.setUser(user)
+    syncVotingWindowFromUser(user)
   }
 
   async function logout() {

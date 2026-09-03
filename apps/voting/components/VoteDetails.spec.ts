@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, ref } from 'vue'
 import VoteDetails from './VoteDetails.vue'
+import { useVotingSessionStore } from '~/stores/votingSession'
 
 const project = {
   project_id: 1,
@@ -13,6 +15,11 @@ const project = {
     { id: 1, name: 'Creativity', max: 5, optional: false, value: 4 },
     { id: 2, name: 'Notes', max: 5, optional: true, value: 0 },
   ],
+}
+
+function setOpenVotingWindow() {
+  const store = useVotingSessionStore()
+  store.setVotingWindow('2020-01-01T00:00:00.000Z', '2099-01-01T00:00:00.000Z')
 }
 
 function mountVoteDetails() {
@@ -37,6 +44,11 @@ function mountVoteDetails() {
 }
 
 describe('VoteDetails', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    setOpenVotingWindow()
+  })
+
   it('renders project title and categories', () => {
     const wrapper = mountVoteDetails()
     expect(wrapper.text()).toContain('Robot')
@@ -68,5 +80,15 @@ describe('VoteDetails', () => {
     const skipButton = wrapper.findAll('button').find(button => button.text().includes('Skip project'))
     await skipButton?.trigger('click')
     expect(wrapper.vm.skipped).toBe(true)
+  })
+
+  it('hides the submit form when voting is closed', () => {
+    const store = useVotingSessionStore()
+    store.setVotingWindow('2020-01-01T00:00:00.000Z', '2020-01-02T00:00:00.000Z')
+
+    const wrapper = mountVoteDetails()
+
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="voting-phase-notice"]').text()).toContain('Voting is closed')
   })
 })

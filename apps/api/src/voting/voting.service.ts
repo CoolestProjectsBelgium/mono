@@ -6,6 +6,8 @@ import { Op, QueryTypes } from 'sequelize';
 import { VotesCalculationDto } from '../dto/votescalc.dto';
 import { ProjectVoteDto } from '../dto/projectvote.dto';
 import { VoteDto } from '../dto/vote.dto';
+import { AccountDto } from '../dto/account.dto';
+import { VoteMessage } from '../dto/votemessage.dto';
 import { Subject } from 'rxjs';
 import { Observable } from 'rxjs';
 import { VotingEvent } from '../dto/votingevent.dto';
@@ -173,14 +175,24 @@ export class VotingService {
                 eventBeginDate: { [Op.lt]: Sequelize.literal('CURDATE()') },
                 eventEndDate: { [Op.gt]: Sequelize.literal('CURDATE()') },
             },
-            attributes: ['id'],
+            attributes: ['id', 'votingStartDate', 'votingEndDate'],
         });
 
         if (!activeEvent) {
             throw new Error("No Active Event Found");
         }
 
-        return { id: account.id, email: account.email, eventId: activeEvent.id };
+        return {
+            id: account.id,
+            email: account.email,
+            eventId: activeEvent.id,
+            votingStartDate: activeEvent.votingStartDate
+                ? activeEvent.votingStartDate.toISOString()
+                : new Date(0).toISOString(),
+            votingEndDate: activeEvent.votingEndDate
+                ? activeEvent.votingEndDate.toISOString()
+                : new Date(0).toISOString(),
+        };
     }
 
     async generateAwards(eventId: number): Promise<void> {

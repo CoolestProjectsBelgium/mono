@@ -89,7 +89,7 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 
 ### Voting
 
-`POST /auth/login`, `GET /projects`, `POST /projects/:projectId` → `VotingService` with `Vote`, `VoteCategory`, `UserProject`. The voting SPA sends `x-csrf-token` on mutating requests (same pattern as registration). Jury login uses Passport strategy `login-voting` (`VotingLoginStrategy` in `auth/local-voting.strategy.ts`) with `VotingLoginAuthGuard`; authenticated routes use `JwtVotingAuthGuard` (`auth/jwt-voting-auth.guard.ts`, `auth/local-voting-auth.guard.ts`).
+`POST /auth/login`, `GET /auth/user`, `GET /projects`, `POST /projects/:projectId`, `GET /sse` → `VotingService` with `Vote`, `VoteCategory`, `UserProject`. `GET /auth/user` returns `votingStartDate` and `votingEndDate` (ISO) for the active event. `GET /sse` streams `VotingEvent` payloads (`type: message | timer`) to connected jurors; staff publish via `POST /` (admin cookie). The voting SPA sends `x-csrf-token` on mutating requests (same pattern as registration). Jury login uses Passport strategy `login-voting` (`VotingLoginStrategy` in `auth/local-voting.strategy.ts`) with `VotingLoginAuthGuard`; authenticated routes use `JwtVotingAuthGuard` (`auth/jwt-voting-auth.guard.ts`, `auth/local-voting-auth.guard.ts`).
 
 Dev seed data (`apps/api/src/seeder/seed-voting-fixtures.ts`): six table-linked projects across `en` / `nl` / `fr` (e.g. Line Following Robot, Slimme Kas, Station Météo Junior). Projects must be assigned to an `EventTable` row or `GET /projects` returns `finished`. Vote categories are jury-only (`public: false`). Re-apply fixtures with `npm run seed-voting --workspace=apps/api` (clears existing votes for the `jury` account).
 

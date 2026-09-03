@@ -1,3 +1,3 @@
-class VoteMessage{
-    message!: string
+export class VoteMessage {
+  message!: string
 }

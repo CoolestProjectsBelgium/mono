@@ -19,6 +19,8 @@ import { JwtVotingAuthGuard } from '../auth/jwt-voting-auth.guard';
 import { VotingLoginAuthGuard } from '../auth/local-voting-auth.guard';
 import { VOTING_JWT } from '../auth/auth.module';
 import { ProjectVoteDto } from '../dto/projectvote.dto';
+import { AccountDto } from '../dto/account.dto';
+import { VoteMessage } from '../dto/votemessage.dto';
 import { VotingService } from './voting.service';
 import { VotingEvent } from '../dto/votingevent.dto';
 import { Observable, map } from 'rxjs';
@@ -40,7 +42,12 @@ export class VotingController {
     return this.votingService.stream().pipe(
       map((event): MessageEvent => ({
         type: event.type,
-        data: event,
+        data: JSON.stringify({
+          type: event.type,
+          message: event.message,
+          startDate: event.startDate ? new Date(event.startDate).toISOString() : undefined,
+          endDate: event.endDate ? new Date(event.endDate).toISOString() : undefined,
+        }),
       })),
     );
   }

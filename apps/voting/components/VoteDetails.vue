@@ -1,5 +1,13 @@
 <template>
   <div class="mx-auto max-w-2xl">
+    <AlertBanner
+      v-if="phaseNotice"
+      :variant="phaseNotice.variant"
+      :message="phaseNotice.message"
+      class="mb-6"
+      data-testid="voting-phase-notice"
+    />
+
     <div class="mb-6 flex justify-end">
       <CtaButton variant="secondary" @click="confirmSkip">
         Skip project
@@ -29,7 +37,7 @@
       </p>
     </article>
 
-    <form v-if="modelValue?.categories?.length" class="mt-8 space-y-6" @submit.prevent="submitResult">
+    <form v-if="modelValue?.categories?.length && votingOpen" class="mt-8 space-y-6" @submit.prevent="submitResult">
       <div class="space-y-4">
         <div
           v-for="cat in modelValue.categories"
@@ -81,7 +89,7 @@
       </div>
 
       <div class="flex flex-col gap-4 pt-4 sm:flex-row">
-        <CtaButton type="submit" variant="primary" class="flex-1 justify-center">
+        <CtaButton type="submit" variant="primary" class="flex-1 justify-center" :disabled="!votingOpen">
           Submit score
         </CtaButton>
         <CtaButton type="button" variant="secondary" class="sm:w-32 justify-center" @click="confirmReset">
@@ -120,13 +128,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
+import { useVotingSessionStore } from '~/stores/votingSession'
 
 const props = defineProps<{
   modelValue: any
 }>()
 
 const emit = defineEmits(['update:modelValue', 'submit', 'next'])
+
+const sessionStore = useVotingSessionStore()
+const votingOpen = computed(() => sessionStore.phase === 'open')
+
+const phaseNotice = computed(() => {
+  switch (sessionStore.phase) {
+    case 'upcoming':
+      return {
+        variant: 'warning' as const,
+        message: 'Voting has not started yet. You can review projects, but scores cannot be submitted until voting opens.',
+      }
+    case 'closed':
+      return {
+        variant: 'error' as const,
+        message: 'Voting is closed. Scores can no longer be submitted.',
+      }
+    default:
+      return null
+  }
+})
 
 const hoveredStars = ref<Record<string, number | null>>({})
 
@@ -152,6 +181,10 @@ const executeSkip = () => {
 }
 
 const submitResult = () => {
+  if (!votingOpen.value) {
+    return
+  }
+
   const hasUnfilledMandatory = props.modelValue?.categories?.some((item: any) => !item.optional && !item.value)
   if (hasUnfilledMandatory) {
     modals.submitWarning = true

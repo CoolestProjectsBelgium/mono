@@ -62,6 +62,7 @@ export default defineNuxtConfig({
     '/languages': { proxy: 'http://127.0.0.1:3001/languages' },
     '/projects': { proxy: 'http://127.0.0.1:3001/projects' },
     '/projects/**': { proxy: 'http://127.0.0.1:3001/projects/**' },
+    '/sse': { proxy: 'http://127.0.0.1:3001/sse' },
   },
 
   vite: {

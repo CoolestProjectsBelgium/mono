@@ -2,6 +2,8 @@ export interface VotingUser {
   id: number
   email: string
   eventId: number
+  votingStartDate: string
+  votingEndDate: string
 }
 
 export interface LoginCredentials {
@@ -40,3 +42,12 @@ export interface FinishedResponse {
 }
 
 export type ProjectsResponse = ProjectVote | FinishedResponse
+
+export type VotingSseEventType = 'message' | 'timer'
+
+export interface VotingSseEvent {
+  type: VotingSseEventType
+  message: string
+  startDate?: string
+  endDate?: string
+}

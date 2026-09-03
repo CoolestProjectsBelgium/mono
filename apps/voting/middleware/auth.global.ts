@@ -2,8 +2,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const { loggedIn, fetchUser, logout } = useAuth()
   const authStore = useAuthStore()
 
-  const publicRoutes = ['/login']
-
   if (to.path === '/login') {
     if (authStore.jwt) {
       try {
@@ -20,18 +18,15 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return
   }
 
-  if (!loggedIn.value && !publicRoutes.includes(to.path)) {
-    if (authStore.jwt) {
-      try {
-        await fetchUser()
-      }
-      catch {
-        await logout()
-        return navigateTo('/login')
-      }
-    }
-    else {
-      return navigateTo('/login')
-    }
+  if (!authStore.jwt) {
+    return navigateTo('/login')
+  }
+
+  try {
+    await fetchUser()
+  }
+  catch {
+    await logout()
+    return navigateTo('/login')
   }
 })

@@ -10,7 +10,7 @@ Converted from the legacy [coolestproject-voting](https://github.com/CoolestProj
 
 - Nuxt 3, Vue 3, TypeScript (SPA: `ssr: false`)
 - Tailwind CSS — same design tokens as registration (`primary` `#00AEA9`, `AppHeader` / `AppFooter` shell)
-- Pinia with persisted state (`language`, `project`, `auth` stores)
+- Pinia with persisted state (`language`, `project`, `auth`, `votingSession` stores)
 - Vitest (`@nuxt/test-utils`)
 
 ## Entrypoints
@@ -22,7 +22,9 @@ Converted from the legacy [coolestproject-voting](https://github.com/CoolestProj
 | `apps/voting/pages/index.vue` | Score / skip current project |
 | `apps/voting/pages/finished.vue` | All projects voted for current filter |
 | `apps/voting/composables/useAuth.ts` | Login session (Pinia JWT) |
-| `apps/voting/composables/useApiClient.ts` | API fetch + CSRF + Bearer auth |
+| `apps/voting/components/VotingTimerBar.vue` | Sticky voting countdown (upcoming / open / closed) |
+| `apps/voting/components/VotingMessageBanner.vue` | Staff broadcast messages from SSE |
+| `apps/voting/composables/useVotingSse.ts` | Fetch-based SSE client (Bearer auth) |
 | `apps/voting/nuxt.config.ts` | Nuxt configuration |
 | `npm run dev --workspace=apps/voting` | Dev server (port 3005 in Dev Container) |
 
@@ -32,13 +34,14 @@ Local URL (via proxy): `https://voting.coolestprojects.localhost:8443`
 
 - `apps/api` — `VotingController` at **root paths** (no `/voting` prefix):
   - `POST /auth/login` — body `{ username, password }` → `{ jwt }`
-  - `GET /auth/user` — Bearer JWT → `{ id, email, eventId }`
+  - `GET /auth/user` — Bearer JWT → `{ id, email, eventId, votingStartDate, votingEndDate }`
   - `POST /auth/logout`
   - `GET /languages` → `[{ id, text }]`
   - `GET /projects?languages=<json>&skipProject=<json>` → project DTO or `{ message: 'finished' }`
   - `POST /projects/:projectId` — body `[{ id, value }]`
+  - `GET /sse` — Server-Sent Events stream (Bearer JWT); see [SSE](#sse) below
 - CSRF: `GET /csrf-token` + `x-csrf-token` on mutating requests; `credentials: 'include'`
-- API base: `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`). On `https://voting.coolestprojects.localhost:8443` dev, the app calls the API same-origin (TLS proxy + Nitro server routes forward `/csrf-token`, `/auth`, `/languages`, `/projects` → port 3001). Port-forward `localhost:3005` resolves API to `localhost:3001`.
+- API base: `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`). On `https://voting.coolestprojects.localhost:8443` dev, the app calls the API same-origin (TLS proxy + Nitro server routes forward `/csrf-token`, `/auth`, `/languages`, `/projects`, `/sse` → port 3001). Port-forward `localhost:3005` resolves API to `localhost:3001`.
 - Does not import `packages/database` directly
 
 ## Key flows
@@ -59,10 +62,27 @@ Seeded dev login: `jury` / `jury` (see `apps/api` seeder). Six test projects are
 
 Current project is persisted in Pinia so a browser refresh does not fetch a different project mid-review.
 
+### Voting timer and SSE
+
+After login, `GET /auth/user` hydrates `votingStartDate` / `votingEndDate` into the `votingSession` store. A sticky **VotingTimerBar** below the header shows three phases:
+
+- **Upcoming** — countdown until `votingStartDate`
+- **Open** — countdown until `votingEndDate`; score submission enabled
+- **Closed** — submit form hidden; inline notice on the vote page
+
+The app opens `GET /sse` via a fetch-based client (`useVotingSse`) because `EventSource` cannot send `Authorization: Bearer`. SSE event types (see `apps/api/src/dto/votingevent.dto.ts`):
+
+| `type` | Payload | UI effect |
+|--------|---------|-----------|
+| `timer` | `startDate`, `endDate` (ISO) | Updates countdown bar |
+| `message` | `message` (string) | Dismissible `VotingMessageBanner` |
+
+Staff can publish events with `POST /` on the API (admin cookie). AdminJS does not call this yet — test manually during development.
+
 ## Out of scope / unknowns
 
 - PWA / offline install
-- SSE (`GET /sse`) and admin voting events (`POST /`)
+- AdminJS UI to open/close voting and auto-publish SSE
 - Awards / vote calculation UI
 - Production `CORS_ORIGINS` for `voting-dev` / `voting-prod` hostnames (Level27 infra; not in this repo's compose)
 
