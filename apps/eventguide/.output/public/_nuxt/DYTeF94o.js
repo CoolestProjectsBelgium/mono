@@ -1,0 +1,1 @@
+import{_ as o}from"./T2PIl7Jz.js";import{j as s,k as a,g as r,l as c,o as m,m as p}from"./DWtRFb1G.js";import"./BCEp2jKl.js";const v=s({__name:"index",setup(_){const e=a(),t=p(()=>Number.parseInt(String(e.params.eventId),10));return(i,u)=>{const n=o;return m(),r(n,{"event-id":c(t)},null,8,["event-id"])}}});export{v as default};

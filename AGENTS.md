@@ -12,7 +12,7 @@ npm workspaces monorepo (`package.json`):
 | `apps/admin` | `@coolestprojects/admin` | AdminJS admin panel |
 | `apps/voting` | `@coolestprojects/voting` | Nuxt 3 voting UI |
 | `apps/registration` | `@coolestprojects/registration` | Registration static site |
-| `apps/eventguide` | `@coolestprojects/eventguide` | Event guide static site |
+| `apps/eventguide` | `@coolestprojects/eventguide` | Event guide Nuxt SPA |
 | `apps/cdj-web-int` | `@coolestprojects/cdj-web-int` | Archived CPBE project galleries (Level27 `cdj-web-int`) |
 | `apps/presentation` | `@coolestprojects/presentation` | Presentation static site |
 | `packages/database` | `@coolestprojects/database` | Shared Sequelize models |

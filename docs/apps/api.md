@@ -93,6 +93,16 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 
 Dev seed data (`apps/api/src/seeder/seed-voting-fixtures.ts`): six table-linked projects across `en` / `nl` / `fr` (e.g. Line Following Robot, Slimme Kas, Station Météo Junior). Projects must be assigned to an `EventTable` row or `GET /projects` returns `finished`. Vote categories are jury-only (`public: false`). Re-apply fixtures with `npm run seed-voting --workspace=apps/api` (clears existing votes for the `jury` account).
 
+### Event guide
+
+Public read-only routes on `EventguideController` (no auth):
+
+- `GET /eventguide/projects` — projects for the active event (`InfoInterceptor.currentEvent`)
+- `GET /eventguide/events/:eventId/projects` — projects for a specific event (including past events)
+- `GET /eventguide/attachments/:attachmentId/thumbnail` — confirmed attachment thumbnail when all participants agreed to photo
+
+Response shape: `{ event: { id, title, officialStartDate, floorplanPath }, projects: [...] }` (`EventguideProjectsResponseDto`). Projects include table number (parsed from `EventTable.name`), participants, `agreedToPhoto`, and optional `thumbnailUrl`.
+
 ### Shared reads
 
 `GET /tshirts`, `GET /questions`, `GET /dojos`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /dojos` returns event-scoped `Affiliation` names (CoderDojo catalog). `GET /settings` includes `maxAttachments` (currently 10; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.

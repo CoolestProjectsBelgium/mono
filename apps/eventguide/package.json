@@ -1,15 +1,33 @@
 {
   "name": "@coolestprojects/eventguide",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "devDependencies": {},
+  "description": "Nuxt 3 Event Guide for Coolest Projects Belgium",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "npx http-server -o /"
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "start:dev": "nuxt dev --host 0.0.0.0 --port 3002",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare && node ./scripts/patch-vitest-environment.mjs",
+    "test": "vitest run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "dependencies": {
+    "@pinia/nuxt": "^0.5.5",
+    "leaflet": "^1.9.4",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.31"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^3.17.2",
+    "@nuxtjs/tailwindcss": "^6.13.2",
+    "@types/leaflet": "^1.9.16",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^17.4.4",
+    "nuxt": "^3.12.3",
+    "typescript": "^5.5.3",
+    "vitest": "^3.1.1",
+    "vitest-environment-nuxt": "^1.0.1"
+  }
 }

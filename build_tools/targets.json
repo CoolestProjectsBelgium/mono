@@ -130,7 +130,15 @@
     "eventguide": {
       "kind": "static",
       "workspace": "apps/eventguide",
-      "generate": "copy",
+      "generate": "nuxt",
+      "generateEnv": {
+        "dev": {
+          "NUXT_PUBLIC_API_BASE_URL": "https://api-dev.coolestprojects-test.be"
+        },
+        "prod": {
+          "NUXT_PUBLIC_API_BASE_URL": "https://api.coolestprojects-test.be"
+        }
+      },
       "dev": {
         "componentId": 74475,
         "componentName": "eventguide-dev",
