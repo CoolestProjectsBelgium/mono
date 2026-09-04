@@ -15,6 +15,7 @@ Self-contained static archive of the public Coolest Projects Belgium project gal
 | Path / command | Role |
 |----------------|------|
 | `apps/cdj-web-int/` | Static site root (HTML, JS, `data/`, `vendor/`, `banners/`) |
+| `apps/cdj-web-int/banners/` | Year banners as `coolestprojects-website-20YY.png` (hyphens; `%20` in the filename 404s on Apache) |
 | `npm run archive-cpbe` | Download JSON, rewrite paths, fetch images, vendor assets |
 | `npm run archive-cpbe:test` | Unit tests for dump/rewrite helpers |
 | `npm run start:dev --workspace=apps/cdj-web-int` | Local preview |

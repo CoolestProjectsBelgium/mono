@@ -275,18 +275,33 @@ export function rewriteVendorUrls(html) {
 }
 
 /**
+ * Legacy CoderDojo banner filename (spaces). Used only when fetching the source image.
+ * @param {number} year two-digit (21–26) or four-digit
+ * @returns {string}
+ */
+export function remoteBannerFilename(year) {
+  return `coolestprojects website 20${String(year).slice(-2)}.png`;
+}
+
+/**
+ * Local banner filename. Hyphens avoid Apache 404s from `%20` in the on-disk name.
+ * @param {number} year two-digit (21–26) or four-digit
+ * @returns {string}
+ */
+export function localBannerFilename(year) {
+  return `coolestprojects-website-20${String(year).slice(-2)}.png`;
+}
+
+/**
  * @param {string} html
  * @param {number} year
  * @returns {string}
  */
 export function rewriteBannerUrl(html, year) {
-  const encoded = encodeURIComponent(`coolestprojects website 20${String(year).slice(-2)}.png`);
+  const local = localBannerFilename(year);
   return html.replace(
     /\.\/images\/coolestprojects%20website%20\d+\.png/g,
-    `./banners/${encoded}`,
-  ).replace(
-    new RegExp(`\\./images/coolestprojects%20website%20${year}\\.png`, 'g'),
-    `./banners/${encoded}`,
+    `./banners/${local}`,
   );
 }
 

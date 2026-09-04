@@ -7,8 +7,10 @@ import {
   patchGalleryJs,
   picFilename,
   planningIdToPageName,
+  localBannerFilename,
   planningIdToYear,
   resolveMediaFilename,
+  rewriteBannerUrl,
   rewriteFetchUrl,
   rewriteProjects,
   rewriteVendorUrls,
@@ -92,6 +94,19 @@ test('rewriteXhrUrl points inline pages at local JSON', () => {
   const html =
     'xhttp.open("GET", "https://backend.coolestprojects.be/website/planning/1/projects.json", true);';
   assert.match(rewriteXhrUrl(html, 1), /\.\/data\/1\/projects\.json/);
+});
+
+test('localBannerFilename is hyphenated and year-safe', () => {
+  assert.equal(localBannerFilename(26), 'coolestprojects-website-2026.png');
+  assert.equal(localBannerFilename(2025), 'coolestprojects-website-2025.png');
+});
+
+test('rewriteBannerUrl points at hyphenated local banner', () => {
+  const html = '<img src="./images/coolestprojects%20website%202026.png">';
+  assert.equal(
+    rewriteBannerUrl(html, 26),
+    '<img src="./banners/coolestprojects-website-2026.png">',
+  );
 });
 
 test('rewriteVendorUrls replaces CDN links', () => {

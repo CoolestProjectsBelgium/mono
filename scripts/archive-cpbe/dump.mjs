@@ -10,6 +10,8 @@ import {
   planningIdToPageName,
   planningIdToYear,
   resolveMediaFilename,
+  localBannerFilename,
+  remoteBannerFilename,
   rewriteBannerUrl,
   rewriteFetchUrl,
   rewriteProjects,
@@ -154,11 +156,21 @@ export async function downloadProjectImages(paths, planningId, projects, fetchIm
  */
 export async function downloadBanner(paths, planningId, fetchImpl = fetch) {
   const year = planningIdToYear(planningId);
-  const bannerName = `coolestprojects website 20${String(year).slice(-2)}.png`;
-  const encoded = encodeURIComponent(bannerName);
-  const url = `${CPBE_BASE}/images/${encoded}`;
-  const dest = path.join(paths.bannersDir, encoded);
+  const remoteName = remoteBannerFilename(year);
+  const localName = localBannerFilename(year);
+  const url = `${CPBE_BASE}/images/${encodeURIComponent(remoteName)}`;
+  const dest = path.join(paths.bannersDir, localName);
+  const legacyDest = path.join(paths.bannersDir, encodeURIComponent(remoteName));
   if (fs.existsSync(dest)) {
+    if (legacyDest !== dest && fs.existsSync(legacyDest)) {
+      fs.unlinkSync(legacyDest);
+    }
+    return;
+  }
+  if (fs.existsSync(legacyDest)) {
+    fs.mkdirSync(paths.bannersDir, { recursive: true });
+    fs.renameSync(legacyDest, dest);
+    process.stdout.write(`banner ${localName} (renamed)\n`);
     return;
   }
   const response = await fetchImpl(url);
@@ -166,7 +178,7 @@ export async function downloadBanner(paths, planningId, fetchImpl = fetch) {
     throw new Error(`Banner download failed (${response.status}): ${url}`);
   }
   writeFile(dest, Buffer.from(await response.arrayBuffer()));
-  process.stdout.write(`banner ${bannerName}\n`);
+  process.stdout.write(`banner ${localName}\n`);
 }
 
 /**

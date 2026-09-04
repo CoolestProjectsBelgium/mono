@@ -92,6 +92,13 @@ test('dumpGallery writes local JSON and downloads images', async () => {
   const json = JSON.parse(fs.readFileSync(path.join(appDir, 'data', '6', 'projects.json'), 'utf8'));
   assert.equal(json[0].pic, './images/6/fixture.png');
   assert.equal(fs.existsSync(path.join(appDir, 'images', '6', 'fixture.png')), true);
+  assert.equal(
+    fs.existsSync(path.join(appDir, 'banners', 'coolestprojects-website-2026.png')),
+    true,
+  );
+  const html = fs.readFileSync(path.join(appDir, 'projects26.html'), 'utf8');
+  assert.match(html, /\.\/banners\/coolestprojects-website-2026\.png/);
+  assert.doesNotMatch(html, /coolestprojects%20website%202026/);
   const js = fs.readFileSync(path.join(appDir, 'projects26.js'), 'utf8');
   assert.match(js, /\.\/data\/6\/projects\.json/);
   assert.match(js, /cpbeMediaTag/);
