@@ -3,7 +3,6 @@ import { ApiClient } from 'adminjs';
 import {
   Box,
   Button,
-  CheckBox,
   FormGroup,
   H2,
   Input,
@@ -15,6 +14,8 @@ import {
 import type { EmailTemplateRecord } from './handler-helpers.js';
 import { EMAIL_TEMPLATE_RESOURCE_ID } from './handler-helpers.js';
 import type { EmailTemplatesPageData } from './handler.js';
+import type { ContextRecordOption, ContextRecordsPageData } from './handler.js';
+import { getContextRecordType, type ContextRecordType } from './handler-helpers.js';
 import { prepareHtmlForSubmit, serializeHtmlEditor } from './format-html.js';
 import type { HtmlLintWarning } from './format-html.js';
 import type { PreviewResult } from './render-preview.js';
@@ -40,7 +41,10 @@ const EmailTemplates: React.FC = () => {
   const [contentRich, setContentRich] = useState('');
   const [contentPlain, setContentPlain] = useState('');
   const [recordId, setRecordId] = useState<number | null>(null);
-  const [guardianEmail, setGuardianEmail] = useState(true);
+  const [contextRecordType, setContextRecordType] = useState<ContextRecordType>('user');
+  const [contextRecords, setContextRecords] = useState<ContextRecordOption[]>([]);
+  const [selectedContextRecord, setSelectedContextRecord] = useState<{ value: string; label: string } | null>(null);
+  const [contextJson, setContextJson] = useState('');
   const [lintWarnings, setLintWarnings] = useState<HtmlLintWarning[]>([]);
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,6 +88,19 @@ const EmailTemplates: React.FC = () => {
     setSelectedLanguage({ value: record.language, label: record.language.toUpperCase() });
   };
 
+  const loadContextOptions = useCallback(async (template: string) => {
+    const response = await api.getPage({
+      pageName: 'EmailTemplates',
+      method: 'post',
+      data: { action: 'context-options', template },
+    });
+    const data = response.data as ContextRecordsPageData;
+    setContextRecordType(data.contextRecordType);
+    setContextRecords(data.records);
+    setSelectedContextRecord(null);
+    setContextJson('');
+  }, []);
+
   const loadInitial = useCallback(async () => {
     setLoading(true);
     try {
@@ -91,6 +108,9 @@ const EmailTemplates: React.FC = () => {
       const data = response.data as EmailTemplatesPageData;
       setMeta({ templates: data.templates, languages: data.languages });
       applyRecord(data.record);
+      if (data.record) {
+        await loadContextOptions(data.record.template);
+      }
       setError(null);
     } catch (err) {
       console.error('Failed to load email templates:', err);
@@ -98,7 +118,7 @@ const EmailTemplates: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadContextOptions]);
 
   useEffect(() => {
     loadInitial();
@@ -195,6 +215,7 @@ const EmailTemplates: React.FC = () => {
   const postAction = async (
     action: 'load' | 'preview',
     options?: { formatBeforeSend?: boolean },
+    contextJsonOverride?: string,
   ) => {
     if (!selectedTemplate || !selectedLanguage) {
       setError('Select a template and language first.');
@@ -221,7 +242,7 @@ const EmailTemplates: React.FC = () => {
           subject,
           contentRich: contentRichToSend,
           contentPlain,
-          guardianEmail,
+          contextJson: contextJsonOverride ?? contextJson,
         },
       });
 
@@ -231,6 +252,9 @@ const EmailTemplates: React.FC = () => {
 
       if (action === 'preview' && data.preview) {
         setPreview(data.preview);
+      }
+      if (action === 'load' && data.record) {
+        await loadContextOptions(data.record.template);
       }
     } catch (err) {
       console.error(`Email template ${action} failed:`, err);
@@ -292,7 +316,80 @@ const EmailTemplates: React.FC = () => {
   };
 
   const handleLoad = () => postAction('load', { formatBeforeSend: false });
-  const handlePreview = () => postAction('preview');
+  const handlePreview = async () => {
+    let previewContextJson = contextJson;
+
+    if (!previewContextJson.trim() && contextRecords[0]) {
+      try {
+        previewContextJson = await loadContextRecord(contextRecords[0]);
+      } catch (err) {
+        console.error('Failed to load the first context record:', err);
+        setError('Unable to load the first context record.');
+        return;
+      }
+    }
+
+    if (previewContextJson.trim()) {
+      try {
+        const parsed = JSON.parse(previewContextJson);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          throw new Error('Context must be a JSON object');
+        }
+      } catch (err) {
+        setError(`Invalid context JSON: ${err instanceof Error ? err.message : String(err)}`);
+        return;
+      }
+    }
+
+    return postAction('preview', undefined, previewContextJson);
+  };
+
+  const handleTemplateChange = async (option: { value: string; label: string } | null) => {
+    setSelectedTemplate(option);
+    if (!option) {
+      setContextRecords([]);
+      setSelectedContextRecord(null);
+      setContextJson('');
+      return;
+    }
+
+    setContextRecordType(getContextRecordType(option.value));
+    try {
+      await loadContextOptions(option.value);
+    } catch (err) {
+      console.error('Failed to load context records:', err);
+      setError('Unable to load context records.');
+    }
+  };
+
+  const loadContextRecord = async (option: { value: string; label: string }): Promise<string> => {
+    const response = await api.getPage({
+      pageName: 'EmailTemplates',
+      method: 'post',
+      data: { action: 'load-context', recordType: contextRecordType, recordId: option.value },
+    });
+    const data = response.data as ContextRecordsPageData;
+    const nextContextJson = JSON.stringify(data.context ?? {}, null, 2);
+    setSelectedContextRecord(option);
+    setContextJson(nextContextJson);
+    setError(null);
+    return nextContextJson;
+  };
+
+  const handleContextRecordChange = async (option: { value: string; label: string } | null) => {
+    if (!option) {
+      setSelectedContextRecord(null);
+      setContextJson('');
+      return;
+    }
+
+    try {
+      await loadContextRecord(option);
+    } catch (err) {
+      console.error('Failed to load context record:', err);
+      setError('Unable to load the selected context record.');
+    }
+  };
 
   if (loading) {
     return <Box padding="xl"><Text>Loading email templates...</Text></Box>;
@@ -319,7 +416,7 @@ const EmailTemplates: React.FC = () => {
             <Select
               value={selectedTemplate}
               options={templateOptions}
-              onChange={(option: { value: string; label: string } | null) => setSelectedTemplate(option)}
+              onChange={handleTemplateChange}
             />
           </FormGroup>
           <FormGroup style={{ minWidth: '160px' }}>
@@ -381,20 +478,63 @@ const EmailTemplates: React.FC = () => {
         )}
 
         <Box flex justifyContent="space-between" alignItems="center" mt="xl" flexWrap="wrap" style={{ gap: '12px' }}>
-          <CheckBox
-            checked={guardianEmail}
-            onChange={() => setGuardianEmail((current) => !current)}
-            label="Guardian email present (preview)"
-          />
           <Box flex style={{ gap: '8px' }}>
             <Button variant="contained" disabled={busy} onClick={handleSave}>
               {busy ? 'Saving...' : 'Save'}
             </Button>
-            <Button variant="outlined" disabled={busy} onClick={handlePreview}>
-              {busy ? 'Previewing...' : 'Preview'}
-            </Button>
           </Box>
         </Box>
+      </Box>
+
+      <Box bg="white" p="lg" boxShadow="card" mb="xl">
+        <details>
+          <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+            <span>Rendering context JSON</span>
+            <Button
+              variant="outlined"
+              disabled={busy}
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                event.preventDefault();
+                event.stopPropagation();
+                void handlePreview();
+              }}
+              style={{ marginLeft: '16px' }}
+            >
+              {busy ? 'Previewing...' : 'Preview'}
+            </Button>
+          </summary>
+          <Box mt="lg">
+            <Box flex flexWrap="wrap" style={{ gap: '16px' }} mb="lg">
+              <FormGroup style={{ minWidth: '240px' }}>
+                <Label>Context record type</Label>
+                <Input
+                  value={contextRecordType === 'registration' ? 'Registration' : 'User'}
+                  onChange={() => undefined}
+                />
+              </FormGroup>
+              <FormGroup style={{ minWidth: '360px', flex: 1 }}>
+                <Label>Context record</Label>
+                <Select
+                  value={selectedContextRecord}
+                  options={contextRecords}
+                  isClearable
+                  isDisabled={contextRecords.length === 0}
+                  placeholder={`Select a ${contextRecordType}`}
+                  onChange={handleContextRecordChange}
+                />
+              </FormGroup>
+            </Box>
+            <Text color="grey60" mb="md">
+              Select a record above to load real data, then edit the JSON before previewing.
+            </Text>
+            <TextArea
+              rows={14}
+              value={contextJson}
+              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setContextJson(event.target.value)}
+              style={{ width: '100%', fontFamily: 'monospace', boxSizing: 'border-box' }}
+            />
+          </Box>
+        </details>
       </Box>
 
       {preview && (

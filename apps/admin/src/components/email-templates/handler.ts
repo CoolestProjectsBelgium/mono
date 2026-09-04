@@ -1,4 +1,8 @@
-import { EmailTemplate as EmailTemplateModel } from '@coolestprojects/database';
+import {
+  EmailTemplate as EmailTemplateModel,
+  Registration as RegistrationModel,
+  User as UserModel,
+} from '@coolestprojects/database';
 import { sequelize } from '../../database.js';
 import {
   assertEventId,
@@ -6,11 +10,16 @@ import {
   mapRecord,
   normalizeSavePayload,
   SUPPORTED_LANGUAGES,
+  buildRecordContext,
+  getContextRecordType,
+  type ContextRecordType,
   type EmailTemplateRecord,
 } from './handler-helpers.js';
 import { renderPreview, type PreviewResult } from './render-preview.js';
 
 const EmailTemplate = sequelize.models.EmailTemplate as typeof EmailTemplateModel;
+const Registration = sequelize.models.Registration as typeof RegistrationModel;
+const User = sequelize.models.User as typeof UserModel;
 
 export interface EmailTemplatesMeta {
   templates: string[];
@@ -20,6 +29,17 @@ export interface EmailTemplatesMeta {
 export interface EmailTemplatesPageData extends EmailTemplatesMeta {
   record: EmailTemplateRecord | null;
   preview?: PreviewResult;
+}
+
+export interface ContextRecordOption {
+  value: string;
+  label: string;
+}
+
+export interface ContextRecordsPageData extends EmailTemplatesPageData {
+  contextRecordType: ContextRecordType;
+  records: ContextRecordOption[];
+  context?: Record<string, unknown>;
 }
 
 async function listTemplates(eventId: number): Promise<string[]> {
@@ -56,11 +76,48 @@ function mapRecordFromRow(row: EmailTemplateModel): EmailTemplateRecord {
   });
 }
 
+function recordLabel(record: { id: number; firstname: string; lastname: string; email: string }): string {
+  const name = [record.firstname, record.lastname].filter(Boolean).join(' ');
+  return `${name || 'Unnamed'} (#${record.id})${record.email ? ` - ${record.email}` : ''}`;
+}
+
+async function listContextRecords(
+  eventId: number,
+  recordType: ContextRecordType,
+): Promise<ContextRecordOption[]> {
+  const Model = (recordType === 'registration' ? Registration : User) as typeof UserModel;
+  const rows = await Model.findAll({
+    where: { eventId },
+    attributes: ['id', 'firstname', 'lastname', 'email'],
+    order: [['lastname', 'ASC'], ['firstname', 'ASC'], ['id', 'ASC']],
+  });
+
+  return rows.map((row) => ({
+    value: String(row.id),
+    label: recordLabel(row as unknown as { id: number; firstname: string; lastname: string; email: string }),
+  }));
+}
+
+async function loadContext(
+  eventId: number,
+  recordType: ContextRecordType,
+  recordId: number,
+): Promise<Record<string, unknown>> {
+  const Model = (recordType === 'registration' ? Registration : User) as typeof UserModel;
+  const row = await Model.findOne({ where: { eventId, id: recordId } });
+
+  if (!row) {
+    throw new Error('Context record not found');
+  }
+
+  return buildRecordContext(recordType, row.toJSON() as Record<string, unknown>);
+}
+
 export const Handler = async (
   request: any,
   _response: any,
   context: any,
-): Promise<EmailTemplatesPageData> => {
+): Promise<EmailTemplatesPageData | ContextRecordsPageData> => {
   assertNotJudge(context.currentAdmin?.role);
   const eventId = context.currentAdmin?.eventId;
   assertEventId(eventId);
@@ -70,6 +127,35 @@ export const Handler = async (
 
   if (request.method?.toLowerCase() === 'post') {
     const action = String(payload.action ?? '');
+
+    if (action === 'context-options') {
+      const template = String(payload.template ?? '');
+      const contextRecordType = getContextRecordType(template);
+      return {
+        templates,
+        languages: SUPPORTED_LANGUAGES,
+        record: null,
+        contextRecordType,
+        records: await listContextRecords(eventId, contextRecordType),
+      };
+    }
+
+    if (action === 'load-context') {
+      const contextRecordType = String(payload.recordType ?? '') as ContextRecordType;
+      const recordId = Number(payload.recordId);
+      if (!['user', 'registration'].includes(contextRecordType) || !Number.isInteger(recordId)) {
+        throw new Error('A valid context record is required');
+      }
+
+      return {
+        templates,
+        languages: SUPPORTED_LANGUAGES,
+        record: null,
+        contextRecordType,
+        records: [],
+        context: await loadContext(eventId, contextRecordType, recordId),
+      };
+    }
 
     if (action === 'load') {
       const template = String(payload.template ?? '');
@@ -90,12 +176,26 @@ export const Handler = async (
       const guardianEmail = payload.guardianEmail === true
         || payload.guardianEmail === 'true'
         || payload.guardianEmail === 1;
+      let context: Record<string, unknown> | undefined;
+
+      if (String(payload.contextJson ?? '').trim()) {
+        try {
+          const parsed = JSON.parse(String(payload.contextJson));
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('Context must be a JSON object');
+          }
+          context = parsed as Record<string, unknown>;
+        } catch (error) {
+          throw new Error(`Invalid context JSON: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
 
       const preview = renderPreview({
         subject: savePayload.subject,
         contentRich: savePayload.contentRich,
         contentPlain: savePayload.contentPlain,
         guardianEmail,
+        context,
       });
 
       return {

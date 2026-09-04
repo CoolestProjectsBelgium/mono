@@ -78,6 +78,8 @@ data, and save via AdminJS `recordAction` on the `EmailTemplates` resource (`edi
 `Handlebars.compile(..., { noEscape: true })` on bodies — same compile flag as [`MailerService`](../../apps/api/src/mailer/mailer.service.ts).
 Before save/preview, the client pretty-prints HTML (Handlebars tokens masked first) and shows non-blocking lint warnings.
 TinyMCE loads from CDN for visual HTML editing; use the Source tab for `{{#if}}` block helpers. Judges cannot access this page.
+The page also derives whether a template uses a `User` or `Registration` context, lets staff select an event-scoped record,
+and loads that record as editable context JSON for previews. Empty context continues to use the dummy preview data.
 The `EmailTemplate` CRUD resource remains available (event-scoped list/search) as an escape hatch.
 
 | Path | Role |
