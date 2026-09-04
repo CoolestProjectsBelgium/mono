@@ -90,7 +90,7 @@ Skip view apply: `deploy.mjs --skip-views`.
 | `admin` | `admin-dev` (`nj10448`) | `admin-prod` (`nj10449`) | Node 24, `node main.js` |
 | `registration` | `registration-dev` (`vd35113`) | `registration-prod` (`vd35114`) | Static (Nuxt generate) |
 | `voting` | `voting-dev` (`vd35113`) | `voting-prod` (`vd35114`) | Static (Nuxt generate) |
-| `eventguide` | `eventguide-dev` (`vd35113`) | `eventguide-prod` (`vd35114`) | Static copy |
+| `eventguide` | `eventguide-dev` (`vd35113`) | `eventguide-prod` (`vd35114`) | Nuxt generate |
 | `cdj-web-int` | `cdj-web-int` on `static-dev` (`vd35113`) | `cdj-web-int` on `static-prod` (`vd35114`) | Static copy; operator-only deploy |
 
 `cdj-web-int` is **not** in `deploy-all`. Run `npm run archive-cpbe` (downloads gitignored photos), then `npm run deploy -- --app cdj-web-int --env prod` (rsync to `public_html/cdj-web-int`). Pack fails if `apps/cdj-web-int/images/` is empty.
@@ -102,7 +102,7 @@ Smoke for Node: `fetch` the component `publicUrl` + `smokePath` (e.g. `https://a
 ## Talks to
 
 - `apps/api`, `apps/admin`, `packages/database` (build + pack)
-- `apps/registration`, `apps/voting`, `apps/eventguide` (static)
+- `apps/registration`, `apps/voting`, `apps/eventguide` (Nuxt generate)
 - Agency SSH (rsync + Node restart)
 - MySQL (view SQL via api deploy; DDL via API `DB_SYNC_ALTER` on restart)
 - Does not call the Level27 CP4 API (nodejs components reject `{type:restart}`)

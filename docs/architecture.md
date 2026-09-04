@@ -10,7 +10,7 @@ flowchart TB
     admin[admin AdminJS :3000]
     voting[voting Nuxt :3005]
     registration[registration static :3004]
-    eventguide[eventguide static :3002]
+    eventguide[eventguide Nuxt :3002]
     presentation[presentation static :3003]
   end
 
@@ -38,7 +38,7 @@ flowchart TB
 | `apps/admin` | AdminJS on Express | `database`, MySQL |
 | `apps/voting` | Nuxt SPA | `api` |
 | `apps/registration` | Static (`http-server`) | `api` (expected) |
-| `apps/eventguide` | Static (`http-server`) | `api` (expected) |
+| `apps/eventguide` | Nuxt 3 SPA | `api` (`EventguideController`) |
 | `apps/presentation` | Static (`http-server`) | `api` (expected) |
 
 ## Key flows

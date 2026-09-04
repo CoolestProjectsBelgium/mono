@@ -1,0 +1,1 @@
+import{_ as o}from"./DvJNIqaY.js";import{j as a,k as s,o as r,g as m,l as p,m as c}from"./DWtRFb1G.js";import"./BCEp2jKl.js";const v=a({__name:"map",setup(_){const e=s(),t=c(()=>Number.parseInt(String(e.params.eventId),10));return(u,i)=>{const n=o;return r(),m(n,{"event-id":p(t)},null,8,["event-id"])}}});export{v as default};

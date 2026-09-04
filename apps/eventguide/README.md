@@ -1,6 +1,6 @@
 # @coolestprojects/eventguide
 
-Static event guide site for Coolest Projects.
+Nuxt 3 event guide for Coolest Projects Belgium (project list + floor-plan map).
 
 **Documentation:** [docs/apps/eventguide.md](../../docs/apps/eventguide.md)
 
