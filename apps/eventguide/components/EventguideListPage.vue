@@ -31,17 +31,12 @@
     </p>
 
     <ProjectTableModal
-
       :open="selectedProject != null"
-
       :table-number="selectedProject?.tableNumber ?? null"
-
       :project-name="selectedProject?.name ?? ''"
-
       :floorplan-path="data.event.floorplanPath"
-
+      :floorplan-version="data.event.floorplanVersion"
       @close="selectedProject = null"
-
     />
 
   </template>
