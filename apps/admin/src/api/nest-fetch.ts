@@ -1,11 +1,18 @@
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 export function getApiBaseUrl(): string {
-  const apiBase = process.env.API_BASE_URL;
+  const apiBase = process.env.API_BASE_URL?.replace(/\/$/, '');
   if (!apiBase) {
     throw new Error('API_BASE_URL environment variable is not set');
   }
-  return apiBase.replace(/\/$/, '');
+
+  // The public local TLS proxy is host-facing; AdminJS runs beside the API.
+  if (process.env.NODE_ENV !== 'production'
+    && apiBase === 'https://api.coolestprojects.localhost:8443') {
+    return `http://127.0.0.1:${process.env.API_PORT ?? '3001'}`;
+  }
+
+  return apiBase;
 }
 
 export function getCookieHeader(request: unknown): string | undefined {
@@ -57,6 +64,7 @@ export interface NestFetchOptions {
   method?: string;
   body?: unknown;
   cookieHeader?: string;
+  adminEventId?: number;
 }
 
 export async function nestFetch(path: string, options: NestFetchOptions = {}): Promise<Response> {
@@ -85,6 +93,10 @@ export async function nestFetch(path: string, options: NestFetchOptions = {}): P
       'Content-Type': 'application/json',
       'x-csrf-token': csrfData.csrfToken,
     };
+    if (options.adminEventId) {
+      headers['x-adminjs-secret'] = process.env.ADMINJS_COOKIE_SECRET ?? '';
+      headers['x-adminjs-event-id'] = String(options.adminEventId);
+    }
 
     return fetch(`${apiBase}${path}`, {
       method,
@@ -93,9 +105,15 @@ export async function nestFetch(path: string, options: NestFetchOptions = {}): P
     });
   }
 
+  const headers: Record<string, string> = cookieHeader ? { Cookie: cookieHeader } : {};
+  if (options.adminEventId) {
+    headers['x-adminjs-secret'] = process.env.ADMINJS_COOKIE_SECRET ?? '';
+    headers['x-adminjs-event-id'] = String(options.adminEventId);
+  }
+
   return fetch(`${apiBase}${path}`, {
     method,
-    headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
+    headers,
   });
 }
 

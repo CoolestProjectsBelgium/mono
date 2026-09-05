@@ -24,16 +24,94 @@ import { VoteMessage } from '../dto/votemessage.dto';
 import { VotingService } from './voting.service';
 import { VotingEvent } from '../dto/votingevent.dto';
 import { Observable, map } from 'rxjs';
+import { UnauthorizedException } from '@nestjs/common';
 
 @Controller()
 export class VotingController {
   constructor(private votingService: VotingService, @Inject(VOTING_JWT) private readonly votingJwtService: JwtService) { }
+
+  private getAdminEventId(req: any): number {
+    const internalSecret = req.headers?.['x-adminjs-secret'];
+    const internalEventId = Number(req.headers?.['x-adminjs-event-id']);
+    if (internalSecret && internalSecret === process.env.ADMINJS_COOKIE_SECRET
+      && Number.isInteger(internalEventId) && internalEventId > 0) {
+      return internalEventId;
+    }
+
+    const eventId = Number(req.user?.adminUser?.eventId ?? req.user?.eventId);
+    if (!Number.isInteger(eventId) || eventId <= 0) {
+      throw new UnauthorizedException('No Event selected for admin account');
+    }
+    return eventId;
+  }
 
   @Post()
   @UseGuards(AuthGuard('mandatory-admin-cookie'))
   receiveEvent(@Body() event: VotingEvent) {
     this.votingService.publish(event);
     return { success: true };
+  }
+
+  @Post('admin/voting/start')
+  async startVoting(@Req() req: any, @Body() body: { durationMinutes?: number; deletePreviousResults?: boolean }) {
+    const eventId = this.getAdminEventId(req);
+    await this.votingService.openVotingWithDuration(
+      eventId,
+      Number(body.durationMinutes ?? 60),
+      body.deletePreviousResults === true,
+    );
+    return { success: true };
+  }
+
+  @Post('admin/voting/stop')
+  async stopVoting(@Req() req: any) {
+    const eventId = this.getAdminEventId(req);
+    await this.votingService.closeVotingNow(eventId);
+    const awards = await this.votingService.generateAwards(eventId);
+    return { success: true, awards };
+  }
+
+  @Post('admin/voting/message')
+  sendAdminMessage(@Req() req: any, @Body() body: { message?: string }) {
+    this.getAdminEventId(req);
+    this.votingService.publishMessage(String(body.message ?? ''));
+    return { success: true };
+  }
+
+  @Get('admin/voting/results')
+  getVotingResults(@Req() req: any) {
+    return this.votingService.calculateVotes(this.getAdminEventId(req));
+  }
+
+  @Post('admin/voting/awards/generate')
+  async generateAwards(@Req() req: any) {
+    return this.votingService.generateAwards(this.getAdminEventId(req));
+  }
+
+
+  @Get('admin/voting/awards')
+  async getAwards(@Req() req: any) {
+    return this.votingService.getAwardAssignments(this.getAdminEventId(req));
+  }
+
+  @Post('admin/voting/awards/:awardId/assign')
+  async assignAward(
+    @Req() req: any,
+    @Param('awardId') awardId: number,
+    @Body() body: { categoryId?: number | null },
+  ) {
+    await this.votingService.assignAward(
+      this.getAdminEventId(req),
+      Number(awardId),
+      body.categoryId === null || body.categoryId === undefined ? null : Number(body.categoryId),
+    );
+    return { success: true };
+  }
+
+  @Get('admin/voting/status')
+  async getVotingStatus(@Req() req: any) {
+    const event = await this.votingService.getVotingStatus(this.getAdminEventId(req));
+    return event;
   }
 
   @Sse('sse')

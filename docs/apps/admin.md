@@ -64,8 +64,11 @@ response shape when no event is selected, and uses the registered database model
 The `PictureSelector` page lists every project for the selected event. Its confirmed-image controls are radio buttons,
 allowing at most one confirmed attachment per project; saving a confirmed image updates the project attachment group.
 
-The `VotingOverview` page shows event-scoped vote totals, votes over time, and a project/category vote breakdown. It
-refreshes automatically every 15 seconds and displays the last successful update when a refresh request fails.
+The `VotingOverview` page shows event-scoped vote totals, a remaining-votes burndown, and a project/category vote breakdown. It
+refreshes automatically every 15 seconds and displays the last successful update when a refresh request fails. Staff can start
+voting for a duration, stop it, restart it after technical issues, publish an SSE message to jurors, and view calculated category results after voting closes. Restarting asks whether existing votes and awards should be deleted; preserving them supports a technical pause/resume workflow. Closing
+voting generates one `Award` entry for every active participant project. Winning entries receive a category assignment; other entries keep a null category and can later hold encouraging jury text for certificate generation. The page shows score ranges, medians, outliers, ranked runner-ups,
+and allows reassignment while preventing a project from receiving more than one category award.
 Chart components import Recharts from `recharts/es6/...` (not the package barrel) so AdminJS production Rollup does
 not pull the CJS `lib/` graph that crashes the dest bundle.
 

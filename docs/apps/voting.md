@@ -77,13 +77,13 @@ The app opens `GET /sse` via a fetch-based client (`useVotingSse`) because `Even
 | `timer` | `startDate`, `endDate` (ISO) | Updates countdown bar |
 | `message` | `message` (string) | Dismissible `VotingMessageBanner` |
 
-Staff can publish events with `POST /` on the API (admin cookie). AdminJS does not call this yet — test manually during development.
+Staff can publish events with `POST /` on the API (admin cookie). AdminJS exposes start/stop controls and a message composer on
+the Voting overview page; these use the scoped `/admin/voting/*` routes and publish the same SSE event types.
 
 ## Out of scope / unknowns
 
 - PWA / offline install
-- AdminJS UI to open/close voting and auto-publish SSE
-- Awards / vote calculation UI
+- Awards assignment UI
 - Production `CORS_ORIGINS` for `voting-dev` / `voting-prod` hostnames (Level27 infra; not in this repo's compose)
 
 ## Status
