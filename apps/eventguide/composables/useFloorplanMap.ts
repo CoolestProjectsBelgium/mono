@@ -23,17 +23,43 @@ export function getTableCenter(bounds: TableBounds): { x: number, y: number } {
   return { x, y }
 }
 
+/**
+ * getBBox/getCTM require the SVG to be attached to the document (legacy map used an <object> tag).
+ */
+export function mountSvgForMeasurement(svgDocument: Document): {
+  svg: SVGSVGElement
+  cleanup: () => void
+} | null {
+  const parsed = svgDocument.querySelector('svg')
+  if (!parsed || !import.meta.client) {
+    return null
+  }
+
+  const host = document.createElement('div')
+  host.setAttribute('aria-hidden', 'true')
+  host.style.cssText = 'position:absolute;left:-9999px;top:0;overflow:hidden;visibility:hidden;pointer-events:none'
+  const svg = parsed.cloneNode(true) as SVGSVGElement
+  host.appendChild(svg)
+  document.body.appendChild(host)
+
+  return {
+    svg,
+    cleanup: () => host.remove(),
+  }
+}
+
 export function extractTableBounds(
   svgDocument: Document,
   mapHeight: number,
 ): Record<number, TableBounds> {
-  const svg = svgDocument.querySelector('svg')
+  const mounted = mountSvgForMeasurement(svgDocument)
+  const svg = mounted?.svg ?? svgDocument.querySelector('svg')
   if (!svg) {
     return {}
   }
 
   const coords: Record<number, TableBounds> = {}
-  const groups = svgDocument.getElementsByTagName('g')
+  const groups = svg.getElementsByTagName('g')
 
   for (const part of groups) {
     if (!String(part.id).startsWith('table_')) {
@@ -51,23 +77,29 @@ export function extractTableBounds(
       continue
     }
 
-    const x = bbox.x + (bbox.width / 2)
-    const y = bbox.y + (bbox.height / 2)
-    const w2 = bbox.width / 2
-    const h2 = bbox.height / 2
+    try {
+      const x = bbox.x + (bbox.width / 2)
+      const y = bbox.y + (bbox.height / 2)
+      const w2 = bbox.width / 2
+      const h2 = bbox.height / 2
 
-    coords[tableNumber] = {
-      x0: (matrix.a * (x - w2)) + (matrix.c * (y - h2) + matrix.e),
-      y0: mapHeight - ((matrix.b * (x - w2)) + (matrix.d * (y - h2) + matrix.f)),
-      x1: (matrix.a * (x - w2)) + (matrix.c * (y + h2) + matrix.e),
-      y1: mapHeight - ((matrix.b * (x - w2)) + (matrix.d * (y + h2) + matrix.f)),
-      x2: (matrix.a * (x + w2)) + (matrix.c * (y + h2) + matrix.e),
-      y2: mapHeight - ((matrix.b * (x + w2)) + (matrix.d * (y + h2) + matrix.f)),
-      x3: (matrix.a * (x + w2)) + (matrix.c * (y - h2) + matrix.e),
-      y3: mapHeight - ((matrix.b * (x + w2)) + (matrix.d * (y - h2) + matrix.f)),
+      coords[tableNumber] = {
+        x0: (matrix.a * (x - w2)) + (matrix.c * (y - h2) + matrix.e),
+        y0: mapHeight - ((matrix.b * (x - w2)) + (matrix.d * (y - h2) + matrix.f)),
+        x1: (matrix.a * (x - w2)) + (matrix.c * (y + h2) + matrix.e),
+        y1: mapHeight - ((matrix.b * (x - w2)) + (matrix.d * (y + h2) + matrix.f)),
+        x2: (matrix.a * (x + w2)) + (matrix.c * (y + h2) + matrix.e),
+        y2: mapHeight - ((matrix.b * (x + w2)) + (matrix.d * (y + h2) + matrix.f)),
+        x3: (matrix.a * (x + w2)) + (matrix.c * (y - h2) + matrix.e),
+        y3: mapHeight - ((matrix.b * (x + w2)) + (matrix.d * (y - h2) + matrix.f)),
+      }
+    }
+    catch {
+      continue
     }
   }
 
+  mounted?.cleanup()
   return coords
 }
 

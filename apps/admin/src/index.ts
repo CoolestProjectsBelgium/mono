@@ -86,6 +86,15 @@ const start = async () => {
         isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
           currentAdmin?.role !== 'judge',
       },
+      Floorplans: {
+        component: Components.Floorplans,
+        handler: Handlers.Floorplans,
+        icon: 'Map',
+        // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
+        label: 'Floor plans',
+        isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
+          currentAdmin?.role !== 'judge',
+      },
     },
     resources: [
       {

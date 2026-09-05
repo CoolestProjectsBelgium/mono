@@ -10,6 +10,7 @@ const Components = {
   VotingOverview: componentLoader.add('VotingOverview', './voting/Voting.tsx'),
   Tables: componentLoader.add('Tables', './tables/Tables.tsx'),
   EmailTemplates: componentLoader.add('EmailTemplates', './email-templates/EmailTemplates.tsx'),
+  Floorplans: componentLoader.add('Floorplans', './floorplans/Floorplans.tsx'),
 }
 
 export { componentLoader, Components }

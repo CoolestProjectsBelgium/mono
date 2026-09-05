@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Command } from 'nestjs-command';
 import { seedDatabase } from '../seeder/seed';
 import { ensureVotingTestProjects } from '../seeder/seed-voting-fixtures';
+import { ensureSeedProjectPictures } from '../seeder/seed-project-pictures';
 
 @Injectable()
 export class EventCommand {
@@ -101,6 +102,24 @@ export class EventCommand {
     );
     console.log(
       `Voting fixtures ready: ${result.created} projects created, ${result.linked} projects linked to tables.`,
+    );
+  }
+
+  @Command({
+    command: 'event:seed-pictures',
+    describe: 'Add confirmed project photo attachments for the active event',
+  })
+  async seedProjectPictures() {
+    const result = await ensureSeedProjectPictures(
+      this.eventModel,
+      this.projectModel,
+      this.attachmentModel,
+      this.questionModel,
+      this.questionUserModel,
+      this.userModel,
+    );
+    console.log(
+      `Project pictures ready: ${result.attachmentsCreated} attachments created, ${result.photoConsentsCreated} photo consents added.`,
     );
   }
 }

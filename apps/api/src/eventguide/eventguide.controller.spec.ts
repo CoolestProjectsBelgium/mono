@@ -9,6 +9,7 @@ describe('EventguideController', () => {
   const eventguideService = {
     getProjects: jest.fn(),
     getThumbnailByAttachmentId: jest.fn(),
+    getFloorplanFilePath: jest.fn(),
   };
 
   beforeEach(async () => {

@@ -18,6 +18,11 @@ import {
   EventguideProjectsResponseDto,
 } from '../dto/eventguide-project.dto';
 import { parseTableNumber } from './parse-table-number';
+import {
+  resolveFloorplanFilePath,
+  toFloorplanApiPath,
+} from './floorplan-path';
+import { access, stat } from 'node:fs/promises';
 
 const PHOTO_QUESTION_NAME = 'Agree to Photo';
 
@@ -173,9 +178,29 @@ export class EventguideService {
     });
 
     return {
-      event: this.mapEvent(event),
+      event: await this.mapEvent(event),
       projects: mappedProjects,
     };
+  }
+
+  async getFloorplanFilePath(filename: string): Promise<string> {
+    const filePath = resolveFloorplanFilePath(filename);
+    if (!filePath) {
+      throw new NotFoundException('Floor plan not found');
+    }
+
+    try {
+      await access(filePath);
+    } catch {
+      throw new NotFoundException('Floor plan not found');
+    }
+
+    return filePath;
+  }
+
+  async getFloorplan(filename: string): Promise<StreamableFile> {
+    const filePath = await this.getFloorplanFilePath(filename);
+    return new StreamableFile(createReadStream(filePath), { type: 'image/svg+xml' });
   }
 
   async getThumbnailByAttachmentId(attachmentId: number): Promise<StreamableFile> {
@@ -267,13 +292,28 @@ export class EventguideService {
     return consentCount === memberships.length;
   }
 
-  private mapEvent(event: Event): EventguideEventDto {
+  private async mapEvent(event: Event): Promise<EventguideEventDto> {
     return {
       id: event.id,
       title: event.eventTitle,
       officialStartDate: event.officialStartDate.toISOString(),
-      floorplanPath: event.floorplanPath,
+      floorplanPath: toFloorplanApiPath(event.floorplanPath),
+      floorplanVersion: await this.getFloorplanVersion(event.floorplanPath),
     };
+  }
+
+  private async getFloorplanVersion(filename: string | null): Promise<string | null> {
+    if (!filename) {
+      return null;
+    }
+
+    try {
+      const filePath = await this.getFloorplanFilePath(filename);
+      const fileStat = await stat(filePath);
+      return String(fileStat.mtimeMs);
+    } catch {
+      return null;
+    }
   }
 
   private formatParticipantName(

@@ -1,6 +1,6 @@
 <template>
-  <div class="flex h-full flex-col">
-    <div class="border-b border-gray-200 bg-white px-4 py-3">
+  <div class="project-map-layout">
+    <div class="shrink-0 border-b border-gray-200 bg-white px-4 py-3">
       <label class="block text-sm font-medium text-gray-700" for="map-search">
         Search projects
       </label>
@@ -30,15 +30,35 @@
         </li>
       </ul>
     </div>
-    <div ref="mapContainer" class="min-h-0 flex-1" data-testid="project-map" />
-    <object
-      id="map_svg"
-      ref="svgObject"
-      :data="floorplanUrl"
-      type="image/svg+xml"
-      class="hidden"
-      aria-hidden="true"
-    />
+
+    <div class="project-map-canvas bg-gray-100">
+      <div
+        v-if="floorplanLoading"
+        class="absolute inset-0 z-10 flex items-center justify-center text-sm text-gray-600"
+        data-testid="map-loading"
+      >
+        Loading floor plan...
+      </div>
+      <div
+        v-else-if="loadError"
+        class="absolute inset-0 z-10 flex items-center justify-center px-4 text-center text-sm text-red-700"
+        data-testid="map-load-error"
+      >
+        {{ loadError }}
+      </div>
+      <div
+        v-else-if="mapReady && layers.length === 0"
+        class="pointer-events-none absolute inset-x-0 top-0 z-[500] px-4 py-3 text-sm text-gray-500"
+        data-testid="map-empty"
+      >
+        No projects with table assignments are available on this map yet.
+      </div>
+      <div
+        ref="mapContainer"
+        class="absolute inset-0 z-0"
+        data-testid="project-map"
+      />
+    </div>
   </div>
 </template>
 
@@ -46,25 +66,53 @@
 import type { Map as LeafletMap, LayerGroup, Polygon } from 'leaflet'
 import type { EventguideProject } from '~/types/api'
 import {
-  FLOORPLAN_BOUNDS,
   extractTableBounds,
   mapProjectsToLayers,
 } from '~/composables/useFloorplanMap'
+import { resolveFloorplanUrl } from '~/utils/floorplan'
+import { resolveApiBase } from '~/utils/api-base'
+import {
+  mapHeightFromBounds,
+  readViewBoxBounds,
+  readViewBoxFromSvgText,
+  type LeafletBounds,
+} from '~/utils/viewbox-bounds'
 
 const props = defineProps<{
   projects: EventguideProject[]
   floorplanPath?: string
+  floorplanVersion?: string | null
 }>()
 
+const config = useRuntimeConfig()
 const mapContainer = ref<HTMLElement | null>(null)
-const svgObject = ref<HTMLObjectElement | null>(null)
 const searchQuery = ref('')
+const floorplanBounds = ref<LeafletBounds | null>(null)
+const floorplanLoading = ref(true)
+const mapReady = ref(false)
+const loadError = ref<string | null>(null)
 
 let map: LeafletMap | null = null
 let markersLayer: LayerGroup | null = null
+let floorplanObjectUrl: string | null = null
 const polygonByTable = new Map<number, Polygon>()
 
-const floorplanUrl = computed(() => `/${props.floorplanPath || 'map.svg'}`)
+function revokeFloorplanObjectUrl() {
+  if (floorplanObjectUrl) {
+    URL.revokeObjectURL(floorplanObjectUrl)
+    floorplanObjectUrl = null
+  }
+}
+
+const floorplanUrl = computed(() =>
+  resolveFloorplanUrl(
+    props.floorplanPath,
+    resolveApiBase(config.public.apiBaseURL as string),
+    props.floorplanVersion,
+  ),
+)
+
+const tableBounds = ref<Record<number, import('~/composables/useFloorplanMap').TableBounds> | null>(null)
 
 const layers = computed(() => {
   if (!tableBounds.value) {
@@ -82,8 +130,6 @@ const filteredLayers = computed(() => {
     layer.searchLabel.toLowerCase().includes(query),
   )
 })
-
-const tableBounds = ref<Record<number, import('~/composables/useFloorplanMap').TableBounds> | null>(null)
 
 function buildPopupHtml(project: EventguideProject, title: string): string {
   const participants = project.participants
@@ -119,30 +165,13 @@ function focusLayer(tableNumber: number) {
   searchQuery.value = ''
 }
 
-async function initMap() {
-  if (!import.meta.client || !mapContainer.value) {
+function renderProjectLayers(leaflet: typeof import('leaflet')) {
+  if (!map || !markersLayer) {
     return
   }
 
-  const leaflet = await import('leaflet')
-  await import('leaflet/dist/leaflet.css')
-
-  if (map) {
-    map.remove()
-    map = null
-    markersLayer = null
-    polygonByTable.clear()
-  }
-
-  map = leaflet.map(mapContainer.value, {
-    crs: leaflet.CRS.Simple,
-    minZoom: -2,
-    maxZoom: 20,
-  })
-
-  leaflet.imageOverlay(floorplanUrl.value, FLOORPLAN_BOUNDS).addTo(map)
-  markersLayer = leaflet.featureGroup().addTo(map)
-  map.fitBounds(FLOORPLAN_BOUNDS)
+  markersLayer.clearLayers()
+  polygonByTable.clear()
 
   for (const layer of layers.value) {
     const coord: [number, number][] = [
@@ -164,41 +193,128 @@ async function initMap() {
   }
 }
 
-function loadTableBoundsFromSvg() {
-  const object = svgObject.value
-  const svgDocument = object?.contentDocument
-  if (!svgDocument) {
+async function initMap(svgText: string) {
+  if (!import.meta.client || !mapContainer.value || !floorplanBounds.value) {
     return
   }
 
-  tableBounds.value = extractTableBounds(svgDocument, FLOORPLAN_BOUNDS[1][0])
-  void initMap()
+  try {
+    await nextTick()
+
+    const leaflet = await import('leaflet')
+    await import('leaflet/dist/leaflet.css')
+
+    if (map) {
+      map.remove()
+      map = null
+      markersLayer = null
+      polygonByTable.clear()
+    }
+
+    revokeFloorplanObjectUrl()
+    floorplanObjectUrl = URL.createObjectURL(
+      new Blob([svgText], { type: 'image/svg+xml' }),
+    )
+
+    map = leaflet.map(mapContainer.value, {
+      crs: leaflet.CRS.Simple,
+      minZoom: -2,
+      maxZoom: 20,
+    })
+
+    leaflet.imageOverlay(floorplanObjectUrl, floorplanBounds.value).addTo(map)
+    markersLayer = leaflet.featureGroup().addTo(map)
+    map.fitBounds(floorplanBounds.value)
+    renderProjectLayers(leaflet)
+
+    await nextTick()
+    map.invalidateSize()
+    requestAnimationFrame(() => map?.invalidateSize())
+
+    mapReady.value = true
+    floorplanLoading.value = false
+    loadError.value = null
+  }
+  catch (error: unknown) {
+    loadError.value = error instanceof Error ? error.message : 'Map could not be initialized.'
+    floorplanLoading.value = false
+  }
+}
+
+async function loadFloorplan() {
+  mapReady.value = false
+  loadError.value = null
+  floorplanLoading.value = true
+  tableBounds.value = null
+  floorplanBounds.value = null
+  revokeFloorplanObjectUrl()
+
+  try {
+    const response = await fetch(floorplanUrl.value, { cache: 'no-store' })
+    if (!response.ok) {
+      throw new Error(`Floor plan could not be loaded (${response.status}).`)
+    }
+
+    const svgText = await response.text()
+    if (!svgText.includes('<svg')) {
+      throw new Error('Floor plan response was not a valid SVG.')
+    }
+
+    floorplanBounds.value = readViewBoxFromSvgText(svgText)
+    if (!floorplanBounds.value) {
+      const svgDocument = new DOMParser().parseFromString(svgText, 'image/svg+xml')
+      const svg = svgDocument.querySelector('svg')
+      if (svg) {
+        floorplanBounds.value = readViewBoxBounds(svg)
+      }
+    }
+
+    if (!floorplanBounds.value) {
+      throw new Error('Floor plan SVG is missing a viewBox.')
+    }
+
+    try {
+      const svgDocument = new DOMParser().parseFromString(svgText, 'image/svg+xml')
+      tableBounds.value = extractTableBounds(
+        svgDocument,
+        mapHeightFromBounds(floorplanBounds.value),
+      )
+    }
+    catch {
+      tableBounds.value = {}
+    }
+
+    await initMap(svgText)
+  }
+  catch (error: unknown) {
+    loadError.value = error instanceof Error ? error.message : 'Floor plan could not be loaded.'
+    floorplanLoading.value = false
+    revokeFloorplanObjectUrl()
+  }
 }
 
 onMounted(() => {
-  const object = svgObject.value
-  if (!object) {
-    return
-  }
-
-  if (object.contentDocument) {
-    loadTableBoundsFromSvg()
-  }
-  else {
-    object.addEventListener('load', loadTableBoundsFromSvg)
-  }
+  void loadFloorplan()
 })
 
 watch(
-  () => [props.projects, props.floorplanPath, tableBounds.value],
-  () => {
-    if (tableBounds.value) {
-      void initMap()
+  () => [props.projects, tableBounds.value],
+  async () => {
+    if (!map || !tableBounds.value) {
+      return
     }
+
+    const leaflet = await import('leaflet')
+    renderProjectLayers(leaflet)
   },
 )
 
+watch(floorplanUrl, () => {
+  void loadFloorplan()
+})
+
 onBeforeUnmount(() => {
+  revokeFloorplanObjectUrl()
   map?.remove()
 })
 </script>

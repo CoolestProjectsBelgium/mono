@@ -3,6 +3,7 @@ export interface EventguideEvent {
   title: string
   officialStartDate: string
   floorplanPath: string
+  floorplanVersion: string | null
 }
 
 export interface EventguideProject {

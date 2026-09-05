@@ -7,11 +7,12 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "npx tsc -p ./tsconfig.build.json",
+    "build": "npx tsc -p ./tsconfig.build.json && node -e \"require('node:fs').cpSync('src/seeder/fixtures','dist/seeder/fixtures',{recursive:true})\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "seed-db": "node ./dist/cli event:init",
-    "seed-voting": "node ./dist/cli event:seed-voting"
+    "seed-voting": "node ./dist/cli event:seed-voting",
+    "seed-pictures": "node ./dist/cli event:seed-pictures"
   },
   "author": "",
   "license": "ISC",

@@ -44,7 +44,7 @@ Sequelize models registered in `apps/admin/src/database.ts` must include every a
 
 **Custom screen:** register an AdminJS `pages` (or `dashboard`) entry with a `ComponentLoader` component and a server `handler`. The handler runs in Node and may use Sequelize + `context.currentAdmin`. The `.tsx` file runs in the AdminJS bundle: import UI from `@adminjs/design-system`, data via `ApiClient` from `adminjs`, and `import type` from the handler only. Recharts must be imported from `recharts/es6/...` (not the package barrel) or dest Rollup pulls CJS and crashes.
 
-Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables, **EmailTemplates**. Login is an override (`componentLoader.override('Login', …)`), not a page.
+Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables, **EmailTemplates**, **Floorplans**. Login is an override (`componentLoader.override('Login', …)`), not a page.
 
 ## Key resources
 
@@ -71,6 +71,8 @@ not pull the CJS `lib/` graph that crashes the dest bundle.
 
 The `Tables` page supports selecting two tables and swapping their project assignments while keeping assignments scoped
 to the selected event.
+
+The **Floorplans** page (`apps/admin/src/components/floorplans/`) lists SVG files in `UPLOAD_ROOT/floorplans/` (upload time from file `mtime`), uploads raw Visio SVG exports (auto-processed to `table_XX` groups with blink CSS injected **after** table ID assignment), and sets `Event.floorplanPath` for the logged-in event on upload. Upload rejects SVGs when processing would corrupt markup. After changing `process-visio-svg.ts`, restart the admin dev server (`prestart:dev` runs `npm run build`). If uploads still corrupt the SVG (table IDs inside `x`/`y` attributes), kill **all** stale `tsx watch src/index.ts` admin processes in the Dev Container (`node apps/admin/scripts/kill-all-admin.mjs`) before starting a single fresh instance — repeated restarts without killing orphans can leave an old processor bound to port 3000. Judges cannot access this page.
 
 The **EmailTemplates** page (`apps/admin/src/components/email-templates/`) lets staff pick a mail template slug and
 language (`nl` / `en` / `fr`) for the logged-in event, edit subject + HTML + plain text, preview with Handlebars dummy

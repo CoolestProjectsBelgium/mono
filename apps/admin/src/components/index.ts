@@ -4,6 +4,7 @@ import { Handler as PictureHandler } from './pictures/handler.js'
 import { Handler as VotingHandler } from './voting/handler.js'
 import { Handler as TablesHandler } from './tables/handler.js'
 import { Handler as EmailTemplatesHandler } from './email-templates/handler.js'
+import { Handler as FloorplansHandler } from './floorplans/handler.js'
 
 const Handlers = {
   Dashboard: DashboardHandler,
@@ -11,6 +12,7 @@ const Handlers = {
   VotingOverview: VotingHandler,
   Tables: TablesHandler,
   EmailTemplates: EmailTemplatesHandler,
+  Floorplans: FloorplansHandler,
 }
 
 export { Handlers }

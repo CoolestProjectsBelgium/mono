@@ -5,6 +5,8 @@ export class EventguideEventDto {
   title!: string;
   officialStartDate!: string;
   floorplanPath!: string;
+  /** File mtime (ms) used to bust browser caches after admin re-uploads. */
+  floorplanVersion!: string | null;
 }
 
 export class EventguideProjectDto {

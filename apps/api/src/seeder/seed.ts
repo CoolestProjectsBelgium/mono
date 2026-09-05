@@ -1,11 +1,13 @@
 import { Affiliation, Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
+import type { CreationAttributes } from 'sequelize';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import { loadSeedDojoNames } from './load-seed-dojos';
 import {
   assignProjectsToEventTables,
   VOTING_TEST_PROJECTS,
 } from './seed-voting-fixtures';
-import * as path from 'path';
+import { SEED_FLOORPLAN_FILENAME, seedFloorplan } from './seed-floorplan';
+import { seedProjectPictures } from './seed-project-pictures';
 import { randomUUID } from 'crypto';
 
 export async function seedDatabase(
@@ -55,7 +57,7 @@ export async function seedDatabase(
   votingEndDate.setDate(new Date().getDate() + 30);
 
   const event = await eventModel.create({
-    floorplanPath: 'floorplan_active.svg',
+    floorplanPath: SEED_FLOORPLAN_FILENAME,
     minAge: 7,
     maxAge: 18,
     minGuardianAge: 16,
@@ -955,9 +957,12 @@ export async function seedDatabase(
     { eventId: event.id, isOwner: false, projectId: projects[0].id, userId: users[1].id, voucherGuid: '1' },
     { eventId: event.id, isOwner: true, projectId: projects[1].id, userId: users[2].id },
     { eventId: event.id, isOwner: true, projectId: projects[2].id, userId: users[3].id },
-    { eventId: event.id, isOwner: true, projectId: projects[3].id, userId: users[4].id, deletedAt: new Date() },
-    { eventId: event.id, isOwner: false, projectId: projects[3].id, voucherGuid: '2' },
-    { eventId: event.id, isOwner: false, projectId: projects[3].id, voucherGuid: '3' },
+    { eventId: event.id, isOwner: true, projectId: projects[3].id, userId: users[4].id },
+    { eventId: event.id, isOwner: true, projectId: projects[4].id, userId: users[0].id },
+    { eventId: event.id, isOwner: true, projectId: projects[5].id, userId: users[2].id },
+    { eventId: event.id, isOwner: true, projectId: projects[6].id, userId: users[4].id, deletedAt: new Date() },
+    { eventId: event.id, isOwner: false, projectId: projects[6].id, voucherGuid: '2' },
+    { eventId: event.id, isOwner: false, projectId: projects[6].id, voucherGuid: '3' },
   ])
 
   await questionUserModel.bulkCreate([
@@ -966,11 +971,11 @@ export async function seedDatabase(
       userId: user.id,
       questionId: questions[2].id,
     })),
-    {
+    ...users.map((user) => ({
       eventId: event.id,
-      userId: users[0].id,
+      userId: user.id,
       questionId: questions[0].id,
-    },
+    })),
     {
       eventId: event.id,
       userId: users[1].id,
@@ -978,12 +983,18 @@ export async function seedDatabase(
     },
   ])
 
-  await attachmentModel.bulkCreate([
-    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '1.png'), name: 'attachment 1', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_1.png') },
-    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '2.png'), name: 'attachment 2', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_2.png'), confirmed: true },
-    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '3.png'), name: 'attachment 3', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_3.png'), internal: true },
-    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '4.png'), name: 'attachment 4', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_4.png') },
-    { eventId: event.id, projectId: projects[0].id, filepath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, '5.png'), name: 'attachment 5', mimetype: 'image/png', thumbnailPath: path.join(process.env.UPLOAD_ROOT!, event.folderName, `project_${projects[0].id}`, 'thumbnail_5.png') }
-  ])
-/**/
+  if (process.env.UPLOAD_ROOT) {
+    const projectAttachments = await seedProjectPictures(
+      process.env.UPLOAD_ROOT,
+      event.folderName,
+      event.id,
+      projects,
+    );
+    if (projectAttachments.length > 0) {
+      await attachmentModel.bulkCreate(
+        projectAttachments as unknown as CreationAttributes<Attachment>[],
+      );
+    }
+    await seedFloorplan(process.env.UPLOAD_ROOT);
+  }
 }

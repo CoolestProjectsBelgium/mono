@@ -92,6 +92,7 @@ describe('EventguideService', () => {
     const result = await service.getProjects(1);
 
     expect(result.event.title).toBe('Coolest Projects');
+    expect(result.event.floorplanPath).toBe('eventguide/floorplans/floorplan_active.svg');
     expect(result.projects).toHaveLength(1);
     expect(result.projects[0]).toMatchObject({
       id: 5,

@@ -32,6 +32,7 @@ Local URL (via proxy): `https://eventguide.coolestprojects.localhost:8443`
 - `apps/api` — `EventguideController` at `/eventguide/*` (public, no auth):
   - `GET /eventguide/projects` — current active event (via `InfoInterceptor`)
   - `GET /eventguide/events/:eventId/projects` — explicit event (including past events)
+  - `GET /eventguide/floorplans/:filename` — processed floor plan SVG from `UPLOAD_ROOT/floorplans/`
   - `GET /eventguide/attachments/:attachmentId/thumbnail` — confirmed project photo (photo consent required)
 - API base: `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`). On `https://eventguide.coolestprojects.localhost:8443` dev, Nitro proxies `/eventguide/**` → port 3001.
 - Does not import `@coolestprojects/database` directly
@@ -49,7 +50,9 @@ Fetches `EventguideProjectsResponse` (`event` metadata + `projects[]`). Projects
 
 ### Map view
 
-Leaflet renders `public/map.svg` (or `Event.floorplanPath`) with searchable table polygons. Clicking a table opens a popup with project details. Search filters by project name or participant names.
+Leaflet loads the active floor plan from `GET /eventguide/floorplans/:filename` (path returned as `event.floorplanPath`, e.g. `eventguide/floorplans/cp2025_zaal.svg`). The API also returns `event.floorplanVersion` (file mtime) so the map can append `?v=` and avoid stale browser caches after an admin re-upload overwrites the same filename.
+
+Staff upload Visio SVG exports via Admin → **Floor plans**; uploads are auto-processed into `table_XX` groups and stored under `UPLOAD_ROOT/floorplans/`.
 
 ### Photo consent
 

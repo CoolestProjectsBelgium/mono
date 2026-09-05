@@ -22,6 +22,7 @@ Central NestJS HTTP API for Coolest Projects. Serves registration, login, projec
 | `npm run start:dev --workspace=apps/api` | Dev server (port 3001) |
 | `npm run seed-db --workspace=apps/api` | Seed DB via `event:init` CLI |
 | `npm run seed-voting --workspace=apps/api` | Ensure jury voting test projects (links projects to event tables; runs full seed if DB is empty) |
+| `npm run seed-pictures --workspace=apps/api` | Add confirmed project photo attachments for the active event (`event:seed-pictures`; idempotent when attachments already exist) |
 
 Local URL (via proxy): `https://api.coolestprojects.localhost:8443`
 
@@ -93,15 +94,18 @@ Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](.
 
 Dev seed data (`apps/api/src/seeder/seed-voting-fixtures.ts`): six table-linked projects across `en` / `nl` / `fr` (e.g. Line Following Robot, Slimme Kas, Station Météo Junior). Projects must be assigned to an `EventTable` row or `GET /projects` returns `finished`. Vote categories are jury-only (`public: false`). Re-apply fixtures with `npm run seed-voting --workspace=apps/api` (clears existing votes for the `jury` account).
 
+When `UPLOAD_ROOT` is set, `seedDatabase` also copies fixture PNGs from `apps/api/src/seeder/fixtures/project-images/` into per-project upload folders, creates confirmed `Attachment` rows, and seeds “Agree to Photo” consent for all users so event guide thumbnails appear. Re-apply pictures on an existing DB with `npm run seed-pictures --workspace=apps/api`. The API `build` script copies `src/seeder/fixtures/` into `dist/seeder/fixtures/` (required for `seed-db` from compiled output).
+
 ### Event guide
 
 Public read-only routes on `EventguideController` (no auth):
 
 - `GET /eventguide/projects` — projects for the active event (`InfoInterceptor.currentEvent`)
 - `GET /eventguide/events/:eventId/projects` — projects for a specific event (including past events)
+- `GET /eventguide/floorplans/:filename` — floor plan SVG from `UPLOAD_ROOT/floorplans/` (filename sanitized; no path traversal)
 - `GET /eventguide/attachments/:attachmentId/thumbnail` — confirmed attachment thumbnail when all participants agreed to photo
 
-Response shape: `{ event: { id, title, officialStartDate, floorplanPath }, projects: [...] }` (`EventguideProjectsResponseDto`). Projects include table number (parsed from `EventTable.name`), participants, `agreedToPhoto`, and optional `thumbnailUrl`.
+Response shape: `{ event: { id, title, officialStartDate, floorplanPath }, projects: [...] }` (`EventguideProjectsResponseDto`). `floorplanPath` is API-relative (e.g. `eventguide/floorplans/cp2025_zaal.svg`). `Event.floorplanPath` in the database stores the bare filename.
 
 ### Shared reads
 

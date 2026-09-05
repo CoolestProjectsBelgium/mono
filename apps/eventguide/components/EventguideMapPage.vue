@@ -12,15 +12,13 @@
 
   </div>
 
-  <ProjectMap
-
-    v-else-if="data"
-
-    :projects="data.projects"
-
-    :floorplan-path="data.event.floorplanPath"
-
-  />
+  <div v-else-if="data" class="h-full min-h-0">
+    <ProjectMap
+      :projects="data.projects"
+      :floorplan-path="data.event.floorplanPath"
+      :floorplan-version="data.event.floorplanVersion"
+    />
+  </div>
 
 </template>
 

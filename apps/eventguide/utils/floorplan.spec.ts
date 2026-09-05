@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { parseTableNumber, buildProjectSearchLabel, projectsForMap } from '~/utils/floorplan'
+import { describe, expect, it, vi } from 'vitest'
+import { parseTableNumber, buildProjectSearchLabel, projectsForMap, resolveFloorplanUrl } from '~/utils/floorplan'
 
 describe('floorplan utils', () => {
   it('parses table numbers', () => {
@@ -17,5 +17,27 @@ describe('floorplan utils', () => {
       { tableNumber: null },
     ]
     expect(projectsForMap(projects)).toEqual([{ tableNumber: 1 }])
+  })
+
+  it('resolves floor plan URLs against the API base', () => {
+    expect(resolveFloorplanUrl('eventguide/floorplans/cp2025_zaal.svg', 'https://api.example.com'))
+      .toBe('https://api.example.com/eventguide/floorplans/cp2025_zaal.svg')
+    expect(resolveFloorplanUrl('eventguide/floorplans/cp2025_zaal.svg', 'https://api.example.com', '123'))
+      .toBe('https://api.example.com/eventguide/floorplans/cp2025_zaal.svg?v=123')
+  })
+
+  it('uses a same-origin relative path on the eventguide host', () => {
+    vi.stubGlobal('window', {
+      location: {
+        hostname: 'eventguide.coolestprojects.localhost',
+      },
+    })
+
+    expect(resolveFloorplanUrl('eventguide/floorplans/cp2025_zaal.svg', 'https://api.example.com'))
+      .toBe('/eventguide/floorplans/cp2025_zaal.svg')
+    expect(resolveFloorplanUrl('eventguide/floorplans/cp2025_zaal.svg', 'https://api.example.com', '456'))
+      .toBe('/eventguide/floorplans/cp2025_zaal.svg?v=456')
+
+    vi.unstubAllGlobals()
   })
 })

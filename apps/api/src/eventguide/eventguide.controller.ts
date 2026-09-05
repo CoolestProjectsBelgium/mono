@@ -32,6 +32,16 @@ export class EventguideController {
     return this.eventguideService.getProjects(eventId);
   }
 
+  @Get('floorplans/:filename')
+  async getFloorplan(
+    @Param('filename') filename: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const file = await this.eventguideService.getFloorplan(filename);
+    res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
+    return file;
+  }
+
   @Get('attachments/:attachmentId/thumbnail')
   async getAttachmentThumbnail(
     @Param('attachmentId', ParseIntPipe) attachmentId: number,

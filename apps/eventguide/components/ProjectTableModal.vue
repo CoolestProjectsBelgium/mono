@@ -28,6 +28,9 @@
 </template>
 
 <script setup lang="ts">
+import { resolveFloorplanUrl } from '~/utils/floorplan'
+import { resolveApiBase } from '~/utils/api-base'
+
 const props = defineProps<{
   open: boolean
   tableNumber: number | null
@@ -39,6 +42,7 @@ defineEmits<{
   close: []
 }>()
 
+const config = useRuntimeConfig()
 const svgHost = ref<HTMLElement | null>(null)
 
 async function renderHighlightedSvg() {
@@ -46,7 +50,11 @@ async function renderHighlightedSvg() {
     return
   }
 
-  const response = await fetch(`/${props.floorplanPath || 'map.svg'}`)
+  const floorplanUrl = resolveFloorplanUrl(
+    props.floorplanPath,
+    resolveApiBase(config.public.apiBaseURL as string),
+  )
+  const response = await fetch(floorplanUrl)
   const svgText = await response.text()
   svgHost.value.innerHTML = svgText
 
@@ -55,7 +63,7 @@ async function renderHighlightedSvg() {
     ?? svgHost.value.querySelector(`#table_${props.tableNumber}`)
 
   if (tableGroup instanceof SVGElement) {
-    tableGroup.style.animation = 'table-blink 1s ease-in-out infinite alternate'
+    tableGroup.classList.add('table-highlight')
   }
 }
 
@@ -72,5 +80,9 @@ watch(
 @keyframes table-blink {
   from { opacity: 1; }
   to { opacity: 0.35; }
+}
+
+:deep(.table-highlight) {
+  animation: table-blink 1s ease-in-out infinite alternate;
 }
 </style>

@@ -13,7 +13,7 @@ export class ApiError extends Error {
 
 export function useApiClient() {
   const config = useRuntimeConfig()
-  const apiBase = resolveApiBase(config.public.apiBaseURL as string)
+  const apiBase = computed(() => resolveApiBase(config.public.apiBaseURL as string))
 
   async function apiFetch<T>(
     path: string,
@@ -21,7 +21,7 @@ export function useApiClient() {
   ): Promise<T> {
     try {
       return await $fetch<T>(path, {
-        baseURL: apiBase,
+        baseURL: apiBase.value,
         ...options,
         headers: {
           Accept: 'application/json',
