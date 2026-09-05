@@ -32,4 +32,8 @@ export class EmailTemplate extends BaseEventModel {
 
   @Column(DataType.TEXT)
   declare contentRich: string;
+
+  @Column
+  declare contextId: string;
+  
 }

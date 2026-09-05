@@ -18,6 +18,7 @@ import {
   registrationAppUrl,
   registrationWebsiteUrl,
 } from './mail-context';
+import { deprecate } from 'util';
 
 @Injectable()
 export class MailerService {
@@ -60,7 +61,11 @@ export class MailerService {
     };
   }
 
-  private buildUserMailContext(
+  public buildMailContext(identifier?: number, template: string, token?: string): void {
+    
+  }
+  
+  public buildUserMailContext(
     user: User,
     event: Event,
     token: string,
