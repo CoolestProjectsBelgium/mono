@@ -6,5 +6,12 @@
   "workspaceFolder": "/workspace",
   "service": "workspace",
   "postCreateCommand": "npm install",
-  "postStartCommand": ".devcontainer/start.sh"
+  "postStartCommand": ".devcontainer/start.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar"
+      ]
+    }
+  }
 }
