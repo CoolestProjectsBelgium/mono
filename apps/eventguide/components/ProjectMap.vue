@@ -66,6 +66,7 @@
 import type { Map as LeafletMap, LayerGroup, Polygon } from 'leaflet'
 import type { EventguideProject } from '~/types/api'
 import {
+  applyViewBoxAsPixelSize,
   extractTableBounds,
   mapProjectsToLayers,
 } from '~/composables/useFloorplanMap'
@@ -260,13 +261,15 @@ async function loadFloorplan() {
       throw new Error('Floor plan response was not a valid SVG.')
     }
 
+    const svgDocument = new DOMParser().parseFromString(svgText, 'image/svg+xml')
+    const svg = svgDocument.querySelector('svg')
+    if (svg) {
+      applyViewBoxAsPixelSize(svg)
+    }
+
     floorplanBounds.value = readViewBoxFromSvgText(svgText)
-    if (!floorplanBounds.value) {
-      const svgDocument = new DOMParser().parseFromString(svgText, 'image/svg+xml')
-      const svg = svgDocument.querySelector('svg')
-      if (svg) {
-        floorplanBounds.value = readViewBoxBounds(svg)
-      }
+    if (!floorplanBounds.value && svg) {
+      floorplanBounds.value = readViewBoxBounds(svg)
     }
 
     if (!floorplanBounds.value) {
@@ -274,7 +277,6 @@ async function loadFloorplan() {
     }
 
     try {
-      const svgDocument = new DOMParser().parseFromString(svgText, 'image/svg+xml')
       tableBounds.value = extractTableBounds(
         svgDocument,
         mapHeightFromBounds(floorplanBounds.value),
@@ -284,7 +286,10 @@ async function loadFloorplan() {
       tableBounds.value = {}
     }
 
-    await initMap(svgText)
+    const overlaySvgText = svg
+      ? new XMLSerializer().serializeToString(svgDocument)
+      : svgText
+    await initMap(overlaySvgText)
   }
   catch (error: unknown) {
     loadError.value = error instanceof Error ? error.message : 'Floor plan could not be loaded.'

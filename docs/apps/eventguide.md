@@ -52,7 +52,7 @@ Fetches `EventguideProjectsResponse` (`event` metadata + `projects[]`). Projects
 
 Leaflet loads the active floor plan from `GET /eventguide/floorplans/:filename` (path returned as `event.floorplanPath`, e.g. `eventguide/floorplans/cp2025_zaal.svg`). The API also returns `event.floorplanVersion` (file mtime) so the map can append `?v=` and avoid stale browser caches after an admin re-upload overwrites the same filename.
 
-Staff upload Visio SVG exports via Admin → **Floor plans**; uploads are auto-processed into `table_XX` groups and stored under `UPLOAD_ROOT/floorplans/`.
+Staff upload Visio SVG exports via Admin → **Floor plans**; uploads are auto-processed into `table_XX` groups and stored under `UPLOAD_ROOT/floorplans/`. Clickable table polygons are measured from each `table_XX` group's geometry in SVG viewBox units (text labels are ignored; Visio `width`/`height` in inches is not used for hit-testing).
 
 ### Photo consent
 

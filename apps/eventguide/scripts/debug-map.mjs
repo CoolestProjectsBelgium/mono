@@ -49,6 +49,21 @@ const state = await page.evaluate(() => {
   const leafletRect = leaflet?.getBoundingClientRect();
   const img = document.querySelector('.leaflet-image-layer img');
   const overlay = document.querySelector('.leaflet-image-layer');
+  const imageRect = (img ?? overlay)?.getBoundingClientRect();
+  const polygonRects = [...polygons].slice(0, 8).map((el) => {
+    const rect = el.getBoundingClientRect();
+    const overlap = imageRect
+      ? Math.max(0, Math.min(rect.right, imageRect.right) - Math.max(rect.left, imageRect.left))
+        * Math.max(0, Math.min(rect.bottom, imageRect.bottom) - Math.max(rect.top, imageRect.top))
+      : 0;
+    return {
+      left: Math.round(rect.left),
+      top: Math.round(rect.top),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+      overlapsImage: overlap > 0,
+    };
+  });
   return {
     mapExists: Boolean(mapEl),
     mapWidth: mapRect?.width ?? 0,
@@ -63,7 +78,16 @@ const state = await page.evaluate(() => {
     imageLayerCount: tiles.length,
     imageSrc: img?.src ?? overlay?.querySelector('img')?.src ?? null,
     imageUsesBlob: Boolean(img?.src?.startsWith('blob:') ?? overlay?.innerHTML?.includes('blob:')),
+    imageRect: imageRect
+      ? {
+          left: Math.round(imageRect.left),
+          top: Math.round(imageRect.top),
+          width: Math.round(imageRect.width),
+          height: Math.round(imageRect.height),
+        }
+      : null,
     polygonCount: polygons.length,
+    polygonRects,
     title: document.title,
   };
 });
