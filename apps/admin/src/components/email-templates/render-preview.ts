@@ -11,6 +11,7 @@ export interface PreviewInput {
   contentRich: string;
   contentPlain: string;
   guardianEmail: boolean;
+  context?: Record<string, unknown>;
 }
 
 export function buildDummyContext(guardianEmail: boolean): Record<string, unknown> {
@@ -39,7 +40,7 @@ export function buildDummyContext(guardianEmail: boolean): Record<string, unknow
 }
 
 export function renderPreview(input: PreviewInput): PreviewResult {
-  const context = buildDummyContext(input.guardianEmail);
+  const context = input.context ?? buildDummyContext(input.guardianEmail);
 
   try {
     const subject = Handlebars.compile(input.subject)(context);

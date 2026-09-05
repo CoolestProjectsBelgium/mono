@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   assertNotJudge,
+  buildRecordContext,
   buildLoadKey,
+  getContextRecordType,
   normalizeSavePayload,
 } from './handler-helpers.js';
 
@@ -32,5 +34,14 @@ test('normalizeSavePayload rejects unsupported language', () => {
   assert.throws(
     () => normalizeSavePayload({ template: 'registration', language: 'de' }),
     /Unsupported language/,
+  );
+});
+
+test('context records use the same root keys as the mailer', () => {
+  assert.equal(getContextRecordType('registration'), 'registration');
+  assert.equal(getContextRecordType('welcomeOwner'), 'user');
+  assert.deepEqual(
+    buildRecordContext('registration', { firstname: 'Jan' }),
+    { registration: { firstname: 'Jan' } },
   );
 });

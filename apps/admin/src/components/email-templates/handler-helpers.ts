@@ -21,6 +21,27 @@ export interface SavePayload {
   contentPlain: string;
 }
 
+export type ContextRecordType = 'user' | 'registration';
+
+const REGISTRATION_CONTEXT_TEMPLATES = new Set([
+  'registration',
+  'waiting',
+  'delete',
+  'activation',
+  'notifyNewProjectOwner',
+]);
+
+export function getContextRecordType(template: string): ContextRecordType {
+  return REGISTRATION_CONTEXT_TEMPLATES.has(template) ? 'registration' : 'user';
+}
+
+export function buildRecordContext(
+  recordType: ContextRecordType,
+  record: Record<string, unknown>,
+): Record<string, unknown> {
+  return { [recordType]: record };
+}
+
 export function buildLoadKey(
   eventId: number,
   template: string,
