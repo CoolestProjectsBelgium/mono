@@ -30,6 +30,8 @@ import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
 import { EmailLog } from '@coolestprojects/database';
 import { AdminAuthenticationService } from './auth/adminauth.service'
+import { AdminController } from './admin/admin.controller';
+import { AdminService } from './admin/admin.service';
 
 import configuration from './config/configuration.js';
 
@@ -121,6 +123,7 @@ import configuration from './config/configuration.js';
     VotingController,
     EventguideController,
     PresentationController,
+    AdminController,
   ],
   providers: [
     { provide: 'APP_INTERCEPTOR', useClass: InfoInterceptor },
@@ -138,7 +141,8 @@ import configuration from './config/configuration.js';
     EventguideService,
     UserinfoService,
     UserCookieInterceptor,
-    AdminAuthenticationService
+    AdminAuthenticationService,
+    AdminService,
   ],
   exports: [],
 })

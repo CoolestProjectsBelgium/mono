@@ -107,6 +107,16 @@ Public read-only routes on `EventguideController` (no auth):
 
 Response shape: `{ event: { id, title, officialStartDate, floorplanPath }, projects: [...] }` (`EventguideProjectsResponseDto`). `floorplanPath` is API-relative (e.g. `eventguide/floorplans/cp2025_zaal.svg`). `Event.floorplanPath` in the database stores the bare filename.
 
+### Admin floorplans
+
+Staff-only routes on `AdminController` (`AuthGuard('mandatory-admin-cookie')` — signed `adminjs` session cookie):
+
+- `GET /admin/floorplans` — list SVG files in `UPLOAD_ROOT/floorplans/` for the logged-in event (includes `isActive` from `Event.floorplanPath`)
+- `POST /admin/floorplans` — upload and process a Visio SVG (`{ svgContent, originalName }`); writes to API disk and sets active floor plan for the event
+- `POST /admin/floorplans/:filename/activate` — set `Event.floorplanPath` to an existing uploaded file
+
+The AdminJS Floorplans page handler proxies these endpoints server-side. Visio processing lives in `apps/api/src/eventguide/process-visio-svg.ts`.
+
 ### Shared reads
 
 `GET /tshirts`, `GET /questions`, `GET /dojos`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /dojos` returns event-scoped `Affiliation` names (CoderDojo catalog). `GET /settings` includes `maxAttachments` (currently 10; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.

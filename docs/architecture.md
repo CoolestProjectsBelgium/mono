@@ -77,12 +77,14 @@ Public marketing site `coolestprojects.be` is still Telenet/Hostbasket; the curr
 
 | Role | Components |
 |------|------------|
-| API / Admin | Node 24 (`api-dev`/`api-prod`, `admin-dev`/`admin-prod`) |
+| API / Admin | Node 24 on **separate hosts** (`api-dev`/`api-prod`, `admin-dev`/`admin-prod`) — they do not share a filesystem |
 | Static SPAs | `phplegacy` paths under `public_html/{registration,voting,eventguide}` |
 | Database | MySQL 8.4 `db-dev` / `db-prod` |
 | Mail | Mailpit (`mail-dev`) and mail (`mail-prod`) |
 
 Publish with [build-tools.md](build-tools.md) (`build_tools/`). Infra inventory lives in the sibling OpenTofu repo; this monorepo only ships artifacts.
+
+**File storage:** uploaded binaries (project photos, floor plan SVGs) live on the **API** server under `UPLOAD_ROOT`. AdminJS reads/writes file metadata in MySQL and proxies floorplan uploads through Nest; it must not read or write `UPLOAD_ROOT` locally in production.
 
 ## Unknowns
 

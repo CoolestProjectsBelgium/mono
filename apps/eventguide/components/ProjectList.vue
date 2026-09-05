@@ -49,7 +49,7 @@
           type="button"
           class="btn-secondary mt-4"
           data-testid="show-table-map"
-          @click="$emit('show-table', project)"
+          @click="emit('showTable', project)"
         >
           Show on map
         </button>
@@ -65,7 +65,7 @@ defineProps<{
   projects: EventguideProject[]
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   showTable: [project: EventguideProject]
 }>()
 

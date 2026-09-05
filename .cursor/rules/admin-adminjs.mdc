@@ -34,3 +34,7 @@ Do **not** apply `.agents/skills/nestjs-best-practices` or voting/registration U
 - ESM (`"type": "module"`); local imports use `.js` extensions
 - Register components in `components/loader.ts`; wire handlers in `components/index.ts`
 - Do not commit `.adminjs/` — pack copies `frontend/assets/components.bundle.js`
+
+## Files and uploads
+
+Production runs AdminJS and the API on **separate servers** with no shared disk. Never read or write `UPLOAD_ROOT` from admin handlers. Floorplan uploads go through Nest (`/admin/floorplans*` via `apps/admin/src/api/nest-fetch.ts`). Attachment images load in the browser from `API_BASE_URL` (PictureSelector).

@@ -10,13 +10,16 @@ export function buildEventguideProjectsPath(eventId?: number): string {
 export function useEventguideProjects(eventId?: number) {
   const { apiFetch } = useApiClient()
   const store = useEventguideStore()
+  const cacheKey = eventId ?? 'current'
+  const hasCache = store.matches(cacheKey) && store.data != null
 
-  const pending = ref(true)
+  const pending = ref(!hasCache)
   const error = ref<string | null>(null)
 
   async function fetchProjects(force = false): Promise<EventguideProjectsResponse> {
-    const cacheKey = eventId ?? 'current'
     if (!force && store.matches(cacheKey) && store.data) {
+      pending.value = false
+      error.value = null
       return store.data
     }
 
@@ -42,7 +45,7 @@ export function useEventguideProjects(eventId?: number) {
   return {
     pending: readonly(pending),
     error: readonly(error),
-    data: computed(() => store.data),
+    data: computed(() => (store.matches(cacheKey) ? store.data : null)),
     fetchProjects,
   }
 }

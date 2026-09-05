@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "tsx --test src/components/email-templates/*.spec.ts src/components/floorplans/*.spec.ts",
+    "test": "tsx --test src/components/email-templates/*.spec.ts src/components/floorplans/*.spec.ts src/api/*.spec.ts",
     "start:dev": "tsx watch src/index.ts",
     "prestart:dev": "npm run build",
     "build": "tsc"
