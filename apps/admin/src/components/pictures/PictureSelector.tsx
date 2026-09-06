@@ -12,10 +12,29 @@ import {
     Button,
     Text,
     Title,
-    H2
+    H2,
+    Badge,
+    Icon,
 } from '@adminjs/design-system';
 
-import type { GroupedAttachments, PictureAttachment } from '../pictures/handler.js'
+import type { GroupedAttachments, PictureAttachment, ProjectParticipant } from '../pictures/handler.js'
+
+const ParticipantBadge: React.FC<{ participant: ProjectParticipant }> = ({ participant }) => (
+    <Badge
+        variant={participant.agreedToPhoto ? 'success' : 'danger'}
+        outline={!participant.isOwner}
+        title={[
+            participant.isOwner ? 'Project owner' : 'Participant',
+            participant.agreedToPhoto ? 'agreed to photo' : 'did not agree to photo',
+        ].join(' · ')}
+    >
+        <Box flex alignItems="center" gap="default">
+            {participant.isOwner && <Icon icon="Star" size={14} />}
+            <Icon icon={participant.agreedToPhoto ? 'Camera' : 'CameraOff'} size={14} />
+            <Text as="span">{participant.name || 'Unnamed participant'}</Text>
+        </Box>
+    </Badge>
+);
 
 export const PictureHandlerPage: React.FC = () => {
     const [data, setData] = useState<GroupedAttachments>({});
@@ -47,10 +66,10 @@ export const PictureHandlerPage: React.FC = () => {
     const handleToggle = (projectName: string, id: number, field: 'confirmed' | 'internal') => {
         setSavedId((currentSavedId) => currentSavedId === id ? null : currentSavedId);
         setData((prev) => {
-            const updatedGroup = prev[projectName].map((item) =>
+            const updatedAttachments = prev[projectName].attachments.map((item) =>
                 item.id === id ? { ...item, [field]: !item[field] } : item
             );
-            return { ...prev, [projectName]: updatedGroup };
+            return { ...prev, [projectName]: { ...prev[projectName], attachments: updatedAttachments } };
         });
     };
 
@@ -58,10 +77,13 @@ export const PictureHandlerPage: React.FC = () => {
         setSavedId(null);
         setData((prev) => ({
             ...prev,
-            [projectName]: prev[projectName].map((item) => ({
-                ...item,
-                confirmed: item.id === id,
-            })),
+            [projectName]: {
+                ...prev[projectName],
+                attachments: prev[projectName].attachments.map((item) => ({
+                    ...item,
+                    confirmed: item.id === id,
+                })),
+            },
         }));
     };
 
@@ -70,7 +92,7 @@ export const PictureHandlerPage: React.FC = () => {
         setSavingId(item.id);
         setSavedId(null);
         try {
-            const itemsToSave = item.confirmed ? data[projectName] : [item];
+            const itemsToSave = item.confirmed ? data[projectName].attachments : [item];
             await Promise.all(itemsToSave.map((attachment) => api.recordAction({
                 resourceId: 'Attachments',
                 actionName: 'edit',
@@ -107,9 +129,16 @@ export const PictureHandlerPage: React.FC = () => {
                 Attachments
             </H2>
 
-            {Object.entries(data).map(([projectName, attachments]) => (
+            {Object.entries(data).map(([projectName, { participants, attachments }]) => (
                 <Box key={projectName} mb="xxl" bg="white" p="lg" boxShadow="card">
-                    <Title marginBottom="lg">{projectName}</Title>
+                    <Box flex alignItems="center" flexWrap="wrap" gap="lg" rowGap="default" marginBottom="xl">
+                        <Title mb={0} mr="default">{projectName}</Title>
+                        <Box flex alignItems="center" flexWrap="wrap" gap="lg" rowGap="default">
+                            {participants.map((participant) => (
+                                <ParticipantBadge key={participant.id} participant={participant} />
+                            ))}
+                        </Box>
+                    </Box>
                     {attachments.length === 0 ? (
                         <Text color="grey60">No attachments found for this project.</Text>
                     ) : (
