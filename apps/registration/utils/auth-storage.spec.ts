@@ -4,6 +4,7 @@ import {
   AUTH_STORAGE_KEY,
   hydrateAuthStoreFromStorage,
   isLoggedInFromStorage,
+  isUnauthorizedFetchError,
   normalizeExpires,
   readStoredAuth,
 } from './auth-storage'
@@ -75,5 +76,14 @@ describe('auth-storage', () => {
 
     expect(hydrateAuthStoreFromStorage()).toBe(true)
     expect(useAuthStore().expires).toBe('2099-06-01T00:00:00.000Z')
+  })
+
+  it('isUnauthorizedFetchError is true only for 401', () => {
+    expect(isUnauthorizedFetchError({ statusCode: 401 })).toBe(true)
+    expect(isUnauthorizedFetchError({ status: 401 })).toBe(true)
+    expect(isUnauthorizedFetchError({ statusCode: 500 })).toBe(false)
+    expect(isUnauthorizedFetchError({ statusCode: 404 })).toBe(false)
+    expect(isUnauthorizedFetchError(new Error('network'))).toBe(false)
+    expect(isUnauthorizedFetchError(undefined)).toBe(false)
   })
 })

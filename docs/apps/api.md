@@ -26,7 +26,7 @@ Central NestJS HTTP API for Coolest Projects. Serves registration, login, projec
 
 Local URL (via proxy): `https://api.coolestprojects.localhost:8443`
 
-Security bootstrap ([`apps/api/src/main.ts`](../../apps/api/src/main.ts), [`bootstrap-security.ts`](../../apps/api/src/bootstrap-security.ts)): [Helmet](https://docs.nestjs.com/security/helmet) for HTTP headers; [CORS](https://docs.nestjs.com/security/cors) via `app.enableCors()` when `CORS_ORIGINS` is set (comma-separated registration/voting origins, `credentials: true`). CSRF uses `csrf-csrf` double-submit: `GET /csrf-token` plus `x-csrf-token` on mutating requests. The HMAC is bound to the `anonId` cookie, whose `Domain` comes from `COOKIE_DOMAIN` (not `NODE_ENV`).
+Security bootstrap ([`apps/api/src/main.ts`](../../apps/api/src/main.ts), [`bootstrap-security.ts`](../../apps/api/src/bootstrap-security.ts)): [Helmet](https://docs.nestjs.com/security/helmet) for HTTP headers; [CORS](https://docs.nestjs.com/security/cors) via `app.enableCors()` when `CORS_ORIGINS` is set (comma-separated registration/voting origins, `credentials: true`). CSRF uses `csrf-csrf` double-submit: `GET /csrf-token` plus `x-csrf-token` on mutating requests. The HMAC is bound to the `anonId` cookie, whose `Domain` comes from `COOKIE_DOMAIN` (not `NODE_ENV`). Participant `jwt` uses the same cookie options; responses must not `clearCookie('jwt')` for that live domain in the same `Set-Cookie` list as the new session, or browsers can drop the cookie and the SPA looks logged out.
 
 Key env vars (set in `.devcontainer/docker-compose.yml`): `DB_*`, `JWT_KEY`, `API_PORT`, `API_BASE_URL`, `VOTING_KEY`, `CSRF_SECRET`, `COOKIE_DOMAIN`, `CORS_ORIGINS`, `UPLOAD_ROOT`, `FILE_*`.
 

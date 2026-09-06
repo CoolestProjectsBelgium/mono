@@ -45,6 +45,15 @@ export function isLoggedInFromStorage(): boolean {
   return isStoredAuthLoggedIn(readStoredAuth())
 }
 
+export function isUnauthorizedFetchError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+  const status = (error as { statusCode?: number, status?: number }).statusCode
+    ?? (error as { status?: number }).status
+  return status === 401
+}
+
 function applyStoredAuthToStore(
   authStore: ReturnType<typeof useAuthStore>,
   parsed: StoredAuth,

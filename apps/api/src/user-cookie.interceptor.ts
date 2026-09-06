@@ -44,25 +44,16 @@ export class UserCookieInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: () => {
-          const user = request.user;
-          if (user) {
-            clearLegacyJwtCookies(this.config, response, request);
-            response.cookie(
-              'jwt',
-              this.tokensService.generateLoginToken(user.id),
-              buildAppCookieOptions(this.config, request),
-            );
-            const userId = resolveParticipantUserId(request.user);
-            if (userId === null) {
-              return;
-            }
-            clearLegacyJwtCookies(this.config, response, request);
-            response.cookie(
-              'jwt',
-              this.tokensService.generateLoginToken(userId),
-              buildAppCookieOptions(this.config, request),
-            );
+          const userId = resolveParticipantUserId(request.user);
+          if (userId === null) {
+            return;
           }
+          clearLegacyJwtCookies(this.config, response, request);
+          response.cookie(
+            'jwt',
+            this.tokensService.generateLoginToken(userId),
+            buildAppCookieOptions(this.config, request),
+          );
         }
       }),
     );

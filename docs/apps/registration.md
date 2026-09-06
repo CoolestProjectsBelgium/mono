@@ -27,7 +27,7 @@ Header home link is the Coolest Projects Belgium mark (`public/logo-coolest-proj
 ## Talks to
 
 - `apps/api` at `https://api.coolestprojects.localhost:8443` — `RegistrationController`, `LoginController`, `ProjectinfoController`, `UserinfoController`, `ParticipantController`, `AppController` (`/settings`, catalogs); cross-origin with `credentials: 'include'` (API `CORS_ORIGINS`)
-- Auth: magic-link JWT → signed httpOnly `jwt` cookie (`jwt-cookiecombo`); CSRF via `GET /csrf-token` + `x-csrf-token` on mutating requests
+- Auth: magic-link JWT → signed httpOnly `jwt` cookie (`jwt-cookiecombo`); CSRF via `GET /csrf-token` + `x-csrf-token` on mutating requests. Client `localStorage` (`cp-auth`) is a UI session flag; `auth-verify` clears it only when `GET /userinfo` returns **401**.
 - Affiliation: three radios on `UserForm` (CoderDojo, other organisation, not applicable). Dojo names come from `GET /dojos` (`Affiliation` rows for the current event, without the `Dojo` prefix). Refresh the seed snapshot with `npm run seed:dojos`, then re-run `npm run seed-db --workspace=apps/api` (or edit Affiliations in admin). Stored on `User`/`Registration` as `via_type` + `via` (`via_type` null = not applicable).
 - Attachments: multipart `POST /projectinfo/attachments`, list `GET /projectinfo/attachments`, delete `DELETE /projectinfo/attachments/:id`. Photo count cap is `GET /settings` `maxAttachments` (API default 10); the upload page falls back to that same default if the field is missing.
 - Participant invites: `POST /projectinfo/participant` returns `{ project_code }`; unused vouchers listed on `GET /projectinfo` as `pending` participants with `token`

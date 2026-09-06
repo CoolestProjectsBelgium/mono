@@ -49,11 +49,17 @@ export function clearLegacyJwtCookies(
 ): void {
   const base = buildAppCookieOptions(config, request);
   const rawDomain = config.get('cookies.domain')?.trim();
-  if (!rawDomain) {
+  if (!rawDomain || rawDomain.endsWith('.localhost')) {
     return;
   }
 
-  // Only clear old shared-domain variants; the new host-only cookie overwrites itself.
+  // Still issuing Domain=.COOKIE_DOMAIN — expiring that same cookie in this
+  // response deletes the session in some browsers (and duplicates jwt=).
+  if (base.domain) {
+    return;
+  }
+
+  // Host-only cookie: drop leftover shared-domain variants.
   const bare = rawDomain.replace(/^\./, '');
   for (const domain of [`.${bare}`, bare]) {
     res.clearCookie('jwt', {

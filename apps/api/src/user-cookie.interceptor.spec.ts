@@ -1,10 +1,17 @@
 import { ExecutionContext, CallHandler } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { lastValueFrom, of } from 'rxjs';
 import {
   UserCookieInterceptor,
   resolveParticipantUserId,
 } from './user-cookie.interceptor';
 import { TokensService } from './tokens/tokens.service';
+
+function mockConfig(values: Record<string, string | undefined> = {}): ConfigService {
+  return {
+    get: (key: string) => values[key],
+  } as ConfigService;
+}
 
 function createContext(user: unknown) {
   const response = { cookie: jest.fn(), clearCookie: jest.fn() };
@@ -38,27 +45,38 @@ describe('UserCookieInterceptor', () => {
   const tokensService = {
     generateLoginToken: jest.fn(() => 'signed-token'),
   } as unknown as TokensService;
+  const config = mockConfig({
+    enviroment: 'production',
+    'cookies.domain': 'coolestprojects-test.be',
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('refreshes the jwt cookie for participants', async () => {
-    const interceptor = new UserCookieInterceptor(tokensService);
+  it('refreshes the jwt cookie once for participants', async () => {
+    const interceptor = new UserCookieInterceptor(tokensService, config);
     const { context, next, response } = createContext({ id: 42 });
 
     await lastValueFrom(interceptor.intercept(context, next));
 
+    expect(tokensService.generateLoginToken).toHaveBeenCalledTimes(1);
     expect(tokensService.generateLoginToken).toHaveBeenCalledWith(42);
+    expect(response.cookie).toHaveBeenCalledTimes(1);
     expect(response.cookie).toHaveBeenCalledWith(
       'jwt',
       'signed-token',
-      expect.objectContaining({ httpOnly: true, signed: true }),
+      expect.objectContaining({
+        httpOnly: true,
+        signed: true,
+        domain: '.coolestprojects-test.be',
+      }),
     );
+    expect(response.clearCookie).not.toHaveBeenCalled();
   });
 
   it('leaves the jwt cookie alone for AdminJS sessions', async () => {
-    const interceptor = new UserCookieInterceptor(tokensService);
+    const interceptor = new UserCookieInterceptor(tokensService, config);
     const { context, next, response } = createContext({
       adminUser: { email: 'admin', eventId: 1 },
       isAdmin: true,

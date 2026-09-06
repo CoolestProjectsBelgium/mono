@@ -1,4 +1,4 @@
-import { isLoggedInFromStorage } from '~/utils/auth-storage'
+import { isLoggedInFromStorage, isUnauthorizedFetchError } from '~/utils/auth-storage'
 import { resolveApiBase } from '~/utils/api-base'
 
 export default defineNuxtPlugin({
@@ -18,8 +18,12 @@ export default defineNuxtPlugin({
         credentials: 'include',
       })
     }
-    catch {
-      useAuthStore().clearSession()
+    catch (error: unknown) {
+      // Keep the client session unless the API rejected the cookie. Network/CORS
+      // failures must not log the user out while the httpOnly jwt is still valid.
+      if (isUnauthorizedFetchError(error)) {
+        useAuthStore().clearSession()
+      }
     }
   },
 })

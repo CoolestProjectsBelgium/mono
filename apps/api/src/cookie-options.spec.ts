@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { buildAppCookieOptions } from './cookie-options';
+import { buildAppCookieOptions, clearLegacyJwtCookies } from './cookie-options';
 
 function mockConfig(values: Record<string, string | undefined> = {}): ConfigService {
   return {
@@ -86,5 +86,30 @@ describe('buildAppCookieOptions', () => {
       sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+  });
+});
+
+describe('clearLegacyJwtCookies', () => {
+  it('does not expire the live shared-domain jwt in the same response', () => {
+    const clearCookie = jest.fn();
+    clearLegacyJwtCookies(
+      mockConfig({
+        enviroment: 'production',
+        'cookies.domain': 'coolestprojects-test.be',
+      }),
+      { clearCookie },
+      { secure: true },
+    );
+    expect(clearCookie).not.toHaveBeenCalled();
+  });
+
+  it('skips localhost cookie domains', () => {
+    const clearCookie = jest.fn();
+    clearLegacyJwtCookies(
+      mockConfig({ 'cookies.domain': 'coolestprojects.localhost' }),
+      { clearCookie },
+      { secure: true },
+    );
+    expect(clearCookie).not.toHaveBeenCalled();
   });
 });
