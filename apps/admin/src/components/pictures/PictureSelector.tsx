@@ -113,14 +113,14 @@ export const PictureHandlerPage: React.FC = () => {
                     {attachments.length === 0 ? (
                         <Text color="grey60">No attachments found for this project.</Text>
                     ) : (
-                            <Table>
+                            <Table style={{ tableLayout: 'fixed', width: '100%' }}>
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Thumbnail</TableCell>
+                                        <TableCell style={{ width: '100px' }}>Thumbnail</TableCell>
                                         <TableCell>Name</TableCell>
-                                        <TableCell align="center">Internal</TableCell>
-                                        <TableCell align="center">Confirmed</TableCell>
-                                        <TableCell align="right">Actions</TableCell>
+                                        <TableCell align="center" style={{ width: '100px' }}>Internal</TableCell>
+                                        <TableCell align="center" style={{ width: '110px' }}>Confirmed</TableCell>
+                                        <TableCell align="right" style={{ width: '160px' }}>Actions</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
