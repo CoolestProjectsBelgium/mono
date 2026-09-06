@@ -10,7 +10,7 @@ import connectSessionSequelize from 'connect-session-sequelize'
 import express from 'express'
 import { DataTypes } from 'sequelize';
 import session from 'express-session'
-import { andAccess, canAccessResourceFieldFilter, canAccessResourceRoleFilter, filterEventId } from './authorisations.js'
+import { canAccessResourceFieldFilter, canAccessResourceFieldMatch, canAccessResourceRoleFilter, filterEventId, filterUnlessRole, orAccess } from './authorisations.js'
 import { componentLoader, Components, Handlers } from './components/index.js'
 import { Authenticate } from './components/login/authenticate.js'
 import eventLoginRouter from './components/login/router.js'
@@ -41,19 +41,49 @@ const start = async () => {
     Database: AdminJSSequelize.Database,
   })
 
-  const configNavigation = {
-    name: 'Configuration',
-    icon: 'CheckSquare',
+  const navSystem = {
+    name: 'System',
+    icon: 'Lock',
   }
 
-  const configReporting = {
+  const navEventSetup = {
+    name: 'Event setup',
+    icon: 'Settings',
+  }
+
+  const navTranslations = {
+    name: 'Translations',
+    icon: 'Globe',
+  }
+
+  const navRegistration = {
+    name: 'Registration',
+    icon: 'Clipboard',
+  }
+
+  const navProjects = {
+    name: 'Projects & participants',
+    icon: 'Users',
+  }
+
+  const navVenue = {
+    name: 'Venue & seating',
+    icon: 'Map',
+  }
+
+  const navVoting = {
+    name: 'Voting & awards',
+    icon: 'Award',
+  }
+
+  const navCommunication = {
+    name: 'Communication',
+    icon: 'Mail',
+  }
+
+  const navReporting = {
     name: 'Reporting',
     icon: 'Grid',
-  }
-
-  const configEvents = {
-    name: 'Reporting',
-    icon: 'Users',
   }
 
   const admin = new AdminJS({
@@ -101,7 +131,17 @@ const start = async () => {
         resource: sequelize.models.Account,
         options: {
           properties: { encryptedPassword: { isVisible: false } },
-          navigation: configNavigation,
+          navigation: navSystem,
+          actions: {
+            // Everyone sees only their own account (e.g. to change their password);
+            // only a super_admin sees the full list.
+            list: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.id) },
+            search: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.id) },
+            show: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "id")) },
+            edit: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "id")) },
+            new: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+            delete: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+          },
         },
         features: [
           passwordsFeature({
@@ -112,18 +152,17 @@ const start = async () => {
       },
       {
         resource: sequelize.models.Event, options: {
-          navigation: configNavigation,
+          navigation: navSystem,
           actions: {
-            list: {
-              before: filterEventId("id"),
-            },
-            search: {
-              before: filterEventId("id"),
-            },
+            // A super_admin sees and manages every event; every other role only sees the
+            // event tied to their session, and cannot create/edit/delete it (read-only).
+            list: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.eventId) },
+            search: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.eventId) },
+            show: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "eventId")) },
+            new: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+            edit: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+            delete: { isAccessible: canAccessResourceRoleFilter("super_admin") },
           },
-          edit: { isAccessible: andAccess(canAccessResourceFieldFilter("id"), canAccessResourceRoleFilter("admin")) },
-          show: { isAccessible: andAccess(canAccessResourceFieldFilter("id"), canAccessResourceRoleFilter("admin")) },
-          delete: { isAccessible: andAccess(canAccessResourceFieldFilter("id"), canAccessResourceRoleFilter("admin")) },
         }
       },
       {
@@ -136,7 +175,7 @@ const start = async () => {
               before: filterEventId("id"),
             },
           },
-          navigation: configEvents, properties: {
+          navigation: navVoting, properties: {
             text: {
               type: 'textarea',
               props: {
@@ -150,7 +189,7 @@ const start = async () => {
         resource: sequelize.models.Project,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configEvents,
+          navigation: navProjects,
           listProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           filterProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           showProperties: [
@@ -188,7 +227,7 @@ const start = async () => {
         resource: sequelize.models.Attachment,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configEvents,
+          navigation: navProjects,
           listProperties: ['id', 'projectId', 'confirmed', 'internal', 'size', 'mimetype'],
           filterProperties: ['id', 'projectId', 'eventId'],
           showProperties: [
@@ -224,19 +263,19 @@ const start = async () => {
           },
         },
       },
-      { resource: sequelize.models.VoteCategory, options: { navigation: configEvents } },
+      { resource: sequelize.models.VoteCategory, options: { navigation: navVoting } },
       {
         resource: sequelize.models.EventTable,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configNavigation,
+          navigation: navVenue,
         }
       },
       {
         resource: sequelize.models.EmailTemplate,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configNavigation,
+          navigation: navCommunication,
           actions: {
             list: {
               before: filterEventId('eventId'),
@@ -253,14 +292,14 @@ const start = async () => {
       {
         resource: sequelize.models.User,
         features: [importExportFeature({ componentLoader })],
-        options: { navigation: configEvents }
+        options: { navigation: navProjects }
       },
 
-      { resource: sequelize.models.UserProject, options: { navigation: configEvents } },
+      { resource: sequelize.models.UserProject, options: { navigation: navProjects } },
       {
         resource: sequelize.models.Tshirt,
         options: {
-          navigation: configNavigation,
+          navigation: navEventSetup,
           properties: {
             eventId: { isVisible: false },
           },
@@ -277,21 +316,22 @@ const start = async () => {
           }
         }
       },
-      { resource: sequelize.models.QuestionUser, options: { navigation: configEvents } },
-      { resource: sequelize.models.Question, options: { navigation: configNavigation, } },
-      { resource: sequelize.models.TshirtGroup, options: { navigation: configNavigation, } },
-      { resource: sequelize.models.TshirtTranslation, options: { navigation: configNavigation, } },
-      { resource: sequelize.models.QuestionTranslation, options: { navigation: configNavigation, } },
-      { resource: sequelize.models.QuestionRegistration },
+      { resource: sequelize.models.QuestionUser, options: { navigation: navProjects } },
+      { resource: sequelize.models.Question, options: { navigation: navRegistration, } },
+      { resource: sequelize.models.TshirtGroup, options: { navigation: navEventSetup, } },
+      { resource: sequelize.models.TshirtTranslation, options: { navigation: navTranslations, } },
+      { resource: sequelize.models.QuestionTranslation, options: { navigation: navTranslations, } },
+      { resource: sequelize.models.QuestionRegistration, options: { navigation: navRegistration } },
       {
         resource: sequelize.models.Registration,
         features: [importExportFeature({ componentLoader })],
+        options: { navigation: navRegistration },
       },
-      { resource: sequelize.models.TshirtGroupTranslation, options: { navigation: configNavigation, } },
+      { resource: sequelize.models.TshirtGroupTranslation, options: { navigation: navTranslations, } },
       {
         resource: sequelize.models.Affiliation,
         options: {
-          navigation: configNavigation,
+          navigation: navEventSetup,
           properties: {
             eventId: { isVisible: false },
           },
@@ -350,7 +390,7 @@ const start = async () => {
         }),
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configReporting,
+          navigation: navReporting,
           label: 'Export full User, Project, Questions report',
           // VERPLICHT IN v7: Dit bepaalt exact welke kolommen in de 'list' tabel staan én de volgorde ervan
           listProperties: [
@@ -392,7 +432,7 @@ const start = async () => {
         }),
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configReporting,
+          navigation: navReporting,
           label: 'User Project Overzicht gebruikt voor export',
           actions: {
             // Verberg en blokkeer de standaard CRUD-acties

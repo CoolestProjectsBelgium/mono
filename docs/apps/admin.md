@@ -2,7 +2,7 @@
 
 ## Purpose
 
-AdminJS-based admin panel for Coolest Projects staff. Manages events, registrations, accounts, and voting resources with role-based access (`superadmin`, `admin`, `judge`).
+AdminJS-based admin panel for Coolest Projects staff. Manages events, registrations, accounts, and voting resources with role-based access (`Account.account_type`: `super_admin`, `admin`, `jury`).
 
 ## Stack
 
@@ -48,12 +48,20 @@ Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables, **Ema
 
 ## Key resources
 
+Sidebar resources are grouped by workflow via each resource's `options.navigation` in `index.ts`: **System** (`Account`, `Event` —
+global, not event-scoped, see below), **Event setup** (`Tshirt`, `TshirtGroup`), **Translations** (`TshirtTranslation`,
+`TshirtGroupTranslation`, `QuestionTranslation`), **Registration** (`Registration`, `Affiliation`, `Question`,
+`QuestionRegistration`), **Projects & participants** (`Project`, `Attachment`, `User`, `UserProject`, `QuestionUser`),
+**Venue & seating** (`EventTable`), **Voting & awards** (`Award`, `VoteCategory`), **Communication** (`EmailTemplate`), and
+**Reporting** (the two `view_*` read-only export resources). Two `navigation` groups must never share the same `name` string —
+AdminJS merges groups by name, not by the JS variable holding them.
+
 | Resource | Notes |
 |----------|-------|
 | `Project` | Explicit list/show/filter/edit properties include `deletedAt` soft-delete timestamp |
 | `UserProject` | Membership/voucher link; has its own `deletedAt` |
-| `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden |
-| `Event` | Event-scoped access for non-superadmin roles |
+| `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden. Not event-scoped: any role can see/edit only their own account (`id` match against `currentAdmin.id`); only `super_admin` sees/edits the full list, creates, or deletes accounts. Lives in the **System** navigation group. |
+| `Event` | Not event-scoped by a foreign key — it's the event itself. `super_admin` sees and can create/edit/delete every event; every other role only sees the event tied to their session (`id` match against `currentAdmin.eventId`) and gets read-only access (`show` only, no `new`/`edit`/`delete`). Lives in the **System** navigation group. |
 | `Affiliation` | Event-scoped CoderDojo catalog (`name`); same list as `GET /dojos` |
 | `EmailTemplate` | Event-scoped CRUD + import/export; prefer **EmailTemplates** page for editing copy |
 
