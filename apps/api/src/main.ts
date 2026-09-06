@@ -83,10 +83,68 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addTag('registration')
-    .addBearerAuth()
-    .addCookieAuth()
+    .addCookieAuth(
+      'jwt',
+      {
+        type: 'apiKey',
+        in: 'cookie',
+        name: 'jwt',
+        description: 'Signed JWT cookie set after login/registration activation.',
+      },
+      'jwt-user-cookie',
+    )
+    .addCookieAuth(
+      'adminjs',
+      {
+        type: 'apiKey',
+        in: 'cookie',
+        name: 'adminjs',
+        description: 'Signed admin session cookie set after admin login.',
+      },
+      'admin-cookie',
+    )
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Voting JWT returned by POST /auth/login.',
+      },
+      'jwt-voting',
+    )
+    .addApiKey(
+      {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-csrf-token',
+        description:
+          'CSRF token obtained from GET /csrf-token. Required on all state-changing (non-GET/HEAD/OPTIONS) requests.',
+      },
+      'csrf',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, document_config);
+  document.paths['/csrf-token'] = {
+    get: {
+      tags: ['csrf'],
+      summary: 'Get a CSRF token',
+      description:
+        'Issues a CSRF token to send back as the x-csrf-token header on subsequent state-changing requests, and sets the matching CSRF secret cookie. This route is served by middleware, not a controller, so it is documented here manually.',
+      responses: {
+        '200': {
+          description: 'CSRF token issued.',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { csrfToken: { type: 'string' } },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
   SwaggerModule.setup('api', app, document);
 
   await app.listen(env.API_PORT || 3001);

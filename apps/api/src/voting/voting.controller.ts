@@ -13,7 +13,7 @@ import {
 
 import { Sse, MessageEvent } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiCookieAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { JwtVotingAuthGuard } from '../auth/jwt-voting-auth.guard';
 import { VotingLoginAuthGuard } from '../auth/local-voting-auth.guard';
@@ -27,10 +27,13 @@ import { Observable, map } from 'rxjs';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 
 @Controller()
+@ApiTags('voting')
 export class VotingController {
   constructor(private votingService: VotingService, @Inject(VOTING_JWT) private readonly votingJwtService: JwtService) { }
 
   @Post()
+  @ApiCookieAuth('admin-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   receiveEvent(@Body() event: VotingEvent) {
     this.votingService.publish(event);
@@ -38,6 +41,8 @@ export class VotingController {
   }
 
   @Post('admin/voting/start')
+  @ApiCookieAuth('admin-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   async startVoting(@Req() req: any, @Body() body: { durationMinutes?: number; deletePreviousResults?: boolean }) {
     await this.votingService.openVotingWithDuration(
@@ -49,6 +54,8 @@ export class VotingController {
   }
 
   @Post('admin/voting/stop')
+  @ApiCookieAuth('admin-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   async stopVoting(@Req() req: any) {
     console.log(req.user);
@@ -58,6 +65,8 @@ export class VotingController {
   }
 
   @Post('admin/voting/message')
+  @ApiCookieAuth('admin-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   sendAdminMessage(@Req() req: any, @Body() body: { message?: string }) {
     this.votingService.publishMessage(String(body.message ?? ''));
@@ -65,12 +74,15 @@ export class VotingController {
   }
 
   @Get('admin/voting/results')
+  @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
   getVotingResults(@Req() req: any) {
     return this.votingService.calculateVotes(req.user.adminUser.eventId,);
   }
 
   @Post('admin/voting/awards/generate')
+  @ApiCookieAuth('admin-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   async generateAwards(@Req() req: any) {
     return this.votingService.generateAwards(req.user.adminUser.eventId);
@@ -78,12 +90,15 @@ export class VotingController {
 
 
   @Get('admin/voting/awards')
+  @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
   async getAwards(@Req() req: any) {
     return this.votingService.getAwardAssignments(req.user.adminUser.eventId,);
   }
 
   @Post('admin/voting/awards/:awardId/assign')
+  @ApiCookieAuth('admin-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   async assignAward(
     @Req() req: any,
@@ -99,6 +114,7 @@ export class VotingController {
   }
 
   @Get('admin/voting/status')
+  @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
   async getVotingStatus(@Req() req: any) {
     const event = await this.votingService.getVotingStatus(req.user.adminUser.eventId,);
@@ -106,6 +122,7 @@ export class VotingController {
   }
 
   @Sse('sse')
+  @ApiBearerAuth('jwt-voting')
   @UseGuards(JwtVotingAuthGuard)
   sse(): Observable<MessageEvent> {
     return this.votingService.stream().pipe(
@@ -122,6 +139,7 @@ export class VotingController {
   }
 
   @Post('auth/login')
+  @ApiSecurity('csrf')
   @UseGuards(VotingLoginAuthGuard)
   async login(@Req() req: any, @Res() res: Response) {
     console.log('user:', req.user);
@@ -138,12 +156,15 @@ export class VotingController {
   }
 
   @Post('auth/logout')
+  @ApiBearerAuth('jwt-voting')
+  @ApiSecurity('csrf')
   @UseGuards(JwtVotingAuthGuard)
   async logout(@Res() res: Response) {
     return res.send();
   }
 
   @Get('auth/user')
+  @ApiBearerAuth('jwt-voting')
   @UseGuards(JwtVotingAuthGuard)
   async getUser(@Req() req: any): Promise<AccountDto> {
     const account = await this.votingService.getAccount(req.user.id);
@@ -151,6 +172,7 @@ export class VotingController {
   }
 
   @Get('languages')
+  @ApiBearerAuth('jwt-voting')
   @UseGuards(JwtVotingAuthGuard)
   async languages() {
     return [
@@ -161,6 +183,7 @@ export class VotingController {
   }
 
   @Get('projects')
+  @ApiBearerAuth('jwt-voting')
   @UseGuards(JwtVotingAuthGuard)
   async getProjects(@Req() req: any, @Query() query: any): Promise<ProjectVoteDto | VoteMessage> {
 
@@ -178,6 +201,8 @@ export class VotingController {
   }
 
   @Post('projects/:projectId')
+  @ApiBearerAuth('jwt-voting')
+  @ApiSecurity('csrf')
   @UseGuards(JwtVotingAuthGuard)
   async submitVotes(
     @Req() req: any,

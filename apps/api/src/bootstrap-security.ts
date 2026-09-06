@@ -13,7 +13,7 @@ export function configureSecurity(app: INestApplication): void {
   app.use(
     helmet({
       // JSON API — no HTML responses; skip CSP (see NestJS Helmet guidance).
-      contentSecurityPolicy: false,
+      contentSecurityPolicy: true,
       // Allow registration SPA on another subdomain to fetch blobs/thumbnails.
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),

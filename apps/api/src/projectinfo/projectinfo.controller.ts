@@ -1,7 +1,7 @@
 import { Project, Event } from '@coolestprojects/database';
 import { Body, Controller, Delete, Get, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors, Param } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { ApiCookieAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { JwtUserAuthGuard } from '../auth/jwt-user-auth.guard';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 import { MandatoryAdminOrJwtUserAuthGuard } from '../auth/mandatory-admin-or-jwt-user-auth.guard';
@@ -17,7 +17,6 @@ import { StreamableFile } from '@nestjs/common';
 
 @Controller('projectinfo')
 @ApiTags('projectinfo')
-@ApiCookieAuth()
 export class ProjectinfoController {
   constructor(
     private projectService: ProjectinfoService,
@@ -26,6 +25,7 @@ export class ProjectinfoController {
 
   @Get()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiCookieAuth('jwt-user-cookie')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async getProject(@Request() req: any): Promise<OwnProjectDto> {
@@ -34,6 +34,8 @@ export class ProjectinfoController {
 
   @Post()
   @ApiResponse({ status: 500, description: 'Internal  server error.' })
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async createProject(
@@ -45,6 +47,8 @@ export class ProjectinfoController {
 
   @Patch()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async updateProject(
@@ -56,6 +60,8 @@ export class ProjectinfoController {
 
   @Delete()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async deleteProject(@Request() req: any,): Promise<void> {
@@ -64,6 +70,7 @@ export class ProjectinfoController {
 
   @Get('attachments')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiCookieAuth('jwt-user-cookie')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async getAttachments(@Request() req: any) {
@@ -72,6 +79,8 @@ export class ProjectinfoController {
 
   @Get('attachments/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiCookieAuth('admin-cookie')
+  @ApiCookieAuth('jwt-user-cookie')
   @UseGuards(MandatoryAdminOrJwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async getAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
@@ -86,6 +95,7 @@ export class ProjectinfoController {
 
   @Get('attachments/original/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
   @UseInterceptors(UserCookieInterceptor)
   async getAttachmentOriginal(@Request() req: any, @Param('attachmentId') attachmentId: number) {
@@ -94,6 +104,8 @@ export class ProjectinfoController {
 
   @Delete('attachments/:attachmentId')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async deleteAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
@@ -101,6 +113,8 @@ export class ProjectinfoController {
   }
 
   @Post('attachments')
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(
     FileInterceptor('file'),
@@ -118,6 +132,8 @@ export class ProjectinfoController {
   }
 
   @Post('participant')
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async createVoucher(
@@ -127,6 +143,8 @@ export class ProjectinfoController {
   }
 
   @Delete('participant/:voucherGuid')
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async deleteVoucher(
@@ -137,6 +155,8 @@ export class ProjectinfoController {
   }
 
   @Post('change-owner/:newOwnerId')
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async changeProjectOwner(

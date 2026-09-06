@@ -1,5 +1,5 @@
 import { Controller, Body, Post, HttpException, HttpStatus, BadRequestException, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiCookieAuth, ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { RegistrationService } from './registration.service';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Info } from '../info.decorator';
@@ -12,9 +12,12 @@ export class RegistrationController {
   constructor(private registrationService: RegistrationService) {}
 
   @Post()
+  @ApiOperation({ description: 'Admin cookie is optional: when present, the registration is attributed to that admin session; anonymous registration is otherwise allowed.' })
   @ApiResponse({ status: 201, description: 'Successfully created registration.' })
   @ApiResponse({ status: 400, description: 'Validation failed.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  @ApiCookieAuth('admin-cookie')
+  @ApiSecurity('csrf')
   @UseGuards(OptionalAdminCookieGuard)
   async create(
     @Info() info: InfoDto,

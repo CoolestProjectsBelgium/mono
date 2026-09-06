@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiCookieAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { FloorplansOverviewDto, UploadFloorplanDto } from '../dto/floorplans-overview.dto';
 import { AdminService } from './admin.service';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
@@ -19,6 +20,8 @@ interface AdminRequestUser {
 }
 
 @Controller('admin')
+@ApiTags('admin')
+@ApiCookieAuth('admin-cookie')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
@@ -32,6 +35,7 @@ export class AdminController {
 
   @Post('floorplans')
   @UseGuards(MandatoryAdminCookieGuard)
+  @ApiSecurity('csrf')
   uploadFloorplan(
     @Req() req: { user?: AdminRequestUser },
     @Body() body: UploadFloorplanDto,
@@ -41,6 +45,7 @@ export class AdminController {
 
   @Post('floorplans/:filename/activate')
   @UseGuards(MandatoryAdminCookieGuard)
+  @ApiSecurity('csrf')
   activateFloorplan(
     @Req() req: { user?: AdminRequestUser },
     @Param('filename') filename: string,

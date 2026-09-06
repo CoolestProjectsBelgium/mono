@@ -7,7 +7,7 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { verify } from 'jsonwebtoken';
 import { env } from 'process';
 import type { Response } from 'express';
@@ -46,6 +46,7 @@ export class LoginController {
   }
 
   @Post()
+  @ApiSecurity('csrf')
   @UseInterceptors(UserCookieInterceptor)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async activateLogin(
@@ -80,7 +81,8 @@ export class LoginController {
   }
 
   @Post('logout')
-  @ApiCookieAuth()
+  @ApiCookieAuth('jwt-user-cookie')
+  @ApiSecurity('csrf')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async logout(@Res({ passthrough: true }) res: Response, @Request() req: { secure?: boolean, headers?: Record<string, string | string[] | undefined> }) {
     const cookieOptions = buildAppCookieOptions(this.config, req);
@@ -93,6 +95,7 @@ export class LoginController {
   }
 
   @Post('mailToken')
+  @ApiSecurity('csrf')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async mailToken(@Body() loginMailDto: LoginMailDto): Promise<LoginDto> {
     const user = await this.userModel.findOne({

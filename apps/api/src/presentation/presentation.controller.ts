@@ -1,5 +1,5 @@
 import { Controller, Delete, Post, UseGuards, StreamableFile, Get } from '@nestjs/common';
-import { ApiResponse, ApiTags, ApiCookieAuth } from '@nestjs/swagger';
+import { ApiResponse, ApiTags, ApiCookieAuth, ApiSecurity } from '@nestjs/swagger';
 import { PresentationService } from './presentation.service';
 import { Info } from '../info.decorator';
 import { InfoDto } from '../dto/info.dto';
@@ -15,6 +15,7 @@ export class PresentationController {
     }
 
     @Post("generate")
+    @ApiSecurity('csrf')
     async generateSlide(@Info() info: InfoDto, index: number) : Promise<StreamableFile>{
         return this.presentationService.generateSlide(info.currentEvent, index);
     }
