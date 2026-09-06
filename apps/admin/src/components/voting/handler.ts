@@ -61,6 +61,11 @@ export interface VotingStatus {
     votingEndDate: string | null;
 }
 
+export interface AwardCategoryOption {
+    id: number;
+    name: string;
+}
+
 export interface VotingOverview {
     totalVotes: number;
     totalProjects: number;
@@ -72,6 +77,7 @@ export interface VotingOverview {
     votingStatus: VotingStatus;
     results: VotingResult[];
     awards: AwardAssignment[];
+    awardCategories: AwardCategoryOption[];
 }
 
 export const Handler = async (request: any, _response: any, context: any): Promise<VotingOverview | { success: true }> => {
@@ -224,6 +230,18 @@ export const Handler = async (request: any, _response: any, context: any): Promi
         }
     }
 
+    // Award categories cover both jury-voted and public-voted VoteCategory rows: staff must be able to
+    // reassign a public-vote category award (e.g. if fraud is suspected in the public vote).
+    const awardCategoryRecords = await VoteCategory.findAll({
+        where: { eventId },
+        attributes: ['id', 'name'],
+        order: [['name', 'ASC']],
+    });
+    const awardCategories: AwardCategoryOption[] = awardCategoryRecords.map((category) => ({
+        id: category.id,
+        name: category.name,
+    }));
+
     return {
         totalVotes,
         totalProjects,
@@ -235,5 +253,6 @@ export const Handler = async (request: any, _response: any, context: any): Promi
         votingStatus: status,
         results,
         awards,
+        awardCategories,
     };
 };

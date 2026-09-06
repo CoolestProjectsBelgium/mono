@@ -68,7 +68,7 @@ The `VotingOverview` page shows event-scoped vote totals, a remaining-votes burn
 refreshes automatically every 15 seconds and displays the last successful update when a refresh request fails. Staff can start
 voting for a duration, stop it, restart it after technical issues, publish an SSE message to jurors, and view calculated category results after voting closes. Restarting asks whether existing votes and awards should be deleted; preserving them supports a technical pause/resume workflow. Closing
 voting generates one `Award` entry for every active participant project. Winning entries receive a category assignment; other entries keep a null category and can later hold encouraging jury text for certificate generation. The page shows score ranges, medians, outliers, ranked runner-ups,
-and allows reassignment while preventing a project from receiving more than one category award.
+and allows reassignment via a per-project dropdown listing every `VoteCategory` for the event (jury-voted and public-voted alike — public just marks a category as decided by the public vote, and staff may still need to override it, e.g. on suspected fraud) plus a "No award" option; categories already assigned to another project are hidden from the dropdown (except the project's own current category) while preventing a project from receiving more than one category award.
 Chart components import Recharts from `recharts/es6/...` (not the package barrel) so AdminJS production Rollup does
 not pull the CJS `lib/` graph that crashes the dest bundle.
 

@@ -19,6 +19,14 @@ const formatVoteTime = (value: string) => new Date(value).toLocaleTimeString([],
 	hour: '2-digit',
 	minute: '2-digit',
 });
+const formatCountdown = (ms: number) => {
+	const totalSeconds = Math.max(Math.floor(ms / 1000), 0);
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+	const pad = (value: number) => String(value).padStart(2, '0');
+	return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
+};
 
 export const Voting: React.FC = () => {
 	const [data, setData] = useState<VotingOverview | null>(null);
@@ -85,6 +93,12 @@ export const Voting: React.FC = () => {
 		return () => window.clearInterval(interval);
 	}, []);
 
+	const [now, setNow] = useState(() => Date.now());
+	useEffect(() => {
+		const tick = window.setInterval(() => setNow(Date.now()), 1000);
+		return () => window.clearInterval(tick);
+	}, []);
+
 	if (loading) {
 		return <Box padding="xl"><Text>Loading voting overview...</Text></Box>;
 	}
@@ -97,6 +111,9 @@ export const Voting: React.FC = () => {
 		return null;
 	}
 
+	const votingEndTime = data.votingStatus.votingEndDate ? new Date(data.votingStatus.votingEndDate).getTime() : null;
+	const remainingMs = data.votingStatus.votingOpen && votingEndTime !== null ? Math.max(votingEndTime - now, 0) : null;
+
 	const metrics = [
 		{ label: 'Votes cast', value: data.totalVotes, color: '#2563eb' },
 		{ label: 'Projects', value: data.totalProjects, color: '#64748b' },
@@ -108,9 +125,17 @@ export const Voting: React.FC = () => {
 				Object.keys(project).filter((key) => key !== 'project'),
 			),
 		));
-	const awardCategories = Array.from(new Map(
-		data.awards.flatMap((award) => award.candidates.map((candidate) => [candidate.categoryId, candidate.categoryName] as const)),
-	).entries());
+	const awardCategories = data.awardCategories;
+	const assignedCategoryIds = new Set(
+		data.awards
+			.map((award) => award.categoryId)
+			.filter((categoryId): categoryId is number => categoryId !== null),
+	);
+	const winnerByCategoryId = new Map(
+		data.awards
+			.filter((award) => award.categoryId !== null)
+			.map((award) => [award.categoryId as number, award.projectName]),
+	);
 
 	return (
 		<Box padding="xl">
@@ -173,53 +198,86 @@ export const Voting: React.FC = () => {
 				</Box>
 			)}
 
-				<Box bg="white" p="lg" boxShadow="card" mb="xl">
-					<Box flex flexWrap="wrap" alignItems="flex-end" style={{ gap: '16px' }}>
+				<Box
+					bg="white"
+					p="xl"
+					boxShadow="card"
+					mb="xl"
+					borderTop={`4px solid ${data.votingStatus.votingOpen ? '#16a34a' : '#dc2626'}`}
+				>
+					<Box flex justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" style={{ gap: '24px' }}>
 						<Box>
-							<Text color="grey60" mb="sm">Voting status</Text>
-							<Box
-								role="status"
-								aria-label={`Voting ${data.votingStatus.votingOpen ? 'open' : 'closed'}`}
-								title={`Voting ${data.votingStatus.votingOpen ? 'open' : 'closed'}`}
-								style={{
-									width: '18px',
-									height: '18px',
-									borderRadius: '50%',
-									backgroundColor: data.votingStatus.votingOpen ? '#16a34a' : '#dc2626',
-									boxShadow: '0 0 0 3px rgba(15, 23, 42, 0.08)',
-								}}
-							/>
+							<Text fontSize="h3" fontWeight="bold" mb="sm">Voting control</Text>
+							<Box flex alignItems="center" style={{ gap: '10px' }}>
+								<Box
+									role="status"
+									aria-label={`Voting ${data.votingStatus.votingOpen ? 'open' : 'closed'}`}
+									style={{
+										width: '14px',
+										height: '14px',
+										borderRadius: '50%',
+										backgroundColor: data.votingStatus.votingOpen ? '#16a34a' : '#dc2626',
+										boxShadow: '0 0 0 3px rgba(15, 23, 42, 0.08)',
+									}}
+								/>
+								<Text fontWeight="bold" style={{ color: data.votingStatus.votingOpen ? '#16a34a' : '#dc2626' }}>
+									{data.votingStatus.votingOpen ? 'Voting open' : 'Voting closed'}
+								</Text>
+							</Box>
 						</Box>
-						<Box style={{ minWidth: '150px' }}>
-							<Text color="grey60" mb="sm">Duration (minutes)</Text>
+						<Box style={{ textAlign: 'right' }}>
+							<Text color="grey60" mb="sm">Time remaining</Text>
+							<Text
+								role="timer"
+								style={{
+									fontSize: '40px',
+									fontWeight: 800,
+									lineHeight: 1,
+									fontVariantNumeric: 'tabular-nums',
+									color: remainingMs !== null && remainingMs < 5 * 60 * 1000 ? '#dc2626' : '#0f172a',
+								}}
+							>
+								{remainingMs !== null ? formatCountdown(remainingMs) : '—:—'}
+							</Text>
+						</Box>
+					</Box>
+					<Box mt="xl" pt="lg" flex flexWrap="wrap" alignItems="center" style={{ borderTop: '1px solid #e5e7eb', gap: '48px' }}>
+						<Box flex alignItems="center" style={{ gap: '10px' }}>
+							<Text color="grey60" style={{ whiteSpace: 'nowrap' }}>Duration (minutes)</Text>
 							<Input
 								value={durationMinutes}
 								type="number"
 								min={1}
 								onChange={(event: React.ChangeEvent<HTMLInputElement>) => setDurationMinutes(event.target.value)}
+								style={{ width: '90px' }}
 							/>
 						</Box>
-						<Button
-							variant="contained"
-							disabled={actionBusy || data.votingStatus.votingOpen}
-							onClick={startVoting}
-							style={{ minHeight: '48px', padding: '0 24px', fontSize: '16px', fontWeight: 700 }}
-						>
-							{data.votingStatus.votingOpen ? 'Voting open' : 'Start / restart voting'}
-						</Button>
-						<Button
-							variant="outlined"
-							disabled={actionBusy || !data.votingStatus.votingOpen}
-							onClick={() => void runAction('stop')}
-							style={{ minHeight: '48px', padding: '0 24px', fontSize: '16px', fontWeight: 700 }}
-						>
-							Stop voting
-						</Button>
+						<Box flex alignItems="center" style={{ gap: '16px' }}>
+							<Button
+								variant="contained"
+								disabled={actionBusy || data.votingStatus.votingOpen}
+								onClick={startVoting}
+								style={{ minHeight: '48px', padding: '0 24px', fontSize: '16px', fontWeight: 700 }}
+							>
+								{data.votingStatus.votingOpen ? 'Voting open' : 'Start / restart voting'}
+							</Button>
+							<Button
+								variant="outlined"
+								disabled={actionBusy || !data.votingStatus.votingOpen}
+								onClick={() => void runAction('stop')}
+								style={{ minHeight: '48px', padding: '0 24px', fontSize: '16px', fontWeight: 700 }}
+							>
+								Stop voting
+							</Button>
+						</Box>
 					</Box>
-					<Box mt="xl" p="lg" style={{ borderTop: '1px solid #e5e7eb', background: '#f8fafc' }}>
-						<Text fontSize="h3" fontWeight="bold" mb="sm">Broadcast message</Text>
-						<Text color="grey60" mb="md">Send a message directly to connected voting clients.</Text>
-						<Box flex alignItems="flex-end" flexWrap="wrap" style={{ gap: '12px' }}>
+					{actionError && <Text color="error" mt="sm">{actionError}</Text>}
+				</Box>
+
+				<Box bg="white" p="xl" boxShadow="card" mb="xl">
+					<Text fontSize="h3" fontWeight="bold" mb="sm">Broadcast message</Text>
+					<Text color="grey60" mb="md">Send a message directly to connected voting clients.</Text>
+					<Box flex alignItems="flex-end" flexWrap="wrap" style={{ gap: '12px' }}>
 						<Box flexGrow={1} style={{ width: '100%' }}>
 							<TextArea
 								rows={3}
@@ -236,9 +294,7 @@ export const Voting: React.FC = () => {
 						>
 							Send message
 						</Button>
-						</Box>
 					</Box>
-					{actionError && <Text color="error" mt="sm">{actionError}</Text>}
 				</Box>
 
 			{error && (
@@ -337,11 +393,34 @@ export const Voting: React.FC = () => {
 				)}
 			</Box>
 
+			{!data.votingStatus.votingOpen && data.awards.length > 0 && (
+				<Box bg="white" p="xl" boxShadow="card" mt="xl">
+					<Text fontSize="h3" fontWeight="bold">Winner by category</Text>
+					<Text color="grey60" mb="lg">Updates immediately as awards are (re)assigned below.</Text>
+					<Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap="md">
+						{awardCategories.map((category) => {
+							const winnerName = winnerByCategoryId.get(category.id);
+							return (
+								<Box
+									key={category.id}
+									p="lg"
+									borderTop={`4px solid ${winnerName ? '#059669' : '#d97706'}`}
+									style={{ background: '#f8fafc' }}
+								>
+									<Text color="grey60">{category.name}</Text>
+									<Text fontWeight="bold">{winnerName ?? 'Unassigned'}</Text>
+								</Box>
+							);
+						})}
+					</Box>
+				</Box>
+			)}
+
 			{!data.votingStatus.votingOpen && (
 				<Box bg="white" p="xl" boxShadow="card" mt="xl">
 					<Box flex justifyContent="space-between" alignItems="center" flexWrap="wrap" style={{ gap: '12px' }}>
 						<Box>
-							<Text fontSize="h3" fontWeight="bold">Awards</Text>
+							<Text fontSize="h3" fontWeight="bold">Assign awards</Text>
 							<Text color="grey60">One award per project. Select a runner-up to reassign an award.</Text>
 						</Box>
 						<Button variant="contained" disabled={actionBusy || data.results.length === 0} onClick={() => void runAction('generate-awards')}>
@@ -354,7 +433,7 @@ export const Voting: React.FC = () => {
 								<thead>
 									<tr>
 										<th style={{ textAlign: 'left', padding: '10px', borderBottom: '2px solid #e5e7eb' }}>Participant</th>
-										{awardCategories.map(([categoryId, categoryName]) => <th key={categoryId} style={{ textAlign: 'left', padding: '10px', borderBottom: '2px solid #e5e7eb' }}>{categoryName}</th>)}
+										{awardCategories.map((category) => <th key={category.id} style={{ textAlign: 'left', padding: '10px', borderBottom: '2px solid #e5e7eb' }}>{category.name}</th>)}
 										<th style={{ textAlign: 'left', padding: '10px', borderBottom: '2px solid #e5e7eb' }}>Assigned award category</th>
 									</tr>
 								</thead>
@@ -364,14 +443,23 @@ export const Voting: React.FC = () => {
 											<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>
 												<strong>{award.projectName}</strong>
 											</td>
-											{awardCategories.map(([categoryId]) => {
-												const candidate = award.candidates.find((item) => item.categoryId === categoryId);
-												return <td key={categoryId} style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>{candidate ? `#${candidate.rank} / ${candidate.adjustedAveragePercent.toFixed(1)}%` : '-'}</td>;
+											{awardCategories.map((category) => {
+												const candidate = award.candidates.find((item) => item.categoryId === category.id);
+												return <td key={category.id} style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>{candidate ? `#${candidate.rank} / ${candidate.adjustedAveragePercent.toFixed(1)}%` : '-'}</td>;
 											})}
 											<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>
 												<select value={award.categoryId ?? ''} disabled={actionBusy} onChange={(event) => void runAction('assign-award', award.id, event.target.value === '' ? null : Number(event.target.value))}>
 													<option value="">No award</option>
-													{award.candidates.map((candidate) => <option key={candidate.categoryId} value={candidate.categoryId}>#{candidate.rank} {candidate.categoryName} ({candidate.adjustedAveragePercent.toFixed(1)}%)</option>)}
+													{awardCategories
+														.filter((category) => category.id === award.categoryId || !assignedCategoryIds.has(category.id))
+														.map((category) => {
+															const candidate = award.candidates.find((item) => item.categoryId === category.id);
+															return (
+																<option key={category.id} value={category.id}>
+																	{candidate ? `#${candidate.rank} ${category.name} (${candidate.adjustedAveragePercent.toFixed(1)}%)` : `${category.name} (not voted on)`}
+																</option>
+															);
+														})}
 												</select>
 											</td>
 										</tr>
