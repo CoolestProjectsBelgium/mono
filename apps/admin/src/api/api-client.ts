@@ -62,20 +62,14 @@ export class ApiClient {
     return client;
   }
 
-  private async importCookies(request: {
-    headers?: { cookie?: string };
-    _req?: { headers?: { cookie?: string } };
-    rawHeaders?: string[];
-  }) {
+  private async importCookies(request: { rawHeaders?: string[] }) {
     // AdminJS builds the ActionRequest via `Object.assign({}, req)` (see
     // @adminjs/express's buildRouter.js). On current Node, IncomingMessage#headers
     // is a lazily-computed accessor rather than an own property, so it is dropped
-    // by that shallow copy and `request.headers` is always undefined here. Only
+    // by that shallow copy — `request.headers` is never populated here. Only
     // `rawHeaders` (an own property, alternating name/value pairs) survives the
-    // copy, so that's what we have to read the Cookie header from.
-    const cookieHeader = request.headers?.cookie
-      ?? request._req?.headers?.cookie
-      ?? getRawHeader(request.rawHeaders, 'cookie');
+    // copy, so that's the only place to read the Cookie header from.
+    const cookieHeader = getRawHeader(request.rawHeaders, 'cookie');
 
     if (!cookieHeader) {
       return;
