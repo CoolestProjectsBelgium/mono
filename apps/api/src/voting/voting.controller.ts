@@ -24,39 +24,24 @@ import { VoteMessage } from '../dto/votemessage.dto';
 import { VotingService } from './voting.service';
 import { VotingEvent } from '../dto/votingevent.dto';
 import { Observable, map } from 'rxjs';
-import { UnauthorizedException } from '@nestjs/common';
+import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 
 @Controller()
 export class VotingController {
   constructor(private votingService: VotingService, @Inject(VOTING_JWT) private readonly votingJwtService: JwtService) { }
 
-  private getAdminEventId(req: any): number {
-    const internalSecret = req.headers?.['x-adminjs-secret'];
-    const internalEventId = Number(req.headers?.['x-adminjs-event-id']);
-    if (internalSecret && internalSecret === process.env.ADMINJS_COOKIE_SECRET
-      && Number.isInteger(internalEventId) && internalEventId > 0) {
-      return internalEventId;
-    }
-
-    const eventId = Number(req.user?.adminUser?.eventId ?? req.user?.eventId);
-    if (!Number.isInteger(eventId) || eventId <= 0) {
-      throw new UnauthorizedException('No Event selected for admin account');
-    }
-    return eventId;
-  }
-
   @Post()
-  @UseGuards(AuthGuard('mandatory-admin-cookie'))
+  @UseGuards(MandatoryAdminCookieGuard)
   receiveEvent(@Body() event: VotingEvent) {
     this.votingService.publish(event);
     return { success: true };
   }
 
   @Post('admin/voting/start')
+  @UseGuards(MandatoryAdminCookieGuard)
   async startVoting(@Req() req: any, @Body() body: { durationMinutes?: number; deletePreviousResults?: boolean }) {
-    const eventId = this.getAdminEventId(req);
     await this.votingService.openVotingWithDuration(
-      eventId,
+      req.user.adminUser.eventId,
       Number(body.durationMinutes ?? 60),
       body.deletePreviousResults === true,
     );
@@ -64,44 +49,49 @@ export class VotingController {
   }
 
   @Post('admin/voting/stop')
+  @UseGuards(MandatoryAdminCookieGuard)
   async stopVoting(@Req() req: any) {
-    const eventId = this.getAdminEventId(req);
-    await this.votingService.closeVotingNow(eventId);
-    const awards = await this.votingService.generateAwards(eventId);
+    console.log(req.user);
+    await this.votingService.closeVotingNow(req.user.adminUser.eventId,);
+    const awards = await this.votingService.generateAwards(req.user.adminUser.eventId);
     return { success: true, awards };
   }
 
   @Post('admin/voting/message')
+  @UseGuards(MandatoryAdminCookieGuard)
   sendAdminMessage(@Req() req: any, @Body() body: { message?: string }) {
-    this.getAdminEventId(req);
     this.votingService.publishMessage(String(body.message ?? ''));
     return { success: true };
   }
 
   @Get('admin/voting/results')
+  @UseGuards(MandatoryAdminCookieGuard)
   getVotingResults(@Req() req: any) {
-    return this.votingService.calculateVotes(this.getAdminEventId(req));
+    return this.votingService.calculateVotes(req.user.adminUser.eventId,);
   }
 
   @Post('admin/voting/awards/generate')
+  @UseGuards(MandatoryAdminCookieGuard)
   async generateAwards(@Req() req: any) {
-    return this.votingService.generateAwards(this.getAdminEventId(req));
+    return this.votingService.generateAwards(req.user.adminUser.eventId);
   }
 
 
   @Get('admin/voting/awards')
+  @UseGuards(MandatoryAdminCookieGuard)
   async getAwards(@Req() req: any) {
-    return this.votingService.getAwardAssignments(this.getAdminEventId(req));
+    return this.votingService.getAwardAssignments(req.user.adminUser.eventId,);
   }
 
   @Post('admin/voting/awards/:awardId/assign')
+  @UseGuards(MandatoryAdminCookieGuard)
   async assignAward(
     @Req() req: any,
     @Param('awardId') awardId: number,
     @Body() body: { categoryId?: number | null },
   ) {
     await this.votingService.assignAward(
-      this.getAdminEventId(req),
+      req.user.adminUser.eventId,
       Number(awardId),
       body.categoryId === null || body.categoryId === undefined ? null : Number(body.categoryId),
     );
@@ -109,8 +99,9 @@ export class VotingController {
   }
 
   @Get('admin/voting/status')
+  @UseGuards(MandatoryAdminCookieGuard)
   async getVotingStatus(@Req() req: any) {
-    const event = await this.votingService.getVotingStatus(this.getAdminEventId(req));
+    const event = await this.votingService.getVotingStatus(req.user.adminUser.eventId,);
     return event;
   }
 

@@ -74,6 +74,8 @@ TLS certs live under [`.devcontainer/certs/`](../.devcontainer/certs/). If `*.co
 
 Registration calls the API on **`api.coolestprojects.localhost`** (separate origin). Trusting only the registration site in the browser is not enough — install the dev CA once on your **host OS** so all `*.coolestprojects.localhost` HTTPS calls succeed (avoids `ERR_CERT_AUTHORITY_INVALID` on `/settings`, attachments, etc.).
 
+Server-side calls made *inside* the `workspace` container (e.g. AdminJS calling the API over the TLS proxy) trust the same CA automatically — `.devcontainer/start.sh` installs `pki/ca.crt` into the container's system trust store on every start, and `NODE_OPTIONS=--use-system-ca` (set in `docker-compose.yml`) makes Node consult it. No manual step needed for that path; the host-OS install above is only for your browser.
+
 **Windows (PowerShell, user store):**
 
 ```powershell

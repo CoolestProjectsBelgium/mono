@@ -14,6 +14,7 @@ export class AdminAuthenticationService {
   ) {}
 
   async validate(token: string) {
+    console.log('Validating token:', token); // Log the token for debugging
     if (!token) {
       throw new UnauthorizedException();
     }
@@ -31,6 +32,8 @@ export class AdminAuthenticationService {
         role?: string;
       };
     };
+
+    console.log('Session Data:', sessionData); // Log the session data for debugging
 
     const email = sessionData.adminUser?.email;
 

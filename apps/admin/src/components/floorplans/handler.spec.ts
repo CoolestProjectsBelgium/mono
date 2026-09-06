@@ -8,7 +8,7 @@ test('handler proxies floorplan actions through the Nest API', () => {
   const source = readFileSync(handlerPath, 'utf8');
 
   assert.doesNotMatch(source, /from 'node:fs/);
-  assert.match(source, /nestFetch\('\/admin\/floorplans'/);
-  assert.match(source, /nestFetch\(`\/admin\/floorplans\/\$\{filename\}\/activate`/);
+  assert.match(source, /api\.get<FloorplansOverview>\('\/admin\/floorplans'\)/);
+  assert.match(source, /api\.post<FloorplansOverview>\(`\/admin\/floorplans\/\$\{filename\}\/activate`\)/);
   assert.match(source, /payload\.action === 'upload'/);
 });

@@ -20,6 +20,8 @@
     "@adminjs/sequelize": "^4.1.1",
     "@coolestprojects/database": "*",
     "adminjs": "^7.8.17",
+    "axios": "^1.20.0",
+    "axios-cookiejar-support": "^7.0.0",
     "connect-session-sequelize": "^8.0.6",
     "dotenv": "^17.4.1",
     "express-formidable": "^1.2.0",
@@ -27,7 +29,8 @@
     "handlebars": "^4.7.9",
     "mysql2": "^3.24.2",
     "recharts": "2.15.4",
-    "sequelize-typescript": "^2.1.6"
+    "sequelize-typescript": "^2.1.6",
+    "tough-cookie": "^6.0.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

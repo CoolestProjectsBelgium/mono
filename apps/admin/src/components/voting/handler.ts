@@ -7,7 +7,7 @@ import {
 } from '@coolestprojects/database';
 import { Op } from 'sequelize';
 import { sequelize } from '../../database.js';
-import { getCookieHeader, nestFetch, parseNestJson } from '../../api/nest-fetch.js';
+import { ApiClient } from '../../api/api-client.js';
 
 const Project = sequelize.models.Project as typeof ProjectModel;
 const Vote = sequelize.models.Vote as typeof VoteModel;
@@ -68,7 +68,7 @@ export interface VotingOverview {
     projectsWithoutVotes: number;
     votesOverTime: Array<{ date: string; votes: number; votesRemaining: number }>;
     totalExpectedVotes: number;
-    votesByProjectCategory: Array<{ project: string; [category: string]: string | number }>;
+    votesByProjectCategory: Array<{ project: string;[category: string]: string | number }>;
     votingStatus: VotingStatus;
     results: VotingResult[];
     awards: AwardAssignment[];
@@ -79,46 +79,35 @@ export const Handler = async (request: any, _response: any, context: any): Promi
     if (!eventId) {
         throw new Error('No event selected');
     }
-    const cookieHeader = getCookieHeader(request);
+    
+    const api = await ApiClient.fromExpressRequest(request);
 
     if (request.method?.toLowerCase() === 'post') {
         const payload = request.payload ?? {};
         const action = String(payload.action ?? '');
-        let path = '';
-        let body: Record<string, unknown> | undefined;
 
         if (action === 'start') {
-            path = '/admin/voting/start';
-            body = {
+            await api.post('/admin/voting/start', {
                 durationMinutes: Number(payload.durationMinutes ?? 60),
                 deletePreviousResults: payload.deletePreviousResults === true
                     || payload.deletePreviousResults === 'true',
-            };
+            });
         } else if (action === 'stop') {
-            path = '/admin/voting/stop';
+            await api.post('/admin/voting/stop');
         } else if (action === 'message') {
-            path = '/admin/voting/message';
-            body = { message: String(payload.message ?? '') };
+            await api.post('/admin/voting/message', { message: String(payload.message ?? '') });
         } else if (action === 'generate-awards') {
-            path = '/admin/voting/awards/generate';
+            await api.post('/admin/voting/awards/generate');
         } else if (action === 'assign-award') {
-            path = `/admin/voting/awards/${Number(payload.awardId)}/assign`;
-            body = {
+            await api.post(`/admin/voting/awards/${Number(payload.awardId)}/assign`, {
                 categoryId: payload.categoryId === '' || payload.categoryId === null || payload.categoryId === undefined
                     ? null
                     : Number(payload.categoryId),
-            };
+            });
         } else {
             throw new Error(`Unknown action: ${action}`);
         }
 
-        const response = await nestFetch(path, {
-            method: 'POST',
-            body,
-            cookieHeader,
-            adminEventId: Number(eventId),
-        });
-        await parseNestJson<{ success: true }>(response);
         return { success: true };
     }
 
@@ -213,9 +202,7 @@ export const Handler = async (request: any, _response: any, context: any): Promi
     let results: VotingResult[] = [];
     if (!status.votingOpen) {
         try {
-            const calculated = await parseNestJson<Array<Omit<VotingResult, 'projectName'>>>(
-                await nestFetch('/admin/voting/results', { cookieHeader, adminEventId: Number(eventId) }),
-            );
+            const calculated = (await api.get<Array<Omit<VotingResult, 'projectName'>>>('/admin/voting/results')).data;
             const projectIds = [...new Set(calculated.map((result) => result.projectId))];
             const projects = await Project.findAll({ where: { eventId, id: { [Op.in]: projectIds } }, attributes: ['id', 'name'] });
             const projectNames = new Map(projects.map((project) => [project.id, project.name]));
@@ -231,9 +218,7 @@ export const Handler = async (request: any, _response: any, context: any): Promi
     let awards: AwardAssignment[] = [];
     if (!status.votingOpen) {
         try {
-            awards = await parseNestJson<AwardAssignment[]>(
-                await nestFetch('/admin/voting/awards', { cookieHeader, adminEventId: Number(eventId) }),
-            );
+            awards = (await api.get<AwardAssignment[]>('/admin/voting/awards')).data;
         } catch (error) {
             console.error('Failed to load voting awards:', error);
         }
