@@ -72,8 +72,11 @@ and allows reassignment via a per-project dropdown listing every `VoteCategory` 
 Chart components import Recharts from `recharts/es6/...` (not the package barrel) so AdminJS production Rollup does
 not pull the CJS `lib/` graph that crashes the dest bundle.
 
-The `Tables` page supports selecting two tables and swapping their project assignments while keeping assignments scoped
-to the selected event.
+The `Tables` page is a project-centric "Assign tables to projects" view: each active project shows its type, language, and
+affiliation(s) (participants' `via` field, any value, not just CoderDojo) next to a per-project table dropdown (limited to free
+tables plus the project's current one; picking "Unassigned" clears it). Projects can be grouped by type, affiliation, or
+language to spot which projects fit together before assigning seating. There is no separate table-management list — swapping is
+just reassigning two projects' dropdowns, and a table is freed by unassigning its project.
 
 The **Floorplans** page (`apps/admin/src/components/floorplans/`) lists SVG files from the API (`GET /admin/floorplans`), uploads raw Visio SVG exports via the API (`POST /admin/floorplans`; auto-processed to `table_XX` groups with blink CSS on the API server), and sets `Event.floorplanPath` on upload or via **Use for this event** (`POST /admin/floorplans/:filename/activate`). The AdminJS handler proxies these calls to Nest via `ApiClient` (`apps/admin/src/api/api-client.ts`), which forwards the incoming `adminjs` session cookie; it does not touch `UPLOAD_ROOT` locally. After changing `process-visio-svg.ts` in `apps/api`, restart the API dev server. Judges cannot access this page.
 
