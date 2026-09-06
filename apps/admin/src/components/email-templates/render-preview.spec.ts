@@ -34,6 +34,23 @@ test('renderPreview omits guardian block when guardianEmail is false', () => {
   assert.doesNotMatch(result.html, /Je ouders hebben deze mail ook gekregen/);
 });
 
+test('renderPreview uses loaded user and project.title from context JSON', () => {
+  const result = renderPreview({
+    subject: 'Welcome',
+    contentRich: "<p>Hallo {{user.firstname}},</p><p>Jouw project met titel '{{project.title}}' werd succesvol geactiveerd!</p>",
+    contentPlain: "Hallo {{user.firstname}}, Jouw project met titel '{{project.title}}' werd succesvol geactiveerd!",
+    guardianEmail: false,
+    context: {
+      user: { firstname: 'User 1 FN' },
+      project: { id: 7, title: 'Robot Dog' },
+    },
+  });
+
+  assert.match(result.html, /Hallo User 1 FN/);
+  assert.match(result.html, /Robot Dog/);
+  assert.match(result.plainText, /Robot Dog/);
+});
+
 test('renderPreview throws readable error on invalid Handlebars', () => {
   assert.throws(
     () => renderPreview({

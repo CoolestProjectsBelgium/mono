@@ -42,6 +42,39 @@ export function buildRecordContext(
   return { [recordType]: record };
 }
 
+export function mapProjectPreview(
+  project: { id: number; name: string } | null | undefined,
+): { id: number; title: string } | undefined {
+  if (!project) {
+    return undefined;
+  }
+
+  return { id: project.id, title: project.name };
+}
+
+export function buildPreviewContext(input: {
+  dummy: Record<string, unknown>;
+  recordType: ContextRecordType;
+  record: Record<string, unknown>;
+  project?: { id: number; name: string } | null;
+}): Record<string, unknown> {
+  const context: Record<string, unknown> = {
+    ...input.dummy,
+    ...buildRecordContext(input.recordType, input.record),
+  };
+
+  if (input.recordType === 'user') {
+    const project = mapProjectPreview(input.project);
+    if (project) {
+      context.project = project;
+    } else {
+      delete context.project;
+    }
+  }
+
+  return context;
+}
+
 export function buildLoadKey(
   eventId: number,
   template: string,

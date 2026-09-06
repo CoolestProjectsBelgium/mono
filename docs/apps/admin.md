@@ -81,7 +81,11 @@ data, and save via AdminJS `recordAction` on the `EmailTemplates` resource (`edi
 Before save/preview, the client pretty-prints HTML (Handlebars tokens masked first) and shows non-blocking lint warnings.
 TinyMCE loads from CDN for visual HTML editing; use the Source tab for `{{#if}}` block helpers. Judges cannot access this page.
 The page also derives whether a template uses a `User` or `Registration` context, lets staff select an event-scoped record,
-and loads that record as editable context JSON for previews. Empty context continues to use the dummy preview data.
+and loads that record as editable context JSON for previews. For user-backed templates the handler looks up membership in
+`UserProject` (preferring `isOwner`, skipping soft-deleted rows) and maps `project.name` → `{{project.title}}`, matching
+[`MailerService.buildUserMailContext`](../../apps/api/src/mailer/mailer.service.ts). Dummy `year` / `url` / `token` /
+`website` stay in the JSON so other placeholders still preview; `year` and `event.id` come from the selected event when
+present. A user with no project omits `project` (empty title in preview). Empty context continues to use the dummy preview data.
 The `EmailTemplate` CRUD resource remains available (event-scoped list/search) as an escape hatch.
 
 | Path | Role |

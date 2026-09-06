@@ -1,7 +1,10 @@
 import {
   EmailTemplate as EmailTemplateModel,
+  Event as EventModel,
+  Project as ProjectModel,
   Registration as RegistrationModel,
   User as UserModel,
+  UserProject as UserProjectModel,
 } from '@coolestprojects/database';
 import { sequelize } from '../../database.js';
 import {
@@ -10,16 +13,19 @@ import {
   mapRecord,
   normalizeSavePayload,
   SUPPORTED_LANGUAGES,
-  buildRecordContext,
+  buildPreviewContext,
   getContextRecordType,
   type ContextRecordType,
   type EmailTemplateRecord,
 } from './handler-helpers.js';
-import { renderPreview, type PreviewResult } from './render-preview.js';
+import { buildDummyContext, renderPreview, type PreviewResult } from './render-preview.js';
 
 const EmailTemplate = sequelize.models.EmailTemplate as typeof EmailTemplateModel;
+const Event = sequelize.models.Event as typeof EventModel;
+const Project = sequelize.models.Project as typeof ProjectModel;
 const Registration = sequelize.models.Registration as typeof RegistrationModel;
 const User = sequelize.models.User as typeof UserModel;
+const UserProject = sequelize.models.UserProject as typeof UserProjectModel;
 
 export interface EmailTemplatesMeta {
   templates: string[];
@@ -98,6 +104,48 @@ async function listContextRecords(
   }));
 }
 
+async function loadUserProject(
+  eventId: number,
+  userId: number,
+): Promise<{ id: number; name: string } | null> {
+  const membership = await UserProject.findOne({
+    where: { eventId, userId, deletedAt: null },
+    include: [{
+      model: Project,
+      required: true,
+      where: { deletedAt: null },
+      attributes: ['id', 'name'],
+    }],
+    order: [['isOwner', 'DESC'], ['id', 'ASC']],
+  });
+
+  const project = membership?.project;
+  if (!project) {
+    return null;
+  }
+
+  return { id: project.id, name: project.name };
+}
+
+async function loadPreviewDummy(
+  eventId: number,
+  guardianEmail: boolean,
+): Promise<Record<string, unknown>> {
+  const dummy = buildDummyContext(guardianEmail);
+  const event = await Event.findByPk(eventId, {
+    attributes: ['id', 'officialStartDate'],
+  });
+
+  if (event) {
+    dummy.event = { id: event.id };
+    if (event.officialStartDate) {
+      dummy.year = new Date(event.officialStartDate).getFullYear();
+    }
+  }
+
+  return dummy;
+}
+
 async function loadContext(
   eventId: number,
   recordType: ContextRecordType,
@@ -110,7 +158,13 @@ async function loadContext(
     throw new Error('Context record not found');
   }
 
-  return buildRecordContext(recordType, row.toJSON() as Record<string, unknown>);
+  const record = row.toJSON() as Record<string, unknown>;
+  const dummy = await loadPreviewDummy(eventId, Boolean(record.email_guardian));
+  const project = recordType === 'user'
+    ? await loadUserProject(eventId, recordId)
+    : null;
+
+  return buildPreviewContext({ dummy, recordType, record, project });
 }
 
 export const Handler = async (
