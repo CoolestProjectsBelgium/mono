@@ -7,7 +7,7 @@ import {
 } from '@coolestprojects/database';
 import { Op } from 'sequelize';
 import { sequelize } from '../../database.js';
-import { ApiClient } from '../../api/api-client.js';
+import { NestApiClient } from '../../api/nest-api-client.js';
 
 const Project = sequelize.models.Project as typeof ProjectModel;
 const Vote = sequelize.models.Vote as typeof VoteModel;
@@ -86,7 +86,7 @@ export const Handler = async (request: any, _response: any, context: any): Promi
         throw new Error('No event selected');
     }
     
-    const api = await ApiClient.fromExpressRequest(request);
+    const api = await NestApiClient.fromExpressRequest(request);
 
     if (request.method?.toLowerCase() === 'post') {
         const payload = request.payload ?? {};

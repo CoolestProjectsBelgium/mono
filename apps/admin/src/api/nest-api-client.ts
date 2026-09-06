@@ -33,7 +33,7 @@ export function getApiBaseUrl(): string {
   return apiBase;
 }
 
-export class ApiClient {
+export class NestApiClient {
   private readonly client: AxiosInstance;
   private csrfToken?: string;
 
@@ -52,10 +52,10 @@ export class ApiClient {
    *
    * IMPORTANT: create one per incoming request.
    */
-  static async fromExpressRequest(req: any): Promise<ApiClient> {
+  static async fromExpressRequest(req: any): Promise<NestApiClient> {
     const jar = new CookieJar();
 
-    const client = new ApiClient(jar);
+    const client = new NestApiClient(jar);
 
     await client.importCookies(req); // we need the adminjs session cookie to be able to make requests to the API
 

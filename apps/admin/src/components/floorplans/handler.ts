@@ -1,4 +1,4 @@
-import { ApiClient } from '../../api/api-client.js';
+import { NestApiClient } from '../../api/nest-api-client.js';
 
 export interface FloorplanListItem {
   filename: string;
@@ -17,7 +17,7 @@ export const Handler = async (request: any, _response: any, context: any): Promi
     throw new Error('No event selected');
   }
 
-  const api = await ApiClient.fromExpressRequest(request);
+  const api = await NestApiClient.fromExpressRequest(request);
   const payload = request.payload ?? {};
 
   if (request.method?.toLowerCase() === 'post') {

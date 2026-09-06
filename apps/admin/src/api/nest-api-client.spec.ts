@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ApiClient, getApiBaseUrl } from './api-client.js';
+import { NestApiClient, getApiBaseUrl } from './nest-api-client.js';
 
 test('getApiBaseUrl reads API_BASE_URL and strips a trailing slash', () => {
   const previous = process.env.API_BASE_URL;
@@ -36,7 +36,7 @@ test('fromExpressRequest reads the Cookie header from rawHeaders when .headers i
     rawHeaders: ['Host', 'admin.example.test', 'Cookie', 'adminjs=abc; anonId=xyz', 'Accept', '*/*'],
   };
 
-  const api = await ApiClient.fromExpressRequest(adminJsShapedRequest);
+  const api = await NestApiClient.fromExpressRequest(adminJsShapedRequest);
   const cookieString = await (api as any).jar.getCookieString('https://api.example.test');
   assert.match(cookieString, /adminjs=abc/);
   assert.match(cookieString, /anonId=xyz/);
