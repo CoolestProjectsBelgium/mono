@@ -1,7 +1,7 @@
 import { Controller, Delete, Post, UseGuards } from '@nestjs/common';
 import { ApiResponse, ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { Request, Body } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtUserAuthGuard } from '../auth/jwt-user-auth.guard';
 import { RegistrationService } from '../registration/registration.service';
 import { OtherProjectDto } from '../dto/other-project.dto';
 
@@ -14,7 +14,7 @@ export class ParticipantController {
     ) { }
 
   @Post()
-  @UseGuards(AuthGuard('jwt-user'))
+  @UseGuards(JwtUserAuthGuard)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async createParticipant(
     @Request() req: any,
@@ -23,7 +23,7 @@ export class ParticipantController {
     return this.registrationService.assignParticipant(req.user.id, participantDto.project_code);
   }
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt-user'))
+  @UseGuards(JwtUserAuthGuard)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async deleteParticipant(
     @Request() req: any,

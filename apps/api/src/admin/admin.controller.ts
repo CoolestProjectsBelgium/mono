@@ -8,9 +8,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { FloorplansOverviewDto, UploadFloorplanDto } from '../dto/floorplans-overview.dto';
 import { AdminService } from './admin.service';
+import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 
 interface AdminRequestUser {
   adminUser?: {
@@ -23,7 +23,7 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get('floorplans')
-  @UseGuards(AuthGuard('mandatory-admin-cookie'))
+  @UseGuards(MandatoryAdminCookieGuard)
   listFloorplans(
     @Req() req: { user?: AdminRequestUser },
   ): Promise<FloorplansOverviewDto> {
@@ -31,7 +31,7 @@ export class AdminController {
   }
 
   @Post('floorplans')
-  @UseGuards(AuthGuard('mandatory-admin-cookie'))
+  @UseGuards(MandatoryAdminCookieGuard)
   uploadFloorplan(
     @Req() req: { user?: AdminRequestUser },
     @Body() body: UploadFloorplanDto,
@@ -40,7 +40,7 @@ export class AdminController {
   }
 
   @Post('floorplans/:filename/activate')
-  @UseGuards(AuthGuard('mandatory-admin-cookie'))
+  @UseGuards(MandatoryAdminCookieGuard)
   activateFloorplan(
     @Req() req: { user?: AdminRequestUser },
     @Param('filename') filename: string,
