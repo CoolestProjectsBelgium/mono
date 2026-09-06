@@ -253,28 +253,31 @@ export class VotingService {
 
         const projects = await this.projectModel.findAll({
             where: { eventId, deletedAt: null },
-            attributes: ['id', 'name'],
+            attributes: ['id'],
         });
-        const projectNames = new Map(projects.map((project) => [project.id, project.name]));
-        const existingAwards = await this.awardModel.findAll({ where: { eventId } });
-        const awardsByProject = new Map(existingAwards.map((award) => [award.projectId, award]));
-        for (const project of projects) {
-            const award = awardsByProject.get(project.id)
-                ?? await this.awardModel.create({ eventId, projectId: project.id, categoryId: null });
-            award.categoryId = null;
-            awardsByProject.set(project.id, award);
-        }
 
-        const results = await this.calculateVotes(eventId);
+        const awards = await this.fillAwardRecords(eventId, projects);
+
+        return this.assignAwardWinners(eventId, awards);
+    }
+
+    private async fillAwardRecords(eventId: number, projects: Project[]): Promise<Award[]> {
+        await this.awardModel.destroy({ where: { eventId } });
+
+        await this.awardModel.bulkCreate(
+            projects.map((project) => ({ eventId, projectId: project.id, categoryId: null })),
+        );
+
+        return this.awardModel.findAll({ where: { eventId }, include: [Project] });
+    }
+
+    private async assignAwardWinners(
+        eventId: number,
+        awards: Award[],
+    ): Promise<AwardAssignmentDto[]> {
+        const byCategory = await this.calculateVotesByCategory(eventId);
         const usedProjectIds = new Set<number>();
         const assignments: AwardAssignmentDto[] = [];
-        const byCategory = new Map<number, VotesCalculationDto[]>();
-
-        for (const result of results) {
-            const categoryResults = byCategory.get(result.categoryId) ?? [];
-            categoryResults.push(result);
-            byCategory.set(result.categoryId, categoryResults);
-        }
 
         for (const [categoryId, categoryResults] of byCategory) {
             const candidates = categoryResults
@@ -282,7 +285,7 @@ export class VotingService {
                 .sort((first, second) => second.adjusted_average_percent - first.adjusted_average_percent)
                 .map((result, index) => ({
                     projectId: result.projectId,
-                    projectName: projectNames.get(result.projectId) ?? `Project #${result.projectId}`,
+                    projectName: awards.find((award) => award.projectId === result.projectId)!.project.name,
                     categoryId: result.categoryId,
                     categoryName: result.categoryName,
                     rank: index + 1,
@@ -296,7 +299,7 @@ export class VotingService {
             if (!winner) continue;
 
             usedProjectIds.add(winner.projectId);
-            const award = awardsByProject.get(winner.projectId);
+            const award = awards.find((award) => award.projectId === winner.projectId);
             if (!award) continue;
             award.categoryId = categoryId;
             await award.save();
@@ -346,17 +349,14 @@ export class VotingService {
 
     async getAwardAssignments(eventId: number): Promise<AwardAssignmentDto[]> {
         const results = await this.calculateVotes(eventId);
-        const projectIds = [...new Set(results.map((result) => result.projectId))];
-        const projects = await this.projectModel.findAll({ where: { eventId, id: { [Op.in]: projectIds } }, attributes: ['id', 'name'] });
-        const projectNames = new Map(projects.map((project) => [project.id, project.name]));
-        const awards = await this.awardModel.findAll({ where: { eventId } });
-        return awards.map((award: any) => {
+        const awards = await this.awardModel.findAll({ where: { eventId }, include: [Project] });
+        return awards.map((award) => {
             const categoryResults = results
                 .filter((result) => result.projectId === award.projectId)
                 .sort((first, second) => second.adjusted_average_percent - first.adjusted_average_percent);
             const candidates = categoryResults.map((result) => ({
                 projectId: result.projectId,
-                projectName: projectNames.get(result.projectId) ?? `Project #${result.projectId}`,
+                projectName: award.project.name,
                 categoryId: result.categoryId,
                 categoryName: result.categoryName,
                 rank: categoryResults.findIndex((candidate) => candidate.categoryId === result.categoryId) + 1,
@@ -370,7 +370,7 @@ export class VotingService {
                 id: award.id,
                 categoryId: award.categoryId,
                 projectId: award.projectId,
-                projectName: projectNames.get(award.projectId) ?? `Project #${award.projectId}`,
+                projectName: award.project.name,
                 candidates,
             };
         });
@@ -660,5 +660,18 @@ export class VotingService {
                 outlier_max_percent: vote.outlier_max_percent,
             };
         });
+    }
+
+    private async calculateVotesByCategory(eventId: number): Promise<Map<number, VotesCalculationDto[]>> {
+        const results = await this.calculateVotes(eventId);
+        const byCategory = new Map<number, VotesCalculationDto[]>();
+
+        for (const result of results) {
+            const categoryResults = byCategory.get(result.categoryId) ?? [];
+            categoryResults.push(result);
+            byCategory.set(result.categoryId, categoryResults);
+        }
+
+        return byCategory;
     }
 }

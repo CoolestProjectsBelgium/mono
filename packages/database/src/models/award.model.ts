@@ -5,13 +5,14 @@ import { BaseEventModel } from './base_event.model';
 
 @Table
 export class Award extends BaseEventModel {
-  @Index('unique_award')
+  @Index({ name: 'award_event_project_unique', unique: true })
+  @Index({ name: 'award_event_category_unique', unique: true })
   @Column
   eventId!: number;
 
   @ForeignKey(() => Project)
   @Column
-  @Index('unique_award')
+  @Index({ name: 'award_event_project_unique', unique: true })
   projectId!: number;
 
   @BelongsTo(() => Project)
@@ -19,7 +20,7 @@ export class Award extends BaseEventModel {
 
   @ForeignKey(() => VoteCategory)
   @Column({ type: DataType.INTEGER, allowNull: true })
-  @Index('unique_award')
+  @Index({ name: 'award_event_category_unique', unique: true })
   categoryId!: number | null;
 
   @BelongsTo(() => VoteCategory)
