@@ -11,7 +11,9 @@ import { buildAppCookieOptions } from './cookie-options';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'fatal', 'error', 'warn', 'debug', 'verbose'],
+  });
   const config = app.get(ConfigService);
 
 

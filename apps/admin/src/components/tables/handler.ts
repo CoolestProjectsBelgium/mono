@@ -1,8 +1,9 @@
-import { EventTable as EventTableModel, Project as ProjectModel } from '@coolestprojects/database';
+import { EventTable as EventTableModel, Project as ProjectModel, User as UserModel } from '@coolestprojects/database';
 import { sequelize } from '../../database.js';
 
 const EventTable = sequelize.models.EventTable as typeof EventTableModel;
 const Project = sequelize.models.Project as typeof ProjectModel;
+const User = sequelize.models.User as typeof UserModel;
 
 export interface TableAssignment {
     id: number;
@@ -12,9 +13,19 @@ export interface TableAssignment {
     projectName: string | null;
 }
 
+export interface ProjectAssignment {
+    id: number;
+    name: string;
+    type: string | null;
+    language: string;
+    affiliations: string[];
+    tableId: number | null;
+    tableName: string | null;
+}
+
 export interface TableOverview {
     tables: TableAssignment[];
-    projects: Array<{ id: number; name: string }>;
+    projects: ProjectAssignment[];
 }
 
 const getOverview = async (eventId: number): Promise<TableOverview> => {
@@ -26,7 +37,16 @@ const getOverview = async (eventId: number): Promise<TableOverview> => {
         }),
         Project.findAll({
             where: { eventId, deletedAt: null },
-            attributes: ['id', 'name'],
+            attributes: ['id', 'name', 'type', 'language'],
+            include: [
+                { model: EventTable, attributes: ['id', 'name'] },
+                {
+                    model: User,
+                    as: 'users',
+                    attributes: ['via'],
+                    through: { attributes: [] },
+                },
+            ],
             order: [['name', 'ASC']],
         }),
     ]);
@@ -39,7 +59,22 @@ const getOverview = async (eventId: number): Promise<TableOverview> => {
             projectId: table.projectId ?? null,
             projectName: table.project?.name ?? null,
         })),
-        projects: projects.map((project) => ({ id: project.id, name: project.name })),
+        projects: projects.map((project) => {
+            const affiliations = Array.from(new Set(
+                (project.users ?? [])
+                    .map((user) => user.via?.trim())
+                    .filter((via): via is string => Boolean(via)),
+            ));
+            return {
+                id: project.id,
+                name: project.name,
+                type: project.type ?? null,
+                language: project.language,
+                affiliations,
+                tableId: project.table?.id ?? null,
+                tableName: project.table?.name ?? null,
+            };
+        }),
     };
 };
 

@@ -10,7 +10,7 @@ export const Authenticate = async (email: string, password: string, context: any
     if (account) {
         const isPasswordValid = account.verifyPassword(password)
         if (isPasswordValid) {
-            return { email: account.email, eventId, role: account.account_type }
+            return { id: account.id, email: account.email, eventId, role: account.account_type }
         }
     }
     return null

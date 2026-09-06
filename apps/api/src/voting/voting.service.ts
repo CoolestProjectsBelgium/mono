@@ -10,7 +10,8 @@ import { AccountDto } from '../dto/account.dto';
 import { VoteMessage } from '../dto/votemessage.dto';
 import { Subject } from 'rxjs';
 import { Observable } from 'rxjs';
-import { VotingEvent } from '../dto/votingevent.dto';
+import { EventType, VotingEvent } from '../dto/votingevent.dto';
+import { AwardAssignmentDto } from '../dto/award-assigment.dto';
 
 @Injectable()
 export class VotingService {
@@ -141,27 +142,71 @@ export class VotingService {
             throw new Error("No Event Found");
         }
 
-        if (!activeEvent.votingOpen) {
-            throw new Error("Voting is not open");
+        if (activeEvent.votingOpen) {
+            activeEvent.votingEndDate = new Date();
+            await activeEvent.save();
         }
 
-        activeEvent.votingEndDate = new Date();
-        await activeEvent.save();
+        this.publish({
+            type: EventType.VOTE_TIMER,
+            message: '',
+            startDate: activeEvent.votingStartDate,
+            endDate: activeEvent.votingEndDate,
+        });
     }
 
-    async openVotingWithDuration(eventId: number, duration: number){
+    async openVotingWithDuration(eventId: number, durationMinutes: number, deletePreviousResults = false){
         const activeEvent = await this.eventModel.findByPk(eventId);
 
         if (!activeEvent) {
             throw new Error("No Event Found");
         }
 
-        if(activeEvent.votingStartDate > new Date()){
-            activeEvent.votingStartDate = new Date();
+        if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+            throw new Error('Voting duration must be greater than zero');
         }
 
-        activeEvent.votingEndDate = new Date(new Date().getDate() + duration);
+        if (deletePreviousResults) {
+            await this.voteModel.destroy({ where: { eventId } });
+            await this.awardModel.destroy({ where: { eventId } });
+        }
+
+        const now = new Date();
+        activeEvent.votingStartDate = now;
+        activeEvent.votingEndDate = new Date(now.getTime() + durationMinutes * 60 * 1000);
         await activeEvent.save();
+        this.publish({
+            type: EventType.VOTE_TIMER,
+            message: '',
+            startDate: activeEvent.votingStartDate,
+            endDate: activeEvent.votingEndDate,
+        });
+    }
+
+    publishMessage(message: string): void {
+        const trimmedMessage = message.trim();
+        if (!trimmedMessage) {
+            throw new Error('Message cannot be empty');
+        }
+
+        this.publish({ type: EventType.MESSAGE, message: trimmedMessage });
+    }
+
+    async getVotingStatus(eventId: number): Promise<{
+        votingOpen: boolean;
+        votingStartDate: string | null;
+        votingEndDate: string | null;
+    }> {
+        const event = await this.eventModel.findByPk(eventId);
+        if (!event) {
+            throw new Error('No Event Found');
+        }
+
+        return {
+            votingOpen: event.votingOpen,
+            votingStartDate: event.votingStartDate?.toISOString() ?? null,
+            votingEndDate: event.votingEndDate?.toISOString() ?? null,
+        };
     }
 
     async getAccount(id: number): Promise<AccountDto> {
@@ -195,7 +240,7 @@ export class VotingService {
         };
     }
 
-    async generateAwards(eventId: number): Promise<void> {
+    async generateAwards(eventId: number): Promise<AwardAssignmentDto[]> {
         const activeEvent = await this.eventModel.findByPk(eventId);
 
         if (!activeEvent) {
@@ -207,16 +252,69 @@ export class VotingService {
         }
 
         const projects = await this.projectModel.findAll({
-            where: {
-                eventId: eventId,
-                deletedAt: null
-            }
-        })
+            where: { eventId, deletedAt: null },
+            attributes: ['id', 'name'],
+        });
+        const projectNames = new Map(projects.map((project) => [project.id, project.name]));
+        const existingAwards = await this.awardModel.findAll({ where: { eventId } });
+        const awardsByProject = new Map(existingAwards.map((award) => [award.projectId, award]));
+        for (const project of projects) {
+            const award = awardsByProject.get(project.id)
+                ?? await this.awardModel.create({ eventId, projectId: project.id, categoryId: null });
+            award.categoryId = null;
+            awardsByProject.set(project.id, award);
+        }
 
-        await this.awardModel.bulkCreate(projects.map((p) => ({ eventId: eventId, projectId: p.id })), { ignoreDuplicates: true });
+        const results = await this.calculateVotes(eventId);
+        const usedProjectIds = new Set<number>();
+        const assignments: AwardAssignmentDto[] = [];
+        const byCategory = new Map<number, VotesCalculationDto[]>();
+
+        for (const result of results) {
+            const categoryResults = byCategory.get(result.categoryId) ?? [];
+            categoryResults.push(result);
+            byCategory.set(result.categoryId, categoryResults);
+        }
+
+        for (const [categoryId, categoryResults] of byCategory) {
+            const candidates = categoryResults
+                .slice()
+                .sort((first, second) => second.adjusted_average_percent - first.adjusted_average_percent)
+                .map((result, index) => ({
+                    projectId: result.projectId,
+                    projectName: projectNames.get(result.projectId) ?? `Project #${result.projectId}`,
+                    categoryId: result.categoryId,
+                    categoryName: result.categoryName,
+                    rank: index + 1,
+                    adjustedAveragePercent: Number(result.adjusted_average_percent),
+                    medianPercent: Number(result.median_percent),
+                    minPercent: Number((result as any).min_percent ?? 0),
+                    maxPercent: Number((result as any).max_percent ?? 100),
+                    outlierCount: Number(result.outlier_count),
+                }));
+            const winner = candidates.find((candidate) => !usedProjectIds.has(candidate.projectId));
+            if (!winner) continue;
+
+            usedProjectIds.add(winner.projectId);
+            const award = awardsByProject.get(winner.projectId);
+            if (!award) continue;
+            award.categoryId = categoryId;
+            await award.save();
+
+            assignments.push({
+                id: award.id,
+                categoryId,
+                categoryName: categoryResults[0].categoryName,
+                projectId: winner.projectId,
+                projectName: winner.projectName,
+                candidates,
+            });
+        }
+
+        return assignments;
     }
 
-    async assignAward(eventId: number, awardId: number, categoryId: number){
+    async assignAward(eventId: number, awardId: number, categoryId: number | null): Promise<void> {
         const activeEvent = await this.eventModel.findByPk(eventId);
 
         if (!activeEvent) {
@@ -227,19 +325,55 @@ export class VotingService {
             throw new Error("Voting is open, please close first");
         }
 
-        const award = await this.awardModel.findOne({
-            where: {
-                eventId: eventId,
-                id: awardId
-            }
-        })
+        const award = await this.awardModel.findOne({ where: { eventId, id: awardId } });
 
-        if(!award) {
+        if (!award) {
             throw new Error("Award not found");
+        }
+
+        const conflictingAward = categoryId === null
+            ? null
+            : await this.awardModel.findOne({
+                where: { eventId, categoryId, id: { [Op.ne]: awardId } },
+            });
+        if (conflictingAward) {
+            throw new Error('Each award category can only be assigned once');
         }
 
         award.categoryId = categoryId;
         await award.save();
+    }
+
+    async getAwardAssignments(eventId: number): Promise<AwardAssignmentDto[]> {
+        const results = await this.calculateVotes(eventId);
+        const projectIds = [...new Set(results.map((result) => result.projectId))];
+        const projects = await this.projectModel.findAll({ where: { eventId, id: { [Op.in]: projectIds } }, attributes: ['id', 'name'] });
+        const projectNames = new Map(projects.map((project) => [project.id, project.name]));
+        const awards = await this.awardModel.findAll({ where: { eventId } });
+        return awards.map((award: any) => {
+            const categoryResults = results
+                .filter((result) => result.projectId === award.projectId)
+                .sort((first, second) => second.adjusted_average_percent - first.adjusted_average_percent);
+            const candidates = categoryResults.map((result) => ({
+                projectId: result.projectId,
+                projectName: projectNames.get(result.projectId) ?? `Project #${result.projectId}`,
+                categoryId: result.categoryId,
+                categoryName: result.categoryName,
+                rank: categoryResults.findIndex((candidate) => candidate.categoryId === result.categoryId) + 1,
+                adjustedAveragePercent: Number(result.adjusted_average_percent),
+                medianPercent: Number(result.median_percent),
+                minPercent: Number((result as any).min_percent ?? 0),
+                maxPercent: Number((result as any).max_percent ?? 100),
+                outlierCount: Number(result.outlier_count),
+            }));
+            return {
+                id: award.id,
+                categoryId: award.categoryId,
+                projectId: award.projectId,
+                projectName: projectNames.get(award.projectId) ?? `Project #${award.projectId}`,
+                candidates,
+            };
+        });
     }
 
     async calculateVotes(eventId: number): Promise<VotesCalculationDto[]> {
@@ -288,6 +422,8 @@ export class VotingService {
 
                 INNER JOIN \`VoteCategories\` vc
                     ON vc.id = v.\`categoryId\`
+
+                WHERE v.eventId = :eventId
             ),
 
             vote_analysis AS (
@@ -496,6 +632,7 @@ export class VotingService {
                 pcs.average_percent DESC;`,
             {
                 type: QueryTypes.SELECT,
+                replacements: { eventId },
             }
         );
 
@@ -515,6 +652,8 @@ export class VotingService {
                 median_percent: vote.median_percent,
                 adjusted_average_percent: vote.adjusted_average_percent,
                 score_stddev: vote.score_stddev,
+                min_percent: vote.min_percent,
+                max_percent: vote.max_percent,
                 has_outliers: vote.has_outliers,
                 outlier_count: vote.outlier_count,
                 outlier_min_percent: vote.outlier_min_percent,

@@ -10,7 +10,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "Vue.volar"
+        "Vue.volar",
+        "Anthropic.claude-code"
       ]
     }
   }

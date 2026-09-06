@@ -2,7 +2,7 @@
 
 ## Purpose
 
-AdminJS-based admin panel for Coolest Projects staff. Manages events, registrations, accounts, and voting resources with role-based access (`superadmin`, `admin`, `judge`).
+AdminJS-based admin panel for Coolest Projects staff. Manages events, registrations, accounts, and voting resources with role-based access (`Account.account_type`: `super_admin`, `admin`, `jury`).
 
 ## Stack
 
@@ -34,7 +34,7 @@ Default seed logins (from API seeder): `superadmin` / `admin` / `jury` — passw
 
 - `packages/database` — Sequelize models (direct DB access)
 - MySQL — same database as API
-- `apps/api` — floorplan list/upload/activate via `AdminController` (`/admin/floorplans*`), proxied from the Floorplans page handler with the staff `adminjs` session cookie. PictureSelector loads attachment images in the browser from `API_BASE_URL/projectinfo/attachments/*` (same cookie). Admin must **not** read or write `UPLOAD_ROOT` on the admin host.
+- `apps/api` — floorplan list/upload/activate via `AdminController` (`/admin/floorplans*`) and voting admin actions, proxied from page handlers with the staff `adminjs` session cookie via `NestApiClient` (`apps/admin/src/api/nest-api-client.ts`). These server-to-server calls use the same `API_BASE_URL` as the browser (`https://api.coolestprojects.localhost:8443`). That hostname's `.localhost` TLD always resolves to loopback by default (RFC 6761), which is only correct from the host machine itself — so `workspace` has `extra_hosts` entries in `.devcontainer/docker-compose.yml` mapping every `*.coolestprojects.localhost` name to `host-gateway` (the host's own IP as seen from the container). That sends the request out to the host, where it hits Docker's existing `8443:443`/`8080:80` publish on `proxy` via hairpin NAT — the same path, port, and URL a browser uses; no `proxy` image changes needed. PictureSelector loads attachment images in the browser the same way, from `API_BASE_URL/projectinfo/attachments/*` (same cookie). Admin must **not** read or write `UPLOAD_ROOT` on the admin host.
 
 Sequelize models registered in `apps/admin/src/database.ts` must include every association target (including through-models like `UserProject`). Omitting one crashes AdminJS boot with `X has not been defined`.
 
@@ -42,18 +42,31 @@ Sequelize models registered in `apps/admin/src/database.ts` must include every a
 
 **CRUD:** add or tighten a resource in [`apps/admin/src/index.ts`](../../apps/admin/src/index.ts) (`properties`, `actions`, `features`). Scope by event with helpers in [`authorisations.ts`](../../apps/admin/src/authorisations.ts).
 
+**Read-only report from raw SQL:** use [`RawSqlResource`](../../apps/admin/src/reporting/raw-sql-resource.ts) instead of a database `VIEW` + `sequelize.define()`. It's an AdminJS `BaseResource` subclass — no `@adminjs/sequelize` adapter, no migration — that runs any SELECT (joins, CTEs, window functions) via the shared `sequelize` connection from `database.ts` (the only DB access path; never open a separate connection), wrapping it as a derived table (`SELECT * FROM (<sql>) AS report_data WHERE ... ORDER BY ... LIMIT ... OFFSET ...`) so filtering/sorting/pagination stay in MySQL rather than being pulled into Node. It's inherently read-only (`create`/`update`/`delete` throw) — still hide `new`/`edit`/`delete`/`bulkDelete` in `options.actions` so the UI doesn't offer them.
+Each report's query lives in its own file under [`apps/admin/src/reporting/reports/`](../../apps/admin/src/reporting/reports/), exporting just a `new RawSqlResource({ resourceId, sql, columns: [{ path, type?, isId? }], primaryKey })` instance — nothing AdminJS-specific. `index.ts` imports that resource and, like every other resource, builds its own `{ resource, features, options }` entry inline (`features: [importExportFeature(...)]`, `options.label`/`listProperties`/`actions`/`navigation: navReporting`) directly in the `resources: [...]` array. Add a new report by adding a new `reports/*.ts` file (exporting its resource, re-exported from `reports/index.ts`) and one matching entry in `index.ts`.
+`view_Export_all` and `view_user_project_summary` (**Reporting** group) both use this now; their SQL was inlined from the `CREATE OR REPLACE VIEW` statements in `apps/admin/src/components/admin/SQL-data/`, so those DB views no longer need to exist for the resources to work.
+
 **Custom screen:** register an AdminJS `pages` (or `dashboard`) entry with a `ComponentLoader` component and a server `handler`. The handler runs in Node and may use Sequelize + `context.currentAdmin`. The `.tsx` file runs in the AdminJS bundle: import UI from `@adminjs/design-system`, data via `ApiClient` from `adminjs`, and `import type` from the handler only. Recharts must be imported from `recharts/es6/...` (not the package barrel) or dest Rollup pulls CJS and crashes.
 
 Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables, **EmailTemplates**, **Floorplans**. Login is an override (`componentLoader.override('Login', …)`), not a page.
 
 ## Key resources
 
+Sidebar resources are grouped by workflow via each resource's `options.navigation` in `index.ts`: **System** (`Account`, `Event` —
+global, not event-scoped, see below), **Event setup** (`Tshirt`, `TshirtGroup`), **Translations** (`TshirtTranslation`,
+`TshirtGroupTranslation`, `QuestionTranslation`), **Registration** (`Registration`, `Affiliation`, `Question`,
+`QuestionRegistration`), **Projects & participants** (`Project`, `Attachment`, `User`, `UserProject`, `QuestionUser`),
+**Venue & seating** (`EventTable`), **Voting & awards** (`Award`, `VoteCategory`), **Communication** (`EmailTemplate`), and
+**Reporting** (the two raw-SQL export resources, `view_Export_all` and `view_user_project_summary` — see **How to extend** below).
+Two `navigation` groups must never share the same `name` string —
+AdminJS merges groups by name, not by the JS variable holding them.
+
 | Resource | Notes |
 |----------|-------|
 | `Project` | Explicit list/show/filter/edit properties include `deletedAt` soft-delete timestamp |
 | `UserProject` | Membership/voucher link; has its own `deletedAt` |
-| `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden |
-| `Event` | Event-scoped access for non-superadmin roles |
+| `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden. Not event-scoped: any role can see/edit only their own account (`id` match against `currentAdmin.id`); only `super_admin` sees/edits the full list, creates, or deletes accounts. Lives in the **System** navigation group. |
+| `Event` | Not event-scoped by a foreign key — it's the event itself. `super_admin` sees and can create/edit/delete every event; every other role only sees the event tied to their session (`id` match against `currentAdmin.eventId`) and gets read-only access (`show` only, no `new`/`edit`/`delete`). Lives in the **System** navigation group. |
 | `Affiliation` | Event-scoped CoderDojo catalog (`name`); same list as `GET /dojos` |
 | `EmailTemplate` | Event-scoped CRUD + import/export; prefer **EmailTemplates** page for editing copy |
 
@@ -64,15 +77,21 @@ response shape when no event is selected, and uses the registered database model
 The `PictureSelector` page lists every project for the selected event. Its confirmed-image controls are radio buttons,
 allowing at most one confirmed attachment per project; saving a confirmed image updates the project attachment group.
 
-The `VotingOverview` page shows event-scoped vote totals, votes over time, and a project/category vote breakdown. It
-refreshes automatically every 15 seconds and displays the last successful update when a refresh request fails.
+The `VotingOverview` page shows event-scoped vote totals, a remaining-votes burndown, and a project/category vote breakdown. It
+refreshes automatically every 15 seconds and displays the last successful update when a refresh request fails. Staff can start
+voting for a duration, stop it, restart it after technical issues, publish an SSE message to jurors, and view calculated category results after voting closes. Restarting asks whether existing votes and awards should be deleted; preserving them supports a technical pause/resume workflow. Closing
+voting generates one `Award` entry for every active participant project. Winning entries receive a category assignment; other entries keep a null category and can later hold encouraging jury text for certificate generation. The page shows score ranges, medians, outliers, ranked runner-ups,
+and allows reassignment via a per-project dropdown listing every `VoteCategory` for the event (jury-voted and public-voted alike — public just marks a category as decided by the public vote, and staff may still need to override it, e.g. on suspected fraud) plus a "No award" option; categories already assigned to another project are hidden from the dropdown (except the project's own current category) while preventing a project from receiving more than one category award.
 Chart components import Recharts from `recharts/es6/...` (not the package barrel) so AdminJS production Rollup does
 not pull the CJS `lib/` graph that crashes the dest bundle.
 
-The `Tables` page supports selecting two tables and swapping their project assignments while keeping assignments scoped
-to the selected event.
+The `Tables` page is a project-centric "Assign tables to projects" view: each active project shows its type, language, and
+affiliation(s) (participants' `via` field, any value, not just CoderDojo) next to a per-project table dropdown (limited to free
+tables plus the project's current one; picking "Unassigned" clears it). Projects can be grouped by type, affiliation, or
+language to spot which projects fit together before assigning seating. There is no separate table-management list — swapping is
+just reassigning two projects' dropdowns, and a table is freed by unassigning its project.
 
-The **Floorplans** page (`apps/admin/src/components/floorplans/`) lists SVG files from the API (`GET /admin/floorplans`), uploads raw Visio SVG exports via the API (`POST /admin/floorplans`; auto-processed to `table_XX` groups with blink CSS on the API server), and sets `Event.floorplanPath` on upload or via **Use for this event** (`POST /admin/floorplans/:filename/activate`). The AdminJS handler proxies these calls to Nest (`apps/admin/src/api/nest-fetch.ts`); it does not touch `UPLOAD_ROOT` locally. After changing `process-visio-svg.ts` in `apps/api`, restart the API dev server. Judges cannot access this page.
+The **Floorplans** page (`apps/admin/src/components/floorplans/`) lists SVG files from the API (`GET /admin/floorplans`), uploads raw Visio SVG exports via the API (`POST /admin/floorplans`; auto-processed to `table_XX` groups with blink CSS on the API server), and sets `Event.floorplanPath` on upload or via **Use for this event** (`POST /admin/floorplans/:filename/activate`). The AdminJS handler proxies these calls to Nest via `NestApiClient` (`apps/admin/src/api/nest-api-client.ts`), which forwards the incoming `adminjs` session cookie; it does not touch `UPLOAD_ROOT` locally. After changing `process-visio-svg.ts` in `apps/api`, restart the API dev server. Judges cannot access this page.
 
 The **EmailTemplates** page (`apps/admin/src/components/email-templates/`) lets staff pick a mail template slug and
 language (`nl` / `en` / `fr`) for the logged-in event, edit subject + HTML + plain text, preview with Handlebars dummy

@@ -45,3 +45,28 @@ Client UI primitives: `Box`, `Button`, `Table`, `Text`, `H2`, … from `@adminjs
 ## Auth and session
 
 `AdminJSExpress.buildAuthenticatedRouter` + `express-session` (Sequelize store). Login override in `ComponentLoader`; extra Express routes only for login helpers (`components/login/router.ts`). Roles live on `currentAdmin` (`superadmin` / `admin` / `judge`).
+
+## Calling apps/api (Nest) from a handler
+
+Some staff actions (voting control, floorplan processing) are business logic that lives in `apps/api`, not something to reimplement against Sequelize models directly. From a `handler.ts`, call it through `NestApiClient` in [`apps/admin/src/api/nest-api-client.ts`](../../../apps/admin/src/api/nest-api-client.ts):
+
+```ts
+import { NestApiClient } from '../../api/nest-api-client.js';
+
+export const Handler = async (request: any, _response: any, context: any) => {
+  const eventId = context.currentAdmin?.eventId;
+  if (!eventId) throw new Error('No event selected');
+
+  const api = await NestApiClient.fromExpressRequest(request);
+  return (await api.get<SomeShape>('/admin/some-endpoint')).data;
+  // mutations: await api.post('/admin/some-endpoint', body) — auto-attaches CSRF
+};
+```
+
+Copy `components/voting/handler.ts` or `components/floorplans/handler.ts` rather than re-deriving this.
+
+**Don't confuse this with the `ApiClient` imported from `'adminjs'` in `.tsx` files** — that one talks to AdminJS's own Express router (`getDashboard`, `getPage`, `recordAction`, browser → admin server) and is unrelated. `NestApiClient` is server-side only, admin → `apps/api`, and only belongs in `handler.ts` — the distinct name is deliberate, keep it that way rather than renaming back to `ApiClient`.
+
+How it authenticates: it forwards the incoming request's `adminjs` session cookie as-is. `apps/api`'s `mandatory-admin-cookie` guard (`admin-cookie.strategy.ts`) reads that same cookie, unsigns it with `ADMINJS_COOKIE_SECRET` (must be the identical env var/value on both apps — it's also what `apps/admin` signs the cookie with), and looks the session up directly in the shared `admin_sessions` table. There is **no separate credential** for these calls — no `x-adminjs-secret`-style header, no service token. Don't add one; the cookie relay is the whole mechanism. `getApiBaseUrl()` (same file) resolves `API_BASE_URL` — required, no dev-mode shortcut.
+
+**Cookie-forwarding gotcha (already handled, don't re-break it):** the `request` a `Handler` receives is AdminJS's `ActionRequest`, built internally via `Object.assign({}, req)` on the real Express request. On current Node, `IncomingMessage#headers` is a lazy accessor, not an own property, so that shallow copy silently drops it — `request.headers` is **always `undefined`** in a handler, never a valid way to read cookies here. `NestApiClient`'s `importCookies` reads the `Cookie` value out of `request.rawHeaders` instead (an own property that does survive the copy). If you ever need another header from the incoming request in a handler, read it from `rawHeaders` the same way — not `request.headers`.

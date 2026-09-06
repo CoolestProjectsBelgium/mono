@@ -18,6 +18,8 @@ export class VotesCalculationDto {
   adjusted_average_percent!: number;
 
   score_stddev!: number;
+  min_percent!: number;
+  max_percent!: number;
 
   has_outliers!: boolean;
   outlier_count!: number;

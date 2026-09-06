@@ -9,7 +9,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags, ApiCookieAuth } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtUserAuthGuard } from '../auth/jwt-user-auth.guard';
 import { UserDto } from '../dto/user.dto';
 import { UserinfoService } from './userinfo.service';
 import { UserCookieInterceptor } from '../user-cookie.interceptor';
@@ -21,7 +21,7 @@ export class UserinfoController {
   constructor(private readonly userinfoService: UserinfoService) {}
 
   @Get()
-  @UseGuards(AuthGuard('jwt-user'))
+  @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   getUserInfo(@Request() req: { user: { id: number } }): Promise<UserDto> {
@@ -29,14 +29,14 @@ export class UserinfoController {
   }
 
   @Delete()
-  @UseGuards(AuthGuard('jwt-user'))
+  @UseGuards(JwtUserAuthGuard)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   deleteUser(@Request() req: { user: { id: number } }) {
     return this.userinfoService.deleteUser(req.user.id);
   }
 
   @Patch()
-  @UseGuards(AuthGuard('jwt-user'))
+  @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async updateUser(

@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Trust the dev CA inside the container so server-side Node code (and curl/git)
+# accept the proxy's TLS cert on *.coolestprojects.localhost, same as the host
+# browser does after installing pki/ca.crt manually (see .devcontainer/certs/README.md).
+# Done here rather than in the Dockerfile: the repo (and its certs/) is only
+# available via the runtime bind mount, not the image build context.
+cp .devcontainer/certs/pki/ca.crt /usr/local/share/ca-certificates/coolestprojects-dev-ca.crt
+update-ca-certificates
+
 npm i -g @nestjs/cli
 
 # build database package
@@ -21,7 +29,8 @@ npm run seed-db --workspace=apps/api
 npm run start:dev  --workspace=apps/admin &
 
 # Start API backend (built dist — nest --watch can serve stale cookie/auth code)
-nohup node apps/api/dist/main.js > /tmp/api.log 2>&1 &
+#nohup node apps/api/dist/main.js > /tmp/api.log 2>&1 &
+npm run start:dev  --workspace=apps/api > /tmp/api.log 2>&1 &
 
 # Start Static apps
 npm run start:dev --workspace=apps/eventguide -- -p 3002 &

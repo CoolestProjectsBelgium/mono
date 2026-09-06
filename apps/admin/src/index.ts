@@ -8,14 +8,14 @@ import { Account } from '@coolestprojects/database'
 import AdminJS from 'adminjs'
 import connectSessionSequelize from 'connect-session-sequelize'
 import express from 'express'
-import { DataTypes } from 'sequelize';
 import session from 'express-session'
-import { andAccess, canAccessResourceFieldFilter, canAccessResourceRoleFilter, filterEventId } from './authorisations.js'
+import { canAccessResourceFieldFilter, canAccessResourceFieldMatch, canAccessResourceRoleFilter, filterEventId, filterUnlessRole, orAccess } from './authorisations.js'
 import { componentLoader, Components, Handlers } from './components/index.js'
 import { Authenticate } from './components/login/authenticate.js'
 import eventLoginRouter from './components/login/router.js'
 import importExportFeature from '@adminjs/import-export';
 import { sequelize, } from './database.js'
+import { exportAllResource, userProjectSummaryResource } from './reporting/reports/index.js'
 
 const SequelizeStore = connectSessionSequelize(session.Store)
 
@@ -41,19 +41,49 @@ const start = async () => {
     Database: AdminJSSequelize.Database,
   })
 
-  const configNavigation = {
-    name: 'Configuration',
-    icon: 'CheckSquare',
+  const navSystem = {
+    name: 'System',
+    icon: 'Lock',
   }
 
-  const configReporting = {
+  const navEventSetup = {
+    name: 'Event setup',
+    icon: 'Settings',
+  }
+
+  const navTranslations = {
+    name: 'Translations',
+    icon: 'Globe',
+  }
+
+  const navRegistration = {
+    name: 'Registration',
+    icon: 'Clipboard',
+  }
+
+  const navProjects = {
+    name: 'Projects & participants',
+    icon: 'Users',
+  }
+
+  const navVenue = {
+    name: 'Venue & seating',
+    icon: 'Map',
+  }
+
+  const navVoting = {
+    name: 'Voting & awards',
+    icon: 'Award',
+  }
+
+  const navCommunication = {
+    name: 'Communication',
+    icon: 'Mail',
+  }
+
+  const navReporting = {
     name: 'Reporting',
     icon: 'Grid',
-  }
-
-  const configEvents = {
-    name: 'Reporting',
-    icon: 'Users',
   }
 
   const admin = new AdminJS({
@@ -97,11 +127,22 @@ const start = async () => {
       },
     },
     resources: [
+      // --- System: global, not event-scoped, super_admin-only writes ---
       {
         resource: sequelize.models.Account,
         options: {
           properties: { encryptedPassword: { isVisible: false } },
-          navigation: configNavigation,
+          navigation: navSystem,
+          actions: {
+            // Everyone sees only their own account (e.g. to change their password);
+            // only a super_admin sees the full list.
+            list: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.id) },
+            search: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.id) },
+            show: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "id")) },
+            edit: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "id")) },
+            new: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+            delete: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+          },
         },
         features: [
           passwordsFeature({
@@ -112,45 +153,83 @@ const start = async () => {
       },
       {
         resource: sequelize.models.Event, options: {
-          navigation: configNavigation,
+          navigation: navSystem,
+          actions: {
+            // A super_admin sees and manages every event; every other role only sees the
+            // event tied to their session, and cannot create/edit/delete it (read-only).
+            list: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.eventId) },
+            search: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.eventId) },
+            show: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "eventId")) },
+            new: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+            edit: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+            delete: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+          },
+        }
+      },
+
+      // --- Event setup ---
+      {
+        resource: sequelize.models.Tshirt,
+        options: {
+          navigation: navEventSetup,
+          properties: {
+            eventId: { isVisible: false },
+          },
           actions: {
             list: {
-              before: filterEventId("id"),
+              before: filterEventId("eventId")
             },
             search: {
-              before: filterEventId("id"),
+              before: filterEventId("eventId")
             },
-          },
-          edit: { isAccessible: andAccess(canAccessResourceFieldFilter("id"), canAccessResourceRoleFilter("admin")) },
-          show: { isAccessible: andAccess(canAccessResourceFieldFilter("id"), canAccessResourceRoleFilter("admin")) },
-          delete: { isAccessible: andAccess(canAccessResourceFieldFilter("id"), canAccessResourceRoleFilter("admin")) },
+            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
+          }
         }
+      },
+      { resource: sequelize.models.TshirtGroup, options: { navigation: navEventSetup, } },
+
+      // --- Translations ---
+      { resource: sequelize.models.TshirtTranslation, options: { navigation: navTranslations, } },
+      { resource: sequelize.models.TshirtGroupTranslation, options: { navigation: navTranslations, } },
+      { resource: sequelize.models.QuestionTranslation, options: { navigation: navTranslations, } },
+
+      // --- Registration ---
+      { resource: sequelize.models.Question, options: { navigation: navRegistration, } },
+      { resource: sequelize.models.QuestionRegistration, options: { navigation: navRegistration } },
+      {
+        resource: sequelize.models.Registration,
+        features: [importExportFeature({ componentLoader })],
+        options: { navigation: navRegistration },
       },
       {
-        resource: sequelize.models.Award, options: {
+        resource: sequelize.models.Affiliation,
+        options: {
+          navigation: navRegistration,
+          properties: {
+            eventId: { isVisible: false },
+          },
           actions: {
             list: {
-              before: filterEventId("id"),
+              before: filterEventId("eventId")
             },
             search: {
-              before: filterEventId("id"),
+              before: filterEventId("eventId")
             },
-          },
-          navigation: configEvents, properties: {
-            text: {
-              type: 'textarea',
-              props: {
-                rows: 20,
-              },
-            },
-          },
+            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
+            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
+          }
         }
       },
+
+      // --- Projects & participants ---
       {
         resource: sequelize.models.Project,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configEvents,
+          navigation: navProjects,
           listProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           filterProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
           showProperties: [
@@ -183,12 +262,11 @@ const start = async () => {
           },
         },
       },
-
       {
         resource: sequelize.models.Attachment,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configEvents,
+          navigation: navProjects,
           listProperties: ['id', 'projectId', 'confirmed', 'internal', 'size', 'mimetype'],
           filterProperties: ['id', 'projectId', 'eventId'],
           showProperties: [
@@ -224,19 +302,52 @@ const start = async () => {
           },
         },
       },
-      { resource: sequelize.models.VoteCategory, options: { navigation: configEvents } },
+      {
+        resource: sequelize.models.User,
+        features: [importExportFeature({ componentLoader })],
+        options: { navigation: navProjects }
+      },
+      { resource: sequelize.models.UserProject, options: { navigation: navProjects } },
+      { resource: sequelize.models.QuestionUser, options: { navigation: navProjects } },
+
+      // --- Venue & seating ---
       {
         resource: sequelize.models.EventTable,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configNavigation,
+          navigation: navVenue,
         }
       },
+
+      // --- Voting & awards ---
+      {
+        resource: sequelize.models.Award, options: {
+          actions: {
+            list: {
+              before: filterEventId("id"),
+            },
+            search: {
+              before: filterEventId("id"),
+            },
+          },
+          navigation: navVoting, properties: {
+            text: {
+              type: 'textarea',
+              props: {
+                rows: 20,
+              },
+            },
+          },
+        }
+      },
+      { resource: sequelize.models.VoteCategory, options: { navigation: navVoting } },
+
+      // --- Communication ---
       {
         resource: sequelize.models.EmailTemplate,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configNavigation,
+          navigation: navCommunication,
           actions: {
             list: {
               before: filterEventId('eventId'),
@@ -250,160 +361,49 @@ const start = async () => {
           },
         },
       },
-      {
-        resource: sequelize.models.User,
-        features: [importExportFeature({ componentLoader })],
-        options: { navigation: configEvents }
-      },
 
-      { resource: sequelize.models.UserProject, options: { navigation: configEvents } },
+      // --- Reporting ---
       {
-        resource: sequelize.models.Tshirt,
-        options: {
-          navigation: configNavigation,
-          properties: {
-            eventId: { isVisible: false },
-          },
-          actions: {
-            list: {
-              before: filterEventId("eventId")
-            },
-            search: {
-              before: filterEventId("eventId")
-            },
-            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
-          }
-        }
-      },
-      { resource: sequelize.models.QuestionUser, options: { navigation: configEvents } },
-      { resource: sequelize.models.Question, options: { navigation: configNavigation, } },
-      { resource: sequelize.models.TshirtGroup, options: { navigation: configNavigation, } },
-      { resource: sequelize.models.TshirtTranslation, options: { navigation: configNavigation, } },
-      { resource: sequelize.models.QuestionTranslation, options: { navigation: configNavigation, } },
-      { resource: sequelize.models.QuestionRegistration },
-      {
-        resource: sequelize.models.Registration,
-        features: [importExportFeature({ componentLoader })],
-      },
-      { resource: sequelize.models.TshirtGroupTranslation, options: { navigation: configNavigation, } },
-      {
-        resource: sequelize.models.Affiliation,
-        options: {
-          navigation: configNavigation,
-          properties: {
-            eventId: { isVisible: false },
-          },
-          actions: {
-            list: {
-              before: filterEventId("eventId")
-            },
-            search: {
-              before: filterEventId("eventId")
-            },
-            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
-          }
-        }
-      },
-      {
-        resource: sequelize.define('view_Export_all', {
-          id: { type: DataTypes.INTEGER, primaryKey: true }, // u.id AS id
-          user_event_id: { type: DataTypes.STRING },                   // u.eventId AS user_event_id
-          email: { type: DataTypes.STRING },                   // u.email
-          lastname: { type: DataTypes.STRING },                   // u.lastname
-          firstname: { type: DataTypes.STRING },                   // u.firstname
-          user_language: { type: DataTypes.STRING },                  // u.language AS user_language
-          isOwner: { type: DataTypes.BOOLEAN },                 // up.isOwner
-          photo: { type: DataTypes.STRING },                  // CASE ... AS photo
-          contact: { type: DataTypes.STRING },                  // CASE ... AS contact
-          approved: { type: DataTypes.STRING },                  // CASE ... AS approved
-          tshirt_name: { type: DataTypes.STRING },                 // t.name AS tshirt_name
-          postalcode: { type: DataTypes.STRING },                 // u.postalcode
-          municipality_name: { type: DataTypes.STRING },             // u.municipality_name
-          sex: { type: DataTypes.STRING },                  // u.sex
-          birthmonth: { type: DataTypes.STRING },                // u.birthmonth
-          via_Coderdojo: { type: DataTypes.STRING },               // u.via AS via_Coderdojo
-          gsm: { type: DataTypes.STRING },                 // u.gsm
-          gsm_guardian: { type: DataTypes.STRING },                // u.gsm_guardian
-          user_internal_info: { type: DataTypes.STRING },             // u.internalinfo AS user_internal_info
-          email_guardian: { type: DataTypes.STRING },               // u.email_guardian
-          tshirtId: { type: DataTypes.STRING },                // u.tshirtId
-          medical: { type: DataTypes.STRING },                // u.medical
-          last_token: { type: DataTypes.STRING },                // u.last_token
-          project_id: { type: DataTypes.STRING },               // p.id AS project_id
-          project_event_id: { type: DataTypes.STRING },              // p.eventId AS project_event_id
-          description: { type: DataTypes.STRING },               // p.description
-          project_type: { type: DataTypes.STRING },               // p.type AS project_type
-          project_internal_info: { type: DataTypes.STRING },         // p.internalInformation AS project_internal_info
-          project_language: { type: DataTypes.STRING },              // p.language AS project_language
-          maxVoucher: { type: DataTypes.STRING },               // p.maxVoucher
-          voucherGuid: { type: DataTypes.STRING },               // up.voucherGuid
-          projectId: { type: DataTypes.STRING },               // up.projectId
-          userId: { type: DataTypes.STRING }                 // up.userId
-        }, {
-          tableName: 'view_Export_all',
-          timestamps: false,
-          freezeTableName: true
-        }),
+        resource: exportAllResource,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configReporting,
+          navigation: navReporting,
           label: 'Export full User, Project, Questions report',
-          // VERPLICHT IN v7: Dit bepaalt exact welke kolommen in de 'list' tabel staan én de volgorde ervan
+          // This determines exactly which columns show up in the 'list' table, and in which order.
           listProperties: [
             'email', 'lastname', 'firstname', 'user_language', 'isOwner', 'photo',
             'contact', 'approved', 'tshirt_name', 'postalcode', 'municipality_name', 'sex', 'birthmonth',
             'via_Coderdojo', 'gsm', 'gsm_guardian', 'user_internal_info', 'email_guardian', 'tshirtId',
             'medical', 'last_token', 'project_id', 'project_event_id', 'description', 'project_type',
-            'project_internal_info', 'project_language', 'maxVoucher', 'voucherGuid', 'projectId', 'userId', 'id', 'user_event_id'
+            'project_internal_info', 'project_language', 'maxVoucher', 'voucherGuid', 'projectId', 'userId', 'id', 'user_event_id',
           ],
           actions: {
-            // Verberg en blokkeer de standaard CRUD-acties
+            // Hide and block the standard CRUD actions: this resource is read-only.
             new: { isVisible: false, isAccessible: false },
             edit: { isVisible: false, isAccessible: false },
             delete: { isVisible: false, isAccessible: false },
             show: { isVisible: false, isAccessible: false },
-            // Verberg de bulk-verwijderoptie waardoor de selectievakjes in de 'list' verdwijnen
+            // Hide the bulk-delete option, which also removes the list's selection checkboxes.
             bulkDelete: { isVisible: false, isAccessible: false },
           },
-
-        }
+        },
       },
-
       {
-        resource: sequelize.define('view_user_project_summary', {
-          id: { type: DataTypes.INTEGER, primaryKey: true },
-          firstname: { type: DataTypes.STRING },
-          lastname: { type: DataTypes.STRING },
-          email: { type: DataTypes.STRING },
-          tshirt_name: { type: DataTypes.STRING },
-          project_name: { type: DataTypes.STRING },
-          isOwner: { type: DataTypes.BOOLEAN },
-          photo: { type: DataTypes.STRING },
-          contact: { type: DataTypes.STRING },
-          approved: { type: DataTypes.STRING }
-        }, {
-          tableName: 'view_user_project_summary',
-          timestamps: false,
-          freezeTableName: true
-        }),
+        resource: userProjectSummaryResource,
         features: [importExportFeature({ componentLoader })],
         options: {
-          navigation: configReporting,
+          navigation: navReporting,
           label: 'User Project Overzicht gebruikt voor export',
           actions: {
-            // Verberg en blokkeer de standaard CRUD-acties
+            // Hide and block the standard CRUD actions: this resource is read-only.
             new: { isVisible: false, isAccessible: false },
             edit: { isVisible: false, isAccessible: false },
             delete: { isVisible: false, isAccessible: false },
             show: { isVisible: false, isAccessible: false },
-            // Verberg de bulk-verwijderoptie waardoor de selectievakjes in de 'list' verdwijnen
+            // Hide the bulk-delete option, which also removes the list's selection checkboxes.
             bulkDelete: { isVisible: false, isAccessible: false },
           },
-        }
+        },
       },
     ],
     componentLoader,

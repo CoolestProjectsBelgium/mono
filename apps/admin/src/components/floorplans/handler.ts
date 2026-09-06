@@ -1,8 +1,4 @@
-import {
-  getCookieHeader,
-  nestFetch,
-  parseNestJson,
-} from '../../api/nest-fetch.js';
+import { NestApiClient } from '../../api/nest-api-client.js';
 
 export interface FloorplanListItem {
   filename: string;
@@ -21,34 +17,24 @@ export const Handler = async (request: any, _response: any, context: any): Promi
     throw new Error('No event selected');
   }
 
+  const api = await NestApiClient.fromExpressRequest(request);
   const payload = request.payload ?? {};
-  const cookieHeader = getCookieHeader(request);
 
   if (request.method?.toLowerCase() === 'post') {
     if (payload.action === 'set-active') {
       const filename = encodeURIComponent(String(payload.filename ?? ''));
-      const response = await nestFetch(`/admin/floorplans/${filename}/activate`, {
-        method: 'POST',
-        cookieHeader,
-      });
-      return parseNestJson<FloorplansOverview>(response);
+      return (await api.post<FloorplansOverview>(`/admin/floorplans/${filename}/activate`)).data;
     }
 
     if (payload.action === 'upload') {
-      const response = await nestFetch('/admin/floorplans', {
-        method: 'POST',
-        cookieHeader,
-        body: {
-          svgContent: String(payload.svgContent ?? ''),
-          originalName: String(payload.originalName ?? 'floorplan.svg'),
-        },
-      });
-      return parseNestJson<FloorplansOverview>(response);
+      return (await api.post<FloorplansOverview>('/admin/floorplans', {
+        svgContent: String(payload.svgContent ?? ''),
+        originalName: String(payload.originalName ?? 'floorplan.svg'),
+      })).data;
     }
 
     throw new Error('Unknown action');
   }
 
-  const response = await nestFetch('/admin/floorplans', { cookieHeader });
-  return parseNestJson<FloorplansOverview>(response);
+  return (await api.get<FloorplansOverview>('/admin/floorplans')).data;
 };

@@ -6,6 +6,11 @@ services:
       dockerfile: Dockerfile
 
     environment:
+      # Trust the system CA store (installed by .devcontainer/start.sh from
+      # .devcontainer/certs/pki/ca.crt) so server-side HTTPS calls to
+      # *.coolestprojects.localhost verify like a browser that trusted the same CA.
+      NODE_OPTIONS: "--use-system-ca"
+
       # Database configuration (admin & api)
       DB_DIALECT: mysql
       DB_HOST: db
@@ -32,8 +37,8 @@ services:
       CORS_ORIGINS: "https://registration.coolestprojects.localhost:8443,http://localhost:3004,https://voting.coolestprojects.localhost:8443,http://localhost:3005,https://eventguide.coolestprojects.localhost:8443,http://localhost:3002"
       API_BASE_URL: "https://api.coolestprojects.localhost:8443"
 
-      CRON_JOB_MAIL: "*/1 * * * *"
-      CRON_JOB_BOUNCE: "*/1 * * * *"
+      #CRON_JOB_MAIL: "*/1 * * * *"
+      #CRON_JOB_BOUNCE: "*/1 * * * *"
 
       # file configuration
       UPLOAD_ROOT: /tmp/uploads
@@ -66,6 +71,20 @@ services:
       - "3003:3003"
       - "3004:3004"
       - "3005:3005"
+
+    # Lets server-side code inside this container reach *.coolestprojects.localhost
+    # the same way a browser on the host does: that hostname's TLD always resolves to
+    # loopback by default (RFC 6761), which is only correct on the host machine itself.
+    # host-gateway resolves to the host's own IP as seen from this container, so the
+    # request goes out to the host and hits Docker's existing 8443:443/8080:80 publish
+    # on `proxy` via hairpin NAT — same path, same port, same URL as the browser uses.
+    extra_hosts:
+      - "admin.coolestprojects.localhost:host-gateway"
+      - "api.coolestprojects.localhost:host-gateway"
+      - "eventguide.coolestprojects.localhost:host-gateway"
+      - "presentation.coolestprojects.localhost:host-gateway"
+      - "registration.coolestprojects.localhost:host-gateway"
+      - "voting.coolestprojects.localhost:host-gateway"
 
     depends_on:
       - db

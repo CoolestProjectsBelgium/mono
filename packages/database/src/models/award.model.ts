@@ -18,9 +18,9 @@ export class Award extends BaseEventModel {
   project!: Project;
 
   @ForeignKey(() => VoteCategory)
-  @Column({ allowNull: true })
+  @Column({ type: DataType.INTEGER, allowNull: true })
   @Index('unique_award')
-  categoryId!: number;
+  categoryId!: number | null;
 
   @BelongsTo(() => VoteCategory)
   category!: VoteCategory;

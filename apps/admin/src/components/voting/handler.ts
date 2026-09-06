@@ -1,21 +1,122 @@
-import { Project as ProjectModel, Vote as VoteModel } from '@coolestprojects/database';
+import {
+    Account as AccountModel,
+    Event as EventModel,
+    Project as ProjectModel,
+    Vote as VoteModel,
+    VoteCategory as VoteCategoryModel,
+} from '@coolestprojects/database';
 import { Op } from 'sequelize';
 import { sequelize } from '../../database.js';
+import { NestApiClient } from '../../api/nest-api-client.js';
 
 const Project = sequelize.models.Project as typeof ProjectModel;
 const Vote = sequelize.models.Vote as typeof VoteModel;
+const Account = sequelize.models.Account as typeof AccountModel;
+const VoteCategory = sequelize.models.VoteCategory as typeof VoteCategoryModel;
+const Event = sequelize.models.Event as typeof EventModel;
+
+export interface VotingResult {
+    projectId: number;
+    categoryId: number;
+    categoryName: string;
+    projectName: string;
+    vote_count: number;
+    votes_skipped: number;
+    participation_percent: number;
+    average_percent: number;
+    median_percent: number;
+    adjusted_average_percent: number;
+    score_stddev: number;
+    has_outliers: boolean;
+    outlier_count: number;
+    min_percent: number;
+    max_percent: number;
+}
+
+export interface AwardCandidate {
+    projectId: number;
+    projectName: string;
+    categoryId: number;
+    categoryName: string;
+    rank: number;
+    adjustedAveragePercent: number;
+    medianPercent: number;
+    minPercent: number;
+    maxPercent: number;
+    outlierCount: number;
+}
+
+export interface AwardAssignment {
+    id: number;
+    categoryId: number | null;
+    categoryName?: string;
+    projectId: number;
+    projectName: string;
+    candidates: AwardCandidate[];
+}
+
+export interface VotingStatus {
+    votingOpen: boolean;
+    votingStartDate: string | null;
+    votingEndDate: string | null;
+}
+
+export interface AwardCategoryOption {
+    id: number;
+    name: string;
+}
 
 export interface VotingOverview {
     totalVotes: number;
     totalProjects: number;
     projectsWithVotes: number;
     projectsWithoutVotes: number;
-    votesOverTime: Array<{ date: string; votes: number }>;
-    votesByProjectCategory: Array<{ project: string; [category: string]: string | number }>;
+    votesOverTime: Array<{ date: string; votes: number; votesRemaining: number }>;
+    totalExpectedVotes: number;
+    votesByProjectCategory: Array<{ project: string;[category: string]: string | number }>;
+    votingStatus: VotingStatus;
+    results: VotingResult[];
+    awards: AwardAssignment[];
+    awardCategories: AwardCategoryOption[];
 }
 
-export const Handler = async (_request: any, _response: any, context: any): Promise<VotingOverview> => {
+export const Handler = async (request: any, _response: any, context: any): Promise<VotingOverview | { success: true }> => {
     const eventId = context.currentAdmin?.eventId;
+    if (!eventId) {
+        throw new Error('No event selected');
+    }
+    
+    const api = await NestApiClient.fromExpressRequest(request);
+
+    if (request.method?.toLowerCase() === 'post') {
+        const payload = request.payload ?? {};
+        const action = String(payload.action ?? '');
+
+        if (action === 'start') {
+            await api.post('/admin/voting/start', {
+                durationMinutes: Number(payload.durationMinutes ?? 60),
+                deletePreviousResults: payload.deletePreviousResults === true
+                    || payload.deletePreviousResults === 'true',
+            });
+        } else if (action === 'stop') {
+            await api.post('/admin/voting/stop');
+        } else if (action === 'message') {
+            await api.post('/admin/voting/message', { message: String(payload.message ?? '') });
+        } else if (action === 'generate-awards') {
+            await api.post('/admin/voting/awards/generate');
+        } else if (action === 'assign-award') {
+            await api.post(`/admin/voting/awards/${Number(payload.awardId)}/assign`, {
+                categoryId: payload.categoryId === '' || payload.categoryId === null || payload.categoryId === undefined
+                    ? null
+                    : Number(payload.categoryId),
+            });
+        } else {
+            throw new Error(`Unknown action: ${action}`);
+        }
+
+        return { success: true };
+    }
+
     const projectWhere = { eventId, deletedAt: { [Op.is]: null } };
 
     const [totalVotes, totalProjects, projectsWithVotes] = await Promise.all([
@@ -29,6 +130,16 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     ]);
 
     const projectsWithoutVotes = Math.max(totalProjects - projectsWithVotes, 0);
+    const [totalJurors, totalCategories] = await Promise.all([
+        Account.count({ where: { account_type: 'jury' } }),
+        VoteCategory.count({
+            where: {
+                eventId,
+                public: { [Op.or]: [{ [Op.eq]: false }, { [Op.is]: null }] },
+            },
+        }),
+    ]);
+    const totalExpectedVotes = totalProjects * totalJurors * totalCategories;
 
     const votes = await Vote.findAll({
         where: { eventId },
@@ -65,13 +176,83 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
         ...categories,
     }));
 
+    const sortedVoteIntervals = Array.from(timeTotals, ([date, votes]) => ({ date, votes }))
+        .sort((first, second) => first.date.localeCompare(second.date));
+    let cumulativeVotes = 0;
+    const votesOverTime = sortedVoteIntervals.map((interval) => {
+        cumulativeVotes += interval.votes;
+        return {
+            ...interval,
+            votesRemaining: Math.max(totalExpectedVotes - cumulativeVotes, 0),
+        };
+    });
+
+    const event = await Event.findByPk(eventId, {
+        attributes: ['votingStartDate', 'votingEndDate'],
+    });
+    if (!event) {
+        throw new Error('No event found');
+    }
+
+    const now = Date.now();
+    const status: VotingStatus = {
+        votingOpen: Boolean(
+            event.votingStartDate
+            && event.votingEndDate
+            && event.votingStartDate.getTime() < now
+            && event.votingEndDate.getTime() > now,
+        ),
+        votingStartDate: event.votingStartDate?.toISOString() ?? null,
+        votingEndDate: event.votingEndDate?.toISOString() ?? null,
+    };
+    let results: VotingResult[] = [];
+    if (!status.votingOpen) {
+        try {
+            const calculated = (await api.get<Array<Omit<VotingResult, 'projectName'>>>('/admin/voting/results')).data;
+            const projectIds = [...new Set(calculated.map((result) => result.projectId))];
+            const projects = await Project.findAll({ where: { eventId, id: { [Op.in]: projectIds } }, attributes: ['id', 'name'] });
+            const projectNames = new Map(projects.map((project) => [project.id, project.name]));
+            results = calculated.map((result) => ({
+                ...result,
+                projectName: projectNames.get(result.projectId) ?? `Project #${result.projectId}`,
+            }));
+        } catch (error) {
+            console.error('Failed to load calculated voting results:', error);
+        }
+    }
+
+    let awards: AwardAssignment[] = [];
+    if (!status.votingOpen) {
+        try {
+            awards = (await api.get<AwardAssignment[]>('/admin/voting/awards')).data;
+        } catch (error) {
+            console.error('Failed to load voting awards:', error);
+        }
+    }
+
+    // Award categories cover both jury-voted and public-voted VoteCategory rows: staff must be able to
+    // reassign a public-vote category award (e.g. if fraud is suspected in the public vote).
+    const awardCategoryRecords = await VoteCategory.findAll({
+        where: { eventId },
+        attributes: ['id', 'name'],
+        order: [['name', 'ASC']],
+    });
+    const awardCategories: AwardCategoryOption[] = awardCategoryRecords.map((category) => ({
+        id: category.id,
+        name: category.name,
+    }));
+
     return {
         totalVotes,
         totalProjects,
         projectsWithVotes,
         projectsWithoutVotes,
-        votesOverTime: Array.from(timeTotals, ([date, votes]) => ({ date, votes }))
-            .sort((first, second) => first.date.localeCompare(second.date)),
+        votesOverTime,
+        totalExpectedVotes,
         votesByProjectCategory,
+        votingStatus: status,
+        results,
+        awards,
+        awardCategories,
     };
 };

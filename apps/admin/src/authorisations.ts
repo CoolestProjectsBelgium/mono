@@ -1,6 +1,6 @@
-// roles: superadmin (can access everything), 
-// admin (can access resources of the selected event), can update their own password
-// judge (can access the voting dashboard and their own votes)
+// roles (Account.account_type): super_admin (can access everything, incl. all events and accounts),
+// admin (can access resources of the selected event), can update their own account/password
+// jury (can access the voting dashboard, their own votes, and their own account/password)
 
 export const filterEventId =
     (filterName: string) =>
@@ -25,6 +25,26 @@ export const filterEventId =
             }
         }
 
+// Same idea as filterEventId, but lets a given role (super_admin by default) bypass the filter
+// entirely, seeing every record. Used for resources that are not scoped to a single event
+// (Event itself, Account) where only super_admin should see everything.
+export const filterUnlessRole =
+    (filterName: string, getValue: (currentAdmin: any) => any, bypassRole: string = 'super_admin') =>
+        async (request: any, context: any) => {
+            if (context.currentAdmin?.role === bypassRole) return request
+
+            return {
+                ...request,
+                query: {
+                    ...request.query,
+                    filters: {
+                        ...request.query?.filters,
+                        [filterName]: getValue(context.currentAdmin),
+                    },
+                },
+            }
+        }
+
 export const addEventFilter = async (filterName: string = "id", request: any, context: any) => {
     const eventId = context.currentAdmin?.eventId
     if (!eventId) return request
@@ -45,7 +65,7 @@ export const addEventFilter = async (filterName: string = "id", request: any, co
 }
 
 export const canCreate = ({ currentAdmin, resource }: any) => {
-    if (currentAdmin.role === 'superadmin') return true
+    if (currentAdmin.role === 'super_admin') return true
     if (currentAdmin?.role !== 'admin' || !currentAdmin?.eventId) return false
     if (resource?.id === 'Account') return false
     return true
@@ -56,6 +76,17 @@ export const canAccessResourceFieldFilter =
         ({ currentAdmin, record }: any) => {
             const adminValue = currentAdmin?.eventId
             return record?.params?.[fieldName] === adminValue
+        }
+
+// Generalised version of canAccessResourceFieldFilter: compares a field on the record against
+// an arbitrary field on currentAdmin (e.g. a user's own Account id), instead of always eventId.
+export const canAccessResourceFieldMatch =
+    (recordField: string, adminField: string) =>
+        ({ currentAdmin, record }: any) => {
+            const recordValue = record?.params?.[recordField]
+            return recordValue !== undefined
+                && recordValue !== null
+                && String(recordValue) === String(currentAdmin?.[adminField])
         }
 
 export type AccessHandler = (args: any) => boolean
