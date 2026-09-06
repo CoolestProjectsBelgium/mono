@@ -8,8 +8,12 @@ import {
 import { isValidPostalMunicipalityPair } from '~/utils/postal-codes/search-postal-codes'
 import { isAffiliationComplete, normalizeViaType } from '~/utils/dojos/affiliation'
 import type { DojoEntry } from '~/utils/dojos/types'
+import { BELGIAN_GSM_REGEX, normalizeGsm } from '~/utils/validation/gsm'
 
-const BELGIAN_GSM_REGEX = /^((\+|00)32\s?|0)([1-9][0-9]\d{6})\d?$/
+const belgianGsmField = z
+  .string()
+  .transform(normalizeGsm)
+  .pipe(z.string().min(1).regex(BELGIAN_GSM_REGEX))
 
 const addressSchema = z.object({
   postalcode: z.number().int().min(1000).max(9999),
@@ -44,10 +48,12 @@ export function createPersonalFieldsSchema(
     lastname: z.string().min(1),
     year: z.number().positive(),
     month: z.number().min(-1).max(11),
-    gsm: z.string().min(1).regex(BELGIAN_GSM_REGEX),
+    gsm: belgianGsmField,
     sex: z.enum(['m', 'f', 'x']),
     email_guardian: z.string().optional(),
-    gsm_guardian: z.string().optional(),
+    gsm_guardian: z.string().optional().transform((value) => (
+      value === undefined ? value : normalizeGsm(value)
+    )),
     t_size: z.number().min(1),
     address: addressSchema,
     via_type: z.enum(['', 'dojo', 'other']).optional(),

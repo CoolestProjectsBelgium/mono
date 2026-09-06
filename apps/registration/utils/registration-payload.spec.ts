@@ -34,6 +34,19 @@ describe('buildRegistrationPayload', () => {
     expect(payload.project.other_project).toBeUndefined()
   })
 
+  it('strips spaces from gsm fields before submit', () => {
+    const payload = buildRegistrationPayload({
+      ...baseForm,
+      user: {
+        ...baseForm.user,
+        gsm: '0470 12 34 56',
+        gsm_guardian: '+32 470 12 34 56',
+      },
+    })
+    expect(payload.user.gsm).toBe('0470123456')
+    expect(payload.user.gsm_guardian).toBe('+32470123456')
+  })
+
   it('builds other project registration with token', () => {
     const form: RegistrationFormState = {
       ...baseForm,

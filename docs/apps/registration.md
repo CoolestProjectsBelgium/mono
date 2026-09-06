@@ -35,12 +35,12 @@ Header home link is the Coolest Projects Belgium mark (`public/logo-coolest-proj
 ## Key flows
 
 1. **Landing / rules** — `GET /settings` drives event status (`no_event`, registration open/closed)
-2. **Registration** — catalogs (`/tshirts`, `/questions`, `/approvals`, `/dojos`) + `POST /registration`; optional affiliation (`via_type` + `via`) for CoderDojo, another organisation, or not applicable
+2. **Registration** — catalogs (`/tshirts`, `/questions`, `/approvals`, `/dojos`) + `POST /registration`; optional affiliation (`via_type` + `via`) for CoderDojo, another organisation, or not applicable. Mobile fields (`gsm`, `gsm_guardian`) accept spaces and separators (`0470 12 34 56`, `+32 470 12 34 56`) and are stored compact so they fit `STRING(13)`.
 3. **Login** — `POST /login/mailToken` → `POST /login` with JWT from email link → `/project` (or `/no_project` if the user has none). Registration confirmation links use a one-shot `registrationID` JWT; after the first successful activate the pending registration row is deleted. Reusing that link returns API **409** and the login page shows “already confirmed” with the magic-link form (no session). Login links use a separate `userID` JWT from welcome mail or `POST /login/mailToken`.
 4. **Project** — flat `OwnProjectDto` on `GET/POST/PATCH /projectinfo`; owner CRUD + participant invite list (copy invite link/token, change owner; no remove from the list); owner can transfer ownership via `POST /projectinfo/change-owner/:newOwnerId`; `DELETE /projectinfo` soft-deletes the project when no registered co-participants remain. If `GET /projectinfo/attachments` is empty, the page shows a red reminder to upload photos before `projectClosedDate`.
 5. **Upload** — owner-only `/upload`; images only (JPEG/PNG/WebP/HEIC→JPEG); client normalize + XHR multipart upload with progress; list/preview/delete via `GET/DELETE /projectinfo/attachments`. Owners can delete unconfirmed photos (`confirmed` false or null); admin-confirmed files stay locked.
 6. **Join via token (logged-in)** — `/token` or invite URL `/registration?token=<voucher>` calls `POST /participant` (`assignParticipant`); success → `/project`; reject if user already has a project or token invalid/used (no registration form, no email)
-7. **Profile** — `/user` loads `GET /userinfo` and saves with `PATCH /userinfo` via the shared `UserForm` (`lock-email`); the email field is disabled because it is the login identity, and the API ignores email changes
+7. **Profile** — `/user` loads `GET /userinfo` and saves with `PATCH /userinfo` via the shared `UserForm` (`lock-email`); the email field is disabled because it is the login identity, and the API ignores email changes. GSM validation strips spaces/separators before the Belgian mobile check, same as registration.
 
 ## Out of scope / unknowns
 

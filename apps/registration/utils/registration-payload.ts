@@ -1,6 +1,7 @@
 import type { RegistrationDto, UserDto, ProjectDto } from '~/types/api'
 import { normalizeViaType } from '~/utils/dojos/affiliation'
 import { stripDojoPrefix } from '~/utils/dojos/parse-dojo-html'
+import { normalizeGsm } from '~/utils/validation/gsm'
 
 export interface RegistrationFormState {
   user: UserDto
@@ -38,6 +39,10 @@ export function buildRegistrationPayload(form: RegistrationFormState): Registrat
   return {
     user: {
       ...form.user,
+      gsm: normalizeGsm(form.user.gsm),
+      gsm_guardian: form.user.gsm_guardian
+        ? normalizeGsm(form.user.gsm_guardian)
+        : form.user.gsm_guardian,
       mandatory_approvals: form.mandatoryApprovals,
     },
     project,

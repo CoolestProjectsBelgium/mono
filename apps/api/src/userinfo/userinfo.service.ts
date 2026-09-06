@@ -7,6 +7,7 @@ import { User } from '@coolestprojects/database';
 import { Affiliation } from '@coolestprojects/database';
 import { UserDto } from '../dto/user.dto';
 import { resolveAffiliation } from '../affiliation/resolve-affiliation';
+import { normalizeGsm } from './normalize-gsm';
 
 @Injectable()
 export class UserinfoService {
@@ -65,9 +66,9 @@ export class UserinfoService {
     user.firstname = updateUserDto.firstname;
     user.lastname = updateUserDto.lastname;
     user.sex = updateUserDto.sex;
-    user.gsm = updateUserDto.gsm;
+    user.gsm = normalizeGsm(updateUserDto.gsm);
     user.tshirtId = updateUserDto.t_size;
-    user.gsm_guardian = updateUserDto.gsm_guardian;
+    user.gsm_guardian = normalizeGsm(updateUserDto.gsm_guardian);
     // Empty string fails Sequelize @IsEmail; store null when absent (same as registration).
     user.email_guardian = updateUserDto.email_guardian?.trim() || null;
     const affiliation = await resolveAffiliation(

@@ -15,6 +15,7 @@ import { QuestionUser } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
 import { Affiliation } from '@coolestprojects/database';
 import { resolveAffiliation } from '../affiliation/resolve-affiliation';
+import { normalizeGsm } from '../userinfo/normalize-gsm';
 
 @Injectable()
 export class RegistrationService {
@@ -105,9 +106,9 @@ export class RegistrationService {
       firstname: createRegistrationDto.user.firstname,
       lastname: createRegistrationDto.user.lastname,
       sex: createRegistrationDto.user.sex,
-      gsm: createRegistrationDto.user.gsm,
+      gsm: normalizeGsm(createRegistrationDto.user.gsm),
       gsm_guardian:
-        createRegistrationDto.user.gsm_guardian?.trim() || null,
+        normalizeGsm(createRegistrationDto.user.gsm_guardian) || null,
       email_guardian:
         createRegistrationDto.user.email_guardian?.trim() || null,
       via: affiliation.via,

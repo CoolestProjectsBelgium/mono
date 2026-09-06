@@ -134,7 +134,11 @@ async function onSave() {
   }
 
   try {
-    const updated = await updateUser(profile.value)
+    const updated = await updateUser({
+      ...profile.value,
+      gsm: result.data.gsm,
+      gsm_guardian: result.data.gsm_guardian ?? '',
+    })
     if (updated) {
       profile.value = updated
       notify('success', 'message_successChange')

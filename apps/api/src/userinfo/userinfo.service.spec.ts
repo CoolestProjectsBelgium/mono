@@ -124,4 +124,15 @@ describe('UserinfoService', () => {
     expect(mockUser.email).toBe('test@example.com');
     expect(dto.email).toBe('test@example.com');
   });
+
+  it('strips spaces from gsm fields on update', async () => {
+    await service.updateUser(1, {
+      ...updatePayload,
+      gsm: '0470 12 34 56',
+      gsm_guardian: '+32 470 12 34 56',
+    });
+
+    expect(mockUser.gsm).toBe('0470123456');
+    expect(mockUser.gsm_guardian).toBe('+32470123456');
+  });
 });

@@ -46,6 +46,29 @@ describe('createUserSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('accepts guardian mobile numbers with spaces', () => {
+    const schema = createUserSchema(settings)
+    const result = schema.safeParse({
+      email: 'child@example.com',
+      firstname: 'Kid',
+      lastname: 'Test',
+      year: 2016,
+      month: 5,
+      gsm: '0470 12 34 56',
+      sex: 'm',
+      t_size: 2,
+      mandatory_approvals: ['1'],
+      address: userFixture.address,
+      email_guardian: 'parent@example.com',
+      gsm_guardian: '0471 11 22 33',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.gsm).toBe('0470123456')
+      expect(result.data.gsm_guardian).toBe('0471112233')
+    }
+  })
+
   it('passes for adult participant', () => {
     const schema = createUserSchema(settings)
     const result = schema.safeParse(validAdultUser)
@@ -116,6 +139,39 @@ describe('createUserSchema', () => {
       via: 'Balen',
     })
     expect(result.success).toBe(true)
+  })
+
+  it('accepts Belgian mobile numbers with spaces and stores them compact', () => {
+    const schema = createUserSchema(settings)
+    const result = schema.safeParse({
+      ...validAdultUser,
+      gsm: '0470 12 34 56',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.gsm).toBe('0470123456')
+    }
+  })
+
+  it('accepts +32 mobile numbers with spaces', () => {
+    const schema = createUserSchema(settings)
+    const result = schema.safeParse({
+      ...validAdultUser,
+      gsm: '+32 470 12 34 56',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.gsm).toBe('+32470123456')
+    }
+  })
+
+  it('rejects an invalid mobile number', () => {
+    const schema = createUserSchema(settings)
+    const result = schema.safeParse({
+      ...validAdultUser,
+      gsm: '123',
+    })
+    expect(result.success).toBe(false)
   })
 })
 

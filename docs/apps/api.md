@@ -63,7 +63,7 @@ Global: `InfoInterceptor` on all responses.
 
 ### Registration
 
-`POST /registration` is public: `OptionalAdminCookieGuard` attaches an admin principal when a valid AdminJS cookie is present, but a missing or invalid cookie must not 401. `RegistrationService` creates `User`, `Registration`, related `Question*` / `Tshirt*` records.
+`POST /registration` is public: `OptionalAdminCookieGuard` attaches an admin principal when a valid AdminJS cookie is present, but a missing or invalid cookie must not 401. `RegistrationService` creates `User`, `Registration`, related `Question*` / `Tshirt*` records. `gsm` / `gsm_guardian` are stored without spaces or separators (`STRING(13)` columns).
 
 ### Login / session
 
@@ -71,7 +71,7 @@ Global: `InfoInterceptor` on all responses.
 
 Registration confirmation emails contain a JWT with `registrationID`. The first `POST /login` activates the registration (creates `User`, deletes the pending `Registration` row) and sets the session cookie. A second request with the same JWT returns **409** (`Registration already activated`) and does not create a session — the client should show “already confirmed” copy and offer `POST /login/mailToken` for a separate login JWT (`userID`). Invalid or expired JWTs return **401**.
 
-`PATCH /userinfo` updates the profile but never writes `User.email`: the address is the login identity for magic-link auth.
+`PATCH /userinfo` updates the profile but never writes `User.email`: the address is the login identity for magic-link auth. GSM fields are stripped of spaces/separators before save (same as registration).
 
 `UserCookieInterceptor` refreshes the participant `jwt` cookie on authenticated responses. Routes that also accept the AdminJS session cookie (`GET /projectinfo/attachments/:id`, `GET /projectinfo/attachments/original/:id`) can resolve to an admin principal without a participant id; the interceptor skips those so an open admin session in the same browser cannot overwrite a participant session.
 
