@@ -42,6 +42,10 @@ Sequelize models registered in `apps/admin/src/database.ts` must include every a
 
 **CRUD:** add or tighten a resource in [`apps/admin/src/index.ts`](../../apps/admin/src/index.ts) (`properties`, `actions`, `features`). Scope by event with helpers in [`authorisations.ts`](../../apps/admin/src/authorisations.ts).
 
+**Read-only report from raw SQL:** use [`RawSqlResource`](../../apps/admin/src/reporting/raw-sql-resource.ts) instead of a database `VIEW` + `sequelize.define()`. It's an AdminJS `BaseResource` subclass — no `@adminjs/sequelize` adapter, no migration — that runs any SELECT (joins, CTEs, window functions) via the shared `sequelize` connection from `database.ts` (the only DB access path; never open a separate connection), wrapping it as a derived table (`SELECT * FROM (<sql>) AS report_data WHERE ... ORDER BY ... LIMIT ... OFFSET ...`) so filtering/sorting/pagination stay in MySQL rather than being pulled into Node. It's inherently read-only (`create`/`update`/`delete` throw) — still hide `new`/`edit`/`delete`/`bulkDelete` in `options.actions` so the UI doesn't offer them.
+Each report's query lives in its own file under [`apps/admin/src/reporting/reports/`](../../apps/admin/src/reporting/reports/), exporting just a `new RawSqlResource({ resourceId, sql, columns: [{ path, type?, isId? }], primaryKey })` instance — nothing AdminJS-specific. `index.ts` imports that resource and, like every other resource, builds its own `{ resource, features, options }` entry inline (`features: [importExportFeature(...)]`, `options.label`/`listProperties`/`actions`/`navigation: navReporting`) directly in the `resources: [...]` array. Add a new report by adding a new `reports/*.ts` file (exporting its resource, re-exported from `reports/index.ts`) and one matching entry in `index.ts`.
+`view_Export_all` and `view_user_project_summary` (**Reporting** group) both use this now; their SQL was inlined from the `CREATE OR REPLACE VIEW` statements in `apps/admin/src/components/admin/SQL-data/`, so those DB views no longer need to exist for the resources to work.
+
 **Custom screen:** register an AdminJS `pages` (or `dashboard`) entry with a `ComponentLoader` component and a server `handler`. The handler runs in Node and may use Sequelize + `context.currentAdmin`. The `.tsx` file runs in the AdminJS bundle: import UI from `@adminjs/design-system`, data via `ApiClient` from `adminjs`, and `import type` from the handler only. Recharts must be imported from `recharts/es6/...` (not the package barrel) or dest Rollup pulls CJS and crashes.
 
 Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables, **EmailTemplates**, **Floorplans**. Login is an override (`componentLoader.override('Login', …)`), not a page.
@@ -53,7 +57,8 @@ global, not event-scoped, see below), **Event setup** (`Tshirt`, `TshirtGroup`),
 `TshirtGroupTranslation`, `QuestionTranslation`), **Registration** (`Registration`, `Affiliation`, `Question`,
 `QuestionRegistration`), **Projects & participants** (`Project`, `Attachment`, `User`, `UserProject`, `QuestionUser`),
 **Venue & seating** (`EventTable`), **Voting & awards** (`Award`, `VoteCategory`), **Communication** (`EmailTemplate`), and
-**Reporting** (the two `view_*` read-only export resources). Two `navigation` groups must never share the same `name` string —
+**Reporting** (the two raw-SQL export resources, `view_Export_all` and `view_user_project_summary` — see **How to extend** below).
+Two `navigation` groups must never share the same `name` string —
 AdminJS merges groups by name, not by the JS variable holding them.
 
 | Resource | Notes |
