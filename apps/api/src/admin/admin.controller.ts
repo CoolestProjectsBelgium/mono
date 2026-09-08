@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { FloorplansOverviewDto, UploadFloorplanDto } from '../dto/floorplans-overview.dto';
+import { MailTemplateContextRequestDto } from '../dto/mail-template-context.dto';
 import { AdminService } from './admin.service';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 
@@ -51,6 +52,15 @@ export class AdminController {
     @Param('filename') filename: string,
   ): Promise<FloorplansOverviewDto> {
     return this.adminService.activateFloorplan(this.getEventId(req), filename);
+  }
+
+  @Post('mail-templates/context')
+  @UseGuards(MandatoryAdminCookieGuard)
+  @ApiSecurity('csrf')
+  getMailTemplateContext(
+    @Body() body: MailTemplateContextRequestDto,
+  ): Promise<Record<string, unknown>> {
+    return this.adminService.getMailTemplateContext(body);
   }
 
   private getEventId(req: { user?: AdminRequestUser }): number {

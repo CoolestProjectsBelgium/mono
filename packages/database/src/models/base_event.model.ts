@@ -6,6 +6,7 @@ import {
   BelongsTo,
   DataType,
 } from 'sequelize-typescript';
+import { BelongsToGetAssociationMixin } from 'sequelize';
 import { Event } from './event.model';
 
 @Table
@@ -19,6 +20,8 @@ export class BaseEventModel<
 
   @BelongsTo(() => Event)
   declare event: Event;
+
+  public getEvent!: BelongsToGetAssociationMixin<Event>;
 
   /* TODO check if needed
   static setAdminEventScopes(eventId: number[], scopeprefix: string = 'event') {

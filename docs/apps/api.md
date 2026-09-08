@@ -79,6 +79,12 @@ Registration confirmation emails contain a JWT with `registrationID`. The first 
 
 Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](../../apps/api/src/mailer/seed-email-templates.ts) and is inserted by `seedDatabase` in [`apps/api/src/seeder/seed.ts`](../../apps/api/src/seeder/seed.ts). After changing templates, rebuild the API and re-run `npm run seed-db --workspace=apps/api` on a fresh database (or replace `EmailTemplates` rows for the active event). In the Dev Container, captured mail appears at http://localhost:18025.
 
+All Handlebars context passed to a template — for a real send and for an admin preview alike — is built by the single `buildMailContext` function in [`apps/api/src/mailer/mail-context.ts`](../../apps/api/src/mailer/mail-context.ts). It takes an `eventModel` plus the raw `User` or `Registration` Sequelize record directly (no separate DTO/interface stands in for it), and nests the record under `context.user` or `context.registration` depending on `kind`, so both entity kinds produce an identical shape. `MailerService` is the only place that ever supplies a *real* token (minted by `TokensService` at send time) — `buildMailContext` itself never generates one.
+
+`buildMailContext` resolves the Event itself, internally, via `resolveMailEvent(eventModel, person)`, which looks it up by the person's own `eventId` association — never by "whichever event is currently active" or an admin session's selected event. A participant's event can be over and they must still be able to receive mail for it (e.g. a login link), so no caller (`MailerService`, `AdminService`) ever resolves or passes in an `Event` itself; they get the resolved `Event` back (alongside `context`) for anything else they still need it for, like looking up which template to send.
+
+Admin previews reuse the exact same function through a staff-only endpoint, `POST /admin/mail-templates/context` (`AdminController` / `AdminService.getMailTemplateContext`, guarded by `MandatoryAdminCookieGuard`). There is no `eventId` parameter — an admin's currently selected event has no bearing on which record can be previewed. Given `{ recordType, recordId }` it loads the real `User`/`Registration` (plus their owned `Project` for user records) and calls `buildMailContext` with `PREVIEW_TOKEN`, a fixed placeholder string — never a real JWT. `recordType` is required (the AdminJS page always knows it from the template, via `getContextRecordType`); without `recordId` it loads the first record of that kind (lowest `id`) instead of a synthetic placeholder, so a preview always renders a real Event too. If no record of that kind exists yet, the endpoint 404s. The AdminJS **EmailTemplates** page handler proxies to this endpoint via `NestApiClient` rather than rebuilding the context locally — see [admin.md](admin.md).
+
 ### Project management
 
 `GET|POST|PATCH|DELETE /projectinfo` plus attachments and participant routes → `Project`, `UserProject`, `Attachment` models.
@@ -116,6 +122,10 @@ Staff-only routes on `AdminController` (`AuthGuard('mandatory-admin-cookie')` �
 - `POST /admin/floorplans/:filename/activate` — set `Event.floorplanPath` to an existing uploaded file
 
 The AdminJS Floorplans page handler proxies these endpoints server-side. Visio processing lives in `apps/api/src/eventguide/process-visio-svg.ts`.
+
+### Admin mail template context
+
+- `POST /admin/mail-templates/context` (staff-only, same guard) — `{ recordType: 'user' | 'registration', recordId?: number }` → the Handlebars context for that record (or, without `recordId`, its first record by `id`), built by `buildMailContext` (see Email templates above) with `PREVIEW_TOKEN` in place of a real JWT. No `eventId` parameter — the record's own event decides. The AdminJS EmailTemplates page handler proxies to this route instead of building context locally.
 
 ### Shared reads
 

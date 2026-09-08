@@ -69,10 +69,7 @@ export class RegistrationService {
     });
 
     if (userFound) {
-      await this.mailerService.emailExistsMail(
-        userFound,
-        info.currentEvent,
-      );
+      await this.mailerService.emailExistsMail(userFound);
       return;
     }
 
@@ -83,10 +80,7 @@ export class RegistrationService {
       },
     });
     if (emailRegistrationFound) {
-      await this.mailerService.emailExistsMail(
-        emailRegistrationFound,
-        info.currentEvent,
-      );
+      await this.mailerService.emailExistsMail(emailRegistrationFound);
       return;
     }
 

@@ -1,31 +1,25 @@
 import {
   EmailTemplate as EmailTemplateModel,
-  Event as EventModel,
-  Project as ProjectModel,
   Registration as RegistrationModel,
   User as UserModel,
-  UserProject as UserProjectModel,
 } from '@coolestprojects/database';
 import { sequelize } from '../../database.js';
+import { NestApiClient } from '../../api/nest-api-client.js';
 import {
   assertEventId,
   assertNotJudge,
   mapRecord,
   normalizeSavePayload,
   SUPPORTED_LANGUAGES,
-  buildPreviewContext,
   getContextRecordType,
   type ContextRecordType,
   type EmailTemplateRecord,
 } from './handler-helpers.js';
-import { buildDummyContext, renderPreview, type PreviewResult } from './render-preview.js';
+import { renderPreview, type PreviewResult } from './render-preview.js';
 
 const EmailTemplate = sequelize.models.EmailTemplate as typeof EmailTemplateModel;
-const Event = sequelize.models.Event as typeof EventModel;
-const Project = sequelize.models.Project as typeof ProjectModel;
 const Registration = sequelize.models.Registration as typeof RegistrationModel;
 const User = sequelize.models.User as typeof UserModel;
-const UserProject = sequelize.models.UserProject as typeof UserProjectModel;
 
 export interface EmailTemplatesMeta {
   templates: string[];
@@ -104,67 +98,22 @@ async function listContextRecords(
   }));
 }
 
-async function loadUserProject(
-  eventId: number,
-  userId: number,
-): Promise<{ id: number; name: string } | null> {
-  const membership = await UserProject.findOne({
-    where: { eventId, userId, deletedAt: null },
-    include: [{
-      model: Project,
-      required: true,
-      where: { deletedAt: null },
-      attributes: ['id', 'name'],
-    }],
-    order: [['isOwner', 'DESC'], ['id', 'ASC']],
-  });
-
-  const project = membership?.project;
-  if (!project) {
-    return null;
-  }
-
-  return { id: project.id, name: project.name };
-}
-
-async function loadPreviewDummy(
-  eventId: number,
-  guardianEmail: boolean,
+/**
+ * Fetches the mail-rendering context from the API — the same
+ * `buildMailContext` a real send uses, with a placeholder token instead of a
+ * real JWT. Keeps context shape defined in exactly one place.
+ */
+async function fetchMailContext(
+  request: any,
+  recordType?: ContextRecordType,
+  recordId?: number,
 ): Promise<Record<string, unknown>> {
-  const dummy = buildDummyContext(guardianEmail);
-  const event = await Event.findByPk(eventId, {
-    attributes: ['id', 'officialStartDate'],
+  const api = await NestApiClient.fromExpressRequest(request);
+  const response = await api.post<Record<string, unknown>>('/admin/mail-templates/context', {
+    recordType,
+    recordId,
   });
-
-  if (event) {
-    dummy.event = { id: event.id };
-    if (event.officialStartDate) {
-      dummy.year = new Date(event.officialStartDate).getFullYear();
-    }
-  }
-
-  return dummy;
-}
-
-async function loadContext(
-  eventId: number,
-  recordType: ContextRecordType,
-  recordId: number,
-): Promise<Record<string, unknown>> {
-  const Model = (recordType === 'registration' ? Registration : User) as typeof UserModel;
-  const row = await Model.findOne({ where: { eventId, id: recordId } });
-
-  if (!row) {
-    throw new Error('Context record not found');
-  }
-
-  const record = row.toJSON() as Record<string, unknown>;
-  const dummy = await loadPreviewDummy(eventId, Boolean(record.email_guardian));
-  const project = recordType === 'user'
-    ? await loadUserProject(eventId, recordId)
-    : null;
-
-  return buildPreviewContext({ dummy, recordType, record, project });
+  return response.data;
 }
 
 export const Handler = async (
@@ -207,7 +156,7 @@ export const Handler = async (
         record: null,
         contextRecordType,
         records: [],
-        context: await loadContext(eventId, contextRecordType, recordId),
+        context: await fetchMailContext(request, contextRecordType, recordId),
       };
     }
 
@@ -227,10 +176,7 @@ export const Handler = async (
 
     if (action === 'preview') {
       const savePayload = normalizeSavePayload(payload);
-      const guardianEmail = payload.guardianEmail === true
-        || payload.guardianEmail === 'true'
-        || payload.guardianEmail === 1;
-      let context: Record<string, unknown> | undefined;
+      let context: Record<string, unknown>;
 
       if (String(payload.contextJson ?? '').trim()) {
         try {
@@ -242,13 +188,14 @@ export const Handler = async (
         } catch (error) {
           throw new Error(`Invalid context JSON: ${error instanceof Error ? error.message : String(error)}`);
         }
+      } else {
+        context = await fetchMailContext(request, getContextRecordType(savePayload.template));
       }
 
       const preview = renderPreview({
         subject: savePayload.subject,
         contentRich: savePayload.contentRich,
         contentPlain: savePayload.contentPlain,
-        guardianEmail,
         context,
       });
 

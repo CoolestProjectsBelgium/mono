@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
+import { Registration, User } from '@coolestprojects/database';
 import { AdminService } from './admin.service';
 import { getFloorplanDir } from '../eventguide/floorplan-path';
 
@@ -21,7 +22,15 @@ describe('AdminService floorplans', () => {
     findByPk: jest.fn(),
     update: jest.fn(),
   };
-  const service = new AdminService(eventModel as never);
+  const registrationModel = { findOne: jest.fn() };
+  const userModel = { findOne: jest.fn() };
+  const userProjectModel = { findOne: jest.fn() };
+  const service = new AdminService(
+    eventModel as never,
+    registrationModel as never,
+    userModel as never,
+    userProjectModel as never,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -109,5 +118,151 @@ describe('AdminService floorplans', () => {
     await expect(service.activateFloorplan(1, 'missing.svg')).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  describe('getMailTemplateContext', () => {
+    const event = { id: 1, officialStartDate: new Date('2026-06-01') };
+
+    /**
+     * A real `User`/`Registration` instance (via prototype, no DB needed) — `buildMailContext`
+     * tells the two apart with `instanceof`, so a plain object literal won't do. It also resolves
+     * the Event through the record's own `getEvent()` association, so every fixture needs one.
+     */
+    function fakePerson<T extends object>(
+      Ctor: { prototype: T },
+      fields: Record<string, unknown>,
+      resolvedEvent: unknown = event,
+    ): T {
+      return Object.assign(Object.create(Ctor.prototype), {
+        getEvent: jest.fn().mockResolvedValue(resolvedEvent),
+        ...fields,
+      });
+    }
+
+    it('rejects when no record type is given', async () => {
+      await expect(service.getMailTemplateContext({} as never)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      expect(registrationModel.findOne).not.toHaveBeenCalled();
+      expect(userModel.findOne).not.toHaveBeenCalled();
+    });
+
+    it('previews with the first record of the given kind when no record id is given', async () => {
+      registrationModel.findOne.mockResolvedValue(fakePerson(Registration, {
+        id: 3,
+        eventId: 1,
+        firstname: 'First',
+        lastname: 'Registrant',
+        email: 'first@test.be',
+        email_guardian: null,
+        language: 'nl',
+      }));
+
+      const context = await service.getMailTemplateContext({ recordType: 'registration' });
+
+      expect(registrationModel.findOne).toHaveBeenCalledWith({ order: [['id', 'ASC']] });
+      expect(context.registration).toEqual(expect.objectContaining({ firstname: 'First' }));
+      expect(context.user).toBeUndefined();
+    });
+
+    it('rejects when no record of the given kind exists to preview with', async () => {
+      userModel.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.getMailTemplateContext({ recordType: 'user' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('loads a real user and their owned project', async () => {
+      userModel.findOne.mockResolvedValue(fakePerson(User, {
+        id: 5,
+        eventId: 1,
+        firstname: 'Real',
+        lastname: 'User',
+        email: 'real@test.be',
+        email_guardian: null,
+        language: 'en',
+      }));
+      userProjectModel.findOne.mockResolvedValue({
+        project: { id: 9, name: 'Real Project' },
+      });
+
+      const context = await service.getMailTemplateContext({
+        recordType: 'user',
+        recordId: 5,
+      });
+
+      expect(userModel.findOne).toHaveBeenCalledWith({ where: { id: 5 } });
+      expect(context.user).toEqual(expect.objectContaining({ firstname: 'Real' }));
+      expect(context.project).toEqual({ id: 9, title: 'Real Project' });
+      expect(context.token).toBeTruthy();
+    });
+
+    it('derives the event from the record\'s own association, not the admin\'s selected one', async () => {
+      const pastEvent = { id: 7, officialStartDate: new Date('2024-06-01') };
+      userModel.findOne.mockResolvedValue(fakePerson(User, {
+        id: 5,
+        eventId: 7,
+        firstname: 'Past',
+        lastname: 'Participant',
+        email: 'past@test.be',
+        email_guardian: null,
+        language: 'en',
+      }, pastEvent));
+      userProjectModel.findOne.mockResolvedValue(null);
+
+      // Admin is currently working the (unrelated) active event 1, but is
+      // previewing e.g. a login mail for a participant of a past event.
+      const context = await service.getMailTemplateContext({
+        recordType: 'user',
+        recordId: 5,
+      });
+
+      expect(context.year).toBe(2024);
+    });
+
+    it('rejects when the record\'s own event no longer exists', async () => {
+      userModel.findOne.mockResolvedValue(fakePerson(User, {
+        id: 5,
+        eventId: 999,
+        firstname: 'Orphan',
+        lastname: 'Record',
+        email: 'orphan@test.be',
+        language: 'en',
+      }, null));
+
+      await expect(
+        service.getMailTemplateContext({ recordType: 'user', recordId: 5 }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('does not look up a project for a registration record', async () => {
+      registrationModel.findOne.mockResolvedValue(fakePerson(Registration, {
+        id: 3,
+        eventId: 1,
+        firstname: 'Reg',
+        lastname: 'Istration',
+        email: 'reg@test.be',
+        email_guardian: 'parent@test.be',
+        language: 'nl',
+      }));
+
+      const context = await service.getMailTemplateContext({
+        recordType: 'registration',
+        recordId: 3,
+      });
+
+      expect(context.registration).toEqual(expect.objectContaining({ firstname: 'Reg' }));
+      expect(context.project).toBeUndefined();
+      expect(userProjectModel.findOne).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unknown record id', async () => {
+      userModel.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.getMailTemplateContext({ recordType: 'user', recordId: 999 }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
   });
 });

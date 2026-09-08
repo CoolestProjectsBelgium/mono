@@ -4,6 +4,22 @@ import * as nodemailer from 'nodemailer';
 import { MailerService } from './mailer.service';
 import { Event, EmailTemplate, Registration, User, Project, EmailLog } from '@coolestprojects/database';
 
+/**
+ * A real `User`/`Registration` instance (via prototype, no DB needed) — `buildMailContext`
+ * tells the two apart with `instanceof`, so a plain object literal won't do. `resolveMailEvent`
+ * also calls `person.getEvent()` directly, so every fixture needs one.
+ */
+function fakePerson<T extends object>(
+  Ctor: { prototype: T },
+  fields: Record<string, unknown>,
+  event: Event,
+): T {
+  return Object.assign(Object.create(Ctor.prototype), {
+    getEvent: jest.fn().mockResolvedValue(event),
+    ...fields,
+  });
+}
+
 jest.mock('nodemailer');
 const sendMailMock = jest.fn().mockResolvedValue({});
 (nodemailer.createTransport as jest.Mock).mockReturnValue({
@@ -30,10 +46,6 @@ describe('MailerService', () => {
     findOne: jest.fn().mockResolvedValue(registrationTemplate),
   };
 
-  const eventModel = {
-    findByPk: jest.fn().mockResolvedValue(event),
-  };
-
   const projectModel = {
     findOne: jest.fn(),
     findByPk: jest.fn(),
@@ -53,7 +65,6 @@ describe('MailerService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MailerService,
-        { provide: getModelToken(Event), useValue: eventModel },
         { provide: getModelToken(EmailTemplate), useValue: emailTemplateModel },
         { provide: getModelToken(Project), useValue: projectModel },
         { provide: getModelToken(EmailLog), useValue: emailLogModel },
@@ -64,13 +75,13 @@ describe('MailerService', () => {
   });
 
   it('registrationMail sends login url and Coolest Projects subject', async () => {
-    const registration = {
+    const registration = fakePerson(Registration, {
       eventId: 1,
       email: 'kid@test.be',
       email_guardian: 'parent@test.be',
       language: 'nl',
       firstname: 'Jan',
-    } as unknown as Registration;
+    }, event);
 
     await service.registrationMail(registration, 'jwt-token');
 
@@ -100,12 +111,12 @@ describe('MailerService', () => {
         language,
       });
 
-      const registration = {
+      const registration = fakePerson(Registration, {
         eventId: 1,
         email: 'kid@test.be',
         language,
         firstname: 'Test',
-      } as unknown as Registration;
+      }, event);
 
       await service.registrationMail(registration, 'abc');
 
@@ -126,12 +137,12 @@ describe('MailerService', () => {
       contentRich: '{{url}}',
     });
 
-    const user = {
+    const user = fakePerson(User, {
       eventId: 1,
       email: 'user@test.be',
       language: 'en',
       firstname: 'Jane',
-    } as unknown as User;
+    }, event);
 
     await service.loginMail(user, 'login-jwt');
 
@@ -154,12 +165,12 @@ describe('MailerService', () => {
       contentRich: '{{project.title}}',
     });
 
-    const user = {
+    const user = fakePerson(User, {
       eventId: 1,
       email: 'owner@test.be',
       language: 'en',
       firstname: 'Owner',
-    } as unknown as User;
+    }, event);
 
     const project = {
       id: 42,
@@ -187,12 +198,12 @@ describe('MailerService', () => {
       contentRich: '{{registration.firstname}}',
     });
 
-    const registration = {
+    const registration = fakePerson(Registration, {
       eventId: 1,
       email: 'wait@test.be',
       language: 'en',
       firstname: 'Waiting',
-    } as unknown as Registration;
+    }, event);
 
     await service.waitingListMail(registration);
 
@@ -210,12 +221,12 @@ describe('MailerService', () => {
       contentRich: '{{project.title}}',
     });
 
-    const user = {
+    const user = fakePerson(User, {
       eventId: 1,
       email: 'coworker@test.be',
       language: 'en',
       firstname: 'Co',
-    } as unknown as User;
+    }, event);
 
     const project = {
       id: 7,
@@ -244,11 +255,11 @@ describe('MailerService', () => {
     });
 
     await service.emailExistsMail(
-      {
+      fakePerson(Registration, {
+        eventId: 1,
         email: 'dup@test.be',
         language: 'en',
-      } as Parameters<MailerService['emailExistsMail']>[0],
-      1,
+      }, event),
     );
 
     expect(emailTemplateModel.findOne).toHaveBeenCalledWith({

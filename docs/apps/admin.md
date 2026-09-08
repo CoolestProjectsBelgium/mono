@@ -94,23 +94,27 @@ just reassigning two projects' dropdowns, and a table is freed by unassigning it
 The **Floorplans** page (`apps/admin/src/components/floorplans/`) lists SVG files from the API (`GET /admin/floorplans`), uploads raw Visio SVG exports via the API (`POST /admin/floorplans`; auto-processed to `table_XX` groups with blink CSS on the API server), and sets `Event.floorplanPath` on upload or via **Use for this event** (`POST /admin/floorplans/:filename/activate`). The AdminJS handler proxies these calls to Nest via `NestApiClient` (`apps/admin/src/api/nest-api-client.ts`), which forwards the incoming `adminjs` session cookie; it does not touch `UPLOAD_ROOT` locally. After changing `process-visio-svg.ts` in `apps/api`, restart the API dev server. Judges cannot access this page.
 
 The **EmailTemplates** page (`apps/admin/src/components/email-templates/`) lets staff pick a mail template slug and
-language (`nl` / `en` / `fr`) for the logged-in event, edit subject + HTML + plain text, preview with Handlebars dummy
-data, and save via AdminJS `recordAction` on the `EmailTemplates` resource (`edit`). It does not call `apps/api`; preview compiles in the page handler with
-`Handlebars.compile(..., { noEscape: true })` on bodies — same compile flag as [`MailerService`](../../apps/api/src/mailer/mailer.service.ts).
+language (`nl` / `en` / `fr`) for the logged-in event, edit subject + HTML + plain text, preview with Handlebars, and save
+via AdminJS `recordAction` on the `EmailTemplates` resource (`edit`). Loading/saving templates uses Sequelize directly (same
+DB as `apps/api`), but the render **context** for previews always comes from `apps/api`'s
+`POST /admin/mail-templates/context` via `NestApiClient` — the page handler no longer builds context locally. That endpoint
+calls the same `buildMailContext` function [`MailerService`](../../apps/api/src/mailer/mailer.service.ts) uses for real
+sends, so a preview can never drift from what a real email would render; see
+[api.md](api.md#admin-mail-template-context). Preview then compiles the returned context with
+`Handlebars.compile(..., { noEscape: true })` on bodies — same compile flag as `MailerService`.
 Before save/preview, the client pretty-prints HTML (Handlebars tokens masked first) and shows non-blocking lint warnings.
 TinyMCE loads from CDN for visual HTML editing; use the Source tab for `{{#if}}` block helpers. Judges cannot access this page.
-The page also derives whether a template uses a `User` or `Registration` context, lets staff select an event-scoped record,
-and loads that record as editable context JSON for previews. For user-backed templates the handler looks up membership in
-`UserProject` (preferring `isOwner`, skipping soft-deleted rows) and maps `project.name` → `{{project.title}}`, matching
-[`MailerService.buildUserMailContext`](../../apps/api/src/mailer/mailer.service.ts). Dummy `year` / `url` / `token` /
-`website` stay in the JSON so other placeholders still preview; `year` and `event.id` come from the selected event when
-present. A user with no project omits `project` (empty title in preview). Empty context continues to use the dummy preview data.
-The `EmailTemplate` CRUD resource remains available (event-scoped list/search) as an escape hatch.
+The page also derives whether a template uses a `User` or `Registration` context (`getContextRecordType`) and lets staff
+select an event-scoped record (dropdown populated by a direct Sequelize read — the record list itself isn't part of the
+mail context). Selecting a record, or leaving none selected, both fetch context from the API: with a `recordId` it's that
+real record's data plus their owned project (`user` kind only); without one the API falls back to the first record of that
+kind (by `id`) so previews always render a real Event too — never a synthetic placeholder person. The `EmailTemplate` CRUD
+resource remains available (event-scoped list/search) as an escape hatch.
 
 | Path | Role |
 |------|------|
-| `email-templates/handler.ts` | Load/save/preview via Sequelize |
-| `email-templates/render-preview.ts` | Dummy context + Handlebars compile |
+| `email-templates/handler.ts` | Load/save templates via Sequelize; fetch preview context and render via the API + Handlebars |
+| `email-templates/render-preview.ts` | Handlebars compile of a caller-supplied context |
 | `email-templates/format-html.ts` | Mask tokens, pretty-print, lint |
 | `npm run test --workspace=apps/admin` | Unit tests for helpers |
 

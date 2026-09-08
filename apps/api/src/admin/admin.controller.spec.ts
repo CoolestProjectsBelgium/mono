@@ -10,6 +10,7 @@ describe('AdminController', () => {
     listFloorplans: jest.fn(),
     uploadFloorplan: jest.fn(),
     activateFloorplan: jest.fn(),
+    getMailTemplateContext: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -70,5 +71,16 @@ describe('AdminController', () => {
     );
 
     expect(adminService.activateFloorplan).toHaveBeenCalledWith(3, 'cp2025_zaal.svg');
+  });
+
+  it('fetches the mail template context', async () => {
+    const context = { year: 2026, user: { firstname: 'Jan' } };
+    adminService.getMailTemplateContext.mockResolvedValue(context);
+
+    const body = { recordType: 'user' as const, recordId: 5 };
+    const result = await controller.getMailTemplateContext(body);
+
+    expect(adminService.getMailTemplateContext).toHaveBeenCalledWith(body);
+    expect(result).toEqual(context);
   });
 });

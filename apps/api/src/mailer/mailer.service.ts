@@ -12,18 +12,11 @@ import { User } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
 import { EmailLog } from '@coolestprojects/database';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import {
-  buildLoginUrl,
-  eventYear,
-  registrationAppUrl,
-  registrationWebsiteUrl,
-} from './mail-context';
+import { buildMailContext } from './mail-context';
 
 @Injectable()
 export class MailerService {
   constructor(
-    @InjectModel(Event)
-    private readonly eventModel: typeof Event,
     @InjectModel(EmailTemplate)
     private readonly emailTemplateModel: typeof EmailTemplate,
     @InjectModel(Project)
@@ -33,61 +26,6 @@ export class MailerService {
   ) {}
 
   private readonly logger = new Logger(MailerService.name);
-
-  private buildRegistrationContext(
-    registration: Registration,
-    event: Event,
-    token?: string,
-  ) {
-    const language = registration.language ?? 'en';
-    const year = eventYear(event);
-    const website = registrationWebsiteUrl();
-    const url = token
-      ? buildLoginUrl(registrationAppUrl(), language, token)
-      : undefined;
-
-    return {
-      event,
-      user: registration,
-      registration: {
-        firstname: registration.firstname,
-        email_guardian: registration.email_guardian,
-        year,
-      },
-      year,
-      website,
-      ...(token ? { token, url } : {}),
-    };
-  }
-
-  private buildUserMailContext(
-    user: User,
-    event: Event,
-    token: string,
-    project?: Project,
-  ) {
-    const language = user.language ?? 'en';
-    const year = eventYear(event);
-    const website = registrationWebsiteUrl();
-    const url = buildLoginUrl(registrationAppUrl(), language, token);
-
-    return {
-      event,
-      user,
-      year,
-      website,
-      token,
-      url,
-      ...(project
-        ? {
-            project: {
-              id: project.id,
-              title: project.name,
-            },
-          }
-        : {}),
-    };
-  }
 
   private formatRecipients(
     email: string,
@@ -184,14 +122,13 @@ export class MailerService {
   }
 
   async registrationMail(user: Registration, token: string) {
-    const event = await this.eventModel.findByPk(user.eventId);
-    if (!event) {
-      throw new Error('Event not found');
-    }
+    const { event, context } = await buildMailContext({
+      person: user,
+      token,
+    });
 
     const to = this.formatRecipients(user.email, user.email_guardian);
     const language = user.language ?? 'en';
-    const context = this.buildRegistrationContext(user, event, token);
     await this.sendMail(
       MailTemplates.registration,
       language,
@@ -203,26 +140,22 @@ export class MailerService {
   }
 
   async waitingListMail(user: Registration) {
-    const event = await this.eventModel.findByPk(user.eventId);
-    if (!event) {
-      throw new Error('Event not found');
-    }
+    const { event, context } = await buildMailContext({ person: user });
 
     const language = user.language ?? 'en';
     const to = this.formatRecipients(user.email, user.email_guardian);
-    const context = this.buildRegistrationContext(user, event);
     await this.sendMail(MailTemplates.waiting, language, event, to, context, user);
   }
 
   async welcomeMailOwner(user: User, project: Project, token: string) {
-    const event = await this.eventModel.findByPk(user.eventId);
-    if (!event) {
-      throw new Error('Event not found');
-    }
+    const { event, context } = await buildMailContext({
+      person: user,
+      token,
+      project: { id: project.id, name: project.name },
+    });
 
     const to = this.formatRecipients(user.email, user.email_guardian);
     const language = user.language ?? 'en';
-    const context = this.buildUserMailContext(user, event, token, project);
     await this.sendMail(
       MailTemplates.welcomeOwner,
       language,
@@ -234,14 +167,13 @@ export class MailerService {
   }
 
   async loginMail(user: User, token: string) {
-    const event = await this.eventModel.findByPk(user.eventId);
-    if (!event) {
-      throw new Error('Event not found');
-    }
+    const { event, context } = await buildMailContext({
+      person: user,
+      token,
+    });
 
     const to = this.formatRecipients(user.email, user.email_guardian);
     const language = user.language ?? 'en';
-    const context = this.buildUserMailContext(user, event, token);
     await this.sendMail(
       MailTemplates.ask4Token,
       language,
@@ -253,14 +185,14 @@ export class MailerService {
   }
 
   async welcomeMailCoWorker(user: User, project: Project, token: string) {
-    const event = await this.eventModel.findByPk(user.eventId);
-    if (!event) {
-      throw new Error('Event not found');
-    }
+    const { event, context } = await buildMailContext({
+      person: user,
+      token,
+      project: { id: project.id, name: project.name },
+    });
 
     const to = this.formatRecipients(user.email, user.email_guardian);
     const language = user.language ?? 'en';
-    const context = this.buildUserMailContext(user, event, token, project);
     await this.sendMail(
       MailTemplates.welcomeCoWorker,
       language,
@@ -271,17 +203,9 @@ export class MailerService {
     );
   }
 
-  async emailExistsMail(user: User | Registration, eventId: number) {
-    const event = await this.eventModel.findByPk(eventId);
-    if (!event) {
-      throw new Error('Event not found');
-    }
+  async emailExistsMail(user: User | Registration) {
+    const { event, context } = await buildMailContext({ person: user });
 
-    const context = {
-      event,
-      year: eventYear(event),
-      website: registrationWebsiteUrl(),
-    };
     await this.sendMail(
       MailTemplates.emailExists,
       user.language,
