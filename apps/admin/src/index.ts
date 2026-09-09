@@ -17,6 +17,17 @@ import importExportFeature from '@adminjs/import-export';
 import { sequelize, } from './database.js'
 import { exportAllResource, userProjectSummaryResource } from './reporting/reports/index.js'
 
+// ADMINJS_COOKIE_SECRET signs both the AdminJS auth cookie and the express-session
+// cookie. A missing value would previously fall through to `undefined` (cookiePassword)
+// or the literal string "undefined" (session secret via `+ ""`), making sessions
+// forgeable. Fail fast instead of starting with a broken/empty secret.
+const ADMINJS_COOKIE_SECRET = process.env.ADMINJS_COOKIE_SECRET
+if (!ADMINJS_COOKIE_SECRET || ADMINJS_COOKIE_SECRET.trim() === '') {
+  throw new Error(
+    'Refusing to start: ADMINJS_COOKIE_SECRET is missing or empty. This secret signs admin session cookies.',
+  )
+}
+
 const SequelizeStore = connectSessionSequelize(session.Store)
 
 const sessionStore = new SequelizeStore({
@@ -119,7 +130,7 @@ const start = async () => {
         // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
         label: 'Email templates',
         isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
-          currentAdmin?.role !== 'judge',
+          currentAdmin?.role !== 'jury',
       },
       Floorplans: {
         component: Components.Floorplans,
@@ -128,7 +139,7 @@ const start = async () => {
         // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
         label: 'Floor plans',
         isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
-          currentAdmin?.role !== 'judge',
+          currentAdmin?.role !== 'jury',
       },
       Presentation: {
         component: Components.Presentation,
@@ -137,7 +148,7 @@ const start = async () => {
         // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
         label: 'Presentation preview',
         isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
-          currentAdmin?.role !== 'judge',
+          currentAdmin?.role !== 'jury',
       },
     },
     resources: [
@@ -456,14 +467,14 @@ const start = async () => {
   }
 
   const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-    cookiePassword: process.env.ADMINJS_COOKIE_SECRET!,
+    cookiePassword: ADMINJS_COOKIE_SECRET,
     cookieName: 'adminjs',
     authenticate: Authenticate,
   }, null, {
     resave: true,
     store: sessionStore,
     saveUninitialized: true,
-    secret: process.env.ADMINJS_COOKIE_SECRET + "",
+    secret: ADMINJS_COOKIE_SECRET,
     cookie: {
       httpOnly: process.env.NODE_ENV === 'production',
       // 'auto' + trust proxy: Secure on HTTPS (dest / local proxy), not on direct HTTP.

@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { verify } from 'jsonwebtoken';
-import { env } from 'process';
 import type { Response } from 'express';
 import { InjectModel } from '@nestjs/sequelize';
 import { User, Registration } from '@coolestprojects/database';
@@ -55,7 +54,7 @@ export class LoginController {
   ): Promise<LoginDto> {
     let payload: { registrationID?: number; userID?: number };
     try {
-      payload = verify(loginActivateDto.jwt, env.JWT_KEY || '') as {
+      payload = verify(loginActivateDto.jwt, this.config.getOrThrow<string>('api.jwt')) as {
         registrationID?: number;
         userID?: number;
       };

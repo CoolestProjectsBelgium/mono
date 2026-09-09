@@ -9,6 +9,7 @@ Source of truth for Coolest Projects monorepo architecture and per-package orien
 - [architecture.md](architecture.md) — monorepo map, dependencies, key flows
 - [local-setup.md](local-setup.md) — Dev Container and local URLs
 - [build-tools.md](build-tools.md) — Level27 publish CLI (`build_tools/`)
+- [unused-code.md](unused-code.md) — unused-code audit punch list
 
 ## Apps
 

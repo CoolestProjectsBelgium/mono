@@ -20,7 +20,7 @@ async function bootstrap() {
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
   configureSecurity(app);
 
-  app.use(cookieParser([config.get('api.jwt')!, config.get('adminjs.secret')!]));
+  app.use(cookieParser([config.getOrThrow('api.jwt'), config.getOrThrow('adminjs.secret')]));
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (!req.cookies.anonId) {
@@ -43,7 +43,7 @@ async function bootstrap() {
 
   const csrfCookieOptions = buildAppCookieOptions(config, { secure: true, headers: { 'x-forwarded-proto': 'https' } });
   const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
-    getSecret: () => config.get('api.csrf')!,
+    getSecret: () => config.getOrThrow('api.csrf'),
 
     // csrf-csrf defaults to a __Host- cookie name; do not set Domain.
     cookieOptions: {

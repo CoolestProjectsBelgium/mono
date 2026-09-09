@@ -34,12 +34,14 @@ import { EmailTemplate } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
 import { EmailLog } from '@coolestprojects/database';
 import { AdminSession } from '@coolestprojects/database';
+import configuration from '../config/configuration.js';
 
 @Module({
   imports: [
     CommandModule,
     ConfigModule.forRoot({
-      isGlobal: true, 
+      isGlobal: true,
+      load: [configuration],
     }),
     SequelizeModule.forRootAsync({
       imports: [ConfigModule], 

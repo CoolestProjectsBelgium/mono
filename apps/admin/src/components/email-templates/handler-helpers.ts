@@ -44,9 +44,9 @@ export function buildLoadKey(
   return `${eventId}:${template}:${language}`;
 }
 
-export function assertNotJudge(role: string | undefined): void {
-  if (role === 'judge') {
-    throw new Error('Judges cannot access email template management');
+export function assertNotJury(role: string | undefined): void {
+  if (role === 'jury') {
+    throw new Error('Jury accounts cannot access email template management');
   }
 }
 

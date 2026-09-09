@@ -1,7 +1,7 @@
 import { Strategy } from 'passport-jwt-cookiecombo';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { env } from 'process';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
 import { RegistrationService } from '../registration/registration.service';
@@ -11,9 +11,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt-user') {
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
     private readonly registrationService: RegistrationService,
+    configService: ConfigService,
   ) {
     super({
-      secretOrPublicKey: env.JWT_KEY,
+      secretOrPublicKey: configService.getOrThrow<string>('api.jwt'),
     });
   }
 

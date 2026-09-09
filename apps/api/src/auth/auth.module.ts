@@ -3,6 +3,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtVotingStrategy } from './jwt-voting.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Account, AdminSession, Affiliation, User, EmailLog } from '@coolestprojects/database';
 import { RegistrationService } from '../registration/registration.service';
@@ -31,12 +32,14 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    ConfigModule,
     SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Question, QuestionUser, QuestionRegistration, Account, AdminSession, UserProject, EmailLog, Affiliation]),
   ],
   providers: [{
     provide: AUTH_JWT,
-    useFactory: () => new JwtService({
-      secret: process.env.JWT_KEY!,
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) => new JwtService({
+      secret: configService.getOrThrow('api.jwt'),
       signOptions: {
         expiresIn: '60m',
       },
@@ -44,8 +47,9 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
   },
   {
     provide: VOTING_JWT,
-    useFactory: () => new JwtService({
-      secret: process.env.VOTING_KEY!,
+    inject: [ConfigService],
+    useFactory: (configService: ConfigService) => new JwtService({
+      secret: configService.getOrThrow('voting.jwt'),
       signOptions: {
         expiresIn: '12h',
       },

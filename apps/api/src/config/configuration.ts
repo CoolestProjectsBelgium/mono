@@ -25,7 +25,7 @@ export default () => ({
     imap_port: parseInt(process.env.IMAP_PORT!, 10) || 993,
   },
   adminjs : {
-    secret: process.env.ADMINJS_COOKIE_SECRET,
+    secret: process.env.ADMINJS_COOKIE_SECRET || undefined, // empty string must fail getOrThrow() too
     port: parseInt(process.env.ADMINJS_PORT!, 10) || 3306,
   },
   cookies: {
@@ -35,9 +35,9 @@ export default () => ({
     jwt: process.env.JWT_KEY,
     expires: process.env.JWT_EXPIRES,
     port: parseInt(process.env.API_PORT!, 10) || 3001,
-    csrf: process.env.CSRF_SECRET,
+    csrf: process.env.CSRF_SECRET || undefined, // empty string must fail getOrThrow() too
     cors_origin: process.env.CORS_ORIGINS,
-    base_url: process.env.API_BASE_URL,  
+    base_url: process.env.API_BASE_URL,
     upload_root: process.env.UPLOAD_ROOT
   },
   cron: {
