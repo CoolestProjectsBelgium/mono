@@ -29,6 +29,7 @@ const REGISTRATION_CONTEXT_TEMPLATES = new Set([
   'delete',
   'activation',
   'notifyNewProjectOwner',
+  'registrationReminder',
 ]);
 
 export function getContextRecordType(template: string): ContextRecordType {

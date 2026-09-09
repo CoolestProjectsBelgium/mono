@@ -489,6 +489,220 @@ Coolest Projects Team Belgium`,
   },
 };
 
+const dailyReminderTemplates: Record<
+  'en' | 'nl' | 'fr',
+  { subject: string; contentPlain: string; contentRich: string }
+> = {
+  nl: {
+    subject: 'Coolest Projects {{year}}: Nog actie nodig voor jouw deelname',
+    contentPlain: `Hallo {{user.firstname}},
+
+Een korte herinnering over jouw deelname aan Coolest Projects Belgium {{year}}:
+{{#if noProject}}
+- Je hebt nog geen project aangemaakt. Maak er snel een aan zodat je kan deelnemen!
+{{/if}}
+{{#if noPhoto}}
+- Je project heeft nog geen foto. Voeg er snel een toe.
+{{/if}}
+{{#if deadlineApproaching}}
+- De deadline om je project in orde te brengen nadert binnenkort!
+{{/if}}
+Kopieer en plak deze link tussen "..."
+
+"{{url}}"
+
+ in de browser om je project te openen.
+
+Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ https://coolestprojects.be/faq-nl/ eens na op onze website.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Hallo {{user.firstname}},</p>
+<p>Een korte herinnering over jouw deelname aan Coolest Projects Belgium {{year}}:</p>
+<ul>
+{{#if noProject}}
+<li>Je hebt nog geen project aangemaakt. Maak er snel een aan zodat je kan deelnemen!</li>
+{{/if}}
+{{#if noPhoto}}
+<li>Je project heeft nog geen foto. Voeg er snel een toe.</li>
+{{/if}}
+{{#if deadlineApproaching}}
+<li>De deadline om je project in orde te brengen nadert binnenkort!</li>
+{{/if}}
+</ul>
+<p><a href="{{url}}">Gebruik Go2MyProject om jouw pagina te openen.</a></p>
+<p>Als de bovenstaande link niet werkt in je email programma, copieer en plak dan de volgende url volledig in een browser scherm: {{url}}</p>
+<p>Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ <a href="https://coolestprojects.be/faq-nl/">https://coolestprojects.be/faq-nl/</a> eens na op onze website.</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+  en: {
+    subject: 'Coolest Projects {{year}}: A few things still need your attention',
+    contentPlain: `Hi {{user.firstname}},
+
+A quick reminder about your participation in Coolest Projects Belgium {{year}}:
+{{#if noProject}}
+- You haven't created a project yet. Create one soon so you can take part!
+{{/if}}
+{{#if noPhoto}}
+- Your project doesn't have a photo yet. Please add one soon.
+{{/if}}
+{{#if deadlineApproaching}}
+- The deadline to get your project ready is coming up soon!
+{{/if}}
+Please, Cat & paste the link between "..." into your browser to open your project
+
+"{{url}}"
+
+If you have any more questions, please check out the FAQ https://coolestprojects.be/en/faq-en/ section on our website.
+
+Coolest Project Team Belgium`,
+    contentRich: `<p>Hi {{user.firstname}},</p>
+<p>A quick reminder about your participation in Coolest Projects Belgium {{year}}:</p>
+<ul>
+{{#if noProject}}
+<li>You haven't created a project yet. Create one soon so you can take part!</li>
+{{/if}}
+{{#if noPhoto}}
+<li>Your project doesn't have a photo yet. Please add one soon.</li>
+{{/if}}
+{{#if deadlineApproaching}}
+<li>The deadline to get your project ready is coming up soon!</li>
+{{/if}}
+</ul>
+<p>Please, use the following link to open your project in your browser <a href="{{url}}">Go2MyProject</a>.</p>
+<p>If the above link does not work in your email client, please copy and paste this full url in a browser window: {{url}}</p>
+<p>If you have any more questions, please check out the FAQ <a href="https://coolestprojects.be/en/faq-en/">https://coolestprojects.be/en/faq-en/</a> section on our website.</p>
+<p>Coolest Project Team Belgium</p>`,
+  },
+  fr: {
+    subject: 'Coolest Projects {{year}}: Il reste des actions à faire pour ta participation',
+    contentPlain: `Salut {{user.firstname}},
+
+Un petit rappel concernant ta participation à Coolest Projects Belgium {{year}}:
+{{#if noProject}}
+- Tu n'as pas encore créé de projet. Crées-en un rapidement pour pouvoir participer!
+{{/if}}
+{{#if noPhoto}}
+- Ton projet n'a pas encore de photo. Ajoutes-en une rapidement.
+{{/if}}
+{{#if deadlineApproaching}}
+- La date limite pour finaliser ton projet approche!
+{{/if}}
+copiez et collez ce lien entre "..."
+
+"{{url}}"
+
+dans ton navigateur.
+
+Si tu as d'autres questions, tu peux consulter la section FAQ https://coolestprojects.be/fr/faq-fr/ sur notre site web.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Salut {{user.firstname}},</p>
+<p>Un petit rappel concernant ta participation à Coolest Projects Belgium {{year}}:</p>
+<ul>
+{{#if noProject}}
+<li>Tu n'as pas encore créé de projet. Crées-en un rapidement pour pouvoir participer!</li>
+{{/if}}
+{{#if noPhoto}}
+<li>Ton projet n'a pas encore de photo. Ajoutes-en une rapidement.</li>
+{{/if}}
+{{#if deadlineApproaching}}
+<li>La date limite pour finaliser ton projet approche!</li>
+{{/if}}
+</ul>
+<p>Merci d'utiliser le lien suivant pour ouvrir ton navigateur et accéder à ton projet : <a href="{{url}}">Go2MyProject</a></p>
+<p>Si le lien ci-dessus ne fonctionne pas dans votre programme de messagerie, copiez et collez complètement l'URL suivante dans une fenêtre de navigateur: {{url}}</p>
+<p>Si tu as d'autres questions, tu peux consulter la section FAQ <a href="https://coolestprojects.be/fr/faq-fr/">https://coolestprojects.be/fr/faq-fr/</a> sur notre site web.</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+};
+
+const registrationReminderTemplates: Record<
+  'en' | 'nl' | 'fr',
+  { subject: string; contentPlain: string; contentRich: string }
+> = {
+  nl: {
+    subject: 'Coolest Projects {{year}}: Vergeet niet je registratie te bevestigen',
+    contentPlain: `Hallo {{registration.firstname}},
+
+We zien dat je je nog niet hebt aangemeld voor Coolest Projects Belgium {{year}}. Zonder bevestiging kunnen we je plaats niet garanderen.
+{{#if registration.email_guardian}}
+Je ouders hebben deze mail ook gekregen.
+{{/if}}
+Kopieer en plak deze link tussen "..."
+
+"{{url}}"
+
+ in de browser om je registratie te bevestigen.
+
+Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ https://coolestprojects.be/faq-nl/ eens na op onze website.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Hallo {{registration.firstname}},</p>
+<p>We zien dat je je nog niet hebt aangemeld voor Coolest Projects Belgium {{year}}. Zonder bevestiging kunnen we je plaats niet garanderen.</p>
+{{#if registration.email_guardian}}
+<p>Je ouders hebben deze mail ook gekregen.</p>
+{{/if}}
+<p>Om jouw registratie te bevestigen, dien je op de <a href="{{url}}">activatielink</a> te klikken.</p>
+<p>Als de bovenstaande link niet werkt in je email programma, copieer en plak dan de volgende url volledig in een browser scherm: {{url}}</p>
+<p>Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ <a href="https://coolestprojects.be/faq-nl/">https://coolestprojects.be/faq-nl/</a> eens na op onze website.</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+  en: {
+    subject: "Coolest Projects {{year}}: Don't forget to confirm your registration",
+    contentPlain: `Hi {{registration.firstname}},
+
+We noticed you haven't confirmed your registration for Coolest Projects Belgium {{year}} yet. Without confirmation we can't guarantee your spot.
+{{#if registration.email_guardian}}
+Your parents also received this mail.
+{{/if}}
+Cat & paste this link between "..."
+
+"{{url}}"
+
+into your browser to confirm your registration.
+
+If you have any more questions, please check out the FAQ https://coolestprojects.be/en/faq-en/ section on our website!
+
+Coolest Project Team Belgium`,
+    contentRich: `<p>Hi {{registration.firstname}},</p>
+<p>We noticed you haven't confirmed your registration for Coolest Projects Belgium {{year}} yet. Without confirmation we can't guarantee your spot.</p>
+{{#if registration.email_guardian}}
+<p>Your parents also received this mail.</p>
+{{/if}}
+<p>To confirm your registration, click the <a href="{{url}}">activation link</a>.</p>
+<p>If the above link does not work in your email client, please copy and paste this full url in a browser window: {{url}}</p>
+<p>If you have any more questions, please check out the FAQ <a href="https://coolestprojects.be/en/faq-en/">https://coolestprojects.be/en/faq-en/</a> section on our website!</p>
+<p>Coolest Project Team Belgium</p>`,
+  },
+  fr: {
+    subject: "Coolest Projects {{year}}: N'oublie pas de confirmer ton inscription",
+    contentPlain: `Salut {{registration.firstname}},
+
+Nous remarquons que tu n'as pas encore confirmé ton inscription à Coolest Projects Belgium {{year}}. Sans confirmation, nous ne pouvons pas garantir ta place.
+{{#if registration.email_guardian}}
+Tes parents ont aussi reçu ce mail.
+{{/if}}
+Copie et colle ce lien entre "..."
+
+"{{url}}"
+
+dans ton navigateur pour confirmer ton inscription.
+
+Si tu as d'autres questions, tu peux consulter la section FAQ https://coolestprojects.be/fr/faq-fr/ sur notre site web.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Salut {{registration.firstname}},</p>
+<p>Nous remarquons que tu n'as pas encore confirmé ton inscription à Coolest Projects Belgium {{year}}. Sans confirmation, nous ne pouvons pas garantir ta place.</p>
+{{#if registration.email_guardian}}
+<p>Tes parents ont aussi reçu ce mail.</p>
+{{/if}}
+<p>Pour valider ton inscription, clique sur le <a href="{{url}}">lien d'activation</a>.</p>
+<p>Si le lien ci-dessus ne fonctionne pas dans votre programme de messagerie, copiez et collez complètement l'URL suivante dans une fenêtre de navigateur: {{url}}</p>
+<p>Si tu as d'autres questions, tu peux consulter la section FAQ <a href="https://coolestprojects.be/fr/faq-fr/">https://coolestprojects.be/fr/faq-fr/</a> sur notre site web.</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+};
+
 function rowsForTemplate(
   eventId: number,
   templateKey: string,
@@ -513,5 +727,7 @@ export function buildSeedEmailTemplates(eventId: number): SeedEmailTemplateRow[]
     ...rowsForTemplate(eventId, 'waiting', waitingTemplates),
     ...rowsForTemplate(eventId, 'ask4Token', ask4TokenTemplates),
     ...rowsForTemplate(eventId, 'emailExists', emailExistsTemplates),
+    ...rowsForTemplate(eventId, 'dailyReminder', dailyReminderTemplates),
+    ...rowsForTemplate(eventId, 'registrationReminder', registrationReminderTemplates),
   ];
 }

@@ -3,8 +3,8 @@ import { buildSeedEmailTemplates } from './seed-email-templates';
 describe('buildSeedEmailTemplates', () => {
   const rows = buildSeedEmailTemplates(1);
 
-  it('returns 18 templates (6 keys × en/nl/fr)', () => {
-    expect(rows).toHaveLength(18);
+  it('returns 24 templates (8 keys × en/nl/fr)', () => {
+    expect(rows).toHaveLength(24);
     expect(rows.every((row) => row.eventId === 1)).toBe(true);
   });
 
@@ -28,5 +28,24 @@ describe('buildSeedEmailTemplates', () => {
     expect(registrationEn!.contentPlain).toContain('{{url}}');
     expect(registrationEn!.contentRich).toContain('{{registration.firstname}}');
     expect(registrationEn!.contentRich).toContain('{{url}}');
+  });
+
+  it('gates the daily reminder sections on noProject/noPhoto/deadlineApproaching', () => {
+    const dailyReminderEn = rows.find(
+      (row) => row.template === 'dailyReminder' && row.language === 'en',
+    );
+    expect(dailyReminderEn).toBeDefined();
+    for (const flag of ['noProject', 'noPhoto', 'deadlineApproaching']) {
+      expect(dailyReminderEn!.contentRich).toContain(`{{#if ${flag}}}`);
+    }
+  });
+
+  it('includes a registration-reminder template with a login/activation link', () => {
+    const registrationReminderEn = rows.find(
+      (row) => row.template === 'registrationReminder' && row.language === 'en',
+    );
+    expect(registrationReminderEn).toBeDefined();
+    expect(registrationReminderEn!.contentPlain).toContain('{{registration.firstname}}');
+    expect(registrationReminderEn!.contentRich).toContain('{{url}}');
   });
 });

@@ -14,6 +14,8 @@ export enum MailTemplates {
   ask4Token = 'ask4Token',
   emailExists = 'emailExists',
   notifyNewProjectOwner = 'notifyNewProjectOwner',
+  dailyReminder = 'dailyReminder',
+  registrationReminder = 'registrationReminder',
 }
 
 @Table

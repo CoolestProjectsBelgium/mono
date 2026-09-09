@@ -15,6 +15,11 @@ export default () => ({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT!, 10) || 1025,
     from: process.env.SMTP_FROM,
+    // The mailbox bounces land in is often not the outbound SMTP relay (e.g. a
+    // transactional-mail provider vs. a real Google Workspace/M365 mailbox) —
+    // IMAP_HOST lets it be configured separately. Falls back to SMTP_HOST for
+    // setups where the same mailbox really does send and receive.
+    imap_host: process.env.IMAP_HOST || process.env.SMTP_HOST,
     imap_user: process.env.IMAP_USER,
     imap_password: process.env.IMAP_PASSWORD,
     imap_port: parseInt(process.env.IMAP_PORT!, 10) || 993,

@@ -39,4 +39,6 @@ test('normalizeSavePayload rejects unsupported language', () => {
 test('getContextRecordType maps template slugs to the mailer entity kind', () => {
   assert.equal(getContextRecordType('registration'), 'registration');
   assert.equal(getContextRecordType('welcomeOwner'), 'user');
+  assert.equal(getContextRecordType('registrationReminder'), 'registration');
+  assert.equal(getContextRecordType('dailyReminder'), 'user');
 });

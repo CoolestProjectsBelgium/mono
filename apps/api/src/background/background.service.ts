@@ -13,7 +13,10 @@ import { CronJob } from 'cron';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import Imap from 'imap';
 import { simpleParser, ParsedMail } from 'mailparser';
-import { EmailLog } from '@coolestprojects/database';
+import { EmailLog, MailTemplates } from '@coolestprojects/database';
+import { extractBounceIdentifier, isBounceNotification } from './bounce-detection';
+import { deriveReminderReasons, hasAnyReminderReason } from './reminder-reasons';
+import { TokensService } from '../tokens/tokens.service';
 
 
 @Injectable()
@@ -35,6 +38,7 @@ export class BackgroundService implements OnModuleInit {
     private readonly schedulerRegistry: SchedulerRegistry,
     @InjectModel(EmailLog)
     private readonly emaillogModel: typeof EmailLog,
+    private readonly tokensService: TokensService,
   ) { }
 
   private readonly logger = new Logger(BackgroundService.name);
@@ -98,7 +102,12 @@ export class BackgroundService implements OnModuleInit {
 
       for (const message of messages) {
         try {
-          const messageId = this.extractIdentifier(message.parsed);
+          if (!isBounceNotification(message.parsed)) {
+            this.logger.debug('Skipping non-bounce message in bounce mailbox');
+            continue;
+          }
+
+          const messageId = extractBounceIdentifier(message.parsed);
           const mailMessage = await this.emaillogModel.findOne({ where: { "messageId": messageId } })
 
           if (!mailMessage) {
@@ -132,8 +141,6 @@ export class BackgroundService implements OnModuleInit {
 
   async handleMailing() {
 
-    // TODO setup logic that we group the mails and not send multiple ones a day
-
     const activeEvent = await this.eventModel.findOne({
       attributes: [
         'id',
@@ -154,48 +161,19 @@ export class BackgroundService implements OnModuleInit {
       return;
     }
 
-    this.logger.debug('Notification missing project reminder');
+    // notify every day that the deadline is approaching 7 days before the deadline
+    const deadlineApproachingDate = new Date(activeEvent.projectClosedDate);
+    deadlineApproachingDate.setDate(deadlineApproachingDate.getDate() - 7);
+    const deadlineApproaching =
+      new Date() > deadlineApproachingDate && new Date() < activeEvent.projectClosedDate;
 
+    this.logger.debug('Notification project reminders');
+
+    // One query drives noProject/noPhoto together — a user with no active
+    // project at all still comes back with an empty `projects` array, so
+    // deriveReminderReasons can tell "no project" apart from "project with
+    // no photo" (a plain LEFT-JOIN-null check on attachments.id can't).
     const users = await this.userModel.findAll({
-      include: [{
-        model: this.projectModel,
-        as: 'projects',
-        required: false,
-        through: {
-          where: {
-            eventId: activeEvent.id,
-            deletedAt: null,
-          },
-        },
-      }],
-      where: {
-        '$projects.id$': null,
-        eventId: activeEvent.id,
-      },
-    });
-
-    for (const user of users) {
-      await this.mailerService.warningNoProject(user);
-    }
-
-    this.logger.debug('Notification registration reminders');
-
-    const registrations = await this.registrationModel.findAll({
-      where: {
-        eventId: activeEvent.id,
-        createdAt: {
-          [Op.lt]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days
-        },
-      },
-    });
-
-    for (const registration of registrations) {
-      await this.mailerService.notifyRegistrationActivation(registration);
-    }
-
-    this.logger.debug('Notification attachment reminders');
-
-    const noAttachmentUsers = await this.userModel.findAll({
       include: [{
         model: this.projectModel,
         as: 'projects',
@@ -214,83 +192,185 @@ export class BackgroundService implements OnModuleInit {
       }],
       where: {
         eventId: activeEvent.id,
-        '$projects.attachments.id$': null,
       },
     });
 
-    for (const user of noAttachmentUsers) {
-      await this.mailerService.warningNoPhoto(user);
+    for (const user of users) {
+      const reasons = deriveReminderReasons(user, deadlineApproaching);
+      if (!hasAnyReminderReason(reasons)) {
+        continue;
+      }
+
+      if (await this.alreadySentToday(MailTemplates.dailyReminder, { userId: user.id })) {
+        continue;
+      }
+
+      const token = this.tokensService.generateLoginToken(user.id);
+      await this.mailerService.sendDailyReminderMail(user, reasons, token);
     }
 
-    // notify every day that the deadline is approaching 7 days before the deadline
-    const deadlineApproachingDate = new Date(activeEvent.projectClosedDate);
-    deadlineApproachingDate.setDate(deadlineApproachingDate.getDate() - 7);
+    this.logger.debug('Notification registration reminders');
 
-    if (new Date() > deadlineApproachingDate && new Date() < activeEvent.projectClosedDate) {
-      const users = await this.userModel.findAll({ where: { eventId: activeEvent.id } });
-      for (const user of users) {
-        await this.mailerService.deadlineApproaching(user);
+    const registrations = await this.registrationModel.findAll({
+      where: {
+        eventId: activeEvent.id,
+        createdAt: {
+          [Op.lt]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days
+        },
+      },
+    });
+
+    for (const registration of registrations) {
+      if (
+        await this.alreadySentToday(MailTemplates.registrationReminder, {
+          registrationId: registration.id,
+        })
+      ) {
+        continue;
       }
+
+      const token = this.tokensService.generateRegistrationToken(registration.id);
+      await this.mailerService.sendRegistrationReminderMail(registration, token);
     }
 
   }
 
-  private extractIdentifier(
-    mail: ParsedMail,
-  ): string | null {
-    // Check headers first
-    const inReplyTo = mail.inReplyTo;
+  /**
+   * Caps a reminder template to at most one send per recipient per calendar
+   * day, regardless of how often `CRON_JOB_MAIL` fires — `EmailLog` (already
+   * written by every real `MailerService` send) is the source of truth,
+   * same as bounce detection reuses it rather than tracking state elsewhere.
+   */
+  private async alreadySentToday(
+    template: MailTemplates,
+    where: { userId?: number; registrationId?: number },
+  ): Promise<boolean> {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
-    if (inReplyTo) {
-      return inReplyTo.replace(/[<>]/g, '').trim();
-    }
+    const existing = await this.emaillogModel.findOne({
+      where: { template, ...where, createdAt: { [Op.gte]: startOfToday } },
+    });
 
-    const references = mail.references;
-
-    if (references?.length) {
-      return references[0]
-        .replace(/[<>]/g, '')
-        .trim();
-    }
-
-    const text = mail.text || '';
-
-    const match = text.match(
-      /(?:Original-Message-ID|Message-ID):\s*<?([^>\s]+)>?/i,
-    );
-
-    return match?.[1]?.trim() ?? null
+    return existing !== null;
   }
 
   private deleteMessage(
     imap: Imap,
     seqno: number,
   ): Promise<void> {
-    return new Promise(
-      (resolve, reject) => {
-        imap.addFlags(
-          seqno,
-          '\\Deleted',
-          (err) => {
-            if (err) {
-              reject(err);
-              return;
-            }
+    return new Promise((resolve, reject) => {
+      imap.addFlags(seqno, '\\Deleted', (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
 
-            imap.expunge(
-              (err) => {
-                if (err) {
-                  reject(err);
-                  return;
-                }
+        imap.expunge((err) => (err ? reject(err) : resolve()));
+      });
+    });
+  }
 
-                resolve();
-              },
-            );
-          },
+  /** Connects and resolves once the connection is ready to open a mailbox. */
+  private connectImap(): Promise<Imap> {
+    return new Promise((resolve, reject) => {
+      const imap = new Imap({
+        user: this.configService.getOrThrow<string>('mailing.imap_user'),
+        password: this.configService.getOrThrow<string>('mailing.imap_password'),
+        host: this.configService.getOrThrow<string>('mailing.imap_host'),
+        port: this.configService.getOrThrow<number>('mailing.imap_port'),
+        tls: true,
+        tlsOptions: { rejectUnauthorized: true },
+      });
+
+      imap.once('ready', () => resolve(imap));
+      imap.once('error', reject);
+      imap.connect();
+    });
+  }
+
+  private openInbox(imap: Imap): Promise<void> {
+    return new Promise((resolve, reject) => {
+      imap.openBox('INBOX', false, (err) => (err ? reject(err) : resolve()));
+    });
+  }
+
+  private searchUnseenMessages(imap: Imap): Promise<number[]> {
+    return new Promise((resolve, reject) => {
+      imap.search(['UNSEEN'], (err, uids) => (err ? reject(err) : resolve(uids)));
+    });
+  }
+
+  /**
+   * Runs `run` against a freshly connected IMAP client, always closing the
+   * connection afterwards. Races `run` against the connection's own `error`
+   * event so a drop mid-fetch (which would otherwise leave `run` awaiting a
+   * response that never arrives) rejects instead of hanging the cron job.
+   */
+  private async withImapConnection<T>(
+    run: (imap: Imap) => Promise<T>,
+  ): Promise<T> {
+    const imap = await this.connectImap();
+
+    try {
+      return await new Promise<T>((resolve, reject) => {
+        imap.once('error', reject);
+        run(imap).then(resolve, reject);
+      });
+    } finally {
+      imap.end();
+    }
+  }
+
+  /** Buffers a fetched message's raw body until the stream ends. */
+  private readMessageBody(msg: Imap.ImapMessage): Promise<string> {
+    return new Promise((resolve) => {
+      let buffer = '';
+
+      msg.on('body', (stream) => {
+        stream.on('data', (chunk) => {
+          buffer += chunk.toString();
+        });
+        stream.once('end', () => resolve(buffer));
+      });
+    });
+  }
+
+  /**
+   * Fetches and parses every given UID. A message that fails to parse is
+   * logged and dropped rather than failing the whole batch — one bad
+   * message shouldn't block the rest.
+   */
+  private fetchAndParseMessages(
+    imap: Imap,
+    uids: number[],
+  ): Promise<Array<{ parsed: ParsedMail; delete: () => Promise<void> }>> {
+    return new Promise((resolve, reject) => {
+      const fetch = imap.fetch(uids, { bodies: '', markSeen: true });
+      const pending: Array<Promise<{ parsed: ParsedMail; delete: () => Promise<void> } | null>> = [];
+
+      fetch.on('message', (msg, seqno) => {
+        pending.push(
+          this.readMessageBody(msg)
+            .then((buffer) => simpleParser(buffer))
+            .then((parsed) => ({
+              parsed,
+              delete: () => this.deleteMessage(imap, seqno),
+            }))
+            .catch((error): null => {
+              this.logger.error('Failed to parse email', error);
+              return null;
+            }),
         );
-      },
-    );
+      });
+
+      fetch.once('error', reject);
+      fetch.once('end', () => {
+        Promise.all(pending).then((results) =>
+          resolve(results.filter((message) => message !== null)),
+        );
+      });
+    });
   }
 
   private getBounceMessages(): Promise<
@@ -299,150 +379,10 @@ export class BackgroundService implements OnModuleInit {
       delete: () => Promise<void>;
     }>
   > {
-    return new Promise((resolve, reject) => {
-      const imap = new Imap({
-        user: this.configService.getOrThrow<string>(
-          'mailing.imap_user',
-        ),
-
-        password: this.configService.getOrThrow<string>(
-          'mailing.imap_password',
-        ),
-
-        host: this.configService.getOrThrow<string>(
-          'mailing.host',
-        ),
-
-        port: this.configService.getOrThrow<number>(
-          'mailing.imap_port',
-        ),
-
-        tls: true,
-
-        tlsOptions: {
-          rejectUnauthorized: true,
-        },
-      });
-
-      const messages: Array<{
-        parsed: ParsedMail;
-        delete: () => Promise<void>;
-      }> = [];
-
-      imap.once('ready', () => {
-        imap.openBox(
-          'INBOX',
-          false,
-          (err) => {
-            if (err) {
-              imap.end();
-              reject(err);
-              return;
-            }
-
-            // Get unread emails
-            imap.search(
-              ['UNSEEN'],
-              (err, uids) => {
-                if (err) {
-                  imap.end();
-                  reject(err);
-                  return;
-                }
-
-                if (!uids.length) {
-                  imap.end();
-                  resolve([]);
-                  return;
-                }
-
-                const fetch = imap.fetch(
-                  uids,
-                  {
-                    bodies: '',
-                    markSeen: true,
-                  },
-                );
-
-                fetch.on(
-                  'message',
-                  (msg, seqno) => {
-                    let buffer = '';
-
-                    msg.on(
-                      'body',
-                      (stream) => {
-                        stream.on(
-                          'data',
-                          (chunk) => {
-                            buffer += chunk.toString();
-                          },
-                        );
-
-                        stream.once(
-                          'end',
-                          async () => {
-                            try {
-                              const parsed =
-                                await simpleParser(
-                                  buffer,
-                                );
-
-                              messages.push({
-                                parsed,
-
-                                delete: () =>
-                                  this.deleteMessage(
-                                    imap,
-                                    seqno,
-                                  ),
-                              });
-                            } catch (error) {
-                              this.logger.error(
-                                'Failed to parse email',
-                                error,
-                              );
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
-                );
-
-                fetch.once(
-                  'error',
-                  (error) => {
-                    imap.end();
-                    reject(error);
-                  },
-                );
-
-                fetch.once(
-                  'end',
-                  () => {
-                    // Wait for the async mailparser
-                    // operations to finish.
-                    setTimeout(() => {
-                      imap.end();
-                      resolve(messages);
-                    }, 500);
-                  },
-                );
-              },
-            );
-          },
-        );
-      });
-
-      imap.once(
-        'error',
-        (error) => {
-          reject(error);
-        },
-      );
-
-      imap.connect();
+    return this.withImapConnection(async (imap) => {
+      await this.openInbox(imap);
+      const uids = await this.searchUnseenMessages(imap);
+      return uids.length ? this.fetchAndParseMessages(imap, uids) : [];
     });
   }
 

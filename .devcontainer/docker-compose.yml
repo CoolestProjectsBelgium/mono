@@ -52,6 +52,16 @@ services:
       SMTP_PORT: 1025
       SMTP_FROM: noreply@coolestprojects.localhost
 
+      # Bounce mail detection (CRON_JOB_BOUNCE above) reads via IMAP, not SMTP.
+      # MailHog has no IMAP server, so this can't be exercised locally — set
+      # these to a real IMAP-capable mailbox (e.g. imap.gmail.com) to test.
+      # IMAP_HOST defaults to SMTP_HOST if unset, which is wrong whenever the
+      # outbound relay and the bounce mailbox aren't the same host.
+      #IMAP_HOST: imap.example.com
+      #IMAP_USER: bounces@coolestprojects.be
+      #IMAP_PASSWORD: changeme
+      #IMAP_PORT: 993
+
     volumes:
       - ..:/workspace:cached
       - files-data:/tmp/files

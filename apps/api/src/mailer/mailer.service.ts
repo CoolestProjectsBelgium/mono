@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserDto } from '../dto/user.dto';
 import { Template } from 'handlebars';
 import * as Handlebars from 'handlebars';
@@ -24,8 +24,6 @@ export class MailerService {
     @InjectModel(EmailLog)
     private readonly emailLogModel: typeof EmailLog,
   ) {}
-
-  private readonly logger = new Logger(MailerService.name);
 
   private formatRecipients(
     email: string,
@@ -216,23 +214,59 @@ export class MailerService {
     );
   }
 
+  /**
+   * One combined reminder covering every applicable reason at once (missing
+   * project, missing photo, deadline approaching) — never send these as
+   * separate mails; `BackgroundService` groups them per user before calling
+   * this. `reasons` is merged directly into the context so the template can
+   * gate each section with `{{#if noProject}}`/`{{#if noPhoto}}`/
+   * `{{#if deadlineApproaching}}`.
+   */
+  async sendDailyReminderMail(
+    user: User,
+    reasons: { noProject: boolean; noPhoto: boolean; deadlineApproaching: boolean },
+    token: string,
+  ) {
+    const { event, context } = await buildMailContext({
+      person: user,
+      token,
+    });
+
+    const to = this.formatRecipients(user.email, user.email_guardian);
+    const language = user.language ?? 'en';
+    await this.sendMail(
+      MailTemplates.dailyReminder,
+      language,
+      event,
+      to,
+      { ...context, ...reasons },
+      user
+    );
+  }
+
+  async sendRegistrationReminderMail(registration: Registration, token: string) {
+    const { event, context } = await buildMailContext({
+      person: registration,
+      token,
+    });
+
+    const to = this.formatRecipients(registration.email, registration.email_guardian);
+    const language = registration.language ?? 'en';
+    await this.sendMail(
+      MailTemplates.registrationReminder,
+      language,
+      event,
+      to,
+      context,
+      registration
+    );
+  }
+
   async deleteMail() {}
-  async warningNoProject(user: User) {
-    this.logger.debug(`Sending warningNoProject mail to user ${user.id}`);
-  }
-  async deadlineApproaching(user: User) {
-    this.logger.debug(`Sending deadline approaching mail to user ${user.id}`);
-  }
   async waitingMail() {}
   async activationMail() {}
   async ask4TokenMail() {}
   async notifyProjectOwner() {}
-  async warningNoPhoto(user: User) {
-    this.logger.debug(`Sending warningNoPhoto mail to user ${user.id}`);
-  }
-  async notifyRegistrationActivation(registration: Registration) {
-    this.logger.debug(`Sending notifyRegistrationActivation mail to user ${registration.email}`);
-  }
 
   private async logEmail(entry: {
     eventId: number

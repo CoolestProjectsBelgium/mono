@@ -62,7 +62,7 @@ Direct ports (inside/on workspace container):
 
 DB and app secrets are set in `docker-compose.yml` on the `workspace` service (`DB_*`, `JWT_KEY`, `ADMINJS_*`, `VOTING_KEY`, `FILE_*`, etc.). Do not commit production secrets; treat compose values as local-dev only.
 
-Mail: the Dev Container sets `SMTP_HOST=mailhog`, `SMTP_PORT=1025`, and `SMTP_FROM`. Captured mail appears in MailHog at http://localhost:18025 (SMTP on host port `11025`). If `SMTP_HOST` is unset, the API logs the message (including activation URL) and skips sending so registration still succeeds.
+Mail: the Dev Container sets `SMTP_HOST=mailhog`, `SMTP_PORT=1025`, and `SMTP_FROM`. Captured mail appears in MailHog at http://localhost:18025 (SMTP on host port `11025`). If `SMTP_HOST` is unset, the API logs the message (including activation URL) and skips sending so registration still succeeds. Bounce mail detection (`CRON_JOB_BOUNCE`, see [docs/apps/api.md](apps/api.md#bounce-mail-detection)) can't be exercised locally: MailHog has no IMAP server. `IMAP_HOST`/`IMAP_USER`/`IMAP_PASSWORD`/`IMAP_PORT` are commented out in `docker-compose.yml`; uncomment and point them at a real mailbox to test it.
 
 Voting app API base URL: `NUXT_PUBLIC_API_BASE_URL` (defaults to `https://api.coolestprojects.localhost:8443` in `nuxt.config.ts`). On `https://voting.coolestprojects.localhost:8443`, the app calls the API same-origin: the TLS proxy forwards `/csrf-token`, `/auth`, `/languages`, `/projects` to port 3001 (rebuild the `proxy` container after changing `proxy.conf`). Port-forward users on `http://localhost:3005` hit Nitro server routes that proxy the same paths. Trust the dev CA (`.devcontainer/certs/pki/ca.crt`) if you call `api.coolestprojects.localhost` directly from the browser.
 
