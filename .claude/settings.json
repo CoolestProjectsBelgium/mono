@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(apt-get update *)",
+      "Bash(python3 mock_api.py)",
+      "Bash(export PRESENTATION_API_URL=http://127.0.0.1:8765/presentation)",
+      "Bash(export PRESENTATION_USER=presentation)",
+      "Bash(export PRESENTATION_PASSWORD=secret)",
+      "Bash(export OUTPUT_DIR=/tmp/claude-0/-workspace/d48ce138-7600-4530-99da-05d2dbb199d6/scratchpad/deck-test)",
+      "Bash(bash /workspace/apps/presentation/sync-deck.sh --once)",
+      "Bash(pkill -f mock_api.py)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -u presentation:secret http://127.0.0.1:8765/presentation)",
+      "Bash(jobs -l)",
+      "Bash(MOCK_VERSION=2 nohup python3 mock_api.py)",
+      "Bash(disown)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(MOCK_VERSION=2 python3 mock_api.py)",
+      "Bash(echo \"bg pid=$!\")",
+      "Bash(echo \"SCRIPT_EXIT=$?\")",
+      "Bash(systemd-analyze verify *)",
+      "Bash(chmod +x /workspace/apps/presentation/feh-slideshow.sh)",
+      "Bash(bash -n /workspace/apps/presentation/feh-slideshow.sh)",
+      "Bash(MOCK_VERSION=1 python3 mock_api.py)",
+      "Bash(MOCK_VERSION=2 python3 mock_api.py --port 8766)",
+      "Bash(MOCK_VERSION=2 MOCK_PORT=8766 python3 mock_api.py)",
+      "Bash(curl -s -u presentation:secret http://127.0.0.1:8766/presentation)"
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+# Runs sync-deck.sh forever (its own poll loop, not --once), so the deck
+# stays synchronized as long as the Pi has power — and comes back up on its
+# own after an outage, since `systemctl enable` makes it start on every boot
+# without anyone touching the device.
+#
+# Install:
+#   1. Copy the presentation app onto the Pi, e.g. /opt/coolestprojects/presentation/
+#      (this file assumes that path — edit ExecStart/WorkingDirectory below if different)
+#   2. sudo useradd --system --home /var/lib/presentation-deck --create-home presentation
+#   3. sudo cp presentation-sync.env.example /etc/presentation-sync.env
+#      sudo chown presentation:presentation /etc/presentation-sync.env
+#      sudo chmod 600 /etc/presentation-sync.env
+#      # then edit /etc/presentation-sync.env with the real API URL/credentials
+#   4. sudo cp presentation-sync.service /etc/systemd/system/
+#      sudo systemctl daemon-reload
+#      sudo systemctl enable --now presentation-sync.service
+#   5. sudo systemctl status presentation-sync.service
+#      journalctl -u presentation-sync.service -f
+
+[Unit]
+Description=Coolest Projects presentation deck sync
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=presentation
+Group=presentation
+EnvironmentFile=/etc/presentation-sync.env
+ExecStart=/opt/coolestprojects/presentation/sync-deck.sh
+WorkingDirectory=/opt/coolestprojects/presentation
+
+# The script's own loop already retries forever on a bad pass (e.g. no
+# network); Restart=always is for the rarer case of the process itself
+# dying (OOM, an unhandled bash error). No backoff cap here — combined
+# with StartLimitIntervalSec=0 above, systemd will always bring it back.
+Restart=always
+RestartSec=10
+
+# Hardening: this only ever needs to write OUTPUT_DIR (set in the env
+# file) and read its own script — everything else on disk stays read-only.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/presentation-deck
+
+[Install]
+WantedBy=multi-user.target
