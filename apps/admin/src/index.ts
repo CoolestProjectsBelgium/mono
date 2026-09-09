@@ -81,6 +81,11 @@ const start = async () => {
     icon: 'Mail',
   }
 
+  const navPresentation = {
+    name: 'Presentation',
+    icon: 'Monitor',
+  }
+
   const navReporting = {
     name: 'Reporting',
     icon: 'Grid',
@@ -122,6 +127,15 @@ const start = async () => {
         icon: 'Map',
         // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
         label: 'Floor plans',
+        isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
+          currentAdmin?.role !== 'judge',
+      },
+      Presentation: {
+        component: Components.Presentation,
+        handler: Handlers.Presentation,
+        icon: 'Play',
+        // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
+        label: 'Presentation preview',
         isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
           currentAdmin?.role !== 'judge',
       },
@@ -355,6 +369,34 @@ const start = async () => {
             search: {
               before: filterEventId('eventId'),
             },
+            edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            show: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            delete: { isAccessible: canAccessResourceFieldFilter('eventId') },
+          },
+        },
+      },
+
+      // --- Presentation ---
+      // dataSource/cardinality decide how a row expands into the deck (see
+      // apps/api/src/presentation/presentation.service.ts): 'projects' +
+      // 'perRecord' is one slide per visible (table-assigned) project,
+      // 'projects' + 'single' is one overview slide listing them all,
+      // 'none' is a static/custom slide (title is admin-facing only).
+      // `imagePath` (optional static art for a 'none' slide) is uploaded via
+      // `POST /admin/presentation-slides/:id/image`, not through this form —
+      // it's a plain filename on disk, no dedicated upload widget yet.
+      {
+        resource: sequelize.models.PresentationSlide,
+        options: {
+          navigation: navPresentation,
+          properties: {
+            eventId: { isVisible: false },
+            body: { type: 'textarea', props: { rows: 12 } },
+            imagePath: { isVisible: { list: false, filter: false, show: true, edit: true } },
+          },
+          actions: {
+            list: { before: filterEventId('eventId') },
+            search: { before: filterEventId('eventId') },
             edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
             show: { isAccessible: canAccessResourceFieldFilter('eventId') },
             delete: { isAccessible: canAccessResourceFieldFilter('eventId') },

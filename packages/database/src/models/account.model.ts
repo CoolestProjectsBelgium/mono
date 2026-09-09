@@ -10,8 +10,8 @@ export class Account extends Model<InferAttributes<Account>, InferCreationAttrib
   @Column
   declare encryptedPassword: string;
 
-  @Column(DataType.ENUM('super_admin', 'admin', 'jury'))
-  declare account_type: 'super_admin' | 'admin' | 'jury';
+  @Column(DataType.ENUM('super_admin', 'admin', 'jury', 'presentation'))
+  declare account_type: 'super_admin' | 'admin' | 'jury' | 'presentation';
 
   verifyPassword(password: string) {
     return compareSync(password, this.encryptedPassword);

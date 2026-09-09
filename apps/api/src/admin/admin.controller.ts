@@ -6,11 +6,17 @@ import {
   Param,
   Post,
   Req,
+  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 import { FloorplansOverviewDto, UploadFloorplanDto } from '../dto/floorplans-overview.dto';
 import { MailTemplateContextRequestDto } from '../dto/mail-template-context.dto';
+import { UploadPresentationSlideImageDto } from '../dto/upload-presentation-slide-image.dto';
+import { PreviewPresentationSlideDraftDto } from '../dto/presentation-preview.dto';
+import { SlideListResponseDto } from '../dto/slide.dto';
 import { AdminService } from './admin.service';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 
@@ -61,6 +67,65 @@ export class AdminController {
     @Body() body: MailTemplateContextRequestDto,
   ): Promise<Record<string, unknown>> {
     return this.adminService.getMailTemplateContext(body);
+  }
+
+  @Post('presentation-slides/:id/image')
+  @UseGuards(MandatoryAdminCookieGuard)
+  @ApiSecurity('csrf')
+  uploadPresentationSlideImage(
+    @Req() req: { user?: AdminRequestUser },
+    @Param('id') id: string,
+    @Body() body: UploadPresentationSlideImageDto,
+  ): Promise<void> {
+    return this.adminService.uploadPresentationSlideImage(
+      this.getEventId(req),
+      Number(id),
+      body,
+    );
+  }
+
+  @Get('presentation-slides/preview')
+  @UseGuards(MandatoryAdminCookieGuard)
+  listPresentationSlides(
+    @Req() req: { user?: AdminRequestUser },
+  ): Promise<SlideListResponseDto> {
+    return this.adminService.listPresentationSlides(this.getEventId(req));
+  }
+
+  @Get('presentation-slides/preview/projects')
+  @UseGuards(MandatoryAdminCookieGuard)
+  listPresentationPreviewProjects(
+    @Req() req: { user?: AdminRequestUser },
+  ): Promise<{ id: number; name: string }[]> {
+    return this.adminService.listPresentationPreviewProjects(this.getEventId(req));
+  }
+
+  @Get('presentation-slides/preview/:key/image')
+  @UseGuards(MandatoryAdminCookieGuard)
+  async getPresentationSlideImage(
+    @Req() req: { user?: AdminRequestUser },
+    @Param('key') key: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const { file, hash, generatedAt } = await this.adminService.getPresentationSlideImage(
+      this.getEventId(req),
+      key,
+    );
+
+    res.setHeader('ETag', `"${hash}"`);
+    res.setHeader('Last-Modified', generatedAt.toUTCString());
+    res.setHeader('Cache-Control', 'no-cache');
+    return file;
+  }
+
+  @Post('presentation-slides/preview/draft')
+  @UseGuards(MandatoryAdminCookieGuard)
+  @ApiSecurity('csrf')
+  previewPresentationSlideDraft(
+    @Req() req: { user?: AdminRequestUser },
+    @Body() body: PreviewPresentationSlideDraftDto,
+  ): Promise<{ imageBase64: string }> {
+    return this.adminService.previewPresentationSlideDraft(this.getEventId(req), body);
   }
 
   private getEventId(req: { user?: AdminRequestUser }): number {

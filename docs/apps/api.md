@@ -34,7 +34,7 @@ Key env vars (set in `.devcontainer/docker-compose.yml`): `DB_*`, `JWT_KEY`, `AP
 
 - `packages/database` — all Sequelize models
 - MySQL
-- External: SMTP (mailer), IMAP (bounce polling — see [Bounce mail detection](#bounce-mail-detection)), Puppeteer (PDF/certs — usage TBD)
+- External: SMTP (mailer), IMAP (bounce polling — see [Bounce mail detection](#bounce-mail-detection)), Puppeteer (slide deck rendering — see [Presentation slide deck](#presentation-slide-deck); also PDF/certs — usage TBD)
 
 ## Module map
 
@@ -49,7 +49,7 @@ Key env vars (set in `.devcontainer/docker-compose.yml`): `DB_*`, `JWT_KEY`, `AP
 | `participant` | `ParticipantController` | `ParticipantService` | Participant add/remove |
 | `voting` | `VotingController` | `VotingService` | Auth, languages, projects, votes |
 | `eventguide` | `EventguideController` | `EventguideService` | Event guide data |
-| `presentation` | `PresentationController` | `PresentationService` | Presentation data, generate |
+| `presentation` | `PresentationController` | `PresentationService` | Slide deck generation + delta-sync API for Pi displays — see [Presentation slide deck](#presentation-slide-deck) |
 | `file-upload` | `FileUploadController` | `FileUploadService` | File auth check |
 | `mailer` | — | `MailerService` | Email sending (templates seeded from `apps/api/src/mailer/seed-email-templates.ts`; local capture via MailHog — see [local-setup.md](../local-setup.md)) |
 | `tokens` | — | `TokensService` | Token helpers |
@@ -170,6 +170,38 @@ The AdminJS Floorplans page handler proxies these endpoints server-side. Visio p
 
 - `POST /admin/mail-templates/context` (staff-only, same guard) — `{ recordType: 'user' | 'registration', recordId?: number }` → the Handlebars context for that record (or, without `recordId`, its first record by `id`), built by `buildMailContext` (see Email templates above) with `PREVIEW_TOKEN` in place of a real JWT. No `eventId` parameter — the record's own event decides. The AdminJS EmailTemplates page handler proxies to this route instead of building context locally.
 
+### Presentation slide deck
+
+`PresentationController`/`PresentationService` (`apps/api/src/presentation/`) render a slide deck to PNGs (Handlebars → HTML → Puppeteer screenshot) and expose it over a small delta-sync API built for Raspberry Pi devices on unreliable connections: a cheap global listing with a content hash per slide, and a per-slide image fetch that's cache-friendly (`ETag`/`Last-Modified`, `HEAD`, conditional `GET`).
+
+**Slides are admin-configured, not hardcoded.** Every slide — event info, per-project, project overview, floor map, sponsor/custom — is one `PresentationSlide` row (event-scoped, managed via the AdminJS **Presentation** resource), ordered by its own `order` column:
+- `dataSource: 'none' | 'projects'` — what feeds the Handlebars `body`. Event fields (`eventTitle`, dates) and `year`/`website` are always in context regardless of `dataSource`, so an event-info slide or a floor-map slide (referencing `event.floorplanPath`) are just ordinary `'none'` rows the admin authors — no dedicated code path for either.
+- `cardinality: 'single' | 'perRecord'` — only meaningful with `dataSource: 'projects'`. `perRecord` expands into **one rendered slide per visible project** (`record` in context) — the per-project "explanation + room location" slide. `single` produces **one** slide with every visible project as `records` — the project-overview style. `'none'` rows are always effectively single.
+- `imagePath` — optional static art for a `'none'` slide (e.g. a sponsor backdrop), uploaded via `POST /admin/presentation-slides/:id/image` (base64 JSON body, mirrors the floorplan-upload pattern) to `UPLOAD_ROOT/presentations/<eventId>/`. Plain file, **not** an `Attachment` row — same for the rendered slide PNGs themselves. No AdminJS upload widget yet; staff use the API endpoint directly (or a future admin page) — a known, deliberately-deferred gap, not an oversight.
+
+**Project visibility is table-assignment-gated — the opposite of the event guide.** The "visible projects" data source only includes projects with an `EventTable` row (`required: true` on that include); a project with no table assignment is hidden from the deck entirely. `eventguide`'s equivalent query uses `required: false` (shows every project, `tableNumber: null` if unassigned) — these are deliberately different rules for different audiences, not shared code. Ordered by table number then name (same convention as `eventguide`). The project's image is just its first confirmed `Attachment` — no photo-consent gate; that's specific to the event guide's public-online use case and doesn't apply to a venue-only display.
+
+**Hashing stays cheap.** A slide's hash is `sha256` of its `body` + `imagePath` + the exact (DB-only) data feeding it — computing every slide's hash for the list endpoint never touches Puppeteer or the filesystem. `PresentationRender` is the render-cache index (one row per rendered slide key, `contentHash` + `imagePath` + `generatedAt`); a request only renders when the freshly computed hash doesn't match the cached one. `HEAD /presentation/:key` deliberately isn't left to Express's auto-derived `HEAD`-from-`GET` (which would run the full render-if-stale path) — it calls a hash-only lookup that never renders.
+
+**Auth**: HTTP Basic, backed by a dedicated `Account.account_type: 'presentation'` (`PresentationBasicStrategy`/`PresentationAuthGuard`, `apps/api/src/auth/`) — stateless, so a Pi that drops offline just retries the same static `Authorization` header, no session/token refresh. Not public.
+
+- `GET /presentation` → `{ slides: [{key, order, time, hash, generatedAt}], hash }` (deck-level rollup hash for a single cheap "did anything change" check).
+- `GET /presentation/:key` → the PNG; `ETag`/`Last-Modified` set; honors `If-None-Match` with a `304` before doing any work.
+- `HEAD /presentation/:key` → same headers, no body, never renders.
+
+Slide keys are stable strings (`slide-<configId>` or `slide-<configId>-<projectId>`), not array indices — indices would silently point at the wrong slide once a project is added/removed.
+
+### Admin presentation preview
+
+Staff-only bridge routes on `AdminController` (same `mandatory-admin-cookie` guard as floorplans/mail-template-context) that call `PresentationService` directly, since `PresentationAuthGuard` (HTTP Basic, for Pi devices) can't be satisfied by the admin's cookie session:
+
+- `GET /admin/presentation-slides/preview` — the same `{ slides, hash }` shape `GET /presentation` returns, for the AdminJS carousel.
+- `GET /admin/presentation-slides/preview/projects` — visible-project `{id, name}` options, for the perRecord quick-edit picker.
+- `GET /admin/presentation-slides/preview/:key/image` — the real, cached-or-rendered slide PNG (`ETag`/`Last-Modified` set) — the AdminJS page's `<img>` fetches this directly, cookie sent automatically, same pattern as `PictureSelector`'s attachment thumbnails.
+- `POST /admin/presentation-slides/preview/draft` — `{ slideId, body, projectId? }` renders an **unsaved** `body` override against the slide's real saved `dataSource`/`cardinality`/`imagePath` and real project data, returning `{ imageBase64 }`. Deliberately bypasses `PresentationRender` and never writes to disk — a throwaway render for the admin's edit→look→adjust loop, not part of the Pi-facing cache.
+
+The AdminJS **Presentation** page's handler reads `PresentationSlide` rows directly (own DB connection, no business logic involved) for the quick-edit selector, and proxies only the routes above.
+
 ### Shared reads
 
 `GET /tshirts`, `GET /questions`, `GET /dojos`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /dojos` returns event-scoped `Affiliation` names (CoderDojo catalog). `GET /settings` includes `maxAttachments` (currently 10; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.
@@ -182,6 +214,8 @@ The AdminJS Floorplans page handler proxies these endpoints server-side. Visio p
 - Real-world Gmail/Outlook (Microsoft 365)/Yahoo bounce coverage — not verified against actual bounce samples (see [Bounce mail detection](#bounce-mail-detection))
 - Production secrets
 - Whether other frontends send `x-csrf-token` on mutating API calls (registration and voting do)
+- No AdminJS upload widget for `PresentationSlide.imagePath` yet — the API endpoint exists (`POST /admin/presentation-slides/:id/image`), a proper admin page (mirroring Floorplans) is a deliberate follow-up, not built in the initial pass
+- Real Raspberry Pi display client — `apps/presentation` is still a placeholder; whether the actual Pi-side client lives in this monorepo or elsewhere is undecided (see [presentation.md](presentation.md))
 
 ## Status
 

@@ -4,6 +4,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
+jest.mock('puppeteer', () => ({
+  __esModule: true,
+  default: { launch: jest.fn() },
+}));
+
 describe('AdminController', () => {
   let controller: AdminController;
   const adminService = {
@@ -11,6 +16,11 @@ describe('AdminController', () => {
     uploadFloorplan: jest.fn(),
     activateFloorplan: jest.fn(),
     getMailTemplateContext: jest.fn(),
+    uploadPresentationSlideImage: jest.fn(),
+    listPresentationSlides: jest.fn(),
+    listPresentationPreviewProjects: jest.fn(),
+    getPresentationSlideImage: jest.fn(),
+    previewPresentationSlideDraft: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -82,5 +92,68 @@ describe('AdminController', () => {
 
     expect(adminService.getMailTemplateContext).toHaveBeenCalledWith(body);
     expect(result).toEqual(context);
+  });
+
+  it('uploads a presentation slide image for the logged-in event', async () => {
+    const body = { imageContentBase64: 'ZmFrZQ==', originalName: 'sponsor.png' };
+
+    await controller.uploadPresentationSlideImage(
+      { user: { adminUser: { eventId: 4 } } },
+      '7',
+      body,
+    );
+
+    expect(adminService.uploadPresentationSlideImage).toHaveBeenCalledWith(4, 7, body);
+  });
+
+  it('lists presentation slides for the logged-in event', async () => {
+    const result = { slides: [], hash: 'abc' };
+    adminService.listPresentationSlides.mockResolvedValue(result);
+
+    const response = await controller.listPresentationSlides({ user: { adminUser: { eventId: 6 } } });
+
+    expect(adminService.listPresentationSlides).toHaveBeenCalledWith(6);
+    expect(response).toEqual(result);
+  });
+
+  it('lists presentation preview projects for the logged-in event', async () => {
+    const options = [{ id: 1, name: 'A project' }];
+    adminService.listPresentationPreviewProjects.mockResolvedValue(options);
+
+    const response = await controller.listPresentationPreviewProjects({ user: { adminUser: { eventId: 6 } } });
+
+    expect(adminService.listPresentationPreviewProjects).toHaveBeenCalledWith(6);
+    expect(response).toEqual(options);
+  });
+
+  it('streams a presentation slide preview image with cache headers', async () => {
+    const generatedAt = new Date('2026-01-01T00:00:00.000Z');
+    const file = { fake: 'streamable-file' };
+    adminService.getPresentationSlideImage.mockResolvedValue({ file, hash: 'abc123', generatedAt });
+    const res = { setHeader: jest.fn() };
+
+    const result = await controller.getPresentationSlideImage(
+      { user: { adminUser: { eventId: 6 } } },
+      'slide-1',
+      res as never,
+    );
+
+    expect(adminService.getPresentationSlideImage).toHaveBeenCalledWith(6, 'slide-1');
+    expect(res.setHeader).toHaveBeenCalledWith('ETag', '"abc123"');
+    expect(res.setHeader).toHaveBeenCalledWith('Last-Modified', generatedAt.toUTCString());
+    expect(result).toBe(file);
+  });
+
+  it('renders an unsaved presentation slide draft', async () => {
+    const body = { slideId: 5, body: '<h1>x</h1>' };
+    adminService.previewPresentationSlideDraft.mockResolvedValue({ imageBase64: 'ZmFrZQ==' });
+
+    const result = await controller.previewPresentationSlideDraft(
+      { user: { adminUser: { eventId: 6 } } },
+      body,
+    );
+
+    expect(adminService.previewPresentationSlideDraft).toHaveBeenCalledWith(6, body);
+    expect(result).toEqual({ imageBase64: 'ZmFrZQ==' });
   });
 });

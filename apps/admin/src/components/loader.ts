@@ -11,6 +11,7 @@ const Components = {
   Tables: componentLoader.add('Tables', './tables/Tables.tsx'),
   EmailTemplates: componentLoader.add('EmailTemplates', './email-templates/EmailTemplates.tsx'),
   Floorplans: componentLoader.add('Floorplans', './floorplans/Floorplans.tsx'),
+  Presentation: componentLoader.add('Presentation', './presentation/Presentation.tsx'),
 }
 
 export { componentLoader, Components }

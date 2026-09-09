@@ -835,6 +835,11 @@ export async function seedDatabase(
       encryptedPassword: accountModel.hashPassword('jury3'),
       account_type: 'jury',
     },
+    {
+      email: 'presentation',
+      encryptedPassword: accountModel.hashPassword('presentation'),
+      account_type: 'presentation',
+    },
   ]);
   const voteCategories = await voteCategoryModel.bulkCreate([
     { eventId: event.id, name: 'Creativity', min: 1, max: 10, public: false, optional: false },

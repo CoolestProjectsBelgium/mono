@@ -24,3 +24,5 @@ export * from './models/email_log.model';
 export * from './models/admin_sessions.model';
 export * from './models/affiliation.model';
 export * from './models/municipality.model'
+export * from './models/presentation_slide.model';
+export * from './models/presentation_render.model';

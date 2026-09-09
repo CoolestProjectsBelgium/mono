@@ -1,4 +1,4 @@
-import { Account, AdminSession, Affiliation, Attachment, Award, Certificate, EmailTemplate, Event, EventTable, Message, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Registration, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Vote, VoteCategory } from '@coolestprojects/database';
+import { Account, AdminSession, Affiliation, Attachment, Award, Certificate, EmailTemplate, Event, EventTable, Message, PresentationRender, PresentationSlide, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Registration, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Vote, VoteCategory } from '@coolestprojects/database';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -83,6 +83,8 @@ import configuration from './config/configuration.js';
             UserProject,
             EmailLog,
             Affiliation,
+            PresentationSlide,
+            PresentationRender,
           ],
         };
       },
@@ -111,6 +113,8 @@ import configuration from './config/configuration.js';
       Attachment,
       EmailLog,
       Affiliation,
+      PresentationSlide,
+      PresentationRender,
     ]),
   ],
   controllers: [ 

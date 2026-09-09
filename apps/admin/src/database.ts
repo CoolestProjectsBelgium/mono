@@ -10,6 +10,7 @@ import {
     QuestionRegistration,
     QuestionTranslation,
     QuestionUser,
+    PresentationSlide,
     Registration,
     Tshirt,
     TshirtGroup,
@@ -57,6 +58,7 @@ export const sequelize = new Sequelize({
         Vote,
         Affiliation,
         EmailTemplate,
+        PresentationSlide,
     ],
     logging: process.env.NODE_ENV === 'production' ? false : console.log,
 } as any)

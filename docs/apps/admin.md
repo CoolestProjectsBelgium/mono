@@ -34,7 +34,7 @@ Default seed logins (from API seeder): `superadmin` / `admin` / `jury` — passw
 
 - `packages/database` — Sequelize models (direct DB access)
 - MySQL — same database as API
-- `apps/api` — floorplan list/upload/activate via `AdminController` (`/admin/floorplans*`) and voting admin actions, proxied from page handlers with the staff `adminjs` session cookie via `NestApiClient` (`apps/admin/src/api/nest-api-client.ts`). These server-to-server calls use the same `API_BASE_URL` as the browser (`https://api.coolestprojects.localhost:8443`). That hostname's `.localhost` TLD always resolves to loopback by default (RFC 6761), which is only correct from the host machine itself — so `workspace` has `extra_hosts` entries in `.devcontainer/docker-compose.yml` mapping every `*.coolestprojects.localhost` name to `host-gateway` (the host's own IP as seen from the container). That sends the request out to the host, where it hits Docker's existing `8443:443`/`8080:80` publish on `proxy` via hairpin NAT — the same path, port, and URL a browser uses; no `proxy` image changes needed. PictureSelector loads attachment images in the browser the same way, from `API_BASE_URL/projectinfo/attachments/*` (same cookie). Admin must **not** read or write `UPLOAD_ROOT` on the admin host.
+- `apps/api` — floorplan list/upload/activate via `AdminController` (`/admin/floorplans*`), presentation-deck preview/quick-edit (`/admin/presentation-slides/preview*`), and voting admin actions, proxied from page handlers with the staff `adminjs` session cookie via `NestApiClient` (`apps/admin/src/api/nest-api-client.ts`). These server-to-server calls use the same `API_BASE_URL` as the browser (`https://api.coolestprojects.localhost:8443`). That hostname's `.localhost` TLD always resolves to loopback by default (RFC 6761), which is only correct from the host machine itself — so `workspace` has `extra_hosts` entries in `.devcontainer/docker-compose.yml` mapping every `*.coolestprojects.localhost` name to `host-gateway` (the host's own IP as seen from the container). That sends the request out to the host, where it hits Docker's existing `8443:443`/`8080:80` publish on `proxy` via hairpin NAT — the same path, port, and URL a browser uses; no `proxy` image changes needed. PictureSelector loads attachment images in the browser the same way, from `API_BASE_URL/projectinfo/attachments/*` (same cookie); the Presentation page's carousel `<img>` tags load `API_BASE_URL/admin/presentation-slides/preview/:key/image` directly for the same reason. Admin must **not** read or write `UPLOAD_ROOT` on the admin host.
 
 Sequelize models registered in `apps/admin/src/database.ts` must include every association target (including through-models like `UserProject`). Omitting one crashes AdminJS boot with `X has not been defined`.
 
@@ -48,7 +48,7 @@ Each report's query lives in its own file under [`apps/admin/src/reporting/repor
 
 **Custom screen:** register an AdminJS `pages` (or `dashboard`) entry with a `ComponentLoader` component and a server `handler`. The handler runs in Node and may use Sequelize + `context.currentAdmin`. The `.tsx` file runs in the AdminJS bundle: import UI from `@adminjs/design-system`, data via `ApiClient` from `adminjs`, and `import type` from the handler only. Recharts must be imported from `recharts/es6/...` (not the package barrel) or dest Rollup pulls CJS and crashes.
 
-Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables, **EmailTemplates**, **Floorplans**. Login is an override (`componentLoader.override('Login', …)`), not a page.
+Existing custom pages: Dashboard, PictureSelector, VotingOverview, Tables, **EmailTemplates**, **Floorplans**, **Presentation** (deck carousel preview + quick template edit-and-preview, proxying `PresentationService` via `AdminController`'s bridge routes — see [api.md](api.md#admin-presentation-preview)). Login is an override (`componentLoader.override('Login', …)`), not a page.
 
 ## Key resources
 
@@ -56,8 +56,9 @@ Sidebar resources are grouped by workflow via each resource's `options.navigatio
 global, not event-scoped, see below), **Event setup** (`Tshirt`, `TshirtGroup`), **Translations** (`TshirtTranslation`,
 `TshirtGroupTranslation`, `QuestionTranslation`), **Registration** (`Registration`, `Affiliation`, `Question`,
 `QuestionRegistration`), **Projects & participants** (`Project`, `Attachment`, `User`, `UserProject`, `QuestionUser`),
-**Venue & seating** (`EventTable`), **Voting & awards** (`Award`, `VoteCategory`), **Communication** (`EmailTemplate`), and
-**Reporting** (the two raw-SQL export resources, `view_Export_all` and `view_user_project_summary` — see **How to extend** below).
+**Venue & seating** (`EventTable`), **Voting & awards** (`Award`, `VoteCategory`), **Communication** (`EmailTemplate`),
+**Presentation** (`PresentationSlide`), and **Reporting** (the two raw-SQL export resources, `view_Export_all` and
+`view_user_project_summary` — see **How to extend** below).
 Two `navigation` groups must never share the same `name` string —
 AdminJS merges groups by name, not by the JS variable holding them.
 

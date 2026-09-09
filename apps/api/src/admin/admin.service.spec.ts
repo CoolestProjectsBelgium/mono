@@ -5,6 +5,11 @@ import { Registration, User } from '@coolestprojects/database';
 import { AdminService } from './admin.service';
 import { getFloorplanDir } from '../eventguide/floorplan-path';
 
+jest.mock('puppeteer', () => ({
+  __esModule: true,
+  default: { launch: jest.fn() },
+}));
+
 jest.mock('node:fs/promises', () => ({
   mkdir: jest.fn(),
   readdir: jest.fn(),
@@ -25,11 +30,20 @@ describe('AdminService floorplans', () => {
   const registrationModel = { findOne: jest.fn() };
   const userModel = { findOne: jest.fn() };
   const userProjectModel = { findOne: jest.fn() };
+  const presentationSlideModel = { findOne: jest.fn() };
+  const presentationService = {
+    listSlides: jest.fn(),
+    getSlideImage: jest.fn(),
+    listVisibleProjectOptions: jest.fn(),
+    previewSlideDraft: jest.fn(),
+  };
   const service = new AdminService(
     eventModel as never,
     registrationModel as never,
     userModel as never,
     userProjectModel as never,
+    presentationSlideModel as never,
+    presentationService as never,
   );
 
   beforeEach(() => {
@@ -263,6 +277,91 @@ describe('AdminService floorplans', () => {
       await expect(
         service.getMailTemplateContext({ recordType: 'user', recordId: 999 }),
       ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('uploadPresentationSlideImage', () => {
+    it('writes the decoded image under UPLOAD_ROOT/presentations/<eventId>/ and stores the filename', async () => {
+      const update = jest.fn().mockResolvedValue(undefined);
+      presentationSlideModel.findOne.mockResolvedValue({ id: 5, update });
+
+      await service.uploadPresentationSlideImage(1, 5, {
+        imageContentBase64: Buffer.from('fake-png').toString('base64'),
+        originalName: 'Sponsor Logo.PNG',
+      });
+
+      expect(presentationSlideModel.findOne).toHaveBeenCalledWith({ where: { id: 5, eventId: 1 } });
+      expect(mkdir).toHaveBeenCalledWith('/tmp/uploads/presentations/1', { recursive: true });
+      expect(writeFile).toHaveBeenCalledWith(
+        path.join('/tmp/uploads/presentations/1', 'slide-5-upload.png'),
+        expect.any(Buffer),
+      );
+      expect(update).toHaveBeenCalledWith({ imagePath: 'slide-5-upload.png' });
+    });
+
+    it('rejects an unknown slide', async () => {
+      presentationSlideModel.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.uploadPresentationSlideImage(1, 999, {
+          imageContentBase64: Buffer.from('x').toString('base64'),
+          originalName: 'a.png',
+        }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('rejects an unsupported file extension', async () => {
+      presentationSlideModel.findOne.mockResolvedValue({ id: 5, update: jest.fn() });
+
+      await expect(
+        service.uploadPresentationSlideImage(1, 5, {
+          imageContentBase64: Buffer.from('x').toString('base64'),
+          originalName: 'a.gif',
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('rejects empty image content', async () => {
+      presentationSlideModel.findOne.mockResolvedValue({ id: 5, update: jest.fn() });
+
+      await expect(
+        service.uploadPresentationSlideImage(1, 5, { imageContentBase64: '', originalName: 'a.png' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+  });
+
+  describe('presentation preview bridges', () => {
+    it('delegates listPresentationSlides to PresentationService.listSlides', async () => {
+      const result = { slides: [], hash: 'abc' };
+      presentationService.listSlides.mockResolvedValue(result);
+
+      await expect(service.listPresentationSlides(1)).resolves.toBe(result);
+      expect(presentationService.listSlides).toHaveBeenCalledWith(1);
+    });
+
+    it('delegates getPresentationSlideImage to PresentationService.getSlideImage', async () => {
+      const result = { file: {}, hash: 'abc', generatedAt: new Date() };
+      presentationService.getSlideImage.mockResolvedValue(result);
+
+      await expect(service.getPresentationSlideImage(1, 'slide-1')).resolves.toBe(result);
+      expect(presentationService.getSlideImage).toHaveBeenCalledWith(1, 'slide-1');
+    });
+
+    it('delegates listPresentationPreviewProjects to PresentationService.listVisibleProjectOptions', async () => {
+      const options = [{ id: 1, name: 'A project' }];
+      presentationService.listVisibleProjectOptions.mockResolvedValue(options);
+
+      await expect(service.listPresentationPreviewProjects(1)).resolves.toBe(options);
+      expect(presentationService.listVisibleProjectOptions).toHaveBeenCalledWith(1);
+    });
+
+    it('base64-encodes the rendered draft buffer', async () => {
+      presentationService.previewSlideDraft.mockResolvedValue(Buffer.from('fake-png'));
+
+      const result = await service.previewPresentationSlideDraft(1, { slideId: 5, body: '<h1>x</h1>' });
+
+      expect(presentationService.previewSlideDraft).toHaveBeenCalledWith(1, { slideId: 5, body: '<h1>x</h1>' });
+      expect(result).toEqual({ imageBase64: Buffer.from('fake-png').toString('base64') });
     });
   });
 });

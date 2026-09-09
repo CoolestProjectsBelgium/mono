@@ -6,6 +6,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import {
   Event,
+  PresentationSlide,
   Project,
   Registration,
   User,
@@ -18,6 +19,7 @@ import {
   UploadFloorplanDto,
 } from '../dto/floorplans-overview.dto';
 import { MailTemplateContextRequestDto } from '../dto/mail-template-context.dto';
+import { UploadPresentationSlideImageDto } from '../dto/upload-presentation-slide-image.dto';
 import {
   getFloorplanDir,
   resolveFloorplanFilePath,
@@ -28,6 +30,9 @@ import {
   processVisioSvg,
 } from '../eventguide/process-visio-svg';
 import { buildMailContext, PREVIEW_TOKEN } from '../mailer/mail-context';
+import { getPresentationDir } from '../presentation/presentation-path';
+import { PresentationService, SlideImageResult, SlideListResult } from '../presentation/presentation.service';
+import { PreviewPresentationSlideDraftDto } from '../dto/presentation-preview.dto';
 
 function slugifyFilename(originalName: string): string {
   const base = path.basename(originalName, path.extname(originalName));
@@ -50,6 +55,9 @@ export class AdminService {
     private readonly userModel: typeof User,
     @InjectModel(UserProject)
     private readonly userProjectModel: typeof UserProject,
+    @InjectModel(PresentationSlide)
+    private readonly presentationSlideModel: typeof PresentationSlide,
+    private readonly presentationService: PresentationService,
   ) {}
 
   async listFloorplans(eventId: number): Promise<FloorplansOverviewDto> {
@@ -143,6 +151,43 @@ export class AdminService {
   }
 
   /**
+   * Static art for a `dataSource: 'none'` presentation slide (e.g. a sponsor
+   * backdrop) — a plain file under `UPLOAD_ROOT/presentations/<eventId>/`,
+   * same as the rendered slide PNGs; no `Attachment` row. Content comes as
+   * base64 in the JSON body (mirrors `uploadFloorplan`'s text-content
+   * pattern, just binary instead of SVG text).
+   */
+  async uploadPresentationSlideImage(
+    eventId: number,
+    slideId: number,
+    body: UploadPresentationSlideImageDto,
+  ): Promise<void> {
+    const slide = await this.presentationSlideModel.findOne({
+      where: { id: slideId, eventId },
+    });
+    if (!slide) {
+      throw new NotFoundException('Slide not found');
+    }
+
+    const ext = path.extname(String(body.originalName ?? '')).slice(1).toLowerCase() || 'png';
+    if (!['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
+      throw new BadRequestException('Unsupported image type');
+    }
+
+    const buffer = Buffer.from(String(body.imageContentBase64 ?? ''), 'base64');
+    if (buffer.length === 0) {
+      throw new BadRequestException('Invalid image content');
+    }
+
+    const filename = `slide-${slideId}-upload.${ext}`;
+    const dir = getPresentationDir(eventId);
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, filename), buffer);
+
+    await slide.update({ imagePath: filename });
+  }
+
+  /**
    * Builds the same Handlebars context `MailerService` uses for a real send,
    * for previewing templates in the admin. `recordId` loads a specific
    * User/Registration; without it, the first one (by id) stands in — always
@@ -207,5 +252,30 @@ export class AdminService {
 
     const project = membership?.project;
     return project ? { id: project.id, name: project.name } : undefined;
+  }
+
+  /**
+   * Bridges for the AdminJS Presentation preview page: `PresentationController`'s
+   * own routes are guarded by HTTP Basic auth for Pi devices, so the admin's
+   * cookie session calls these instead — same service, different guard.
+   */
+  async listPresentationSlides(eventId: number): Promise<SlideListResult> {
+    return this.presentationService.listSlides(eventId);
+  }
+
+  async getPresentationSlideImage(eventId: number, key: string): Promise<SlideImageResult> {
+    return this.presentationService.getSlideImage(eventId, key);
+  }
+
+  async listPresentationPreviewProjects(eventId: number): Promise<{ id: number; name: string }[]> {
+    return this.presentationService.listVisibleProjectOptions(eventId);
+  }
+
+  async previewPresentationSlideDraft(
+    eventId: number,
+    body: PreviewPresentationSlideDraftDto,
+  ): Promise<{ imageBase64: string }> {
+    const buffer = await this.presentationService.previewSlideDraft(eventId, body);
+    return { imageBase64: buffer.toString('base64') };
   }
 }
