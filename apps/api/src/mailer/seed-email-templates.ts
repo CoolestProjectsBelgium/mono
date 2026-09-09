@@ -703,6 +703,185 @@ Coolest Projects Team Belgium`,
   },
 };
 
+const notifyNewProjectOwnerTemplates: Record<
+  'en' | 'nl' | 'fr',
+  { subject: string; contentPlain: string; contentRich: string }
+> = {
+  nl: {
+    subject: 'Coolest Projects {{year}}: Er is een nieuwe deelnemer toegevoegd aan je project',
+    contentPlain: `Hallo {{user.firstname}},
+
+Goed nieuws! {{coworker.firstname}} {{coworker.lastname}} heeft zich aangesloten bij jouw project '{{project.title}}'.
+
+Kopieer en plak deze link tussen "..."
+
+"{{url}}"
+
+ in de browser om je project te openen.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Hallo {{user.firstname}},</p>
+<p>Goed nieuws! {{coworker.firstname}} {{coworker.lastname}} heeft zich aangesloten bij jouw project '{{project.title}}'.</p>
+<p><a href="{{url}}">Gebruik Go2MyProject om jouw pagina te openen.</a></p>
+<p>Als de bovenstaande link niet werkt in je email programma, copieer en plak dan de volgende url volledig in een browser scherm: {{url}}</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+  en: {
+    subject: 'Coolest Projects {{year}}: A new participant joined your project',
+    contentPlain: `Hi {{user.firstname}},
+
+Good news! {{coworker.firstname}} {{coworker.lastname}} has joined your project '{{project.title}}'.
+
+Please, Cat & paste the link between "..." into your browser to open your project
+
+"{{url}}"
+
+Coolest Project Team Belgium`,
+    contentRich: `<p>Hi {{user.firstname}},</p>
+<p>Good news! {{coworker.firstname}} {{coworker.lastname}} has joined your project '{{project.title}}'.</p>
+<p>Please, use the following link to open your project in your browser <a href="{{url}}">Go2MyProject</a>.</p>
+<p>If the above link does not work in your email client, please copy and paste this full url in a browser window: {{url}}</p>
+<p>Coolest Project Team Belgium</p>`,
+  },
+  fr: {
+    subject: 'Coolest Projects {{year}}: Un⸱e nouveau⸱elle participant⸱e a rejoint ton projet',
+    contentPlain: `Salut {{user.firstname}},
+
+Bonne nouvelle! {{coworker.firstname}} {{coworker.lastname}} a rejoint ton projet '{{project.title}}'.
+
+copiez et collez ce lien entre "..."
+
+"{{url}}"
+
+dans ton navigateur.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Salut {{user.firstname}},</p>
+<p>Bonne nouvelle! {{coworker.firstname}} {{coworker.lastname}} a rejoint ton projet '{{project.title}}'.</p>
+<p>Merci d'utiliser le lien suivant pour ouvrir ton navigateur et accéder à ton projet : <a href="{{url}}">Go2MyProject</a></p>
+<p>Si le lien ci-dessus ne fonctionne pas dans votre programme de messagerie, copiez et collez complètement l'URL suivante dans une fenêtre de navigateur: {{url}}</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+};
+
+const notifyProjectParticipantLeftTemplates: Record<
+  'en' | 'nl' | 'fr',
+  { subject: string; contentPlain: string; contentRich: string }
+> = {
+  nl: {
+    subject: 'Coolest Projects {{year}}: Een deelnemer heeft je project verlaten',
+    contentPlain: `Hallo {{user.firstname}},
+
+{{coworker.firstname}} {{coworker.lastname}} heeft je project '{{project.title}}' verlaten.
+
+Kopieer en plak deze link tussen "..."
+
+"{{url}}"
+
+ in de browser om je project te openen.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Hallo {{user.firstname}},</p>
+<p>{{coworker.firstname}} {{coworker.lastname}} heeft je project '{{project.title}}' verlaten.</p>
+<p><a href="{{url}}">Gebruik Go2MyProject om jouw pagina te openen.</a></p>
+<p>Als de bovenstaande link niet werkt in je email programma, copieer en plak dan de volgende url volledig in een browser scherm: {{url}}</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+  en: {
+    subject: 'Coolest Projects {{year}}: A participant left your project',
+    contentPlain: `Hi {{user.firstname}},
+
+{{coworker.firstname}} {{coworker.lastname}} has left your project '{{project.title}}'.
+
+Please, Cat & paste the link between "..." into your browser to open your project
+
+"{{url}}"
+
+Coolest Project Team Belgium`,
+    contentRich: `<p>Hi {{user.firstname}},</p>
+<p>{{coworker.firstname}} {{coworker.lastname}} has left your project '{{project.title}}'.</p>
+<p>Please, use the following link to open your project in your browser <a href="{{url}}">Go2MyProject</a>.</p>
+<p>If the above link does not work in your email client, please copy and paste this full url in a browser window: {{url}}</p>
+<p>Coolest Project Team Belgium</p>`,
+  },
+  fr: {
+    subject: 'Coolest Projects {{year}}: Un⸱e participant⸱e a quitté ton projet',
+    contentPlain: `Salut {{user.firstname}},
+
+{{coworker.firstname}} {{coworker.lastname}} a quitté ton projet '{{project.title}}'.
+
+copiez et collez ce lien entre "..."
+
+"{{url}}"
+
+dans ton navigateur.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Salut {{user.firstname}},</p>
+<p>{{coworker.firstname}} {{coworker.lastname}} a quitté ton projet '{{project.title}}'.</p>
+<p>Merci d'utiliser le lien suivant pour ouvrir ton navigateur et accéder à ton projet : <a href="{{url}}">Go2MyProject</a></p>
+<p>Si le lien ci-dessus ne fonctionne pas dans votre programme de messagerie, copiez et collez complètement l'URL suivante dans une fenêtre de navigateur: {{url}}</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+};
+
+const accountDeletedTemplates: Record<
+  'en' | 'nl' | 'fr',
+  { subject: string; contentPlain: string; contentRich: string }
+> = {
+  nl: {
+    subject: 'Coolest Projects {{year}}: Bedankt voor je deelname',
+    contentPlain: `Hallo {{user.firstname}},
+
+Je account voor Coolest Projects Belgium {{year}} werd verwijderd, zoals gevraagd.
+
+Bedankt om deel te nemen, en het spijt ons je te zien vertrekken. We hopen je een volgende keer terug te zien!
+
+Dit is de laatste e-mail die je van ons zal ontvangen.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Hallo {{user.firstname}},</p>
+<p>Je account voor Coolest Projects Belgium {{year}} werd verwijderd, zoals gevraagd.</p>
+<p>Bedankt om deel te nemen, en het spijt ons je te zien vertrekken. We hopen je een volgende keer terug te zien!</p>
+<p>Dit is de laatste e-mail die je van ons zal ontvangen.</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+  en: {
+    subject: 'Coolest Projects {{year}}: Thank you for taking part',
+    contentPlain: `Hi {{user.firstname}},
+
+Your account for Coolest Projects Belgium {{year}} has been deleted, as requested.
+
+Thank you for taking part, and we're sorry to see you go. We hope to see you again next time!
+
+This is the last email you will receive from us.
+
+Coolest Project Team Belgium`,
+    contentRich: `<p>Hi {{user.firstname}},</p>
+<p>Your account for Coolest Projects Belgium {{year}} has been deleted, as requested.</p>
+<p>Thank you for taking part, and we're sorry to see you go. We hope to see you again next time!</p>
+<p>This is the last email you will receive from us.</p>
+<p>Coolest Project Team Belgium</p>`,
+  },
+  fr: {
+    subject: 'Coolest Projects {{year}}: Merci pour ta participation',
+    contentPlain: `Salut {{user.firstname}},
+
+Ton compte pour Coolest Projects Belgium {{year}} a été supprimé, comme demandé.
+
+Merci d'avoir participé, et nous sommes désolé⸱es de te voir partir. Nous espérons te revoir une prochaine fois!
+
+Ceci est le dernier e-mail que tu recevras de notre part.
+
+Coolest Projects Team Belgium`,
+    contentRich: `<p>Salut {{user.firstname}},</p>
+<p>Ton compte pour Coolest Projects Belgium {{year}} a été supprimé, comme demandé.</p>
+<p>Merci d'avoir participé, et nous sommes désolé⸱es de te voir partir. Nous espérons te revoir une prochaine fois!</p>
+<p>Ceci est le dernier e-mail que tu recevras de notre part.</p>
+<p>Coolest Projects Team Belgium</p>`,
+  },
+};
+
 function rowsForTemplate(
   eventId: number,
   templateKey: string,
@@ -729,5 +908,8 @@ export function buildSeedEmailTemplates(eventId: number): SeedEmailTemplateRow[]
     ...rowsForTemplate(eventId, 'emailExists', emailExistsTemplates),
     ...rowsForTemplate(eventId, 'dailyReminder', dailyReminderTemplates),
     ...rowsForTemplate(eventId, 'registrationReminder', registrationReminderTemplates),
+    ...rowsForTemplate(eventId, 'notifyNewProjectOwner', notifyNewProjectOwnerTemplates),
+    ...rowsForTemplate(eventId, 'notifyProjectParticipantLeft', notifyProjectParticipantLeftTemplates),
+    ...rowsForTemplate(eventId, 'accountDeleted', accountDeletedTemplates),
   ];
 }

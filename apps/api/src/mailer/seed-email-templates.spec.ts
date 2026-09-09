@@ -3,8 +3,8 @@ import { buildSeedEmailTemplates } from './seed-email-templates';
 describe('buildSeedEmailTemplates', () => {
   const rows = buildSeedEmailTemplates(1);
 
-  it('returns 24 templates (8 keys × en/nl/fr)', () => {
-    expect(rows).toHaveLength(24);
+  it('returns 33 templates (11 keys × en/nl/fr)', () => {
+    expect(rows).toHaveLength(33);
     expect(rows.every((row) => row.eventId === 1)).toBe(true);
   });
 
@@ -47,5 +47,24 @@ describe('buildSeedEmailTemplates', () => {
     expect(registrationReminderEn).toBeDefined();
     expect(registrationReminderEn!.contentPlain).toContain('{{registration.firstname}}');
     expect(registrationReminderEn!.contentRich).toContain('{{url}}');
+  });
+
+  it('includes project-owner participant-change templates with the coworker context var', () => {
+    for (const template of ['notifyNewProjectOwner', 'notifyProjectParticipantLeft']) {
+      const en = rows.find((row) => row.template === template && row.language === 'en');
+      expect(en).toBeDefined();
+      expect(en!.contentPlain).toContain('{{coworker.firstname}}');
+      expect(en!.contentRich).toContain('{{project.title}}');
+      expect(en!.contentRich).toContain('{{url}}');
+    }
+  });
+
+  it('includes an account-deleted farewell template with no login link', () => {
+    const accountDeletedEn = rows.find(
+      (row) => row.template === 'accountDeleted' && row.language === 'en',
+    );
+    expect(accountDeletedEn).toBeDefined();
+    expect(accountDeletedEn!.contentRich).toContain('{{user.firstname}}');
+    expect(accountDeletedEn!.contentRich).not.toContain('{{url}}');
   });
 });

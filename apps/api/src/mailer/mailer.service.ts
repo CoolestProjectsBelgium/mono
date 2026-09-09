@@ -262,11 +262,67 @@ export class MailerService {
     );
   }
 
+  /** Sent to the project owner when a co-worker joins via their voucher. */
+  async notifyProjectOwner(owner: User, coworker: User, project: Project, token: string) {
+    const { event, context } = await buildMailContext({
+      person: owner,
+      token,
+      project: { id: project.id, name: project.name },
+    });
+
+    const to = this.formatRecipients(owner.email, owner.email_guardian);
+    const language = owner.language ?? 'en';
+    await this.sendMail(
+      MailTemplates.notifyNewProjectOwner,
+      language,
+      event,
+      to,
+      { ...context, coworker: { firstname: coworker.firstname, lastname: coworker.lastname } },
+      owner
+    );
+  }
+
+  /** Sent to the project owner when a co-worker leaves the project. */
+  async notifyProjectOwnerParticipantLeft(
+    owner: User,
+    formerParticipant: User,
+    project: Project,
+    token: string,
+  ) {
+    const { event, context } = await buildMailContext({
+      person: owner,
+      token,
+      project: { id: project.id, name: project.name },
+    });
+
+    const to = this.formatRecipients(owner.email, owner.email_guardian);
+    const language = owner.language ?? 'en';
+    await this.sendMail(
+      MailTemplates.notifyProjectParticipantLeft,
+      language,
+      event,
+      to,
+      {
+        ...context,
+        coworker: { firstname: formerParticipant.firstname, lastname: formerParticipant.lastname },
+      },
+      owner
+    );
+  }
+
+  /** The last mail a user ever gets from us — sent before their account row is destroyed. */
+  async accountDeletedMail(user: User) {
+    const { event, context } = await buildMailContext({ person: user });
+
+    const to = this.formatRecipients(user.email, user.email_guardian);
+    const language = user.language ?? 'en';
+    await this.sendMail(MailTemplates.accountDeleted, language, event, to, context, user);
+  }
+
   async deleteMail() {}
   async waitingMail() {}
   async activationMail() {}
   async ask4TokenMail() {}
-  async notifyProjectOwner() {}
 
   private async logEmail(entry: {
     eventId: number

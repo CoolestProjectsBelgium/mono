@@ -374,7 +374,11 @@ export class RegistrationService {
           throw new Error('Project not found for co-worker welcome mail');
         }
         await this.mailerService.welcomeMailCoWorker(user, project, loginToken);
-        await this.mailerService.notifyProjectOwner();
+        const owner = await project.getOwner();
+        if (owner) {
+          const ownerToken = this.tokenService.generateLoginToken(owner.id);
+          await this.mailerService.notifyProjectOwner(owner, user, project, ownerToken);
+        }
       } else {
         const project = await this.projectModel.findByPk(ownerProjectId!);
         if (!project) {
@@ -392,8 +396,85 @@ export class RegistrationService {
     return user;
   }
 
+  /**
+   * Promotes the oldest waitlisted registrations off the waiting list, up to
+   * however many slots are currently free, and sends each the real
+   * activation mail (`registrationMail`) — the same one a non-waitlisted
+   * signup gets. Called from the mail cron (`BackgroundService.handleMailing`).
+   *
+   * "Available" excludes currently-waitlisted registrations from the
+   * consumed count — the opposite question from `create()`'s check (which
+   * intentionally counts everyone, waitlisted or not, to decide whether a
+   * *new* signup should be waitlisted).
+   */
+  async promoteWaitingList(eventId: number): Promise<void> {
+    const event = await this.eventModel.findByPk(eventId, {
+      attributes: ['id', 'maxRegistration'],
+    });
+    if (!event) {
+      return;
+    }
+
+    const transaction = await this.sequelize.transaction();
+    let promoted: Registration[];
+    try {
+      // lock the event row — same as create(), so this can't race a concurrent registration
+      await this.eventModel.findAll({
+        where: { id: eventId },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      const projectCount = await this.projectModel.count({
+        where: { eventId, deletedAt: null },
+        transaction,
+      });
+      const confirmedPendingCount = await this.registrationModel.count({
+        where: { eventId, project_code: null, waiting_list: false },
+        transaction,
+      });
+
+      const availableSlots = event.maxRegistration - (projectCount + confirmedPendingCount);
+      if (availableSlots <= 0) {
+        await transaction.commit();
+        return;
+      }
+
+      const candidates = await this.registrationModel.findAll({
+        where: { eventId, project_code: null, waiting_list: true },
+        order: [['createdAt', 'ASC']],
+        limit: availableSlots,
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      for (const candidate of candidates) {
+        await candidate.update({ waiting_list: false }, { transaction });
+      }
+      promoted = candidates;
+
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+
+    // send activation mails outside the transaction; a mail failure must not undo the promotion
+    for (const registration of promoted) {
+      try {
+        const token = this.tokenService.generateRegistrationToken(registration.id);
+        await this.mailerService.registrationMail(registration, token);
+      } catch (error) {
+        this.logger.error(
+          `Failed to send activation mail after promoting registration ${registration.id} off the waiting list`,
+          error instanceof Error ? error.stack : String(error),
+        );
+      }
+    }
+  }
+
   async unassignParticipant(userId: number, projectCode: string): Promise<void> {
-    const project = await this.userProjectModel.findOne({
+    const participation = await this.userProjectModel.findOne({
       where: {
         voucherGuid: projectCode,
         userId: userId,
@@ -401,11 +482,29 @@ export class RegistrationService {
       },
     });
 
-    if (!project) {
+    if (!participation) {
       throw new Error('Project not found or not assigned to user');
     }
 
-    await project.update({ deletedAt: new Date() });
+    await participation.update({ deletedAt: new Date() });
+
+    // notify project owner (outside the update above; must not fail unassigning)
+    try {
+      const [leavingUser, project] = await Promise.all([
+        this.userModel.findByPk(userId),
+        this.projectModel.findByPk(participation.projectId),
+      ]);
+      const owner = await project?.getOwner();
+      if (leavingUser && project && owner) {
+        const ownerToken = this.tokenService.generateLoginToken(owner.id);
+        await this.mailerService.notifyProjectOwnerParticipantLeft(owner, leavingUser, project, ownerToken);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to notify project owner that a participant left`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 
   async assignParticipant(userId: number, projectCode: string): Promise<void> {

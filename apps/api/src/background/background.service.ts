@@ -17,6 +17,7 @@ import { EmailLog, MailTemplates } from '@coolestprojects/database';
 import { extractBounceIdentifier, isBounceNotification } from './bounce-detection';
 import { deriveReminderReasons, hasAnyReminderReason } from './reminder-reasons';
 import { TokensService } from '../tokens/tokens.service';
+import { RegistrationService } from '../registration/registration.service';
 
 
 @Injectable()
@@ -39,6 +40,7 @@ export class BackgroundService implements OnModuleInit {
     @InjectModel(EmailLog)
     private readonly emaillogModel: typeof EmailLog,
     private readonly tokensService: TokensService,
+    private readonly registrationService: RegistrationService,
   ) { }
 
   private readonly logger = new Logger(BackgroundService.name);
@@ -161,6 +163,15 @@ export class BackgroundService implements OnModuleInit {
       return;
     }
 
+    try {
+      await this.registrationService.promoteWaitingList(activeEvent.id);
+    } catch (error) {
+      this.logger.error(
+        'Failed to promote waiting-list registrations',
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+
     // notify every day that the deadline is approaching 7 days before the deadline
     const deadlineApproachingDate = new Date(activeEvent.projectClosedDate);
     deadlineApproachingDate.setDate(deadlineApproachingDate.getDate() - 7);
@@ -214,6 +225,9 @@ export class BackgroundService implements OnModuleInit {
     const registrations = await this.registrationModel.findAll({
       where: {
         eventId: activeEvent.id,
+        // still-waitlisted registrations were never sent an activation link
+        // in the first place — reminding them to "activate" makes no sense
+        waiting_list: false,
         createdAt: {
           [Op.lt]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days
         },

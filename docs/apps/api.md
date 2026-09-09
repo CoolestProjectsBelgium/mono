@@ -10,7 +10,7 @@ Central NestJS HTTP API for Coolest Projects. Serves registration, login, projec
 - `@nestjs/sequelize`, `mysql2`
 - Passport JWT/cookie auth, `@nestjs/jwt`
 - Swagger (`@nestjs/swagger`), scheduled jobs (`@nestjs/schedule`)
-- Mail (`nodemailer`), file upload, Puppeteer, Azure blob storage
+- Mail (`nodemailer`), file upload (local disk, `UPLOAD_ROOT`), Puppeteer
 
 ## Entrypoints
 
@@ -34,7 +34,7 @@ Key env vars (set in `.devcontainer/docker-compose.yml`): `DB_*`, `JWT_KEY`, `AP
 
 - `packages/database` — all Sequelize models
 - MySQL
-- External: SMTP (mailer), IMAP (bounce polling — see [Bounce mail detection](#bounce-mail-detection)), Azure blob (files), Puppeteer (PDF/certs — usage TBD)
+- External: SMTP (mailer), IMAP (bounce polling — see [Bounce mail detection](#bounce-mail-detection)), Puppeteer (PDF/certs — usage TBD)
 
 ## Module map
 
@@ -73,6 +73,8 @@ Registration confirmation emails contain a JWT with `registrationID`. The first 
 
 `PATCH /userinfo` updates the profile but never writes `User.email`: the address is the login identity for magic-link auth. GSM fields are stripped of spaces/separators before save (same as registration).
 
+`DELETE /userinfo` (`UserinfoService.deleteUser`) hard-deletes the `User` row (no `paranoid` mode). It sends `MailerService.accountDeletedMail` — a `MailTemplates.accountDeleted` farewell mail, explicitly the last one they'll get, with no login link — *before* destroying the row; a send failure is logged but never blocks the deletion.
+
 `UserCookieInterceptor` refreshes the participant `jwt` cookie on authenticated responses. Routes that also accept the AdminJS session cookie (`GET /projectinfo/attachments/:id`, `GET /projectinfo/attachments/original/:id`) can resolve to an admin principal without a participant id; the interceptor skips those so an open admin session in the same browser cannot overwrite a participant session.
 
 ### Email templates
@@ -90,8 +92,11 @@ Admin previews reuse the exact same function through a staff-only endpoint, `POS
 `BackgroundService.handleMailing()` (`apps/api/src/background/background.service.ts`) — off unless `CRON_JOB_MAIL` is set; no-ops outside an active event window, same gate as bounce checking above. Sends **at most one combined reminder email per recipient per calendar day**, regardless of how often the cron fires:
 
 - **User-scoped reasons** (`noProject`, `noPhoto`, `deadlineApproaching`) are derived per user by [`deriveReminderReasons`](../../apps/api/src/background/reminder-reasons.ts) — a pure function (covered by `reminder-reasons.spec.ts`) fed by a single query joining each user's active `projects` and their `attachments`. `noPhoto` is only ever set when the user actually has a project; a plain "does this user have zero attachments" check can't tell "no project" and "project with no photo" apart (both produce `NULL` through the same `LEFT JOIN` chain), so deriving it in JS from the loaded association data — rather than in the query's `WHERE` — is what keeps the two mutually exclusive. `deadlineApproaching` (true for the 7 days before `Event.projectClosedDate`) applies to every user regardless of the other two, by design — it's a blanket nudge, not conditional on being otherwise incomplete. A user with no reasons at all is skipped. Everyone else gets one `MailerService.sendDailyReminderMail(user, reasons, token)` call — one template (`MailTemplates.dailyReminder`), with `{{#if noProject}}`/`{{#if noPhoto}}`/`{{#if deadlineApproaching}}` sections in the Handlebars copy so only the applicable parts render — plus a login link (`TokensService.generateLoginToken`).
-- **Registration reminders** (people who registered but never activated, i.e. still have a `Registration` row after 7 days) are a structurally separate, single-reason flow — `Registration` and `User` rows never coexist for the same person (activation creates the `User` and hard-deletes the `Registration` in one transaction) — so there's no overlap with the reasons above. `MailerService.sendRegistrationReminderMail(registration, token)` uses its own template (`MailTemplates.registrationReminder`).
+- **Registration reminders** (people who registered but never activated, i.e. still have a `Registration` row after 7 days) are a structurally separate, single-reason flow — `Registration` and `User` rows never coexist for the same person (activation creates the `User` and hard-deletes the `Registration` in one transaction) — so there's no overlap with the reasons above. `MailerService.sendRegistrationReminderMail(registration, token)` uses its own template (`MailTemplates.registrationReminder`). Excludes `waiting_list: true` registrations — see below, they were never sent an activation link so a "don't forget to activate" reminder would be nonsensical.
 - **Once-per-day cap**: `BackgroundService.alreadySentToday(template, {userId | registrationId})` checks `EmailLog` for a row with that template/recipient created since local midnight before sending — the same "`EmailLog` as source of truth" approach bounce detection already uses, so it works no matter how often `CRON_JOB_MAIL` fires (there's no separate schedule-based guarantee of "once a day").
+- **Waiting-list promotion** runs first, before the reasons/reminders above: `RegistrationService.promoteWaitingList(eventId)` recomputes free capacity (`Event.maxRegistration - (activeProjectCount + confirmedPendingRegistrationCount)` — deliberately excluding currently-waitlisted rows from the consumed count, the opposite question from the waitlist check at signup time in `RegistrationService.create()`, which counts everyone) and, if any slots are free, promotes that many waitlisted `Registration` rows oldest-first (`order: createdAt ASC`), flips `waiting_list` to `false`, and sends each the same real `registrationMail` (with an activation token) a normal signup gets — fulfilling the promise already in the waiting-list mail's own copy ("once a spot opens up, you'll get an activation mail"). Slots free up in practice only when a `Project` is soft-deleted; there's no expiry for stale, never-activated registrations. Runs inside a transaction with the same `Event`-row locking `create()` uses, so it can't race a concurrent registration; mail failures are logged, never undo the promotion (same pattern as the other post-transaction sends in `RegistrationService`).
+
+**Suggested improvement — not implemented — registration cleanup driven by reminder count.** Because there's no expiry mechanism, a `Registration` that never activates sits forever, permanently counting toward `event.maxRegistration` (see above) — the only thing that currently frees a slot is an owner deleting their whole project. A registration that's received several `registrationReminder` mails with no resulting activation is a reasonable signal that the person isn't coming back. This could be built without a schema change: `EmailLog` already has everything needed (`EmailLog.count({ where: { template: MailTemplates.registrationReminder, registrationId, status: 'sent' } })` per registration), so a reminder count doesn't need its own column. A follow-up cron step could then, for registrations past some threshold (e.g. 3+ reminders and still not activated), either hard-delete the `Registration` row (mirroring the one existing `registrationModel.destroy` call, in `activateRegistration`) or flag it for admin review before deleting — deleting frees the slot for `promoteWaitingList` on the very next run. Worth deciding deliberately whether stale registrations are auto-deleted or just surfaced to staff, since deleting is irreversible and the person might still show up.
 
 ### Bounce mail detection
 
@@ -129,6 +134,8 @@ Each run (`handleBounce`):
 
 - `DELETE /projectinfo` (owner alone): sets `Project.deletedAt` and soft-deletes all active `UserProject` rows for that project; rejected when registered co-participants exist
 - `POST /projectinfo/change-owner/:newOwnerId`: transfers `isOwner` while both memberships remain active
+
+The project owner is notified by mail on both sides of participant membership changes, via `Project.getOwner()` (`packages/database/src/models/project.model.ts` — finds the active `isOwner: true` `UserProject` row): `RegistrationService.activateRegistration()` sends `MailerService.notifyProjectOwner` (`MailTemplates.notifyNewProjectOwner`) right after a co-worker's voucher activation; `RegistrationService.unassignParticipant()` (`DELETE /participant/:id`, `ParticipantController`) sends `notifyProjectOwnerParticipantLeft` (`MailTemplates.notifyProjectParticipantLeft`) after a co-worker removes themselves. Both are best-effort — logged, never thrown — same as every other post-transaction mail send in `RegistrationService`; a project with no owner (shouldn't happen, but `getOwner()` can return `undefined`) simply skips the notification.
 
 ### Voting
 
@@ -173,7 +180,7 @@ The AdminJS Floorplans page handler proxies these endpoints server-side. Visio p
 - Production cron schedule values (`CRON_JOB_MAIL`/`CRON_JOB_BOUNCE`) and whether bounce checking is actually enabled there — the mechanism is documented under [Bounce mail detection](#bounce-mail-detection), the deployed values are not
 - Whether `mail-prod` ([architecture.md](../architecture.md#production-level27)) is a real IMAP-capable mailbox — bounce polling needs one and this hasn't been confirmed
 - Real-world Gmail/Outlook (Microsoft 365)/Yahoo bounce coverage — not verified against actual bounce samples (see [Bounce mail detection](#bounce-mail-detection))
-- Production secrets and Azure blob configuration
+- Production secrets
 - Whether other frontends send `x-csrf-token` on mutating API calls (registration and voting do)
 
 ## Status

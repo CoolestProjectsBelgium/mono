@@ -44,7 +44,6 @@ Header home link is the Coolest Projects Belgium mark (`public/logo-coolest-proj
 
 ## Out of scope / unknowns
 
-- Azure Blob `/attachments` SAS flow (replaced by multipart uploads)
 - Attachment rename; video upload (UI and API video thumbnail path not supported)
 
 ## Status

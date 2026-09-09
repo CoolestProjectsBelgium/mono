@@ -4,10 +4,12 @@ import { UserinfoService } from './userinfo.service';
 import { User } from '@coolestprojects/database';
 import { Affiliation } from '@coolestprojects/database';
 import { UserDto } from '../dto/user.dto';
+import { MailerService } from '../mailer/mailer.service';
 
 describe('UserinfoService', () => {
   let service: UserinfoService;
   let findByPk: jest.Mock;
+  let accountDeletedMail: jest.Mock;
 
   const mockUser = {
     id: 1,
@@ -27,6 +29,7 @@ describe('UserinfoService', () => {
     municipality_name: 'Brussel',
     birthmonth: new Date(2010, 5, 1),
     save: jest.fn().mockResolvedValue(undefined),
+    destroy: jest.fn().mockResolvedValue(undefined),
   } as unknown as User;
 
   const updatePayload: UserDto = {
@@ -65,6 +68,7 @@ describe('UserinfoService', () => {
       email: 'test@example.com',
     });
     findByPk = jest.fn().mockResolvedValue(mockUser);
+    accountDeletedMail = jest.fn().mockResolvedValue(undefined);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserinfoService,
@@ -80,6 +84,10 @@ describe('UserinfoService', () => {
           useValue: {
             findOne: jest.fn(),
           },
+        },
+        {
+          provide: MailerService,
+          useValue: { accountDeletedMail },
         },
       ],
     }).compile();
@@ -134,5 +142,31 @@ describe('UserinfoService', () => {
 
     expect(mockUser.gsm).toBe('0470123456');
     expect(mockUser.gsm_guardian).toBe('+32470123456');
+  });
+
+  describe('deleteUser', () => {
+    it('sends the farewell mail before destroying the account', async () => {
+      const calls: string[] = [];
+      accountDeletedMail.mockImplementation(async () => {
+        calls.push('mail');
+      });
+      (mockUser.destroy as jest.Mock).mockImplementation(async () => {
+        calls.push('destroy');
+      });
+
+      await service.deleteUser(1);
+
+      expect(accountDeletedMail).toHaveBeenCalledWith(mockUser);
+      expect(mockUser.destroy).toHaveBeenCalled();
+      expect(calls).toEqual(['mail', 'destroy']);
+    });
+
+    it('still destroys the account when the farewell mail fails to send', async () => {
+      accountDeletedMail.mockRejectedValueOnce(new Error('SMTP down'));
+
+      await service.deleteUser(1);
+
+      expect(mockUser.destroy).toHaveBeenCalled();
+    });
   });
 });

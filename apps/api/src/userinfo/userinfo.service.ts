@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
@@ -8,12 +9,16 @@ import { Affiliation } from '@coolestprojects/database';
 import { UserDto } from '../dto/user.dto';
 import { resolveAffiliation } from '../affiliation/resolve-affiliation';
 import { normalizeGsm } from './normalize-gsm';
+import { MailerService } from '../mailer/mailer.service';
 
 @Injectable()
 export class UserinfoService {
+  private readonly logger = new Logger(UserinfoService.name);
+
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(Affiliation) private readonly affiliationModel: typeof Affiliation,
+    private readonly mailerService: MailerService,
   ) {}
 
   mapUserToDto(user: User): UserDto {
@@ -96,6 +101,17 @@ export class UserinfoService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    // send the farewell mail before destroying the row; a mail failure must not block deletion
+    try {
+      await this.mailerService.accountDeletedMail(user);
+    } catch (error) {
+      this.logger.error(
+        'Failed to send account-deletion farewell mail',
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+
     await user.destroy();
   }
 }

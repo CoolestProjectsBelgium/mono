@@ -16,6 +16,8 @@ export enum MailTemplates {
   notifyNewProjectOwner = 'notifyNewProjectOwner',
   dailyReminder = 'dailyReminder',
   registrationReminder = 'registrationReminder',
+  notifyProjectParticipantLeft = 'notifyProjectParticipantLeft',
+  accountDeleted = 'accountDeleted',
 }
 
 @Table
