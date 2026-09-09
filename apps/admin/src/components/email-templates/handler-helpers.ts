@@ -44,12 +44,6 @@ export function buildLoadKey(
   return `${eventId}:${template}:${language}`;
 }
 
-export function assertNotJury(role: string | undefined): void {
-  if (role === 'jury') {
-    throw new Error('Jury accounts cannot access email template management');
-  }
-}
-
 export function assertEventId(eventId: number | undefined): asserts eventId is number {
   if (!eventId) {
     throw new Error('No event selected for this admin account');

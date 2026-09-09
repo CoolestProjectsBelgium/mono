@@ -7,7 +7,6 @@ import { sequelize } from '../../database.js';
 import { NestApiClient } from '../../api/nest-api-client.js';
 import {
   assertEventId,
-  assertNotJury,
   mapRecord,
   normalizeSavePayload,
   SUPPORTED_LANGUAGES,
@@ -121,7 +120,6 @@ export const Handler = async (
   _response: any,
   context: any,
 ): Promise<EmailTemplatesPageData | ContextRecordsPageData> => {
-  assertNotJury(context.currentAdmin?.role);
   const eventId = context.currentAdmin?.eventId;
   assertEventId(eventId);
 

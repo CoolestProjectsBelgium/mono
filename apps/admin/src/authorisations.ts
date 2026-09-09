@@ -1,6 +1,7 @@
+// AdminJS only accepts super_admin/admin logins (see components/login/authenticate.ts).
 // roles (Account.account_type): super_admin (can access everything, incl. all events and accounts),
-// admin (can access resources of the selected event), can update their own account/password
-// jury (can access the voting dashboard, their own votes, and their own account/password)
+// admin (can access resources of the selected event), can update their own account/password.
+// jury accounts never reach this app — they authenticate separately against the voting SPA.
 
 export const filterEventId =
     (filterName: string) =>

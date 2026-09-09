@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  assertNotJury,
   buildLoadKey,
   getContextRecordType,
   normalizeSavePayload,
@@ -9,11 +8,6 @@ import {
 
 test('buildLoadKey combines eventId template and language', () => {
   assert.equal(buildLoadKey(1, 'registration', 'nl'), '1:registration:nl');
-});
-
-test('assertNotJury rejects jury role', () => {
-  assert.throws(() => assertNotJury('jury'), /Jury accounts cannot access/);
-  assert.doesNotThrow(() => assertNotJury('admin'));
 });
 
 test('normalizeSavePayload preserves both rich and plain content', () => {

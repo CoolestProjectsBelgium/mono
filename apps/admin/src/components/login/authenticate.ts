@@ -6,6 +6,8 @@ import { Op } from 'sequelize'
 
 export const Authenticate = async (email: string, password: string, context: any) => {
     const eventId = ((context?.req as unknown) as Request & { fields?: Record<string, any> })?.fields?.event
+    // Only admin/super_admin log into AdminJS. jury votes through the voting SPA
+    // (separate JWT auth) and presentation accounts use a Basic-auth API strategy.
     const account = await sequelize.models.Account.findOne({ where: { email, account_type: { [Op.in]: ['admin', 'super_admin'] } } }) as Account | null;
 
     if (account) {

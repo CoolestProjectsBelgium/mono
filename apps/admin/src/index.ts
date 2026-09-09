@@ -127,28 +127,22 @@ const start = async () => {
         component: Components.EmailTemplates,
         handler: Handlers.EmailTemplates,
         icon: 'Mail',
-        // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
+        // @ts-expect-error AdminJS supports label on pages at runtime
         label: 'Email templates',
-        isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
-          currentAdmin?.role !== 'jury',
       },
       Floorplans: {
         component: Components.Floorplans,
         handler: Handlers.Floorplans,
         icon: 'Map',
-        // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
+        // @ts-expect-error AdminJS supports label on pages at runtime
         label: 'Floor plans',
-        isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
-          currentAdmin?.role !== 'jury',
       },
       Presentation: {
         component: Components.Presentation,
         handler: Handlers.Presentation,
         icon: 'Play',
-        // @ts-expect-error AdminJS supports label and isAccessible on pages at runtime
+        // @ts-expect-error AdminJS supports label on pages at runtime
         label: 'Presentation preview',
-        isAccessible: ({ currentAdmin }: { currentAdmin?: { role?: string } }) =>
-          currentAdmin?.role !== 'jury',
       },
     },
     resources: [
