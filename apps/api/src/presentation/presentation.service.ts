@@ -11,10 +11,14 @@ import {
 import * as Handlebars from 'handlebars';
 import puppeteer from 'puppeteer';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { parseTableNumber } from '../eventguide/parse-table-number';
-import { getPresentationDir } from './presentation-path';
+import {
+  getPresentationAssetsDir,
+  getPresentationDir,
+  sanitizePresentationAssetFilename,
+} from './presentation-path';
 
 /** A visible project's raw, DB-only data — cheap to fetch, safe to hash directly (no file reads). */
 interface ProjectRecord {
@@ -81,14 +85,14 @@ export class PresentationService {
   ) {}
 
   async listSlides(eventId: number): Promise<SlideListResult> {
-    const { specs } = await this.loadDeckContext(eventId);
+    const { specs, assetsFingerprint } = await this.loadDeckContext(eventId);
     const renders = await this.presentationRenderModel.findAll({
       where: { eventId, slideKey: specs.map((spec) => spec.key) },
     });
     const renderByKey = new Map(renders.map((render) => [render.slideKey, render]));
 
     const slides: SlideSummary[] = specs.map((spec) => {
-      const hash = this.hashSlide(spec);
+      const hash = this.hashSlide(spec, assetsFingerprint);
       const render = renderByKey.get(spec.key);
       const upToDate = render && render.contentHash === hash;
       return {
@@ -109,9 +113,9 @@ export class PresentationService {
 
   /** Hash/last-generated lookup only — never renders. Backs the `HEAD` route. */
   async getSlideMeta(eventId: number, key: string): Promise<SlideMeta> {
-    const { specs } = await this.loadDeckContext(eventId);
+    const { specs, assetsFingerprint } = await this.loadDeckContext(eventId);
     const spec = this.findSpec(specs, key);
-    const hash = this.hashSlide(spec);
+    const hash = this.hashSlide(spec, assetsFingerprint);
 
     const render = await this.presentationRenderModel.findOne({ where: { eventId, slideKey: key } });
     const upToDate = render && render.contentHash === hash;
@@ -120,9 +124,9 @@ export class PresentationService {
   }
 
   async getSlideImage(eventId: number, key: string): Promise<SlideImageResult> {
-    const { common, specs } = await this.loadDeckContext(eventId);
+    const { common, specs, assetsFingerprint } = await this.loadDeckContext(eventId);
     const spec = this.findSpec(specs, key);
-    const hash = this.hashSlide(spec);
+    const hash = this.hashSlide(spec, assetsFingerprint);
 
     let render = await this.presentationRenderModel.findOne({ where: { eventId, slideKey: key } });
 
@@ -160,9 +164,9 @@ export class PresentationService {
     return spec;
   }
 
-  private hashSlide(spec: SlideSpec): string {
+  private hashSlide(spec: SlideSpec, assetsFingerprint: string): string {
     return createHash('sha256')
-      .update(JSON.stringify({ body: spec.body, imagePath: spec.imagePath, data: spec.data }))
+      .update(JSON.stringify({ body: spec.body, imagePath: spec.imagePath, data: spec.data, assetsFingerprint }))
       .digest('hex');
   }
 
@@ -185,7 +189,7 @@ export class PresentationService {
     }
 
     const event = await this.loadEvent(eventId);
-    const common = this.buildCommonContext(event);
+    const common = { ...this.buildCommonContext(event), assets: await this.loadAssetsContext(eventId) };
 
     let data: SlideData = { kind: 'none' };
     if (config.dataSource === 'projects') {
@@ -246,9 +250,15 @@ export class PresentationService {
    */
   private async loadDeckContext(
     eventId: number,
-  ): Promise<{ event: Event; common: Record<string, unknown>; specs: SlideSpec[] }> {
+  ): Promise<{
+    event: Event;
+    common: Record<string, unknown>;
+    specs: SlideSpec[];
+    assetsFingerprint: string;
+  }> {
     const event = await this.loadEvent(eventId);
     const common = this.buildCommonContext(event);
+    const assetsFingerprint = await this.loadAssetsFingerprint(eventId);
     const configs = await this.presentationSlideModel.findAll({
       where: { eventId },
       order: [['order', 'ASC'], ['id', 'ASC']],
@@ -300,7 +310,7 @@ export class PresentationService {
       }
     }
 
-    return { event, common, specs };
+    return { event, common, specs, assetsFingerprint };
   }
 
   /**
@@ -367,7 +377,8 @@ export class PresentationService {
     common: Record<string, unknown>,
     spec: SlideSpec,
   ): Promise<string> {
-    const templateContext = await this.buildTemplateContext(common, spec.data);
+    const assets = await this.loadAssetsContext(eventId);
+    const templateContext = await this.buildTemplateContext({ ...common, assets }, spec.data);
     const backgroundDataUri = spec.imagePath
       ? await this.toDataUri(path.join(getPresentationDir(eventId), spec.imagePath))
       : null;
@@ -408,6 +419,63 @@ export class PresentationService {
         ? await this.toDataUri(record.attachmentFilePath)
         : null,
     };
+  }
+
+  /**
+   * Cheap stand-in for the assets folder's content on the hot list/meta poll
+   * path: a hash of filenames + mtimes + sizes, not file contents, so a Pi
+   * checking for changes doesn't pay for reading/base64-encoding every logo
+   * on every poll. Only actually reached-for-render code
+   * (`renderSlide`/`previewSlideDraft`, both cache-miss-only) loads the real
+   * data URIs via `loadAssetsContext`.
+   */
+  private async loadAssetsFingerprint(eventId: number): Promise<string> {
+    let entries;
+    try {
+      entries = await readdir(getPresentationAssetsDir(eventId), { withFileTypes: true });
+    } catch {
+      return 'none';
+    }
+
+    const stats = await Promise.all(
+      entries
+        .filter((entry) => entry.isFile() && sanitizePresentationAssetFilename(entry.name))
+        .map(async (entry) => {
+          const fileStat = await stat(path.join(getPresentationAssetsDir(eventId), entry.name));
+          return `${entry.name}:${fileStat.mtimeMs}:${fileStat.size}`;
+        }),
+    );
+    stats.sort();
+
+    return createHash('sha256').update(stats.join('|')).digest('hex');
+  }
+
+  /**
+   * Logos/art uploaded for the event (see `AdminService.listPresentationAssets`),
+   * keyed by filename and pre-inlined as data URIs so a slide's Handlebars `body`
+   * can reference one directly, e.g. `<img src="{{lookup assets 'logo.png'}}">`.
+   * Only called on an actual render (cache miss or preview) — never on the
+   * hot list/meta poll path, see `loadAssetsFingerprint`.
+   */
+  private async loadAssetsContext(eventId: number): Promise<Record<string, string>> {
+    let entries;
+    try {
+      entries = await readdir(getPresentationAssetsDir(eventId), { withFileTypes: true });
+    } catch {
+      return {};
+    }
+
+    const assets: Record<string, string> = {};
+    for (const entry of entries) {
+      if (!entry.isFile() || !sanitizePresentationAssetFilename(entry.name)) {
+        continue;
+      }
+      const dataUri = await this.toDataUri(path.join(getPresentationAssetsDir(eventId), entry.name));
+      if (dataUri) {
+        assets[entry.name] = dataUri;
+      }
+    }
+    return assets;
   }
 
   /** Inlines a file as a data URI so Puppeteer never needs network/filesystem access from the page itself. */
@@ -451,7 +519,10 @@ export class PresentationService {
   }
 
   private async screenshotHtml(html: string): Promise<Buffer> {
-    const browser = await puppeteer.launch({ headless: true });
+    // Containers (dev and deploy) run this as root with no user-namespace sandboxing
+    // available, which Chrome's zygote refuses to start under unless sandboxing is
+    // disabled explicitly (see https://crbug.com/638180).
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 
     try {
       const page = await browser.newPage();

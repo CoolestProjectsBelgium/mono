@@ -144,6 +144,13 @@ const start = async () => {
         // @ts-expect-error AdminJS supports label on pages at runtime
         label: 'Presentation preview',
       },
+      PresentationAssets: {
+        component: Components.PresentationAssets,
+        handler: Handlers.PresentationAssets,
+        icon: 'Image',
+        // @ts-expect-error AdminJS supports label on pages at runtime
+        label: 'Presentation assets',
+      },
     },
     resources: [
       // --- System: global, not event-scoped, super_admin-only writes ---
@@ -195,6 +202,9 @@ const start = async () => {
             eventId: { isVisible: false },
           },
           actions: {
+            new: {
+              before: filterEventId("eventId")
+            },
             list: {
               before: filterEventId("eventId")
             },
@@ -230,6 +240,9 @@ const start = async () => {
             eventId: { isVisible: false },
           },
           actions: {
+            new: {
+              before: filterEventId("eventId")
+            },
             list: {
               before: filterEventId("eventId")
             },
@@ -368,6 +381,9 @@ const start = async () => {
         options: {
           navigation: navCommunication,
           actions: {
+            new: {
+              before: filterEventId('eventId'),
+            },
             list: {
               before: filterEventId('eventId'),
             },
@@ -400,6 +416,7 @@ const start = async () => {
             imagePath: { isVisible: { list: false, filter: false, show: true, edit: true } },
           },
           actions: {
+            new: { before: filterEventId('eventId') },
             list: { before: filterEventId('eventId') },
             search: { before: filterEventId('eventId') },
             edit: { isAccessible: canAccessResourceFieldFilter('eventId') },

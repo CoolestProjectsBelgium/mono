@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -15,6 +16,10 @@ import { Response } from 'express';
 import { FloorplansOverviewDto, UploadFloorplanDto } from '../dto/floorplans-overview.dto';
 import { MailTemplateContextRequestDto } from '../dto/mail-template-context.dto';
 import { UploadPresentationSlideImageDto } from '../dto/upload-presentation-slide-image.dto';
+import {
+  PresentationAssetsOverviewDto,
+  UploadPresentationAssetDto,
+} from '../dto/presentation-assets.dto';
 import { PreviewPresentationSlideDraftDto } from '../dto/presentation-preview.dto';
 import { SlideListResponseDto } from '../dto/slide.dto';
 import { AdminService } from './admin.service';
@@ -82,6 +87,34 @@ export class AdminController {
       Number(id),
       body,
     );
+  }
+
+  @Get('presentation-assets')
+  @UseGuards(MandatoryAdminCookieGuard)
+  listPresentationAssets(
+    @Req() req: { user?: AdminRequestUser },
+  ): Promise<PresentationAssetsOverviewDto> {
+    return this.adminService.listPresentationAssets(this.getEventId(req));
+  }
+
+  @Post('presentation-assets')
+  @UseGuards(MandatoryAdminCookieGuard)
+  @ApiSecurity('csrf')
+  uploadPresentationAsset(
+    @Req() req: { user?: AdminRequestUser },
+    @Body() body: UploadPresentationAssetDto,
+  ): Promise<PresentationAssetsOverviewDto> {
+    return this.adminService.uploadPresentationAsset(this.getEventId(req), body);
+  }
+
+  @Delete('presentation-assets/:filename')
+  @UseGuards(MandatoryAdminCookieGuard)
+  @ApiSecurity('csrf')
+  deletePresentationAsset(
+    @Req() req: { user?: AdminRequestUser },
+    @Param('filename') filename: string,
+  ): Promise<PresentationAssetsOverviewDto> {
+    return this.adminService.deletePresentationAsset(this.getEventId(req), filename);
   }
 
   @Get('presentation-slides/preview')

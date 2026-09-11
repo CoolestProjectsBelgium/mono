@@ -12,7 +12,7 @@ import {
   User,
   UserProject,
 } from '@coolestprojects/database';
-import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, stat, unlink, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import {
   FloorplansOverviewDto,
@@ -20,6 +20,10 @@ import {
 } from '../dto/floorplans-overview.dto';
 import { MailTemplateContextRequestDto } from '../dto/mail-template-context.dto';
 import { UploadPresentationSlideImageDto } from '../dto/upload-presentation-slide-image.dto';
+import {
+  PresentationAssetsOverviewDto,
+  UploadPresentationAssetDto,
+} from '../dto/presentation-assets.dto';
 import {
   getFloorplanDir,
   resolveFloorplanFilePath,
@@ -30,7 +34,12 @@ import {
   processVisioSvg,
 } from '../eventguide/process-visio-svg';
 import { buildMailContext, PREVIEW_TOKEN } from '../mailer/mail-context';
-import { getPresentationDir } from '../presentation/presentation-path';
+import {
+  getPresentationAssetsDir,
+  getPresentationDir,
+  resolvePresentationAssetFilePath,
+  sanitizePresentationAssetFilename,
+} from '../presentation/presentation-path';
 import { PresentationService, SlideImageResult, SlideListResult } from '../presentation/presentation.service';
 import { PreviewPresentationSlideDraftDto } from '../dto/presentation-preview.dto';
 
@@ -42,6 +51,17 @@ function slugifyFilename(originalName: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 80);
   return `${slug || 'floorplan'}.svg`;
+}
+
+/** Re-uploading the same original name overwrites its asset, same as `slugifyFilename` does for floor plans. */
+function slugifyAssetFilename(originalName: string, ext: string): string {
+  const base = path.basename(originalName, path.extname(originalName));
+  const slug = base
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+  return `${slug || 'asset'}.${ext}`;
 }
 
 @Injectable()
@@ -185,6 +205,72 @@ export class AdminService {
     await writeFile(path.join(dir, filename), buffer);
 
     await slide.update({ imagePath: filename });
+  }
+
+  /**
+   * Logos/art an admin uploads for reuse across slides (as opposed to a
+   * single slide's own `imagePath`). Available to slide `body` templates
+   * via the `assets` Handlebars context (see `PresentationService`).
+   */
+  async listPresentationAssets(eventId: number): Promise<PresentationAssetsOverviewDto> {
+    const dir = getPresentationAssetsDir(eventId);
+    await mkdir(dir, { recursive: true });
+
+    const entries = await readdir(dir, { withFileTypes: true });
+    const assets = await Promise.all(
+      entries
+        .filter((entry) => entry.isFile() && sanitizePresentationAssetFilename(entry.name))
+        .map(async (entry) => {
+          const fileStat = await stat(path.join(dir, entry.name));
+          return { filename: entry.name, uploadedAt: fileStat.mtime.toISOString() };
+        }),
+    );
+
+    assets.sort((left, right) => right.uploadedAt.localeCompare(left.uploadedAt));
+
+    return { assets };
+  }
+
+  async uploadPresentationAsset(
+    eventId: number,
+    body: UploadPresentationAssetDto,
+  ): Promise<PresentationAssetsOverviewDto> {
+    const ext = path.extname(String(body.originalName ?? '')).slice(1).toLowerCase();
+    if (!['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif'].includes(ext)) {
+      throw new BadRequestException('Unsupported image type');
+    }
+
+    const buffer = Buffer.from(String(body.imageContentBase64 ?? ''), 'base64');
+    if (buffer.length === 0) {
+      throw new BadRequestException('Invalid image content');
+    }
+
+    const filename = slugifyAssetFilename(String(body.originalName ?? ''), ext);
+    const dir = getPresentationAssetsDir(eventId);
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, filename), buffer);
+
+    return this.listPresentationAssets(eventId);
+  }
+
+  async deletePresentationAsset(
+    eventId: number,
+    filename: string,
+  ): Promise<PresentationAssetsOverviewDto> {
+    const filePath = resolvePresentationAssetFilePath(eventId, filename);
+    if (!filePath) {
+      throw new BadRequestException('Invalid asset filename');
+    }
+
+    try {
+      await unlink(filePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+    }
+
+    return this.listPresentationAssets(eventId);
   }
 
   /**

@@ -6,6 +6,7 @@ import { Handler as TablesHandler } from './tables/handler.js'
 import { Handler as EmailTemplatesHandler } from './email-templates/handler.js'
 import { Handler as FloorplansHandler } from './floorplans/handler.js'
 import { Handler as PresentationHandler } from './presentation/handler.js'
+import { Handler as PresentationAssetsHandler } from './presentation-assets/handler.js'
 
 const Handlers = {
   Dashboard: DashboardHandler,
@@ -15,6 +16,7 @@ const Handlers = {
   EmailTemplates: EmailTemplatesHandler,
   Floorplans: FloorplansHandler,
   Presentation: PresentationHandler,
+  PresentationAssets: PresentationAssetsHandler,
 }
 
 export { Handlers }

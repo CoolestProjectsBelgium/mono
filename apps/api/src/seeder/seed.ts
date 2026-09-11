@@ -1,7 +1,8 @@
-import { Affiliation, Attachment, Account, EmailTemplate, Event, EventTable, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
+import { Affiliation, Attachment, Account, EmailTemplate, Event, EventTable, PresentationSlide, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
 import type { CreationAttributes } from 'sequelize';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import { loadSeedDojoNames } from './load-seed-dojos';
+import { buildSeedPresentationSlides } from './seed-presentation-slides';
 import {
   assignProjectsToEventTables,
   VOTING_TEST_PROJECTS,
@@ -31,6 +32,7 @@ export async function seedDatabase(
   voteCategoryModel: typeof VoteCategory,
   voteModel: typeof Vote,
   affiliationModel: typeof Affiliation,
+  presentationSlideModel: typeof PresentationSlide,
 ) {
   const eventBeginDate = new Date();
   eventBeginDate.setDate(new Date().getDate() - 100);
@@ -987,6 +989,8 @@ export async function seedDatabase(
       questionId: questions[1].id,
     },
   ])
+
+  await presentationSlideModel.bulkCreate(buildSeedPresentationSlides(event.id));
 
   if (process.env.UPLOAD_ROOT) {
     const projectAttachments = await seedProjectPictures(

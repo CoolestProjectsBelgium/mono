@@ -17,6 +17,8 @@ import { Certificate } from '@coolestprojects/database';
 import { Event } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { Message } from '@coolestprojects/database';
+import { PresentationRender } from '@coolestprojects/database';
+import { PresentationSlide } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
 import { Question } from '@coolestprojects/database';
 import { QuestionRegistration } from '@coolestprojects/database';
@@ -84,6 +86,8 @@ import configuration from '../config/configuration.js';
             EmailLog,
             AdminSession,
             Affiliation,
+            PresentationSlide,
+            PresentationRender,
           ],
         };
       },
@@ -111,6 +115,7 @@ import configuration from '../config/configuration.js';
       Vote,
       VoteCategory,
       Affiliation,
+      PresentationSlide,
     ]),
   ],
   providers: [

@@ -12,6 +12,7 @@ const Components = {
   EmailTemplates: componentLoader.add('EmailTemplates', './email-templates/EmailTemplates.tsx'),
   Floorplans: componentLoader.add('Floorplans', './floorplans/Floorplans.tsx'),
   Presentation: componentLoader.add('Presentation', './presentation/Presentation.tsx'),
+  PresentationAssets: componentLoader.add('PresentationAssets', './presentation-assets/PresentationAssets.tsx'),
 }
 
 export { componentLoader, Components }

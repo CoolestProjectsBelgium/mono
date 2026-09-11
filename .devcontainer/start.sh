@@ -8,6 +8,19 @@
 cp .devcontainer/certs/pki/ca.crt /usr/local/share/ca-certificates/coolestprojects-dev-ca.crt
 update-ca-certificates
 
+# Puppeteer (used by apps/api for presentation PDF export) needs both the Chrome
+# binary itself and, since the base image ships no browser runtime deps, the
+# shared libraries Chrome links against at launch (e.g. libnspr4/libnss3) —
+# without these it downloads fine but fails with "error while loading shared
+# libraries" at launch time.
+apt-get update -qq
+apt-get install -y --no-install-recommends \
+	libnspr4 libnss3 libdrm2 libgbm1 libxkbcommon0 libxcomposite1 libxdamage1 \
+	libxfixes3 libxrandr2 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 \
+	libasound2t64 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libgtk-3-0t64 libglib2.0-0t64
+rm -rf /var/lib/apt/lists/*
+npx puppeteer browsers install chrome
+
 npm i -g @nestjs/cli
 
 # build database package
