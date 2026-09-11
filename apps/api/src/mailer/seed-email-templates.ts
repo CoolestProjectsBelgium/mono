@@ -385,7 +385,8 @@ Coolest Projects Team Belgium`,
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
-    subject: 'Coolest Projects {{year}}: Receive a token to login into your project',
+    subject:
+      'Coolest Projects {{year}}: Receive a token to login into your project',
     contentPlain: `Hi {{user.firstname}},
 
 Please, use the following link to open your project in your browser {{url}} .
@@ -468,7 +469,7 @@ Coolest Projects Team Belgium`,
   },
   fr: {
     subject:
-      "Coolest Projects {{year}}: Attention ! Une inscription à Coolest Projects avec ton adresse mail est déjà enregistrée.",
+      'Coolest Projects {{year}}: Attention ! Une inscription à Coolest Projects avec ton adresse mail est déjà enregistrée.',
     contentPlain: `Salut,
 
 Attention ! Une inscription à Coolest Projects avec ton adresse mail est déjà enregistrée.
@@ -535,7 +536,8 @@ Coolest Projects Team Belgium`,
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
-    subject: 'Coolest Projects {{year}}: A few things still need your attention',
+    subject:
+      'Coolest Projects {{year}}: A few things still need your attention',
     contentPlain: `Hi {{user.firstname}},
 
 A quick reminder about your participation in Coolest Projects Belgium {{year}}:
@@ -574,7 +576,8 @@ Coolest Project Team Belgium`,
 <p>Coolest Project Team Belgium</p>`,
   },
   fr: {
-    subject: 'Coolest Projects {{year}}: Il reste des actions à faire pour ta participation',
+    subject:
+      'Coolest Projects {{year}}: Il reste des actions à faire pour ta participation',
     contentPlain: `Salut {{user.firstname}},
 
 Un petit rappel concernant ta participation à Coolest Projects Belgium {{year}}:
@@ -621,7 +624,8 @@ const registrationReminderTemplates: Record<
   { subject: string; contentPlain: string; contentRich: string }
 > = {
   nl: {
-    subject: 'Coolest Projects {{year}}: Vergeet niet je registratie te bevestigen',
+    subject:
+      'Coolest Projects {{year}}: Vergeet niet je registratie te bevestigen',
     contentPlain: `Hallo {{registration.firstname}},
 
 We zien dat je je nog niet hebt aangemeld voor Coolest Projects Belgium {{year}}. Zonder bevestiging kunnen we je plaats niet garanderen.
@@ -648,7 +652,8 @@ Coolest Projects Team Belgium`,
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
-    subject: "Coolest Projects {{year}}: Don't forget to confirm your registration",
+    subject:
+      "Coolest Projects {{year}}: Don't forget to confirm your registration",
     contentPlain: `Hi {{registration.firstname}},
 
 We noticed you haven't confirmed your registration for Coolest Projects Belgium {{year}} yet. Without confirmation we can't guarantee your spot.
@@ -675,7 +680,8 @@ Coolest Project Team Belgium`,
 <p>Coolest Project Team Belgium</p>`,
   },
   fr: {
-    subject: "Coolest Projects {{year}}: N'oublie pas de confirmer ton inscription",
+    subject:
+      "Coolest Projects {{year}}: N'oublie pas de confirmer ton inscription",
     contentPlain: `Salut {{registration.firstname}},
 
 Nous remarquons que tu n'as pas encore confirmé ton inscription à Coolest Projects Belgium {{year}}. Sans confirmation, nous ne pouvons pas garantir ta place.
@@ -708,7 +714,8 @@ const notifyNewProjectOwnerTemplates: Record<
   { subject: string; contentPlain: string; contentRich: string }
 > = {
   nl: {
-    subject: 'Coolest Projects {{year}}: Er is een nieuwe deelnemer toegevoegd aan je project',
+    subject:
+      'Coolest Projects {{year}}: Er is een nieuwe deelnemer toegevoegd aan je project',
     contentPlain: `Hallo {{user.firstname}},
 
 Goed nieuws! {{coworker.firstname}} {{coworker.lastname}} heeft zich aangesloten bij jouw project '{{project.title}}'.
@@ -744,7 +751,8 @@ Coolest Project Team Belgium`,
 <p>Coolest Project Team Belgium</p>`,
   },
   fr: {
-    subject: 'Coolest Projects {{year}}: Un⸱e nouveau⸱elle participant⸱e a rejoint ton projet',
+    subject:
+      'Coolest Projects {{year}}: Un⸱e nouveau⸱elle participant⸱e a rejoint ton projet',
     contentPlain: `Salut {{user.firstname}},
 
 Bonne nouvelle! {{coworker.firstname}} {{coworker.lastname}} a rejoint ton projet '{{project.title}}'.
@@ -769,7 +777,8 @@ const notifyProjectParticipantLeftTemplates: Record<
   { subject: string; contentPlain: string; contentRich: string }
 > = {
   nl: {
-    subject: 'Coolest Projects {{year}}: Een deelnemer heeft je project verlaten',
+    subject:
+      'Coolest Projects {{year}}: Een deelnemer heeft je project verlaten',
     contentPlain: `Hallo {{user.firstname}},
 
 {{coworker.firstname}} {{coworker.lastname}} heeft je project '{{project.title}}' verlaten.
@@ -805,7 +814,8 @@ Coolest Project Team Belgium`,
 <p>Coolest Project Team Belgium</p>`,
   },
   fr: {
-    subject: 'Coolest Projects {{year}}: Un⸱e participant⸱e a quitté ton projet',
+    subject:
+      'Coolest Projects {{year}}: Un⸱e participant⸱e a quitté ton projet',
     contentPlain: `Salut {{user.firstname}},
 
 {{coworker.firstname}} {{coworker.lastname}} a quitté ton projet '{{project.title}}'.
@@ -898,7 +908,9 @@ function rowsForTemplate(
   }));
 }
 
-export function buildSeedEmailTemplates(eventId: number): SeedEmailTemplateRow[] {
+export function buildSeedEmailTemplates(
+  eventId: number,
+): SeedEmailTemplateRow[] {
   return [
     ...rowsForTemplate(eventId, 'registration', registrationTemplates),
     ...rowsForTemplate(eventId, 'welcomeOwner', welcomeOwnerTemplates),
@@ -907,9 +919,21 @@ export function buildSeedEmailTemplates(eventId: number): SeedEmailTemplateRow[]
     ...rowsForTemplate(eventId, 'ask4Token', ask4TokenTemplates),
     ...rowsForTemplate(eventId, 'emailExists', emailExistsTemplates),
     ...rowsForTemplate(eventId, 'dailyReminder', dailyReminderTemplates),
-    ...rowsForTemplate(eventId, 'registrationReminder', registrationReminderTemplates),
-    ...rowsForTemplate(eventId, 'notifyNewProjectOwner', notifyNewProjectOwnerTemplates),
-    ...rowsForTemplate(eventId, 'notifyProjectParticipantLeft', notifyProjectParticipantLeftTemplates),
+    ...rowsForTemplate(
+      eventId,
+      'registrationReminder',
+      registrationReminderTemplates,
+    ),
+    ...rowsForTemplate(
+      eventId,
+      'notifyNewProjectOwner',
+      notifyNewProjectOwnerTemplates,
+    ),
+    ...rowsForTemplate(
+      eventId,
+      'notifyProjectParticipantLeft',
+      notifyProjectParticipantLeftTemplates,
+    ),
     ...rowsForTemplate(eventId, 'accountDeleted', accountDeletedTemplates),
   ];
 }

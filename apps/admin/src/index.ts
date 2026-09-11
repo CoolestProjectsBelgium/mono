@@ -1,106 +1,116 @@
-import 'dotenv/config'
-import { APP_DIR } from './adminjs-env.js'
-import path from 'node:path'
-import AdminJSExpress from '@adminjs/express'
-import passwordsFeature from '@adminjs/passwords'
-import * as AdminJSSequelize from '@adminjs/sequelize'
-import { Account } from '@coolestprojects/database'
-import AdminJS from 'adminjs'
-import connectSessionSequelize from 'connect-session-sequelize'
-import express from 'express'
-import session from 'express-session'
-import { canAccessResourceFieldFilter, canAccessResourceFieldMatch, canAccessResourceRoleFilter, filterEventId, filterUnlessRole, orAccess } from './authorisations.js'
-import { componentLoader, Components, Handlers } from './components/index.js'
-import { Authenticate } from './components/login/authenticate.js'
-import eventLoginRouter from './components/login/router.js'
+import 'dotenv/config';
+import { APP_DIR } from './adminjs-env.js';
+import path from 'node:path';
+import AdminJSExpress from '@adminjs/express';
+import passwordsFeature from '@adminjs/passwords';
+import * as AdminJSSequelize from '@adminjs/sequelize';
+import { Account } from '@coolestprojects/database';
+import AdminJS from 'adminjs';
+import connectSessionSequelize from 'connect-session-sequelize';
+import express from 'express';
+import session from 'express-session';
+import {
+  canAccessResourceFieldFilter,
+  canAccessResourceFieldMatch,
+  canAccessResourceRoleFilter,
+  filterEventId,
+  filterUnlessRole,
+  orAccess,
+} from './authorisations.js';
+import { componentLoader, Components, Handlers } from './components/index.js';
+import { Authenticate } from './components/login/authenticate.js';
+import eventLoginRouter from './components/login/router.js';
 import importExportFeature from '@adminjs/import-export';
-import { sequelize, } from './database.js'
-import { exportAllResource, userProjectSummaryResource } from './reporting/reports/index.js'
+import { sequelize } from './database.js';
+import {
+  exportAllResource,
+  userProjectSummaryResource,
+} from './reporting/reports/index.js';
 
 // ADMINJS_COOKIE_SECRET signs both the AdminJS auth cookie and the express-session
 // cookie. A missing value would previously fall through to `undefined` (cookiePassword)
 // or the literal string "undefined" (session secret via `+ ""`), making sessions
 // forgeable. Fail fast instead of starting with a broken/empty secret.
-const ADMINJS_COOKIE_SECRET = process.env.ADMINJS_COOKIE_SECRET
+const ADMINJS_COOKIE_SECRET = process.env.ADMINJS_COOKIE_SECRET;
 if (!ADMINJS_COOKIE_SECRET || ADMINJS_COOKIE_SECRET.trim() === '') {
   throw new Error(
     'Refusing to start: ADMINJS_COOKIE_SECRET is missing or empty. This secret signs admin session cookies.',
-  )
+  );
 }
 
-const SequelizeStore = connectSessionSequelize(session.Store)
+const SequelizeStore = connectSessionSequelize(session.Store);
 
 const sessionStore = new SequelizeStore({
   db: sequelize,
   tableName: 'admin_sessions',
   checkExpirationInterval: 15 * 60 * 1000,
   expiration: 8 * 60 * 60 * 1000,
-})
+});
 
-sessionStore.sync()
+sessionStore.sync();
 
-const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000')
+const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000');
 
 const start = async () => {
-  const app = express()
+  const app = express();
   // TLS is terminated in front of Node (Dev Container proxy and Level27). Without this,
   // express-session sees HTTP and will not Set-Cookie when cookie.secure is true.
-  app.set('trust proxy', 1)
+  app.set('trust proxy', 1);
 
   AdminJS.registerAdapter({
     Resource: AdminJSSequelize.Resource,
     Database: AdminJSSequelize.Database,
-  })
+  });
 
   const navSystem = {
     name: 'System',
     icon: 'Lock',
-  }
+  };
 
   const navEventSetup = {
     name: 'Event setup',
     icon: 'Settings',
-  }
+  };
 
   const navTranslations = {
     name: 'Translations',
     icon: 'Globe',
-  }
+  };
 
   const navRegistration = {
     name: 'Registration',
     icon: 'Clipboard',
-  }
+  };
 
   const navProjects = {
     name: 'Projects & participants',
     icon: 'Users',
-  }
+  };
 
   const navVenue = {
     name: 'Venue & seating',
     icon: 'Map',
-  }
+  };
 
   const navVoting = {
     name: 'Voting & awards',
     icon: 'Award',
-  }
+  };
 
   const navCommunication = {
     name: 'Communication',
     icon: 'Mail',
-  }
+  };
 
   const navPresentation = {
     name: 'Presentation',
     icon: 'Monitor',
-  }
+  };
 
   const navReporting = {
     name: 'Reporting',
     icon: 'Grid',
-  }
+  };
 
   const admin = new AdminJS({
     dashboard: {
@@ -162,35 +172,75 @@ const start = async () => {
           actions: {
             // Everyone sees only their own account (e.g. to change their password);
             // only a super_admin sees the full list.
-            list: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.id) },
-            search: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.id) },
-            show: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "id")) },
-            edit: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "id")) },
-            new: { isAccessible: canAccessResourceRoleFilter("super_admin") },
-            delete: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+            list: {
+              before: filterUnlessRole(
+                'id',
+                (currentAdmin) => currentAdmin?.id,
+              ),
+            },
+            search: {
+              before: filterUnlessRole(
+                'id',
+                (currentAdmin) => currentAdmin?.id,
+              ),
+            },
+            show: {
+              isAccessible: orAccess(
+                canAccessResourceRoleFilter('super_admin'),
+                canAccessResourceFieldMatch('id', 'id'),
+              ),
+            },
+            edit: {
+              isAccessible: orAccess(
+                canAccessResourceRoleFilter('super_admin'),
+                canAccessResourceFieldMatch('id', 'id'),
+              ),
+            },
+            new: { isAccessible: canAccessResourceRoleFilter('super_admin') },
+            delete: {
+              isAccessible: canAccessResourceRoleFilter('super_admin'),
+            },
           },
         },
         features: [
           passwordsFeature({
             componentLoader,
             hash: Account.hashPassword,
-          })
-        ]
+          }),
+        ],
       },
       {
-        resource: sequelize.models.Event, options: {
+        resource: sequelize.models.Event,
+        options: {
           navigation: navSystem,
           actions: {
             // A super_admin sees and manages every event; every other role only sees the
             // event tied to their session, and cannot create/edit/delete it (read-only).
-            list: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.eventId) },
-            search: { before: filterUnlessRole("id", (currentAdmin) => currentAdmin?.eventId) },
-            show: { isAccessible: orAccess(canAccessResourceRoleFilter("super_admin"), canAccessResourceFieldMatch("id", "eventId")) },
-            new: { isAccessible: canAccessResourceRoleFilter("super_admin") },
-            edit: { isAccessible: canAccessResourceRoleFilter("super_admin") },
-            delete: { isAccessible: canAccessResourceRoleFilter("super_admin") },
+            list: {
+              before: filterUnlessRole(
+                'id',
+                (currentAdmin) => currentAdmin?.eventId,
+              ),
+            },
+            search: {
+              before: filterUnlessRole(
+                'id',
+                (currentAdmin) => currentAdmin?.eventId,
+              ),
+            },
+            show: {
+              isAccessible: orAccess(
+                canAccessResourceRoleFilter('super_admin'),
+                canAccessResourceFieldMatch('id', 'eventId'),
+              ),
+            },
+            new: { isAccessible: canAccessResourceRoleFilter('super_admin') },
+            edit: { isAccessible: canAccessResourceRoleFilter('super_admin') },
+            delete: {
+              isAccessible: canAccessResourceRoleFilter('super_admin'),
+            },
           },
-        }
+        },
       },
 
       // --- Event setup ---
@@ -203,30 +253,48 @@ const start = async () => {
           },
           actions: {
             new: {
-              before: filterEventId("eventId")
+              before: filterEventId('eventId'),
             },
             list: {
-              before: filterEventId("eventId")
+              before: filterEventId('eventId'),
             },
             search: {
-              before: filterEventId("eventId")
+              before: filterEventId('eventId'),
             },
-            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
-          }
-        }
+            edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            show: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            delete: { isAccessible: canAccessResourceFieldFilter('eventId') },
+          },
+        },
       },
-      { resource: sequelize.models.TshirtGroup, options: { navigation: navEventSetup, } },
+      {
+        resource: sequelize.models.TshirtGroup,
+        options: { navigation: navEventSetup },
+      },
 
       // --- Translations ---
-      { resource: sequelize.models.TshirtTranslation, options: { navigation: navTranslations, } },
-      { resource: sequelize.models.TshirtGroupTranslation, options: { navigation: navTranslations, } },
-      { resource: sequelize.models.QuestionTranslation, options: { navigation: navTranslations, } },
+      {
+        resource: sequelize.models.TshirtTranslation,
+        options: { navigation: navTranslations },
+      },
+      {
+        resource: sequelize.models.TshirtGroupTranslation,
+        options: { navigation: navTranslations },
+      },
+      {
+        resource: sequelize.models.QuestionTranslation,
+        options: { navigation: navTranslations },
+      },
 
       // --- Registration ---
-      { resource: sequelize.models.Question, options: { navigation: navRegistration, } },
-      { resource: sequelize.models.QuestionRegistration, options: { navigation: navRegistration } },
+      {
+        resource: sequelize.models.Question,
+        options: { navigation: navRegistration },
+      },
+      {
+        resource: sequelize.models.QuestionRegistration,
+        options: { navigation: navRegistration },
+      },
       {
         resource: sequelize.models.Registration,
         features: [importExportFeature({ componentLoader })],
@@ -241,19 +309,19 @@ const start = async () => {
           },
           actions: {
             new: {
-              before: filterEventId("eventId")
+              before: filterEventId('eventId'),
             },
             list: {
-              before: filterEventId("eventId")
+              before: filterEventId('eventId'),
             },
             search: {
-              before: filterEventId("eventId")
+              before: filterEventId('eventId'),
             },
-            edit: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            show: { isAccessible: canAccessResourceFieldFilter("eventId") },
-            delete: { isAccessible: canAccessResourceFieldFilter("eventId") },
-          }
-        }
+            edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            show: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            delete: { isAccessible: canAccessResourceFieldFilter('eventId') },
+          },
+        },
       },
 
       // --- Projects & participants ---
@@ -262,8 +330,22 @@ const start = async () => {
         features: [importExportFeature({ componentLoader })],
         options: {
           navigation: navProjects,
-          listProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
-          filterProperties: ['id', 'name', 'type', 'language', 'eventId', 'deletedAt'],
+          listProperties: [
+            'id',
+            'name',
+            'type',
+            'language',
+            'eventId',
+            'deletedAt',
+          ],
+          filterProperties: [
+            'id',
+            'name',
+            'type',
+            'language',
+            'eventId',
+            'deletedAt',
+          ],
           showProperties: [
             'id',
             'name',
@@ -299,7 +381,14 @@ const start = async () => {
         features: [importExportFeature({ componentLoader })],
         options: {
           navigation: navProjects,
-          listProperties: ['id', 'projectId', 'confirmed', 'internal', 'size', 'mimetype'],
+          listProperties: [
+            'id',
+            'projectId',
+            'confirmed',
+            'internal',
+            'size',
+            'mimetype',
+          ],
           filterProperties: ['id', 'projectId', 'eventId'],
           showProperties: [
             'id',
@@ -337,10 +426,16 @@ const start = async () => {
       {
         resource: sequelize.models.User,
         features: [importExportFeature({ componentLoader })],
-        options: { navigation: navProjects }
+        options: { navigation: navProjects },
       },
-      { resource: sequelize.models.UserProject, options: { navigation: navProjects } },
-      { resource: sequelize.models.QuestionUser, options: { navigation: navProjects } },
+      {
+        resource: sequelize.models.UserProject,
+        options: { navigation: navProjects },
+      },
+      {
+        resource: sequelize.models.QuestionUser,
+        options: { navigation: navProjects },
+      },
 
       // --- Venue & seating ---
       {
@@ -348,21 +443,23 @@ const start = async () => {
         features: [importExportFeature({ componentLoader })],
         options: {
           navigation: navVenue,
-        }
+        },
       },
 
       // --- Voting & awards ---
       {
-        resource: sequelize.models.Award, options: {
+        resource: sequelize.models.Award,
+        options: {
           actions: {
             list: {
-              before: filterEventId("id"),
+              before: filterEventId('id'),
             },
             search: {
-              before: filterEventId("id"),
+              before: filterEventId('id'),
             },
           },
-          navigation: navVoting, properties: {
+          navigation: navVoting,
+          properties: {
             text: {
               type: 'textarea',
               props: {
@@ -370,9 +467,12 @@ const start = async () => {
               },
             },
           },
-        }
+        },
       },
-      { resource: sequelize.models.VoteCategory, options: { navigation: navVoting } },
+      {
+        resource: sequelize.models.VoteCategory,
+        options: { navigation: navVoting },
+      },
 
       // --- Communication ---
       {
@@ -413,7 +513,9 @@ const start = async () => {
           properties: {
             eventId: { isVisible: false },
             body: { type: 'textarea', props: { rows: 12 } },
-            imagePath: { isVisible: { list: false, filter: false, show: true, edit: true } },
+            imagePath: {
+              isVisible: { list: false, filter: false, show: true, edit: true },
+            },
           },
           actions: {
             new: { before: filterEventId('eventId') },
@@ -435,11 +537,39 @@ const start = async () => {
           label: 'Export full User, Project, Questions report',
           // This determines exactly which columns show up in the 'list' table, and in which order.
           listProperties: [
-            'email', 'lastname', 'firstname', 'user_language', 'isOwner', 'photo',
-            'contact', 'approved', 'tshirt_name', 'postalcode', 'municipality_name', 'sex', 'birthmonth',
-            'via_Coderdojo', 'gsm', 'gsm_guardian', 'user_internal_info', 'email_guardian', 'tshirtId',
-            'medical', 'last_token', 'project_id', 'project_event_id', 'description', 'project_type',
-            'project_internal_info', 'project_language', 'maxVoucher', 'voucherGuid', 'projectId', 'userId', 'id', 'user_event_id',
+            'email',
+            'lastname',
+            'firstname',
+            'user_language',
+            'isOwner',
+            'photo',
+            'contact',
+            'approved',
+            'tshirt_name',
+            'postalcode',
+            'municipality_name',
+            'sex',
+            'birthmonth',
+            'via_Coderdojo',
+            'gsm',
+            'gsm_guardian',
+            'user_internal_info',
+            'email_guardian',
+            'tshirtId',
+            'medical',
+            'last_token',
+            'project_id',
+            'project_event_id',
+            'description',
+            'project_type',
+            'project_internal_info',
+            'project_language',
+            'maxVoucher',
+            'voucherGuid',
+            'projectId',
+            'userId',
+            'id',
+            'user_event_id',
           ],
           actions: {
             // Hide and block the standard CRUD actions: this resource is read-only.
@@ -471,56 +601,62 @@ const start = async () => {
       },
     ],
     componentLoader,
-  })
+  });
 
   if (process.env.NODE_ENV !== 'production') {
-    await admin.watch()
+    await admin.watch();
   }
 
-  const adminRouter = AdminJSExpress.buildAuthenticatedRouter(admin, {
-    cookiePassword: ADMINJS_COOKIE_SECRET,
-    cookieName: 'adminjs',
-    authenticate: Authenticate,
-  }, null, {
-    resave: true,
-    store: sessionStore,
-    saveUninitialized: true,
-    secret: ADMINJS_COOKIE_SECRET,
-    cookie: {
-      httpOnly: process.env.NODE_ENV === 'production',
-      // 'auto' + trust proxy: Secure on HTTPS (dest / local proxy), not on direct HTTP.
-      secure: 'auto',
-      sameSite: 'lax',
-      maxAge: 8 * 60 * 60 * 1000,
-      domain: process.env.COOKIE_DOMAIN,
+  const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
+    admin,
+    {
+      cookiePassword: ADMINJS_COOKIE_SECRET,
+      cookieName: 'adminjs',
+      authenticate: Authenticate,
     },
-    name: 'adminjs',
-  })
-
+    null,
+    {
+      resave: true,
+      store: sessionStore,
+      saveUninitialized: true,
+      secret: ADMINJS_COOKIE_SECRET,
+      cookie: {
+        httpOnly: process.env.NODE_ENV === 'production',
+        // 'auto' + trust proxy: Secure on HTTPS (dest / local proxy), not on direct HTTP.
+        secure: 'auto',
+        sameSite: 'lax',
+        maxAge: 8 * 60 * 60 * 1000,
+        domain: process.env.COOKIE_DOMAIN,
+      },
+      name: 'adminjs',
+    },
+  );
 
   app.use('/api', eventLoginRouter);
 
   app.get('/', (_req, res) => {
-    res.redirect(admin.options.rootPath)
-  })
+    res.redirect(admin.options.rootPath);
+  });
 
   app.use(
     `${admin.options.rootPath}/frontend/assets`,
     express.static(path.join(APP_DIR, 'frontend', 'assets')),
-  )
+  );
 
-  app.use(admin.options.rootPath, adminRouter)
+  app.use(admin.options.rootPath, adminRouter);
 
   await new Promise<void>((resolve, reject) => {
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`AdminJS started on http://0.0.0.0:${PORT}${admin.options.rootPath}`)
-      resolve()
-    })
-    server.on('error', reject)
-  })
-}
+      console.log(
+        `AdminJS started on http://0.0.0.0:${PORT}${admin.options.rootPath}`,
+      );
+      resolve();
+    });
+    server.on('error', reject);
+  });
+};
 
 start().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})
+  console.error(error);
+  process.exit(1);
+});

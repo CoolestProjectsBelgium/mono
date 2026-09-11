@@ -44,13 +44,17 @@ export function buildLoadKey(
   return `${eventId}:${template}:${language}`;
 }
 
-export function assertEventId(eventId: number | undefined): asserts eventId is number {
+export function assertEventId(
+  eventId: number | undefined,
+): asserts eventId is number {
   if (!eventId) {
     throw new Error('No event selected for this admin account');
   }
 }
 
-export function normalizeSavePayload(payload: Record<string, unknown>): SavePayload {
+export function normalizeSavePayload(
+  payload: Record<string, unknown>,
+): SavePayload {
   const template = String(payload.template ?? '').trim();
   const language = String(payload.language ?? '').trim();
   const subject = String(payload.subject ?? '');

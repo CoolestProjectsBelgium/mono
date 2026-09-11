@@ -17,7 +17,9 @@ export function deriveReminderReasons(
   deadlineApproaching: boolean,
 ): ReminderReasons {
   const hasProject = user.projects.length > 0;
-  const hasPhoto = user.projects.some((project) => project.attachments.length > 0);
+  const hasPhoto = user.projects.some(
+    (project) => project.attachments.length > 0,
+  );
 
   return {
     noProject: !hasProject,

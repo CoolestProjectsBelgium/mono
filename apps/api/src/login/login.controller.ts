@@ -7,7 +7,12 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiResponse,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
 import { verify } from 'jsonwebtoken';
 import type { Response } from 'express';
 import { InjectModel } from '@nestjs/sequelize';
@@ -18,7 +23,10 @@ import { LoginMailDto } from '../dto/logon-mail.dto';
 import { RegistrationService } from '../registration/registration.service';
 import { TokensService } from '../tokens/tokens.service';
 import { MailerService } from '../mailer/mailer.service';
-import { UserCookieInterceptor, buildAppCookieOptions } from '../user-cookie.interceptor';
+import {
+  UserCookieInterceptor,
+  buildAppCookieOptions,
+} from '../user-cookie.interceptor';
 import { ConfigService } from '@nestjs/config';
 
 @Controller('login')
@@ -31,7 +39,7 @@ export class LoginController {
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(Registration)
     private readonly registrationModel: typeof Registration,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
   ) {}
 
   private buildLoginDto(user: User): LoginDto {
@@ -54,7 +62,10 @@ export class LoginController {
   ): Promise<LoginDto> {
     let payload: { registrationID?: number; userID?: number };
     try {
-      payload = verify(loginActivateDto.jwt, this.config.getOrThrow<string>('api.jwt')) as {
+      payload = verify(
+        loginActivateDto.jwt,
+        this.config.getOrThrow<string>('api.jwt'),
+      ) as {
         registrationID?: number;
         userID?: number;
       };
@@ -83,7 +94,14 @@ export class LoginController {
   @ApiCookieAuth('jwt-user-cookie')
   @ApiSecurity('csrf')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async logout(@Res({ passthrough: true }) res: Response, @Request() req: { secure?: boolean, headers?: Record<string, string | string[] | undefined> }) {
+  async logout(
+    @Res({ passthrough: true }) res: Response,
+    @Request()
+    req: {
+      secure?: boolean;
+      headers?: Record<string, string | string[] | undefined>;
+    },
+  ) {
     const cookieOptions = buildAppCookieOptions(this.config, req);
     res.clearCookie('jwt', {
       signed: true,
@@ -116,7 +134,9 @@ export class LoginController {
     });
 
     if (registration) {
-      const token = this.tokensService.generateRegistrationToken(registration.id);
+      const token = this.tokensService.generateRegistrationToken(
+        registration.id,
+      );
       await this.mailerService.registrationMail(registration, token);
       if (process.env.NODE_ENV === 'development') {
         console.info(`Registration token for ${registration.email}: ${token}`);

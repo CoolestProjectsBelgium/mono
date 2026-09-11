@@ -16,7 +16,8 @@ import {
 } from './handler-helpers.js';
 import { renderPreview, type PreviewResult } from './render-preview.js';
 
-const EmailTemplate = sequelize.models.EmailTemplate as typeof EmailTemplateModel;
+const EmailTemplate = sequelize.models
+  .EmailTemplate as typeof EmailTemplateModel;
 const Registration = sequelize.models.Registration as typeof RegistrationModel;
 const User = sequelize.models.User as typeof UserModel;
 
@@ -75,7 +76,12 @@ function mapRecordFromRow(row: EmailTemplateModel): EmailTemplateRecord {
   });
 }
 
-function recordLabel(record: { id: number; firstname: string; lastname: string; email: string }): string {
+function recordLabel(record: {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+}): string {
   const name = [record.firstname, record.lastname].filter(Boolean).join(' ');
   return `${name || 'Unnamed'} (#${record.id})${record.email ? ` - ${record.email}` : ''}`;
 }
@@ -84,16 +90,29 @@ async function listContextRecords(
   eventId: number,
   recordType: ContextRecordType,
 ): Promise<ContextRecordOption[]> {
-  const Model = (recordType === 'registration' ? Registration : User) as typeof UserModel;
+  const Model = (
+    recordType === 'registration' ? Registration : User
+  ) as typeof UserModel;
   const rows = await Model.findAll({
     where: { eventId },
     attributes: ['id', 'firstname', 'lastname', 'email'],
-    order: [['lastname', 'ASC'], ['firstname', 'ASC'], ['id', 'ASC']],
+    order: [
+      ['lastname', 'ASC'],
+      ['firstname', 'ASC'],
+      ['id', 'ASC'],
+    ],
   });
 
   return rows.map((row) => ({
     value: String(row.id),
-    label: recordLabel(row as unknown as { id: number; firstname: string; lastname: string; email: string }),
+    label: recordLabel(
+      row as unknown as {
+        id: number;
+        firstname: string;
+        lastname: string;
+        email: string;
+      },
+    ),
   }));
 }
 
@@ -108,10 +127,13 @@ async function fetchMailContext(
   recordId?: number,
 ): Promise<Record<string, unknown>> {
   const api = await NestApiClient.fromExpressRequest(request);
-  const response = await api.post<Record<string, unknown>>('/admin/mail-templates/context', {
-    recordType,
-    recordId,
-  });
+  const response = await api.post<Record<string, unknown>>(
+    '/admin/mail-templates/context',
+    {
+      recordType,
+      recordId,
+    },
+  );
   return response.data;
 }
 
@@ -142,9 +164,14 @@ export const Handler = async (
     }
 
     if (action === 'load-context') {
-      const contextRecordType = String(payload.recordType ?? '') as ContextRecordType;
+      const contextRecordType = String(
+        payload.recordType ?? '',
+      ) as ContextRecordType;
       const recordId = Number(payload.recordId);
-      if (!['user', 'registration'].includes(contextRecordType) || !Number.isInteger(recordId)) {
+      if (
+        !['user', 'registration'].includes(contextRecordType) ||
+        !Number.isInteger(recordId)
+      ) {
         throw new Error('A valid context record is required');
       }
 
@@ -184,10 +211,15 @@ export const Handler = async (
           }
           context = parsed as Record<string, unknown>;
         } catch (error) {
-          throw new Error(`Invalid context JSON: ${error instanceof Error ? error.message : String(error)}`);
+          throw new Error(
+            `Invalid context JSON: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
       } else {
-        context = await fetchMailContext(request, getContextRecordType(savePayload.template));
+        context = await fetchMailContext(
+          request,
+          getContextRecordType(savePayload.template),
+        );
       }
 
       const preview = renderPreview({
@@ -200,7 +232,11 @@ export const Handler = async (
       return {
         templates,
         languages: SUPPORTED_LANGUAGES,
-        record: await loadRecord(eventId, savePayload.template, savePayload.language),
+        record: await loadRecord(
+          eventId,
+          savePayload.template,
+          savePayload.language,
+        ),
         preview,
       };
     }

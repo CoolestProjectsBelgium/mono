@@ -11,7 +11,11 @@ export interface FloorplansOverview {
   activeFilename: string | null;
 }
 
-export const Handler = async (request: any, _response: any, context: any): Promise<FloorplansOverview> => {
+export const Handler = async (
+  request: any,
+  _response: any,
+  context: any,
+): Promise<FloorplansOverview> => {
   const eventId = context.currentAdmin?.eventId;
   if (!eventId) {
     throw new Error('No event selected');
@@ -23,14 +27,20 @@ export const Handler = async (request: any, _response: any, context: any): Promi
   if (request.method?.toLowerCase() === 'post') {
     if (payload.action === 'set-active') {
       const filename = encodeURIComponent(String(payload.filename ?? ''));
-      return (await api.post<FloorplansOverview>(`/admin/floorplans/${filename}/activate`)).data;
+      return (
+        await api.post<FloorplansOverview>(
+          `/admin/floorplans/${filename}/activate`,
+        )
+      ).data;
     }
 
     if (payload.action === 'upload') {
-      return (await api.post<FloorplansOverview>('/admin/floorplans', {
-        svgContent: String(payload.svgContent ?? ''),
-        originalName: String(payload.originalName ?? 'floorplan.svg'),
-      })).data;
+      return (
+        await api.post<FloorplansOverview>('/admin/floorplans', {
+          svgContent: String(payload.svgContent ?? ''),
+          originalName: String(payload.originalName ?? 'floorplan.svg'),
+        })
+      ).data;
     }
 
     throw new Error('Unknown action');

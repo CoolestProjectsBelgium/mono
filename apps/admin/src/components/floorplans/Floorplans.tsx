@@ -76,7 +76,9 @@ export const Floorplans: React.FC = () => {
       setError(null);
     } catch (err) {
       console.error('Failed to upload floor plan:', err);
-      setError(err instanceof Error ? err.message : 'Unable to upload the floor plan.');
+      setError(
+        err instanceof Error ? err.message : 'Unable to upload the floor plan.',
+      );
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -93,7 +95,8 @@ export const Floorplans: React.FC = () => {
     <Box variant="grey">
       <H2>Floor plans</H2>
       <Text mb="lg">
-        Upload Visio SVG floor plans. The uploaded map is activated for the current event automatically.
+        Upload Visio SVG floor plans. The uploaded map is activated for the
+        current event automatically.
       </Text>
 
       <Box mb="xl">
@@ -130,12 +133,18 @@ export const Floorplans: React.FC = () => {
           {(data?.floorplans ?? []).map((floorplan) => (
             <TableRow key={floorplan.filename}>
               <TableCell>{floorplan.filename}</TableCell>
-              <TableCell>{new Date(floorplan.uploadedAt).toLocaleString()}</TableCell>
-              <TableCell>{floorplan.isActive ? 'Active for this event' : ''}</TableCell>
+              <TableCell>
+                {new Date(floorplan.uploadedAt).toLocaleString()}
+              </TableCell>
+              <TableCell>
+                {floorplan.isActive ? 'Active for this event' : ''}
+              </TableCell>
               <TableCell>
                 <Button
                   size="sm"
-                  disabled={floorplan.isActive || busyFilename === floorplan.filename}
+                  disabled={
+                    floorplan.isActive || busyFilename === floorplan.filename
+                  }
                   onClick={() => setActive(floorplan.filename)}
                 >
                   Use for this event

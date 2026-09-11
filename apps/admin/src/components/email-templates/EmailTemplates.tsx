@@ -15,7 +15,10 @@ import type { EmailTemplateRecord } from './handler-helpers.js';
 import { EMAIL_TEMPLATE_RESOURCE_ID } from './handler-helpers.js';
 import type { EmailTemplatesPageData } from './handler.js';
 import type { ContextRecordOption, ContextRecordsPageData } from './handler.js';
-import { getContextRecordType, type ContextRecordType } from './handler-helpers.js';
+import {
+  getContextRecordType,
+  type ContextRecordType,
+} from './handler-helpers.js';
 import { prepareHtmlForSubmit, serializeHtmlEditor } from './format-html.js';
 import type { HtmlLintWarning } from './format-html.js';
 import type { PreviewResult } from './render-preview.js';
@@ -23,8 +26,17 @@ import type { PreviewResult } from './render-preview.js';
 declare global {
   interface Window {
     tinymce?: {
-      init: (config: Record<string, unknown>) => Promise<Array<{ getContent: () => string; setContent: (value: string) => void; remove: () => void }>>;
-      get: (id: string) => { getContent: () => string; setContent: (value: string) => void } | null;
+      init: (config: Record<string, unknown>) => Promise<
+        Array<{
+          getContent: () => string;
+          setContent: (value: string) => void;
+          remove: () => void;
+        }>
+      >;
+      get: (id: string) => {
+        getContent: () => string;
+        setContent: (value: string) => void;
+      } | null;
     };
   }
 }
@@ -34,16 +46,31 @@ const TINYMCE_SCRIPT = 'https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js';
 const EDITOR_ID = 'email-template-rich';
 
 const EmailTemplates: React.FC = () => {
-  const [meta, setMeta] = useState<{ templates: string[]; languages: readonly string[] } | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<{ value: string; label: string } | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<{ value: string; label: string } | null>(null);
+  const [meta, setMeta] = useState<{
+    templates: string[];
+    languages: readonly string[];
+  } | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
   const [subject, setSubject] = useState('');
   const [contentRich, setContentRich] = useState('');
   const [contentPlain, setContentPlain] = useState('');
   const [recordId, setRecordId] = useState<number | null>(null);
-  const [contextRecordType, setContextRecordType] = useState<ContextRecordType>('user');
-  const [contextRecords, setContextRecords] = useState<ContextRecordOption[]>([]);
-  const [selectedContextRecord, setSelectedContextRecord] = useState<{ value: string; label: string } | null>(null);
+  const [contextRecordType, setContextRecordType] =
+    useState<ContextRecordType>('user');
+  const [contextRecords, setContextRecords] = useState<ContextRecordOption[]>(
+    [],
+  );
+  const [selectedContextRecord, setSelectedContextRecord] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
   const [contextJson, setContextJson] = useState('');
   const [lintWarnings, setLintWarnings] = useState<HtmlLintWarning[]>([]);
   const [preview, setPreview] = useState<PreviewResult | null>(null);
@@ -54,15 +81,17 @@ const EmailTemplates: React.FC = () => {
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const editorReady = useRef(false);
 
-  const templateOptions = meta?.templates.map((template) => ({
-    value: template,
-    label: template,
-  })) ?? [];
+  const templateOptions =
+    meta?.templates.map((template) => ({
+      value: template,
+      label: template,
+    })) ?? [];
 
-  const languageOptions = meta?.languages.map((language) => ({
-    value: language,
-    label: language.toUpperCase(),
-  })) ?? [];
+  const languageOptions =
+    meta?.languages.map((language) => ({
+      value: language,
+      label: language.toUpperCase(),
+    })) ?? [];
 
   const syncEditorContent = (html: string) => {
     setContentRich(html);
@@ -85,7 +114,10 @@ const EmailTemplates: React.FC = () => {
     setContentPlain(record.contentPlain);
     setRecordId(record.id);
     setSelectedTemplate({ value: record.template, label: record.template });
-    setSelectedLanguage({ value: record.language, label: record.language.toUpperCase() });
+    setSelectedLanguage({
+      value: record.language,
+      label: record.language.toUpperCase(),
+    });
   };
 
   const loadContextOptions = useCallback(async (template: string) => {
@@ -130,7 +162,9 @@ const EmailTemplates: React.FC = () => {
     }
 
     await new Promise<void>((resolve, reject) => {
-      const existing = document.querySelector(`script[src="${TINYMCE_SCRIPT}"]`);
+      const existing = document.querySelector(
+        `script[src="${TINYMCE_SCRIPT}"]`,
+      );
       if (existing) {
         existing.addEventListener('load', () => resolve());
         return;
@@ -150,7 +184,11 @@ const EmailTemplates: React.FC = () => {
       return undefined;
     }
 
-    let editorInstance: { getContent: () => string; setContent: (value: string) => void; remove: () => void } | null = null;
+    let editorInstance: {
+      getContent: () => string;
+      setContent: (value: string) => void;
+      remove: () => void;
+    } | null = null;
     let cancelled = false;
 
     const initEditor = async () => {
@@ -166,8 +204,11 @@ const EmailTemplates: React.FC = () => {
           menubar: false,
           plugins: 'code link lists',
           toolbar: 'undo redo | bold italic | bullist numlist | link | code',
-          content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; }',
-          setup: (editor: { on: (event: string, callback: () => void) => void }) => {
+          content_style:
+            'body { font-family: Arial, sans-serif; font-size: 14px; }',
+          setup: (editor: {
+            on: (event: string, callback: () => void) => void;
+          }) => {
             editor.on('change keyup', () => {
               const current = window.tinymce?.get(EDITOR_ID);
               if (current) {
@@ -227,9 +268,10 @@ const EmailTemplates: React.FC = () => {
     setSuccess(null);
 
     const rawRich = getCurrentRichContent();
-    const contentRichToSend = options?.formatBeforeSend === false
-      ? rawRich
-      : formatRichContent(rawRich);
+    const contentRichToSend =
+      options?.formatBeforeSend === false
+        ? rawRich
+        : formatRichContent(rawRich);
 
     try {
       const response = await api.getPage({
@@ -293,7 +335,8 @@ const EmailTemplates: React.FC = () => {
         },
       });
 
-      const params = response.data?.record?.params as EmailTemplateRecord | undefined;
+      const params = response.data?.record?.params as
+        EmailTemplateRecord | undefined;
       if (params) {
         applyRecord({
           id: Number(params.id ?? recordId),
@@ -336,7 +379,9 @@ const EmailTemplates: React.FC = () => {
           throw new Error('Context must be a JSON object');
         }
       } catch (err) {
-        setError(`Invalid context JSON: ${err instanceof Error ? err.message : String(err)}`);
+        setError(
+          `Invalid context JSON: ${err instanceof Error ? err.message : String(err)}`,
+        );
         return;
       }
     }
@@ -344,7 +389,9 @@ const EmailTemplates: React.FC = () => {
     return postAction('preview', undefined, previewContextJson);
   };
 
-  const handleTemplateChange = async (option: { value: string; label: string } | null) => {
+  const handleTemplateChange = async (
+    option: { value: string; label: string } | null,
+  ) => {
     setSelectedTemplate(option);
     if (!option) {
       setContextRecords([]);
@@ -362,11 +409,18 @@ const EmailTemplates: React.FC = () => {
     }
   };
 
-  const loadContextRecord = async (option: { value: string; label: string }): Promise<string> => {
+  const loadContextRecord = async (option: {
+    value: string;
+    label: string;
+  }): Promise<string> => {
     const response = await api.getPage({
       pageName: 'EmailTemplates',
       method: 'post',
-      data: { action: 'load-context', recordType: contextRecordType, recordId: option.value },
+      data: {
+        action: 'load-context',
+        recordType: contextRecordType,
+        recordId: option.value,
+      },
     });
     const data = response.data as ContextRecordsPageData;
     const nextContextJson = JSON.stringify(data.context ?? {}, null, 2);
@@ -376,7 +430,9 @@ const EmailTemplates: React.FC = () => {
     return nextContextJson;
   };
 
-  const handleContextRecordChange = async (option: { value: string; label: string } | null) => {
+  const handleContextRecordChange = async (
+    option: { value: string; label: string } | null,
+  ) => {
     if (!option) {
       setSelectedContextRecord(null);
       setContextJson('');
@@ -392,7 +448,11 @@ const EmailTemplates: React.FC = () => {
   };
 
   if (loading) {
-    return <Box padding="xl"><Text>Loading email templates...</Text></Box>;
+    return (
+      <Box padding="xl">
+        <Text>Loading email templates...</Text>
+      </Box>
+    );
   }
 
   if (!meta || meta.templates.length === 0) {
@@ -406,8 +466,16 @@ const EmailTemplates: React.FC = () => {
   return (
     <Box padding="xl">
       <H2>Email templates</H2>
-      {error && <Text color="error" mb="lg">{error}</Text>}
-      {success && <Text color="success" mb="lg">{success}</Text>}
+      {error && (
+        <Text color="error" mb="lg">
+          {error}
+        </Text>
+      )}
+      {success && (
+        <Text color="success" mb="lg">
+          {success}
+        </Text>
+      )}
 
       <Box bg="white" p="xl" boxShadow="card" mb="xl">
         <Box flex flexWrap="wrap" style={{ gap: '16px' }} mb="lg">
@@ -424,7 +492,9 @@ const EmailTemplates: React.FC = () => {
             <Select
               value={selectedLanguage}
               options={languageOptions}
-              onChange={(option: { value: string; label: string } | null) => setSelectedLanguage(option)}
+              onChange={(option: { value: string; label: string } | null) =>
+                setSelectedLanguage(option)
+              }
             />
           </FormGroup>
           <Box flex alignItems="flex-end" style={{ gap: '8px' }}>
@@ -438,7 +508,9 @@ const EmailTemplates: React.FC = () => {
           <Label>Subject</Label>
           <Input
             value={subject}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSubject(event.target.value)}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              setSubject(event.target.value)
+            }
             style={{ width: '100%' }}
           />
         </FormGroup>
@@ -446,7 +518,9 @@ const EmailTemplates: React.FC = () => {
         <FormGroup mb="lg" style={{ width: '100%' }}>
           <Label>HTML content</Label>
           <Text color="grey60" mb="md">
-            Use the editor toolbar <strong>code</strong> button for source HTML and Handlebars blocks such as {'{{#if registration.email_guardian}}'}.
+            Use the editor toolbar <strong>code</strong> button for source HTML
+            and Handlebars blocks such as{' '}
+            {'{{#if registration.email_guardian}}'}.
           </Text>
           <textarea
             id={EDITOR_ID}
@@ -461,23 +535,39 @@ const EmailTemplates: React.FC = () => {
           <TextArea
             rows={12}
             value={contentPlain}
-            onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setContentPlain(event.target.value)}
-            style={{ width: '100%', fontFamily: 'monospace', boxSizing: 'border-box' }}
+            onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setContentPlain(event.target.value)
+            }
+            style={{
+              width: '100%',
+              fontFamily: 'monospace',
+              boxSizing: 'border-box',
+            }}
           />
         </FormGroup>
 
         {lintWarnings.length > 0 && (
           <Box mt="lg">
-            <Text fontWeight="bold" mb="sm">HTML warnings</Text>
+            <Text fontWeight="bold" mb="sm">
+              HTML warnings
+            </Text>
             {lintWarnings.map((warning, index) => (
               <Text key={`${warning.message}-${index}`} color="grey60">
-                {warning.line ? `Line ${warning.line}: ` : ''}{warning.message}
+                {warning.line ? `Line ${warning.line}: ` : ''}
+                {warning.message}
               </Text>
             ))}
           </Box>
         )}
 
-        <Box flex justifyContent="space-between" alignItems="center" mt="xl" flexWrap="wrap" style={{ gap: '12px' }}>
+        <Box
+          flex
+          justifyContent="space-between"
+          alignItems="center"
+          mt="xl"
+          flexWrap="wrap"
+          style={{ gap: '12px' }}
+        >
           <Box flex style={{ gap: '8px' }}>
             <Button variant="contained" disabled={busy} onClick={handleSave}>
               {busy ? 'Saving...' : 'Save'}
@@ -508,7 +598,11 @@ const EmailTemplates: React.FC = () => {
               <FormGroup style={{ minWidth: '240px' }}>
                 <Label>Context record type</Label>
                 <Input
-                  value={contextRecordType === 'registration' ? 'Registration' : 'User'}
+                  value={
+                    contextRecordType === 'registration'
+                      ? 'Registration'
+                      : 'User'
+                  }
                   onChange={() => undefined}
                 />
               </FormGroup>
@@ -525,13 +619,20 @@ const EmailTemplates: React.FC = () => {
               </FormGroup>
             </Box>
             <Text color="grey60" mb="md">
-              Select a record above to load real data, then edit the JSON before previewing.
+              Select a record above to load real data, then edit the JSON before
+              previewing.
             </Text>
             <TextArea
               rows={14}
               value={contextJson}
-              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setContextJson(event.target.value)}
-              style={{ width: '100%', fontFamily: 'monospace', boxSizing: 'border-box' }}
+              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setContextJson(event.target.value)
+              }
+              style={{
+                width: '100%',
+                fontFamily: 'monospace',
+                boxSizing: 'border-box',
+              }}
             />
           </Box>
         </details>
@@ -540,16 +641,26 @@ const EmailTemplates: React.FC = () => {
       {preview && (
         <Box bg="white" p="xl" boxShadow="card">
           <H2 mb="lg">Preview</H2>
-          <Text fontWeight="bold" mb="sm">Subject</Text>
+          <Text fontWeight="bold" mb="sm">
+            Subject
+          </Text>
           <Text mb="lg">{preview.subject}</Text>
-          <Text fontWeight="bold" mb="sm">HTML</Text>
+          <Text fontWeight="bold" mb="sm">
+            HTML
+          </Text>
           <iframe
             title="Email HTML preview"
             sandbox=""
             srcDoc={preview.html}
-            style={{ width: '100%', minHeight: '420px', border: '1px solid #ddd' }}
+            style={{
+              width: '100%',
+              minHeight: '420px',
+              border: '1px solid #ddd',
+            }}
           />
-          <Text fontWeight="bold" mt="lg" mb="sm">Plain text</Text>
+          <Text fontWeight="bold" mt="lg" mb="sm">
+            Plain text
+          </Text>
           <TextArea
             rows={10}
             value={preview.plainText}

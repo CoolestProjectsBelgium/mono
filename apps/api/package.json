@@ -10,6 +10,8 @@
     "build": "npx tsc -p ./tsconfig.build.json && node -e \"require('node:fs').cpSync('src/seeder/fixtures','dist/seeder/fixtures',{recursive:true})\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
     "seed-db": "node ./dist/cli event:init",
     "seed-voting": "node ./dist/cli event:seed-voting",
     "seed-pictures": "node ./dist/cli event:seed-pictures"
@@ -62,6 +64,7 @@
     "@types/passport-http": "^0.3.11",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
+    "@types/supertest": "^7.2.1",
     "jest": "^30.4.2",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12"

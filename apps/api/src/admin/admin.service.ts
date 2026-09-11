@@ -40,7 +40,11 @@ import {
   resolvePresentationAssetFilePath,
   sanitizePresentationAssetFilename,
 } from '../presentation/presentation-path';
-import { PresentationService, SlideImageResult, SlideListResult } from '../presentation/presentation.service';
+import {
+  PresentationService,
+  SlideImageResult,
+  SlideListResult,
+} from '../presentation/presentation.service';
 import { PreviewPresentationSlideDraftDto } from '../dto/presentation-preview.dto';
 
 function slugifyFilename(originalName: string): string {
@@ -92,7 +96,9 @@ export class AdminService {
     const entries = await readdir(floorplanDir, { withFileTypes: true });
     const floorplans = await Promise.all(
       entries
-        .filter((entry) => entry.isFile() && sanitizeFloorplanFilename(entry.name))
+        .filter(
+          (entry) => entry.isFile() && sanitizeFloorplanFilename(entry.name),
+        )
         .map(async (entry) => {
           const filePath = path.join(floorplanDir, entry.name);
           const fileStat = await stat(filePath);
@@ -104,7 +110,9 @@ export class AdminService {
         }),
     );
 
-    floorplans.sort((left, right) => right.uploadedAt.localeCompare(left.uploadedAt));
+    floorplans.sort((left, right) =>
+      right.uploadedAt.localeCompare(left.uploadedAt),
+    );
 
     return {
       floorplans,
@@ -133,14 +141,23 @@ export class AdminService {
       throw new BadRequestException('No tables were detected in this SVG');
     }
     if (isProcessedSvgCorrupt(processed.processedSvg)) {
-      throw new BadRequestException('Floor plan processing failed: SVG structure was corrupted');
+      throw new BadRequestException(
+        'Floor plan processing failed: SVG structure was corrupted',
+      );
     }
 
     const filename = slugifyFilename(originalName);
     const floorplanDir = getFloorplanDir();
     await mkdir(floorplanDir, { recursive: true });
-    await writeFile(path.join(floorplanDir, filename), processed.processedSvg, 'utf8');
-    await this.eventModel.update({ floorplanPath: filename }, { where: { id: eventId } });
+    await writeFile(
+      path.join(floorplanDir, filename),
+      processed.processedSvg,
+      'utf8',
+    );
+    await this.eventModel.update(
+      { floorplanPath: filename },
+      { where: { id: eventId } },
+    );
 
     return this.listFloorplans(eventId);
   }
@@ -165,7 +182,10 @@ export class AdminService {
       throw new NotFoundException('Floor plan file not found');
     }
 
-    await this.eventModel.update({ floorplanPath: safeFilename }, { where: { id: eventId } });
+    await this.eventModel.update(
+      { floorplanPath: safeFilename },
+      { where: { id: eventId } },
+    );
 
     return this.listFloorplans(eventId);
   }
@@ -189,7 +209,11 @@ export class AdminService {
       throw new NotFoundException('Slide not found');
     }
 
-    const ext = path.extname(String(body.originalName ?? '')).slice(1).toLowerCase() || 'png';
+    const ext =
+      path
+        .extname(String(body.originalName ?? ''))
+        .slice(1)
+        .toLowerCase() || 'png';
     if (!['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
       throw new BadRequestException('Unsupported image type');
     }
@@ -212,21 +236,31 @@ export class AdminService {
    * single slide's own `imagePath`). Available to slide `body` templates
    * via the `assets` Handlebars context (see `PresentationService`).
    */
-  async listPresentationAssets(eventId: number): Promise<PresentationAssetsOverviewDto> {
+  async listPresentationAssets(
+    eventId: number,
+  ): Promise<PresentationAssetsOverviewDto> {
     const dir = getPresentationAssetsDir(eventId);
     await mkdir(dir, { recursive: true });
 
     const entries = await readdir(dir, { withFileTypes: true });
     const assets = await Promise.all(
       entries
-        .filter((entry) => entry.isFile() && sanitizePresentationAssetFilename(entry.name))
+        .filter(
+          (entry) =>
+            entry.isFile() && sanitizePresentationAssetFilename(entry.name),
+        )
         .map(async (entry) => {
           const fileStat = await stat(path.join(dir, entry.name));
-          return { filename: entry.name, uploadedAt: fileStat.mtime.toISOString() };
+          return {
+            filename: entry.name,
+            uploadedAt: fileStat.mtime.toISOString(),
+          };
         }),
     );
 
-    assets.sort((left, right) => right.uploadedAt.localeCompare(left.uploadedAt));
+    assets.sort((left, right) =>
+      right.uploadedAt.localeCompare(left.uploadedAt),
+    );
 
     return { assets };
   }
@@ -235,7 +269,10 @@ export class AdminService {
     eventId: number,
     body: UploadPresentationAssetDto,
   ): Promise<PresentationAssetsOverviewDto> {
-    const ext = path.extname(String(body.originalName ?? '')).slice(1).toLowerCase();
+    const ext = path
+      .extname(String(body.originalName ?? ''))
+      .slice(1)
+      .toLowerCase();
     if (!['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif'].includes(ext)) {
       throw new BadRequestException('Unsupported image type');
     }
@@ -295,20 +332,25 @@ export class AdminService {
       throw new BadRequestException('recordType is required');
     }
 
-    const Model = (kind === 'registration' ? this.registrationModel : this.userModel) as typeof User;
+    const Model = (
+      kind === 'registration' ? this.registrationModel : this.userModel
+    ) as typeof User;
     const person = await (body.recordId
       ? Model.findOne({ where: { id: body.recordId } })
       : Model.findOne({ order: [['id', 'ASC']] }));
 
     if (!person) {
       throw new NotFoundException(
-        body.recordId ? 'Context record not found' : `No ${kind} record found to preview with`,
+        body.recordId
+          ? 'Context record not found'
+          : `No ${kind} record found to preview with`,
       );
     }
 
-    const project = kind === 'user'
-      ? await this.loadOwnedProject(person.eventId, person.id)
-      : undefined;
+    const project =
+      kind === 'user'
+        ? await this.loadOwnedProject(person.eventId, person.id)
+        : undefined;
 
     const { context } = await buildMailContext({
       person,
@@ -327,13 +369,18 @@ export class AdminService {
   ): Promise<{ id: number; name: string } | undefined> {
     const membership = await this.userProjectModel.findOne({
       where: { eventId, userId, deletedAt: null },
-      include: [{
-        model: Project,
-        required: true,
-        where: { deletedAt: null },
-        attributes: ['id', 'name'],
-      }],
-      order: [['isOwner', 'DESC'], ['id', 'ASC']],
+      include: [
+        {
+          model: Project,
+          required: true,
+          where: { deletedAt: null },
+          attributes: ['id', 'name'],
+        },
+      ],
+      order: [
+        ['isOwner', 'DESC'],
+        ['id', 'ASC'],
+      ],
     });
 
     const project = membership?.project;
@@ -349,11 +396,16 @@ export class AdminService {
     return this.presentationService.listSlides(eventId);
   }
 
-  async getPresentationSlideImage(eventId: number, key: string): Promise<SlideImageResult> {
+  async getPresentationSlideImage(
+    eventId: number,
+    key: string,
+  ): Promise<SlideImageResult> {
     return this.presentationService.getSlideImage(eventId, key);
   }
 
-  async listPresentationPreviewProjects(eventId: number): Promise<{ id: number; name: string }[]> {
+  async listPresentationPreviewProjects(
+    eventId: number,
+  ): Promise<{ id: number; name: string }[]> {
     return this.presentationService.listVisibleProjectOptions(eventId);
   }
 
@@ -361,7 +413,10 @@ export class AdminService {
     eventId: number,
     body: PreviewPresentationSlideDraftDto,
   ): Promise<{ imageBase64: string }> {
-    const buffer = await this.presentationService.previewSlideDraft(eventId, body);
+    const buffer = await this.presentationService.previewSlideDraft(
+      eventId,
+      body,
+    );
     return { imageBase64: buffer.toString('base64') };
   }
 }

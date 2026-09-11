@@ -1,5 +1,10 @@
 import { Controller, Delete, Post, UseGuards } from '@nestjs/common';
-import { ApiResponse, ApiTags, ApiCookieAuth, ApiSecurity } from '@nestjs/swagger';
+import {
+  ApiResponse,
+  ApiTags,
+  ApiCookieAuth,
+  ApiSecurity,
+} from '@nestjs/swagger';
 import { Request, Body } from '@nestjs/common';
 import { JwtUserAuthGuard } from '../auth/jwt-user-auth.guard';
 import { RegistrationService } from '../registration/registration.service';
@@ -9,9 +14,7 @@ import { OtherProjectDto } from '../dto/other-project.dto';
 @ApiTags('participant')
 @ApiCookieAuth('jwt-user-cookie')
 export class ParticipantController {
-  constructor(
-      private registrationService: RegistrationService,
-    ) { }
+  constructor(private registrationService: RegistrationService) {}
 
   @Post()
   @UseGuards(JwtUserAuthGuard)
@@ -21,7 +24,10 @@ export class ParticipantController {
     @Request() req: any,
     @Body() participantDto: OtherProjectDto,
   ) {
-    return this.registrationService.assignParticipant(req.user.id, participantDto.project_code);
+    return this.registrationService.assignParticipant(
+      req.user.id,
+      participantDto.project_code,
+    );
   }
   @Delete(':id')
   @UseGuards(JwtUserAuthGuard)
@@ -31,7 +37,9 @@ export class ParticipantController {
     @Request() req: any,
     @Body() participantDto: OtherProjectDto,
   ) {
-    return this.registrationService.unassignParticipant(req.user.id, participantDto.project_code);
+    return this.registrationService.unassignParticipant(
+      req.user.id,
+      participantDto.project_code,
+    );
   }
-  
 }

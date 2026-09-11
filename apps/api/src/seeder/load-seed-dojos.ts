@@ -11,7 +11,9 @@ export function loadSeedDojoNames(): string[] {
     throw new Error('Seed dojos file not found (src/seeder/be-dojos.json)');
   }
 
-  const entries = JSON.parse(readFileSync(file, 'utf8')) as Array<{ name?: string }>;
+  const entries = JSON.parse(readFileSync(file, 'utf8')) as Array<{
+    name?: string;
+  }>;
   const names = [
     ...new Set(
       entries
@@ -20,7 +22,9 @@ export function loadSeedDojoNames(): string[] {
     ),
   ];
   if (names.length < 20) {
-    throw new Error(`Unexpected dojo seed payload: expected many names, got ${names.length}`);
+    throw new Error(
+      `Unexpected dojo seed payload: expected many names, got ${names.length}`,
+    );
   }
   return names;
 }

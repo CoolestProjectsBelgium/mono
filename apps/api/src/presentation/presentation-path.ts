@@ -3,7 +3,11 @@ import * as path from 'node:path';
 const SAFE_FILENAME = /^[a-zA-Z0-9._-]+\.(png|jpg|jpeg|webp)$/i;
 
 export function sanitizePresentationFilename(filename: string): string | null {
-  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+  if (
+    filename.includes('..') ||
+    filename.includes('/') ||
+    filename.includes('\\')
+  ) {
     return null;
   }
   const base = path.basename(filename);
@@ -25,7 +29,10 @@ export function getPresentationDir(eventId: number): string {
   return path.join(uploadRoot, 'presentations', String(eventId));
 }
 
-export function resolvePresentationFilePath(eventId: number, filename: string): string | null {
+export function resolvePresentationFilePath(
+  eventId: number,
+  filename: string,
+): string | null {
   const safe = sanitizePresentationFilename(filename);
   if (!safe) {
     return null;
@@ -35,8 +42,14 @@ export function resolvePresentationFilePath(eventId: number, filename: string): 
 
 const SAFE_ASSET_FILENAME = /^[a-zA-Z0-9._-]+\.(png|jpg|jpeg|webp|svg|gif)$/i;
 
-export function sanitizePresentationAssetFilename(filename: string): string | null {
-  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+export function sanitizePresentationAssetFilename(
+  filename: string,
+): string | null {
+  if (
+    filename.includes('..') ||
+    filename.includes('/') ||
+    filename.includes('\\')
+  ) {
     return null;
   }
   const base = path.basename(filename);
@@ -58,7 +71,10 @@ export function getPresentationAssetsDir(eventId: number): string {
   return path.join(getPresentationDir(eventId), 'assets');
 }
 
-export function resolvePresentationAssetFilePath(eventId: number, filename: string): string | null {
+export function resolvePresentationAssetFilePath(
+  eventId: number,
+  filename: string,
+): string | null {
   const safe = sanitizePresentationAssetFilename(filename);
   if (!safe) {
     return null;

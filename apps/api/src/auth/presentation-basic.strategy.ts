@@ -10,7 +10,10 @@ import { Account } from '@coolestprojects/database';
  * the same static `Authorization` header, no re-login flow needed.
  */
 @Injectable()
-export class PresentationBasicStrategy extends PassportStrategy(Strategy, 'presentation-basic') {
+export class PresentationBasicStrategy extends PassportStrategy(
+  Strategy,
+  'presentation-basic',
+) {
   constructor(
     @InjectModel(Account) private readonly accountModel: typeof Account,
   ) {

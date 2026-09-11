@@ -1,8 +1,5 @@
-
-import {
-  sequelize,
-} from '../../database.js'
-import { Op } from 'sequelize'
+import { sequelize } from '../../database.js';
+import { Op } from 'sequelize';
 import type {
   Attachment as AttachmentModel,
   Event as EventModel,
@@ -15,48 +12,50 @@ import type {
   TshirtTranslation as TshirtTranslationModel,
   User as UserModel,
   UserProject as UserProjectModel,
-} from '@coolestprojects/database'
+} from '@coolestprojects/database';
 
-const Attachment = sequelize.models.Attachment as typeof AttachmentModel
-const Event = sequelize.models.Event as typeof EventModel
-const Project = sequelize.models.Project as typeof ProjectModel
-const Question = sequelize.models.Question as typeof QuestionModel
-const QuestionTranslation = sequelize.models.QuestionTranslation as typeof QuestionTranslationModel
-const QuestionUser = sequelize.models.QuestionUser as typeof QuestionUserModel
-const Registration = sequelize.models.Registration as typeof RegistrationModel
-const Tshirt = sequelize.models.Tshirt as typeof TshirtModel
-const TshirtTranslation = sequelize.models.TshirtTranslation as typeof TshirtTranslationModel
-const User = sequelize.models.User as typeof UserModel
-const UserProject = sequelize.models.UserProject as typeof UserProjectModel
+const Attachment = sequelize.models.Attachment as typeof AttachmentModel;
+const Event = sequelize.models.Event as typeof EventModel;
+const Project = sequelize.models.Project as typeof ProjectModel;
+const Question = sequelize.models.Question as typeof QuestionModel;
+const QuestionTranslation = sequelize.models
+  .QuestionTranslation as typeof QuestionTranslationModel;
+const QuestionUser = sequelize.models.QuestionUser as typeof QuestionUserModel;
+const Registration = sequelize.models.Registration as typeof RegistrationModel;
+const Tshirt = sequelize.models.Tshirt as typeof TshirtModel;
+const TshirtTranslation = sequelize.models
+  .TshirtTranslation as typeof TshirtTranslationModel;
+const User = sequelize.models.User as typeof UserModel;
+const UserProject = sequelize.models.UserProject as typeof UserProjectModel;
 
 interface DashboardTableItem {
-  id: string | number
-  total: number
-  short: string
-  description: string
+  id: string | number;
+  total: number;
+  short: string;
+  description: string;
 }
 
 export interface DashboardResponse {
-  event_title: string
-  officialStartDate?: Date
-  days_remaining: number
-  pending_users: number
-  overdue_registration: number
-  waiting_list: number
-  total_unusedVouchers: number
-  total_projects: number
-  maxRegistration: number
-  total_usedVouchers: number
-  total_users: number
-  total_videos: number
-  tlang_nl: number
-  tlang_fr: number
-  tlang_en: number
-  total_females: number
-  total_males: number
-  total_X: number
-  questions: DashboardTableItem[]
-  tshirts: DashboardTableItem[]
+  event_title: string;
+  officialStartDate?: Date;
+  days_remaining: number;
+  pending_users: number;
+  overdue_registration: number;
+  waiting_list: number;
+  total_unusedVouchers: number;
+  total_projects: number;
+  maxRegistration: number;
+  total_usedVouchers: number;
+  total_users: number;
+  total_videos: number;
+  tlang_nl: number;
+  tlang_fr: number;
+  tlang_en: number;
+  total_females: number;
+  total_males: number;
+  total_X: number;
+  questions: DashboardTableItem[];
+  tshirts: DashboardTableItem[];
 }
 
 /*
@@ -79,10 +78,13 @@ LOGICA:
 3. We filteren direct in de JOIN dat we alleen vertalingen willen die de taal 'nl' hebben.
 4. De `GROUP BY` zorgt ervoor dat de telling wordt toegepast op elke unieke combinatie 
    van het shirt-ID en de bijbehorende Nederlandse beschrijving.
-*/ 
+*/
 // VOEG DEZE IMPORT TOE (meestal bovenaan je bestand)
-import { QueryTypes } from 'sequelize'; 
-async function getTshirts(eventId: number, language: string = 'nl'): Promise<DashboardTableItem[]> {
+import { QueryTypes } from 'sequelize';
+async function getTshirts(
+  eventId: number,
+  language: string = 'nl',
+): Promise<DashboardTableItem[]> {
   let tshirtsData: DashboardTableItem[] = [];
   try {
     // We gebruiken een Raw Query om volledige controle te hebben over de aliassen en GROUP BY
@@ -99,8 +101,8 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
       GROUP BY u.tshirtId, t.name, tt.description`,
       {
         replacements: { eventId, lang: language }, // Veilig tegen SQL Injection
-        type: QueryTypes.SELECT
-      }
+        type: QueryTypes.SELECT,
+      },
     );
     // Het resultaat van een raw query met type: QueryTypes.SELECT is al een array van platte objecten
     tshirtsData = results.map((row: any) => ({
@@ -110,11 +112,13 @@ async function getTshirts(eventId: number, language: string = 'nl'): Promise<Das
       description: row.description || '',
     }));
   } catch (err: any) {
-    console.error('SQL Fout bij het ophalen van tshirt statistieken:', err.message);
+    console.error(
+      'SQL Fout bij het ophalen van tshirt statistieken:',
+      err.message,
+    );
   }
   return tshirtsData;
 }
-
 
 /*
 SELECT 
@@ -130,10 +134,13 @@ GROUP BY
     q.id, qt.description;
 */
 
-async function getQuestions(eventId: number, language: string = 'nl'): Promise<DashboardTableItem[]> {
+async function getQuestions(
+  eventId: number,
+  language: string = 'nl',
+): Promise<DashboardTableItem[]> {
   let questionsData: DashboardTableItem[] = [];
   try {
-    // We gebruiken een RAW SQL query omdat dit exact doet wat je wilt: 
+    // We gebruiken een RAW SQL query omdat dit exact doet wat je wilt:
     // Een LEFT JOIN om vragen met 0 antwoorden mee te nemen.
     const sql = `
       SELECT 
@@ -148,21 +155,23 @@ async function getQuestions(eventId: number, language: string = 'nl'): Promise<D
       ORDER BY q.id;
     `;
     // Voer de query uit met bindings voor veiligheid tegen SQL-injectie
-      const results: any[] = await sequelize.query(sql, {
-        replacements: { eventId, language },
-        type: (sequelize as any).QueryTypes.SELECT // <--- Dit omzeilt de import-eis
-      });
+    const results: any[] = await sequelize.query(sql, {
+      replacements: { eventId, language },
+      type: (sequelize as any).QueryTypes.SELECT, // <--- Dit omzeilt de import-eis
+    });
     //console.log('Raw database result:', results);
     // Map de ruwe data naar jouw DashboardTableItem formaat
     questionsData = results.map((item) => ({
       id: item.question_id,
       total: Number(item.total_answers) || 0,
       short: item.name || '',
-      description: item.description || '' // Als je de beschrijving ook nodig hebt, voeg deze toe aan de SELECT in SQL
+      description: item.description || '', // Als je de beschrijving ook nodig hebt, voeg deze toe aan de SELECT in SQL
     }));
-
   } catch (err: any) {
-    console.error('Fout bij het ophalen van question statistieken:', err.message);
+    console.error(
+      'Fout bij het ophalen van question statistieken:',
+      err.message,
+    );
   }
 
   return questionsData;
@@ -252,30 +261,55 @@ const privacyComplianceAction = {
 //
 */
 
-
-export const Handler = async (_request: any, _response: any, context: any): Promise<DashboardResponse> => {
-
-  const eventId = context.currentAdmin?.eventId
+export const Handler = async (
+  _request: any,
+  _response: any,
+  context: any,
+): Promise<DashboardResponse> => {
+  const eventId = context.currentAdmin?.eventId;
 
   if (!eventId) {
-    throw Error("Event is missing in user")
+    throw Error('Event is missing in user');
   }
 
-  const currentEvent = await Event.findByPk(eventId)
+  const currentEvent = await Event.findByPk(eventId);
 
   // days remaining
-  let daysRemaining = 0
+  let daysRemaining = 0;
   if (currentEvent?.officialStartDate) {
-    const diffTime = new Date(currentEvent.officialStartDate).getTime() - new Date().getTime()
-    daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)))
+    const diffTime =
+      new Date(currentEvent.officialStartDate).getTime() - new Date().getTime();
+    daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
   }
 
-  const [pendingUsers, waitingList, totalUnusedVouchers, totalProjects, totalUsedVouchers, totalUsers, totalVideos, tlangNl, tlangFr, tlangEn, totalFemales, totalMales, totalX, overdue_registration] = await Promise.all([
+  const [
+    pendingUsers,
+    waitingList,
+    totalUnusedVouchers,
+    totalProjects,
+    totalUsedVouchers,
+    totalUsers,
+    totalVideos,
+    tlangNl,
+    tlangFr,
+    tlangEn,
+    totalFemales,
+    totalMales,
+    totalX,
+    overdue_registration,
+  ] = await Promise.all([
     Registration.count({ where: { eventId } }),
     Registration.count({ where: { eventId, waiting_list: true } }),
     UserProject.count({ where: { eventId, userId: null } }),
     Project.count({ where: { eventId, deletedAt: { [Op.eq]: null } } }),
-    UserProject.count({ where: { eventId, deletedAt: { [Op.eq]: null }, voucherGuid: { [Op.ne]: null }, userId: { [Op.ne]: null } } }),
+    UserProject.count({
+      where: {
+        eventId,
+        deletedAt: { [Op.eq]: null },
+        voucherGuid: { [Op.ne]: null },
+        userId: { [Op.ne]: null },
+      },
+    }),
     User.count({ where: { eventId } }),
     Attachment.count({ where: { eventId, confirmed: true } }),
     User.count({ where: { eventId, language: 'nl' } }),
@@ -284,8 +318,8 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     User.count({ where: { eventId, sex: 'f' } }),
     User.count({ where: { eventId, sex: 'm' } }),
     User.count({ where: { eventId, sex: 'X' } }),
-    Registration.findAll({ attributes: ['createdAt'], where: { eventId } })
-  ])
+    Registration.findAll({ attributes: ['createdAt'], where: { eventId } }),
+  ]);
 
   const questionsData = await getQuestions(eventId);
   const tshirtsData = await getTshirts(eventId);
@@ -296,7 +330,9 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     days_remaining: daysRemaining,
 
     pending_users: pendingUsers,
-    overdue_registration: overdue_registration.filter((registration) => registration.overdue).length,
+    overdue_registration: overdue_registration.filter(
+      (registration) => registration.overdue,
+    ).length,
     waiting_list: waitingList,
     total_unusedVouchers: totalUnusedVouchers,
 
@@ -315,6 +351,6 @@ export const Handler = async (_request: any, _response: any, context: any): Prom
     total_X: totalX,
 
     questions: questionsData,
-    tshirts: tshirtsData
-  }
-}
+    tshirts: tshirtsData,
+  };
+};

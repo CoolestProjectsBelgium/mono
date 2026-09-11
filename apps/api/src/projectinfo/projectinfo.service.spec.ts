@@ -1,7 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken, getConnectionToken } from '@nestjs/sequelize';
 import { ProjectinfoService } from './projectinfo.service';
-import { Project, UserProject, Attachment, User, Event } from '@coolestprojects/database';
+import {
+  Project,
+  UserProject,
+  Attachment,
+  User,
+  Event,
+} from '@coolestprojects/database';
 
 describe('ProjectinfoService vouchers', () => {
   let service: ProjectinfoService;
@@ -48,7 +54,9 @@ describe('ProjectinfoService vouchers', () => {
   it('returns project_code when generating a voucher', async () => {
     userProjectModel.findOne.mockResolvedValue({
       projectId: 10,
-      getProject: jest.fn().mockResolvedValue({ id: 10, eventId: 1, maxVoucher: 3 }),
+      getProject: jest
+        .fn()
+        .mockResolvedValue({ id: 10, eventId: 1, maxVoucher: 3 }),
     });
     userProjectModel.count.mockResolvedValue(1);
     userProjectModel.create.mockResolvedValue({});
@@ -68,7 +76,9 @@ describe('ProjectinfoService vouchers', () => {
   it('throws when voucher limit is reached', async () => {
     userProjectModel.findOne.mockResolvedValue({
       projectId: 10,
-      getProject: jest.fn().mockResolvedValue({ id: 10, eventId: 1, maxVoucher: 2 }),
+      getProject: jest
+        .fn()
+        .mockResolvedValue({ id: 10, eventId: 1, maxVoucher: 2 }),
     });
     userProjectModel.count.mockResolvedValue(2);
 
@@ -97,7 +107,10 @@ describe('ProjectinfoService vouchers', () => {
     const save = jest.fn();
     const voucher = { userId: 42, deletedAt: null as Date | null, save };
     userProjectModel.findOne
-      .mockResolvedValueOnce({ projectId: 10, getProject: jest.fn().mockResolvedValue({ id: 10, deletedAt: null }) })
+      .mockResolvedValueOnce({
+        projectId: 10,
+        getProject: jest.fn().mockResolvedValue({ id: 10, deletedAt: null }),
+      })
       .mockResolvedValueOnce(voucher);
 
     await service.deleteUnusedVoucher(5, 'voucher-guid');

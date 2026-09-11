@@ -15,463 +15,799 @@ import type { VotingOverview } from './handler.js';
 
 const api = new ApiClient();
 const refreshInterval = 15000;
-const formatVoteTime = (value: string) => new Date(value).toLocaleTimeString([], {
-	hour: '2-digit',
-	minute: '2-digit',
-});
+const formatVoteTime = (value: string) =>
+  new Date(value).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 const formatCountdown = (ms: number) => {
-	const totalSeconds = Math.max(Math.floor(ms / 1000), 0);
-	const hours = Math.floor(totalSeconds / 3600);
-	const minutes = Math.floor((totalSeconds % 3600) / 60);
-	const seconds = totalSeconds % 60;
-	const pad = (value: number) => String(value).padStart(2, '0');
-	return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
+  const totalSeconds = Math.max(Math.floor(ms / 1000), 0);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return hours > 0
+    ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    : `${pad(minutes)}:${pad(seconds)}`;
 };
 
 export const Voting: React.FC = () => {
-	const [data, setData] = useState<VotingOverview | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(false);
-	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-	const [durationMinutes, setDurationMinutes] = useState('60');
-	const [message, setMessage] = useState('');
-	const [actionBusy, setActionBusy] = useState(false);
-	const [actionError, setActionError] = useState<string | null>(null);
-	const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [data, setData] = useState<VotingOverview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [durationMinutes, setDurationMinutes] = useState('60');
+  const [message, setMessage] = useState('');
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
 
-	const startVoting = () => {
-		setShowRestartConfirm(true);
-	};
+  const startVoting = () => {
+    setShowRestartConfirm(true);
+  };
 
-	const confirmRestart = (deletePreviousResults: boolean) => {
-		setShowRestartConfirm(false);
-		void runAction('start', undefined, undefined, deletePreviousResults);
-	};
-	const fetchData = async () => {
-		try {
-			const response = await api.getPage({ pageName: 'VotingOverview' });
-			setData(response.data as VotingOverview);
-			setLastUpdated(new Date());
-			setError(false);
-		} catch (err) {
-			console.error('Failed to load voting overview:', err);
-			setError(true);
-		} finally {
-			setLoading(false);
-		}
-	};
+  const confirmRestart = (deletePreviousResults: boolean) => {
+    setShowRestartConfirm(false);
+    void runAction('start', undefined, undefined, deletePreviousResults);
+  };
+  const fetchData = async () => {
+    try {
+      const response = await api.getPage({ pageName: 'VotingOverview' });
+      setData(response.data as VotingOverview);
+      setLastUpdated(new Date());
+      setError(false);
+    } catch (err) {
+      console.error('Failed to load voting overview:', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-	const runAction = async (action: 'start' | 'stop' | 'message' | 'generate-awards' | 'assign-award', awardId?: number, categoryId?: number | null, deletePreviousResults = false) => {
-		setActionBusy(true);
-		setActionError(null);
-		try {
-			await api.getPage({
-				pageName: 'VotingOverview',
-				method: 'post',
-				data: {
-					action,
-					durationMinutes: Number(durationMinutes),
-					message,
-						awardId,
-						categoryId,
-						deletePreviousResults,
-				},
-			});
-			setMessage('');
-			await fetchData();
-		} catch (err) {
-			console.error(`Voting ${action} failed:`, err);
-			setActionError(err instanceof Error ? err.message : `Unable to ${action} voting.`);
-		} finally {
-			setActionBusy(false);
-		}
-	};
+  const runAction = async (
+    action: 'start' | 'stop' | 'message' | 'generate-awards' | 'assign-award',
+    awardId?: number,
+    categoryId?: number | null,
+    deletePreviousResults = false,
+  ) => {
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      await api.getPage({
+        pageName: 'VotingOverview',
+        method: 'post',
+        data: {
+          action,
+          durationMinutes: Number(durationMinutes),
+          message,
+          awardId,
+          categoryId,
+          deletePreviousResults,
+        },
+      });
+      setMessage('');
+      await fetchData();
+    } catch (err) {
+      console.error(`Voting ${action} failed:`, err);
+      setActionError(
+        err instanceof Error ? err.message : `Unable to ${action} voting.`,
+      );
+    } finally {
+      setActionBusy(false);
+    }
+  };
 
-	useEffect(() => {
-		fetchData();
-		const interval = window.setInterval(fetchData, refreshInterval);
-		return () => window.clearInterval(interval);
-	}, []);
+  useEffect(() => {
+    fetchData();
+    const interval = window.setInterval(fetchData, refreshInterval);
+    return () => window.clearInterval(interval);
+  }, []);
 
-	const [now, setNow] = useState(() => Date.now());
-	useEffect(() => {
-		const tick = window.setInterval(() => setNow(Date.now()), 1000);
-		return () => window.clearInterval(tick);
-	}, []);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(tick);
+  }, []);
 
-	if (loading) {
-		return <Box padding="xl"><Text>Loading voting overview...</Text></Box>;
-	}
+  if (loading) {
+    return (
+      <Box padding="xl">
+        <Text>Loading voting overview...</Text>
+      </Box>
+    );
+  }
 
-	if (error && !data) {
-		return <Box padding="xl"><Text color="error">Unable to load voting overview.</Text></Box>;
-	}
+  if (error && !data) {
+    return (
+      <Box padding="xl">
+        <Text color="error">Unable to load voting overview.</Text>
+      </Box>
+    );
+  }
 
-	if (!data) {
-		return null;
-	}
+  if (!data) {
+    return null;
+  }
 
-	const votingEndTime = data.votingStatus.votingEndDate ? new Date(data.votingStatus.votingEndDate).getTime() : null;
-	const remainingMs = data.votingStatus.votingOpen && votingEndTime !== null ? Math.max(votingEndTime - now, 0) : null;
+  const votingEndTime = data.votingStatus.votingEndDate
+    ? new Date(data.votingStatus.votingEndDate).getTime()
+    : null;
+  const remainingMs =
+    data.votingStatus.votingOpen && votingEndTime !== null
+      ? Math.max(votingEndTime - now, 0)
+      : null;
 
-	const metrics = [
-		{ label: 'Votes cast', value: data.totalVotes, color: '#2563eb' },
-		{ label: 'Projects', value: data.totalProjects, color: '#64748b' },
-		{ label: 'Projects with votes', value: data.projectsWithVotes, color: '#059669' },
-		{ label: 'Projects without votes', value: data.projectsWithoutVotes, color: '#d97706' },
-	];
-		const categories = Array.from(new Set(
-			data.votesByProjectCategory.flatMap((project) =>
-				Object.keys(project).filter((key) => key !== 'project'),
-			),
-		));
-	const awardCategories = data.awardCategories;
-	const assignedCategoryIds = new Set(
-		data.awards
-			.map((award) => award.categoryId)
-			.filter((categoryId): categoryId is number => categoryId !== null),
-	);
-	const winnerByCategoryId = new Map(
-		data.awards
-			.filter((award) => award.categoryId !== null)
-			.map((award) => [award.categoryId as number, award.projectName]),
-	);
+  const metrics = [
+    { label: 'Votes cast', value: data.totalVotes, color: '#2563eb' },
+    { label: 'Projects', value: data.totalProjects, color: '#64748b' },
+    {
+      label: 'Projects with votes',
+      value: data.projectsWithVotes,
+      color: '#059669',
+    },
+    {
+      label: 'Projects without votes',
+      value: data.projectsWithoutVotes,
+      color: '#d97706',
+    },
+  ];
+  const categories = Array.from(
+    new Set(
+      data.votesByProjectCategory.flatMap((project) =>
+        Object.keys(project).filter((key) => key !== 'project'),
+      ),
+    ),
+  );
+  const awardCategories = data.awardCategories;
+  const assignedCategoryIds = new Set(
+    data.awards
+      .map((award) => award.categoryId)
+      .filter((categoryId): categoryId is number => categoryId !== null),
+  );
+  const winnerByCategoryId = new Map(
+    data.awards
+      .filter((award) => award.categoryId !== null)
+      .map((award) => [award.categoryId as number, award.projectName]),
+  );
 
-	return (
-		<Box padding="xl">
-			<H2>Voting overview</H2>
+  return (
+    <Box padding="xl">
+      <H2>Voting overview</H2>
 
-			{showRestartConfirm && (
-				<Box
-					role="presentation"
-					style={{
-						position: 'fixed',
-						inset: 0,
-						zIndex: 1000,
-						background: 'rgba(15, 23, 42, 0.45)',
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						padding: '24px',
-					}}
-				>
-					<Box
-						role="dialog"
-						aria-modal="true"
-						aria-labelledby="restart-voting-title"
-						bg="white"
-						p="xl"
-						boxShadow="card"
-						style={{ width: '100%', maxWidth: '520px' }}
-					>
-						<H2 id="restart-voting-title" mb="lg">Restart voting?</H2>
-						<Text mb="lg">
-							Choose whether to keep the existing votes and awards. Keeping them is useful when voting is paused for a technical issue.
-						</Text>
-						<Box bg="warning" p="lg" mb="xl">
-							<Text>
-								Deleting results permanently removes this event&apos;s votes and award assignments.
-							</Text>
-						</Box>
-						<Box flex justifyContent="flex-end" flexWrap="wrap" style={{ gap: '12px' }}>
-							<Button variant="outlined" disabled={actionBusy} onClick={() => setShowRestartConfirm(false)}>
-								Cancel
-							</Button>
-							<Button
-								variant="contained"
-								disabled={actionBusy}
-								onClick={() => confirmRestart(false)}
-								style={{ backgroundColor: '#15803d', color: 'white', fontWeight: 700 }}
-							>
-								Keep results and restart
-							</Button>
-							<Button
-								variant="contained"
-								disabled={actionBusy}
-								onClick={() => confirmRestart(true)}
-								style={{ backgroundColor: '#b91c1c', color: 'white', fontWeight: 700 }}
-							>
-								Delete results and restart
-							</Button>
-						</Box>
-					</Box>
-				</Box>
-			)}
+      {showRestartConfirm && (
+        <Box
+          role="presentation"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+          }}
+        >
+          <Box
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="restart-voting-title"
+            bg="white"
+            p="xl"
+            boxShadow="card"
+            style={{ width: '100%', maxWidth: '520px' }}
+          >
+            <H2 id="restart-voting-title" mb="lg">
+              Restart voting?
+            </H2>
+            <Text mb="lg">
+              Choose whether to keep the existing votes and awards. Keeping them
+              is useful when voting is paused for a technical issue.
+            </Text>
+            <Box bg="warning" p="lg" mb="xl">
+              <Text>
+                Deleting results permanently removes this event&apos;s votes and
+                award assignments.
+              </Text>
+            </Box>
+            <Box
+              flex
+              justifyContent="flex-end"
+              flexWrap="wrap"
+              style={{ gap: '12px' }}
+            >
+              <Button
+                variant="outlined"
+                disabled={actionBusy}
+                onClick={() => setShowRestartConfirm(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                disabled={actionBusy}
+                onClick={() => confirmRestart(false)}
+                style={{
+                  backgroundColor: '#15803d',
+                  color: 'white',
+                  fontWeight: 700,
+                }}
+              >
+                Keep results and restart
+              </Button>
+              <Button
+                variant="contained"
+                disabled={actionBusy}
+                onClick={() => confirmRestart(true)}
+                style={{
+                  backgroundColor: '#b91c1c',
+                  color: 'white',
+                  fontWeight: 700,
+                }}
+              >
+                Delete results and restart
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      )}
 
-				<Box
-					bg="white"
-					p="xl"
-					boxShadow="card"
-					mb="xl"
-					borderTop={`4px solid ${data.votingStatus.votingOpen ? '#16a34a' : '#dc2626'}`}
-				>
-					<Box flex justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" style={{ gap: '24px' }}>
-						<Box>
-							<Text fontSize="h3" fontWeight="bold" mb="sm">Voting control</Text>
-							<Box flex alignItems="center" style={{ gap: '10px' }}>
-								<Box
-									role="status"
-									aria-label={`Voting ${data.votingStatus.votingOpen ? 'open' : 'closed'}`}
-									style={{
-										width: '14px',
-										height: '14px',
-										borderRadius: '50%',
-										backgroundColor: data.votingStatus.votingOpen ? '#16a34a' : '#dc2626',
-										boxShadow: '0 0 0 3px rgba(15, 23, 42, 0.08)',
-									}}
-								/>
-								<Text fontWeight="bold" style={{ color: data.votingStatus.votingOpen ? '#16a34a' : '#dc2626' }}>
-									{data.votingStatus.votingOpen ? 'Voting open' : 'Voting closed'}
-								</Text>
-							</Box>
-						</Box>
-						<Box style={{ textAlign: 'right' }}>
-							<Text color="grey60" mb="sm">Time remaining</Text>
-							<Text
-								role="timer"
-								style={{
-									fontSize: '40px',
-									fontWeight: 800,
-									lineHeight: 1,
-									fontVariantNumeric: 'tabular-nums',
-									color: remainingMs !== null && remainingMs < 5 * 60 * 1000 ? '#dc2626' : '#0f172a',
-								}}
-							>
-								{remainingMs !== null ? formatCountdown(remainingMs) : '—:—'}
-							</Text>
-						</Box>
-					</Box>
-					<Box mt="xl" pt="lg" flex flexWrap="wrap" alignItems="center" style={{ borderTop: '1px solid #e5e7eb', gap: '48px' }}>
-						<Box flex alignItems="center" style={{ gap: '10px' }}>
-							<Text color="grey60" style={{ whiteSpace: 'nowrap' }}>Duration (minutes)</Text>
-							<Input
-								value={durationMinutes}
-								type="number"
-								min={1}
-								onChange={(event: React.ChangeEvent<HTMLInputElement>) => setDurationMinutes(event.target.value)}
-								style={{ width: '90px' }}
-							/>
-						</Box>
-						<Box flex alignItems="center" style={{ gap: '16px' }}>
-							<Button
-								variant="contained"
-								disabled={actionBusy || data.votingStatus.votingOpen}
-								onClick={startVoting}
-								style={{ minHeight: '48px', padding: '0 24px', fontSize: '16px', fontWeight: 700 }}
-							>
-								{data.votingStatus.votingOpen ? 'Voting open' : 'Start / restart voting'}
-							</Button>
-							<Button
-								variant="outlined"
-								disabled={actionBusy || !data.votingStatus.votingOpen}
-								onClick={() => void runAction('stop')}
-								style={{ minHeight: '48px', padding: '0 24px', fontSize: '16px', fontWeight: 700 }}
-							>
-								Stop voting
-							</Button>
-						</Box>
-					</Box>
-					{actionError && <Text color="error" mt="sm">{actionError}</Text>}
-				</Box>
+      <Box
+        bg="white"
+        p="xl"
+        boxShadow="card"
+        mb="xl"
+        borderTop={`4px solid ${data.votingStatus.votingOpen ? '#16a34a' : '#dc2626'}`}
+      >
+        <Box
+          flex
+          justifyContent="space-between"
+          alignItems="flex-start"
+          flexWrap="wrap"
+          style={{ gap: '24px' }}
+        >
+          <Box>
+            <Text fontSize="h3" fontWeight="bold" mb="sm">
+              Voting control
+            </Text>
+            <Box flex alignItems="center" style={{ gap: '10px' }}>
+              <Box
+                role="status"
+                aria-label={`Voting ${data.votingStatus.votingOpen ? 'open' : 'closed'}`}
+                style={{
+                  width: '14px',
+                  height: '14px',
+                  borderRadius: '50%',
+                  backgroundColor: data.votingStatus.votingOpen
+                    ? '#16a34a'
+                    : '#dc2626',
+                  boxShadow: '0 0 0 3px rgba(15, 23, 42, 0.08)',
+                }}
+              />
+              <Text
+                fontWeight="bold"
+                style={{
+                  color: data.votingStatus.votingOpen ? '#16a34a' : '#dc2626',
+                }}
+              >
+                {data.votingStatus.votingOpen ? 'Voting open' : 'Voting closed'}
+              </Text>
+            </Box>
+          </Box>
+          <Box style={{ textAlign: 'right' }}>
+            <Text color="grey60" mb="sm">
+              Time remaining
+            </Text>
+            <Text
+              role="timer"
+              style={{
+                fontSize: '40px',
+                fontWeight: 800,
+                lineHeight: 1,
+                fontVariantNumeric: 'tabular-nums',
+                color:
+                  remainingMs !== null && remainingMs < 5 * 60 * 1000
+                    ? '#dc2626'
+                    : '#0f172a',
+              }}
+            >
+              {remainingMs !== null ? formatCountdown(remainingMs) : '—:—'}
+            </Text>
+          </Box>
+        </Box>
+        <Box
+          mt="xl"
+          pt="lg"
+          flex
+          flexWrap="wrap"
+          alignItems="center"
+          style={{ borderTop: '1px solid #e5e7eb', gap: '48px' }}
+        >
+          <Box flex alignItems="center" style={{ gap: '10px' }}>
+            <Text color="grey60" style={{ whiteSpace: 'nowrap' }}>
+              Duration (minutes)
+            </Text>
+            <Input
+              value={durationMinutes}
+              type="number"
+              min={1}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setDurationMinutes(event.target.value)
+              }
+              style={{ width: '90px' }}
+            />
+          </Box>
+          <Box flex alignItems="center" style={{ gap: '16px' }}>
+            <Button
+              variant="contained"
+              disabled={actionBusy || data.votingStatus.votingOpen}
+              onClick={startVoting}
+              style={{
+                minHeight: '48px',
+                padding: '0 24px',
+                fontSize: '16px',
+                fontWeight: 700,
+              }}
+            >
+              {data.votingStatus.votingOpen
+                ? 'Voting open'
+                : 'Start / restart voting'}
+            </Button>
+            <Button
+              variant="outlined"
+              disabled={actionBusy || !data.votingStatus.votingOpen}
+              onClick={() => void runAction('stop')}
+              style={{
+                minHeight: '48px',
+                padding: '0 24px',
+                fontSize: '16px',
+                fontWeight: 700,
+              }}
+            >
+              Stop voting
+            </Button>
+          </Box>
+        </Box>
+        {actionError && (
+          <Text color="error" mt="sm">
+            {actionError}
+          </Text>
+        )}
+      </Box>
 
-				<Box bg="white" p="xl" boxShadow="card" mb="xl">
-					<Text fontSize="h3" fontWeight="bold" mb="sm">Broadcast message</Text>
-					<Text color="grey60" mb="md">Send a message directly to connected voting clients.</Text>
-					<Box flex alignItems="flex-end" flexWrap="wrap" style={{ gap: '12px' }}>
-						<Box flexGrow={1} style={{ width: '100%' }}>
-							<TextArea
-								rows={3}
-								value={message}
-								onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(event.target.value)}
-								style={{ width: '100%', boxSizing: 'border-box' }}
-							/>
-						</Box>
-						<Button
-							variant="contained"
-							disabled={actionBusy || !message.trim()}
-							onClick={() => void runAction('message')}
-							style={{ minHeight: '44px', padding: '0 20px', fontWeight: 700 }}
-						>
-							Send message
-						</Button>
-					</Box>
-				</Box>
+      <Box bg="white" p="xl" boxShadow="card" mb="xl">
+        <Text fontSize="h3" fontWeight="bold" mb="sm">
+          Broadcast message
+        </Text>
+        <Text color="grey60" mb="md">
+          Send a message directly to connected voting clients.
+        </Text>
+        <Box flex alignItems="flex-end" flexWrap="wrap" style={{ gap: '12px' }}>
+          <Box flexGrow={1} style={{ width: '100%' }}>
+            <TextArea
+              rows={3}
+              value={message}
+              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setMessage(event.target.value)
+              }
+              style={{ width: '100%', boxSizing: 'border-box' }}
+            />
+          </Box>
+          <Button
+            variant="contained"
+            disabled={actionBusy || !message.trim()}
+            onClick={() => void runAction('message')}
+            style={{ minHeight: '44px', padding: '0 20px', fontWeight: 700 }}
+          >
+            Send message
+          </Button>
+        </Box>
+      </Box>
 
-			{error && (
-				<Box bg="error" color="white" p="default" mb="lg">
-					<Text color="white">The latest refresh failed. Showing the last successful update.</Text>
-				</Box>
-			)}
+      {error && (
+        <Box bg="error" color="white" p="default" mb="lg">
+          <Text color="white">
+            The latest refresh failed. Showing the last successful update.
+          </Text>
+        </Box>
+      )}
 
-			<Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))" gap="lg" mb="xxl">
-				{metrics.map((metric) => (
-					<Box key={metric.label} bg="white" p="lg" boxShadow="card" borderTop={`4px solid ${metric.color}`}>
-						<Text color="grey60">{metric.label}</Text>
-						<Text fontSize="h2" fontWeight="bold">{metric.value}</Text>
-					</Box>
-				))}
-			</Box>
+      <Box
+        display="grid"
+        gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))"
+        gap="lg"
+        mb="xxl"
+      >
+        {metrics.map((metric) => (
+          <Box
+            key={metric.label}
+            bg="white"
+            p="lg"
+            boxShadow="card"
+            borderTop={`4px solid ${metric.color}`}
+          >
+            <Text color="grey60">{metric.label}</Text>
+            <Text fontSize="h2" fontWeight="bold">
+              {metric.value}
+            </Text>
+          </Box>
+        ))}
+      </Box>
 
-			<Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))" gap="xl">
-			<Box bg="white" p="xl" boxShadow="card">
-								<Text fontSize="h3" fontWeight="bold" mb="xl">Votes remaining</Text>
-				<Box width="100%" height="320px">
-					<ResponsiveContainer width="100%" height="100%">
-										<LineChart data={data.votesOverTime} margin={{ top: 8, right: 24, left: 8, bottom: 8 }}>
-							<CartesianGrid strokeDasharray="3 3" />
-							<XAxis dataKey="date" tickFormatter={formatVoteTime} />
-											<YAxis allowDecimals={false} domain={[0, 'dataMax']} />
-							<Tooltip labelFormatter={formatVoteTime} />
-											<Line type="monotone" dataKey="votesRemaining" name="Votes remaining" stroke="#dc2626" strokeWidth={3} dot={{ r: 4 }} />
-						</LineChart>
-					</ResponsiveContainer>
-				</Box>
-				<Text color="grey60" mt="lg">
-									{data.totalExpectedVotes.toLocaleString()} expected votes. Updated {lastUpdated?.toLocaleTimeString() ?? 'recently'}
-				</Text>
-			</Box>
+      <Box
+        display="grid"
+        gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))"
+        gap="xl"
+      >
+        <Box bg="white" p="xl" boxShadow="card">
+          <Text fontSize="h3" fontWeight="bold" mb="xl">
+            Votes remaining
+          </Text>
+          <Box width="100%" height="320px">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={data.votesOverTime}
+                margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tickFormatter={formatVoteTime} />
+                <YAxis allowDecimals={false} domain={[0, 'dataMax']} />
+                <Tooltip labelFormatter={formatVoteTime} />
+                <Line
+                  type="monotone"
+                  dataKey="votesRemaining"
+                  name="Votes remaining"
+                  stroke="#dc2626"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </Box>
+          <Text color="grey60" mt="lg">
+            {data.totalExpectedVotes.toLocaleString()} expected votes. Updated{' '}
+            {lastUpdated?.toLocaleTimeString() ?? 'recently'}
+          </Text>
+        </Box>
 
-			<Box bg="white" p="xl" boxShadow="card">
-				<Text fontSize="h3" fontWeight="bold" mb="xl">Votes by project and category</Text>
-				<Box width="100%" height="320px">
-					{categories.length > 0 ? (
-						<ResponsiveContainer width="100%" height="100%">
-							<BarChart data={data.votesByProjectCategory} margin={{ top: 8, right: 24, left: 8, bottom: 8 }}>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis dataKey="project" />
-								<YAxis allowDecimals={false} />
-								<Tooltip />
-								<Legend />
-								{categories.map((category, index) => (
-									<Bar key={category} dataKey={category} stackId="votes" fill={['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed'][index % 5]} />
-								))}
-							</BarChart>
-						</ResponsiveContainer>
-					) : (
-						<Text color="grey60">No votes have been cast yet.</Text>
-					)}
-				</Box>
-			</Box>
-			</Box>
+        <Box bg="white" p="xl" boxShadow="card">
+          <Text fontSize="h3" fontWeight="bold" mb="xl">
+            Votes by project and category
+          </Text>
+          <Box width="100%" height="320px">
+            {categories.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={data.votesByProjectCategory}
+                  margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="project" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  {categories.map((category, index) => (
+                    <Bar
+                      key={category}
+                      dataKey={category}
+                      stackId="votes"
+                      fill={
+                        ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed'][
+                          index % 5
+                        ]
+                      }
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <Text color="grey60">No votes have been cast yet.</Text>
+            )}
+          </Box>
+        </Box>
+      </Box>
 
-			<Box bg="white" p="xl" boxShadow="card" mt="xl">
-				<Text fontSize="h3" fontWeight="bold" mb="lg">Calculated results</Text>
-				{data.votingStatus.votingOpen ? (
-					<Text color="grey60">Results become available after voting is stopped.</Text>
-				) : data.results.length === 0 ? (
-					<Text color="grey60">No calculated votes are available yet.</Text>
-				) : (
-					<Box style={{ overflowX: 'auto' }}>
-						<table style={{ width: '100%', borderCollapse: 'collapse' }}>
-							<thead>
-								<tr>
-									{['Project', 'Category', 'Adjusted score', 'Median', 'Participation', 'Outliers'].map((heading) => (
-										<th key={heading} style={{ textAlign: 'left', padding: '10px', borderBottom: '2px solid #e5e7eb' }}>{heading}</th>
-									))}
-								</tr>
-							</thead>
-							<tbody>
-								{data.results.map((result) => (
-									<tr key={`${result.projectId}-${result.categoryId}`}>
-										<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>{result.projectName}</td>
-										<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>{result.categoryName}</td>
-										<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', minWidth: '180px' }}>
-											<strong>{Number(result.adjusted_average_percent).toFixed(1)}%</strong>
-											<Box style={{ position: 'relative', height: '8px', background: '#e5e7eb', marginTop: '6px' }}>
-												<Box style={{ position: 'absolute', left: `${Number(result.min_percent)}%`, width: `${Math.max(Number(result.max_percent) - Number(result.min_percent), 1)}%`, height: '8px', background: '#93c5fd' }} />
-												<Box style={{ position: 'absolute', left: `${Number(result.median_percent)}%`, width: '3px', height: '14px', top: '-3px', background: '#1d4ed8' }} />
-											</Box>
-										</td>
-										<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>{Number(result.median_percent).toFixed(1)}%</td>
-										<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>{Number(result.participation_percent).toFixed(1)}% ({result.vote_count} votes)</td>
-										<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>{result.has_outliers ? `${result.outlier_count} flagged` : 'None'}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</Box>
-				)}
-			</Box>
+      <Box bg="white" p="xl" boxShadow="card" mt="xl">
+        <Text fontSize="h3" fontWeight="bold" mb="lg">
+          Calculated results
+        </Text>
+        {data.votingStatus.votingOpen ? (
+          <Text color="grey60">
+            Results become available after voting is stopped.
+          </Text>
+        ) : data.results.length === 0 ? (
+          <Text color="grey60">No calculated votes are available yet.</Text>
+        ) : (
+          <Box style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {[
+                    'Project',
+                    'Category',
+                    'Adjusted score',
+                    'Median',
+                    'Participation',
+                    'Outliers',
+                  ].map((heading) => (
+                    <th
+                      key={heading}
+                      style={{
+                        textAlign: 'left',
+                        padding: '10px',
+                        borderBottom: '2px solid #e5e7eb',
+                      }}
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.results.map((result) => (
+                  <tr key={`${result.projectId}-${result.categoryId}`}>
+                    <td
+                      style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      {result.projectName}
+                    </td>
+                    <td
+                      style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      {result.categoryName}
+                    </td>
+                    <td
+                      style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #e5e7eb',
+                        minWidth: '180px',
+                      }}
+                    >
+                      <strong>
+                        {Number(result.adjusted_average_percent).toFixed(1)}%
+                      </strong>
+                      <Box
+                        style={{
+                          position: 'relative',
+                          height: '8px',
+                          background: '#e5e7eb',
+                          marginTop: '6px',
+                        }}
+                      >
+                        <Box
+                          style={{
+                            position: 'absolute',
+                            left: `${Number(result.min_percent)}%`,
+                            width: `${Math.max(Number(result.max_percent) - Number(result.min_percent), 1)}%`,
+                            height: '8px',
+                            background: '#93c5fd',
+                          }}
+                        />
+                        <Box
+                          style={{
+                            position: 'absolute',
+                            left: `${Number(result.median_percent)}%`,
+                            width: '3px',
+                            height: '14px',
+                            top: '-3px',
+                            background: '#1d4ed8',
+                          }}
+                        />
+                      </Box>
+                    </td>
+                    <td
+                      style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      {Number(result.median_percent).toFixed(1)}%
+                    </td>
+                    <td
+                      style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      {Number(result.participation_percent).toFixed(1)}% (
+                      {result.vote_count} votes)
+                    </td>
+                    <td
+                      style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #e5e7eb',
+                      }}
+                    >
+                      {result.has_outliers
+                        ? `${result.outlier_count} flagged`
+                        : 'None'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Box>
+        )}
+      </Box>
 
-			{!data.votingStatus.votingOpen && data.awards.length > 0 && (
-				<Box bg="white" p="xl" boxShadow="card" mt="xl">
-					<Text fontSize="h3" fontWeight="bold">Winner by category</Text>
-					<Text color="grey60" mb="lg">Updates immediately as awards are (re)assigned below.</Text>
-					<Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap="md">
-						{awardCategories.map((category) => {
-							const winnerName = winnerByCategoryId.get(category.id);
-							return (
-								<Box
-									key={category.id}
-									p="lg"
-									borderTop={`4px solid ${winnerName ? '#059669' : '#d97706'}`}
-									style={{ background: '#f8fafc' }}
-								>
-									<Text color="grey60">{category.name}</Text>
-									<Text fontWeight="bold">{winnerName ?? 'Unassigned'}</Text>
-								</Box>
-							);
-						})}
-					</Box>
-				</Box>
-			)}
+      {!data.votingStatus.votingOpen && data.awards.length > 0 && (
+        <Box bg="white" p="xl" boxShadow="card" mt="xl">
+          <Text fontSize="h3" fontWeight="bold">
+            Winner by category
+          </Text>
+          <Text color="grey60" mb="lg">
+            Updates immediately as awards are (re)assigned below.
+          </Text>
+          <Box
+            display="grid"
+            gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))"
+            gap="md"
+          >
+            {awardCategories.map((category) => {
+              const winnerName = winnerByCategoryId.get(category.id);
+              return (
+                <Box
+                  key={category.id}
+                  p="lg"
+                  borderTop={`4px solid ${winnerName ? '#059669' : '#d97706'}`}
+                  style={{ background: '#f8fafc' }}
+                >
+                  <Text color="grey60">{category.name}</Text>
+                  <Text fontWeight="bold">{winnerName ?? 'Unassigned'}</Text>
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      )}
 
-			{!data.votingStatus.votingOpen && (
-				<Box bg="white" p="xl" boxShadow="card" mt="xl">
-					<Box flex justifyContent="space-between" alignItems="center" flexWrap="wrap" style={{ gap: '12px' }}>
-						<Box>
-							<Text fontSize="h3" fontWeight="bold">Assign awards</Text>
-							<Text color="grey60">One award per project. Select a runner-up to reassign an award.</Text>
-						</Box>
-						<Button variant="contained" disabled={actionBusy || data.results.length === 0} onClick={() => void runAction('generate-awards')}>
-							Generate awards
-						</Button>
-					</Box>
-					{data.awards.length > 0 && (
-						<Box mt="xl" style={{ overflowX: 'auto' }}>
-							<table style={{ width: '100%', borderCollapse: 'collapse' }}>
-								<thead>
-									<tr>
-										<th style={{ textAlign: 'left', padding: '10px', borderBottom: '2px solid #e5e7eb' }}>Participant</th>
-										{awardCategories.map((category) => <th key={category.id} style={{ textAlign: 'left', padding: '10px', borderBottom: '2px solid #e5e7eb' }}>{category.name}</th>)}
-										<th style={{ textAlign: 'left', padding: '10px', borderBottom: '2px solid #e5e7eb' }}>Assigned award category</th>
-									</tr>
-								</thead>
-								<tbody>
-									{data.awards.map((award) => (
-										<tr key={award.id}>
-											<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>
-												<strong>{award.projectName}</strong>
-											</td>
-											{awardCategories.map((category) => {
-												const candidate = award.candidates.find((item) => item.categoryId === category.id);
-												return <td key={category.id} style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>{candidate ? `#${candidate.rank} / ${candidate.adjustedAveragePercent.toFixed(1)}%` : '-'}</td>;
-											})}
-											<td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb' }}>
-												<select value={award.categoryId ?? ''} disabled={actionBusy} onChange={(event) => void runAction('assign-award', award.id, event.target.value === '' ? null : Number(event.target.value))}>
-													<option value="">No award</option>
-													{awardCategories
-														.filter((category) => category.id === award.categoryId || !assignedCategoryIds.has(category.id))
-														.map((category) => {
-															const candidate = award.candidates.find((item) => item.categoryId === category.id);
-															return (
-																<option key={category.id} value={category.id}>
-																	{candidate ? `#${candidate.rank} ${category.name} (${candidate.adjustedAveragePercent.toFixed(1)}%)` : `${category.name} (not voted on)`}
-																</option>
-															);
-														})}
-												</select>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</Box>
-					)}
-				</Box>
-			)}
-		</Box>
-	);
+      {!data.votingStatus.votingOpen && (
+        <Box bg="white" p="xl" boxShadow="card" mt="xl">
+          <Box
+            flex
+            justifyContent="space-between"
+            alignItems="center"
+            flexWrap="wrap"
+            style={{ gap: '12px' }}
+          >
+            <Box>
+              <Text fontSize="h3" fontWeight="bold">
+                Assign awards
+              </Text>
+              <Text color="grey60">
+                One award per project. Select a runner-up to reassign an award.
+              </Text>
+            </Box>
+            <Button
+              variant="contained"
+              disabled={actionBusy || data.results.length === 0}
+              onClick={() => void runAction('generate-awards')}
+            >
+              Generate awards
+            </Button>
+          </Box>
+          {data.awards.length > 0 && (
+            <Box mt="xl" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        padding: '10px',
+                        borderBottom: '2px solid #e5e7eb',
+                      }}
+                    >
+                      Participant
+                    </th>
+                    {awardCategories.map((category) => (
+                      <th
+                        key={category.id}
+                        style={{
+                          textAlign: 'left',
+                          padding: '10px',
+                          borderBottom: '2px solid #e5e7eb',
+                        }}
+                      >
+                        {category.name}
+                      </th>
+                    ))}
+                    <th
+                      style={{
+                        textAlign: 'left',
+                        padding: '10px',
+                        borderBottom: '2px solid #e5e7eb',
+                      }}
+                    >
+                      Assigned award category
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.awards.map((award) => (
+                    <tr key={award.id}>
+                      <td
+                        style={{
+                          padding: '10px',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        <strong>{award.projectName}</strong>
+                      </td>
+                      {awardCategories.map((category) => {
+                        const candidate = award.candidates.find(
+                          (item) => item.categoryId === category.id,
+                        );
+                        return (
+                          <td
+                            key={category.id}
+                            style={{
+                              padding: '10px',
+                              borderBottom: '1px solid #e5e7eb',
+                            }}
+                          >
+                            {candidate
+                              ? `#${candidate.rank} / ${candidate.adjustedAveragePercent.toFixed(1)}%`
+                              : '-'}
+                          </td>
+                        );
+                      })}
+                      <td
+                        style={{
+                          padding: '10px',
+                          borderBottom: '1px solid #e5e7eb',
+                        }}
+                      >
+                        <select
+                          value={award.categoryId ?? ''}
+                          disabled={actionBusy}
+                          onChange={(event) =>
+                            void runAction(
+                              'assign-award',
+                              award.id,
+                              event.target.value === ''
+                                ? null
+                                : Number(event.target.value),
+                            )
+                          }
+                        >
+                          <option value="">No award</option>
+                          {awardCategories
+                            .filter(
+                              (category) =>
+                                category.id === award.categoryId ||
+                                !assignedCategoryIds.has(category.id),
+                            )
+                            .map((category) => {
+                              const candidate = award.candidates.find(
+                                (item) => item.categoryId === category.id,
+                              );
+                              return (
+                                <option key={category.id} value={category.id}>
+                                  {candidate
+                                    ? `#${candidate.rank} ${category.name} (${candidate.adjustedAveragePercent.toFixed(1)}%)`
+                                    : `${category.name} (not voted on)`}
+                                </option>
+                              );
+                            })}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Box>
+          )}
+        </Box>
+      )}
+    </Box>
+  );
 };
 
 export default Voting;

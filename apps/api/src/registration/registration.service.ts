@@ -1,4 +1,10 @@
-import { ConflictException, HttpException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { RegistrationDto } from '../dto/registration.dto';
 import { Registration } from '@coolestprojects/database';
 import { InfoDto } from '../dto/info.dto';
@@ -44,7 +50,7 @@ export class RegistrationService {
     private readonly userProjectModel: typeof UserProject,
     @InjectModel(Affiliation)
     private readonly affiliationModel: typeof Affiliation,
-  ) { }
+  ) {}
 
   async create(
     info: InfoDto,
@@ -103,8 +109,7 @@ export class RegistrationService {
       gsm: normalizeGsm(createRegistrationDto.user.gsm),
       gsm_guardian:
         normalizeGsm(createRegistrationDto.user.gsm_guardian) || null,
-      email_guardian:
-        createRegistrationDto.user.email_guardian?.trim() || null,
+      email_guardian: createRegistrationDto.user.email_guardian?.trim() || null,
       via: affiliation.via,
       via_type: affiliation.via_type,
       medical: createRegistrationDto.user.medical,
@@ -221,7 +226,6 @@ export class RegistrationService {
   }
 
   async activateRegistration(registrationID: number): Promise<User> {
-
     // update everything in a transaction
     const transaction = await this.sequelize.transaction();
     let user: User;
@@ -300,9 +304,12 @@ export class RegistrationService {
         if (!voucher) {
           throw new Error('Voucher not found or already used');
         }
-        const voucherProject = await this.projectModel.findByPk(voucher.projectId, {
-          transaction,
-        });
+        const voucherProject = await this.projectModel.findByPk(
+          voucher.projectId,
+          {
+            transaction,
+          },
+        );
         if (!voucherProject || voucherProject.deletedAt != null) {
           throw new Error('Voucher not found or already used');
         }
@@ -377,7 +384,12 @@ export class RegistrationService {
         const owner = await project.getOwner();
         if (owner) {
           const ownerToken = this.tokenService.generateLoginToken(owner.id);
-          await this.mailerService.notifyProjectOwner(owner, user, project, ownerToken);
+          await this.mailerService.notifyProjectOwner(
+            owner,
+            user,
+            project,
+            ownerToken,
+          );
         }
       } else {
         const project = await this.projectModel.findByPk(ownerProjectId!);
@@ -434,7 +446,8 @@ export class RegistrationService {
         transaction,
       });
 
-      const availableSlots = event.maxRegistration - (projectCount + confirmedPendingCount);
+      const availableSlots =
+        event.maxRegistration - (projectCount + confirmedPendingCount);
       if (availableSlots <= 0) {
         await transaction.commit();
         return;
@@ -462,7 +475,9 @@ export class RegistrationService {
     // send activation mails outside the transaction; a mail failure must not undo the promotion
     for (const registration of promoted) {
       try {
-        const token = this.tokenService.generateRegistrationToken(registration.id);
+        const token = this.tokenService.generateRegistrationToken(
+          registration.id,
+        );
         await this.mailerService.registrationMail(registration, token);
       } catch (error) {
         this.logger.error(
@@ -473,7 +488,10 @@ export class RegistrationService {
     }
   }
 
-  async unassignParticipant(userId: number, projectCode: string): Promise<void> {
+  async unassignParticipant(
+    userId: number,
+    projectCode: string,
+  ): Promise<void> {
     const participation = await this.userProjectModel.findOne({
       where: {
         voucherGuid: projectCode,
@@ -497,7 +515,12 @@ export class RegistrationService {
       const owner = await project?.getOwner();
       if (leavingUser && project && owner) {
         const ownerToken = this.tokenService.generateLoginToken(owner.id);
-        await this.mailerService.notifyProjectOwnerParticipantLeft(owner, leavingUser, project, ownerToken);
+        await this.mailerService.notifyProjectOwnerParticipantLeft(
+          owner,
+          leavingUser,
+          project,
+          ownerToken,
+        );
       }
     } catch (error) {
       this.logger.error(
@@ -588,8 +611,8 @@ export class RegistrationService {
     ) {
       throw new Error(
         'Guardian email and phone number are required for participants under ' +
-        event.minGuardianAge +
-        ' years old.',
+          event.minGuardianAge +
+          ' years old.',
       );
     }
 
@@ -600,8 +623,8 @@ export class RegistrationService {
     ) {
       throw new Error(
         'Guardian cannot be filled when participant is over ' +
-        event.minGuardianAge +
-        ' years old.',
+          event.minGuardianAge +
+          ' years old.',
       );
     }
 

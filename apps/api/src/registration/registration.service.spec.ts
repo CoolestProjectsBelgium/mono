@@ -116,7 +116,10 @@ describe('RegistrationService', () => {
           useValue: { create: userCreate, findByPk: userFindByPk },
         },
         { provide: getModelToken(Question), useValue: {} },
-        { provide: getModelToken(QuestionUser), useValue: { bulkCreate: jest.fn() } },
+        {
+          provide: getModelToken(QuestionUser),
+          useValue: { bulkCreate: jest.fn() },
+        },
         {
           provide: getModelToken(QuestionRegistration),
           useValue: {
@@ -247,7 +250,11 @@ describe('RegistrationService', () => {
 
     it('notifies the project owner when a co-worker joins via voucher', async () => {
       const owner = { id: 99, email: 'owner@test.be' };
-      const project = { id: 55, deletedAt: null, getOwner: jest.fn().mockResolvedValue(owner) };
+      const project = {
+        id: 55,
+        deletedAt: null,
+        getOwner: jest.fn().mockResolvedValue(owner),
+      };
       const coworker = { id: 12, eventId: 1 };
       const voucherUpdate = jest.fn().mockResolvedValue(undefined);
 
@@ -274,20 +281,36 @@ describe('RegistrationService', () => {
       });
       eventFindByPk.mockResolvedValue({ id: 1, maxVoucher: 3 });
       userCreate.mockResolvedValue(coworker);
-      userProjectFindOne.mockResolvedValue({ projectId: 55, update: voucherUpdate });
+      userProjectFindOne.mockResolvedValue({
+        projectId: 55,
+        update: voucherUpdate,
+      });
       projectFindByPk.mockResolvedValue(project);
 
       const result = await service.activateRegistration(20);
 
       expect(result).toBe(coworker);
       expect(voucherUpdate.mock.calls[0][0]).toEqual({ userId: 12 });
-      expect(welcomeMailCoWorker).toHaveBeenCalledWith(coworker, project, 'login-jwt');
+      expect(welcomeMailCoWorker).toHaveBeenCalledWith(
+        coworker,
+        project,
+        'login-jwt',
+      );
       expect(project.getOwner).toHaveBeenCalled();
-      expect(notifyProjectOwner).toHaveBeenCalledWith(owner, coworker, project, 'login-jwt');
+      expect(notifyProjectOwner).toHaveBeenCalledWith(
+        owner,
+        coworker,
+        project,
+        'login-jwt',
+      );
     });
 
     it('does not notify an owner when the project has none', async () => {
-      const project = { id: 55, deletedAt: null, getOwner: jest.fn().mockResolvedValue(undefined) };
+      const project = {
+        id: 55,
+        deletedAt: null,
+        getOwner: jest.fn().mockResolvedValue(undefined),
+      };
       const coworker = { id: 12, eventId: 1 };
 
       registrationFindOne.mockResolvedValue({
@@ -313,7 +336,10 @@ describe('RegistrationService', () => {
       });
       eventFindByPk.mockResolvedValue({ id: 1, maxVoucher: 3 });
       userCreate.mockResolvedValue(coworker);
-      userProjectFindOne.mockResolvedValue({ projectId: 55, update: jest.fn().mockResolvedValue(undefined) });
+      userProjectFindOne.mockResolvedValue({
+        projectId: 55,
+        update: jest.fn().mockResolvedValue(undefined),
+      });
       projectFindByPk.mockResolvedValue(project);
 
       await service.activateRegistration(21);
@@ -329,13 +355,18 @@ describe('RegistrationService', () => {
       const leavingUser = { id: 12, firstname: 'Co', lastname: 'Worker' };
       const participationUpdate = jest.fn().mockResolvedValue(undefined);
 
-      userProjectFindOne.mockResolvedValue({ projectId: 55, update: participationUpdate });
+      userProjectFindOne.mockResolvedValue({
+        projectId: 55,
+        update: participationUpdate,
+      });
       userFindByPk.mockResolvedValue(leavingUser);
       projectFindByPk.mockResolvedValue(project);
 
       await service.unassignParticipant(12, 'voucher-guid');
 
-      expect(participationUpdate).toHaveBeenCalledWith({ deletedAt: expect.any(Date) });
+      expect(participationUpdate).toHaveBeenCalledWith({
+        deletedAt: expect.any(Date),
+      });
       expect(project.getOwner).toHaveBeenCalled();
       expect(notifyProjectOwnerParticipantLeft).toHaveBeenCalledWith(
         owner,
@@ -351,12 +382,19 @@ describe('RegistrationService', () => {
       const leavingUser = { id: 12, firstname: 'Co', lastname: 'Worker' };
       const participationUpdate = jest.fn().mockResolvedValue(undefined);
 
-      userProjectFindOne.mockResolvedValue({ projectId: 55, update: participationUpdate });
+      userProjectFindOne.mockResolvedValue({
+        projectId: 55,
+        update: participationUpdate,
+      });
       userFindByPk.mockResolvedValue(leavingUser);
       projectFindByPk.mockResolvedValue(project);
-      notifyProjectOwnerParticipantLeft.mockRejectedValueOnce(new Error('SMTP down'));
+      notifyProjectOwnerParticipantLeft.mockRejectedValueOnce(
+        new Error('SMTP down'),
+      );
 
-      await expect(service.unassignParticipant(12, 'voucher-guid')).resolves.toBeUndefined();
+      await expect(
+        service.unassignParticipant(12, 'voucher-guid'),
+      ).resolves.toBeUndefined();
 
       expect(participationUpdate).toHaveBeenCalled();
     });
@@ -393,9 +431,15 @@ describe('RegistrationService', () => {
           limit: 1, // 5 - (3 + 1)
         }),
       );
-      expect(update).toHaveBeenCalledWith({ waiting_list: false }, expect.anything());
+      expect(update).toHaveBeenCalledWith(
+        { waiting_list: false },
+        expect.anything(),
+      );
       expect(generateRegistrationToken).toHaveBeenCalledWith(30);
-      expect(registrationMail).toHaveBeenCalledWith(candidate, 'registration-jwt');
+      expect(registrationMail).toHaveBeenCalledWith(
+        candidate,
+        'registration-jwt',
+      );
     });
 
     it('does nothing when no slots are free', async () => {
@@ -419,7 +463,10 @@ describe('RegistrationService', () => {
 
       await expect(service.promoteWaitingList(1)).resolves.toBeUndefined();
 
-      expect(update).toHaveBeenCalledWith({ waiting_list: false }, expect.anything());
+      expect(update).toHaveBeenCalledWith(
+        { waiting_list: false },
+        expect.anything(),
+      );
       expect(transactionCommit).toHaveBeenCalled();
     });
 
@@ -437,9 +484,9 @@ describe('RegistrationService', () => {
     it('rejects when user already has a project', async () => {
       userProjectFindOne.mockResolvedValueOnce({ id: 1, userId: 42 });
 
-      await expect(service.assignParticipant(42, 'voucher-guid')).rejects.toThrow(
-        'User already has a project',
-      );
+      await expect(
+        service.assignParticipant(42, 'voucher-guid'),
+      ).rejects.toThrow('User already has a project');
     });
 
     it('rejects when voucher is invalid or already used', async () => {

@@ -1,18 +1,30 @@
-import { ComponentLoader } from 'adminjs'
+import { ComponentLoader } from 'adminjs';
 
-const componentLoader = new ComponentLoader()
+const componentLoader = new ComponentLoader();
 
 componentLoader.override('Login', './login/Login.tsx');
 
 const Components = {
   Dashboard: componentLoader.add('Dashboard', './dashboard/Dashboard.tsx'),
-  PictureSelector: componentLoader.add('PictureSelector', './pictures/PictureSelector.tsx'),
+  PictureSelector: componentLoader.add(
+    'PictureSelector',
+    './pictures/PictureSelector.tsx',
+  ),
   VotingOverview: componentLoader.add('VotingOverview', './voting/Voting.tsx'),
   Tables: componentLoader.add('Tables', './tables/Tables.tsx'),
-  EmailTemplates: componentLoader.add('EmailTemplates', './email-templates/EmailTemplates.tsx'),
+  EmailTemplates: componentLoader.add(
+    'EmailTemplates',
+    './email-templates/EmailTemplates.tsx',
+  ),
   Floorplans: componentLoader.add('Floorplans', './floorplans/Floorplans.tsx'),
-  Presentation: componentLoader.add('Presentation', './presentation/Presentation.tsx'),
-  PresentationAssets: componentLoader.add('PresentationAssets', './presentation-assets/PresentationAssets.tsx'),
-}
+  Presentation: componentLoader.add(
+    'Presentation',
+    './presentation/Presentation.tsx',
+  ),
+  PresentationAssets: componentLoader.add(
+    'PresentationAssets',
+    './presentation-assets/PresentationAssets.tsx',
+  ),
+};
 
-export { componentLoader, Components }
+export { componentLoader, Components };

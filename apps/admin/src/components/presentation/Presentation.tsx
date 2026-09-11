@@ -32,11 +32,19 @@ const Presentation: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
 
-  const [selectedConfig, setSelectedConfig] = useState<{ value: string; label: string } | null>(null);
+  const [selectedConfig, setSelectedConfig] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
   const [draftBody, setDraftBody] = useState('');
   const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<{ value: string; label: string } | null>(null);
-  const [previewImageBase64, setPreviewImageBase64] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
+  const [previewImageBase64, setPreviewImageBase64] = useState<string | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
 
   const configOptions = configs.map((config) => ({
@@ -44,8 +52,12 @@ const Presentation: React.FC = () => {
     label: `${config.title} (#${config.id})`,
   }));
 
-  const activeConfig = configs.find((config) => String(config.id) === selectedConfig?.value) ?? null;
-  const needsProjectPicker = activeConfig?.dataSource === 'projects' && activeConfig?.cardinality === 'perRecord';
+  const activeConfig =
+    configs.find((config) => String(config.id) === selectedConfig?.value) ??
+    null;
+  const needsProjectPicker =
+    activeConfig?.dataSource === 'projects' &&
+    activeConfig?.cardinality === 'perRecord';
 
   const loadPage = useCallback(async () => {
     setLoading(true);
@@ -69,7 +81,10 @@ const Presentation: React.FC = () => {
   }, [loadPage]);
 
   const currentSlide = slides[currentIndex] ?? null;
-  const slideSeconds = currentSlide?.time && currentSlide.time > 0 ? currentSlide.time : DEFAULT_SLIDE_SECONDS;
+  const slideSeconds =
+    currentSlide?.time && currentSlide.time > 0
+      ? currentSlide.time
+      : DEFAULT_SLIDE_SECONDS;
 
   useEffect(() => {
     if (!playing || slides.length < 2) {
@@ -84,24 +99,36 @@ const Presentation: React.FC = () => {
   }, [playing, slides.length, slideSeconds, currentIndex]);
 
   const goToPrevious = () => {
-    setCurrentIndex((index) => (slides.length === 0 ? 0 : (index - 1 + slides.length) % slides.length));
+    setCurrentIndex((index) =>
+      slides.length === 0 ? 0 : (index - 1 + slides.length) % slides.length,
+    );
   };
 
   const goToNext = () => {
-    setCurrentIndex((index) => (slides.length === 0 ? 0 : (index + 1) % slides.length));
+    setCurrentIndex((index) =>
+      slides.length === 0 ? 0 : (index + 1) % slides.length,
+    );
   };
 
-  const handleConfigChange = async (option: { value: string; label: string } | null) => {
+  const handleConfigChange = async (
+    option: { value: string; label: string } | null,
+  ) => {
     setSelectedConfig(option);
     setSelectedProjectId(null);
     setPreviewImageBase64(null);
     setProjectOptions([]);
     setError(null);
 
-    const config = configs.find((candidate) => String(candidate.id) === option?.value) ?? null;
+    const config =
+      configs.find((candidate) => String(candidate.id) === option?.value) ??
+      null;
     setDraftBody(config?.body ?? '');
 
-    if (config && config.dataSource === 'projects' && config.cardinality === 'perRecord') {
+    if (
+      config &&
+      config.dataSource === 'projects' &&
+      config.cardinality === 'perRecord'
+    ) {
       setBusy(true);
       try {
         const response = await api.getPage({
@@ -185,25 +212,45 @@ const Presentation: React.FC = () => {
   );
 
   if (loading) {
-    return <Box padding="xl"><Text>Loading the presentation deck...</Text></Box>;
+    return (
+      <Box padding="xl">
+        <Text>Loading the presentation deck...</Text>
+      </Box>
+    );
   }
 
   return (
     <Box padding="xl">
       <H2>Presentation preview</H2>
-      {error && <Text color="error" mb="lg">{error}</Text>}
-      {success && <Text color="success" mb="lg">{success}</Text>}
+      {error && (
+        <Text color="error" mb="lg">
+          {error}
+        </Text>
+      )}
+      {success && (
+        <Text color="success" mb="lg">
+          {success}
+        </Text>
+      )}
 
       <Box bg="white" p="xl" boxShadow="card" mb="xl">
         <Box flex justifyContent="space-between" alignItems="center" mb="lg">
           <H3>Deck carousel</H3>
-          <Button variant="outlined" size="sm" disabled={busy} onClick={loadPage}>
+          <Button
+            variant="outlined"
+            size="sm"
+            disabled={busy}
+            onClick={loadPage}
+          >
             Refresh deck
           </Button>
         </Box>
 
         {slides.length === 0 ? (
-          <Text color="grey60">No slides configured yet. Add rows on the Presentation resource page.</Text>
+          <Text color="grey60">
+            No slides configured yet. Add rows on the Presentation resource
+            page.
+          </Text>
         ) : (
           <Box>
             <Box
@@ -227,13 +274,22 @@ const Presentation: React.FC = () => {
                 />
               )}
             </Box>
-            <Box flex justifyContent="space-between" alignItems="center" style={{ gap: '8px' }}>
+            <Box
+              flex
+              justifyContent="space-between"
+              alignItems="center"
+              style={{ gap: '8px' }}
+            >
               <Box flex style={{ gap: '8px' }}>
-                <Button size="sm" onClick={goToPrevious}>Previous</Button>
+                <Button size="sm" onClick={goToPrevious}>
+                  Previous
+                </Button>
                 <Button size="sm" onClick={() => setPlaying((value) => !value)}>
                   {playing ? 'Pause' : 'Play'}
                 </Button>
-                <Button size="sm" onClick={goToNext}>Next</Button>
+                <Button size="sm" onClick={goToNext}>
+                  Next
+                </Button>
               </Box>
               <Text color="grey60">{carouselLabel}</Text>
             </Box>
@@ -262,7 +318,10 @@ const Presentation: React.FC = () => {
                 <Label>Preview with project</Label>
                 <Select
                   value={selectedProjectId}
-                  options={projectOptions.map((project) => ({ value: String(project.id), label: project.name }))}
+                  options={projectOptions.map((project) => ({
+                    value: String(project.id),
+                    label: project.name,
+                  }))}
                   isClearable
                   isDisabled={projectOptions.length === 0}
                   placeholder="First visible project"
@@ -276,13 +335,23 @@ const Presentation: React.FC = () => {
               <TextArea
                 rows={14}
                 value={draftBody}
-                onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setDraftBody(event.target.value)}
-                style={{ width: '100%', fontFamily: 'monospace', boxSizing: 'border-box' }}
+                onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setDraftBody(event.target.value)
+                }
+                style={{
+                  width: '100%',
+                  fontFamily: 'monospace',
+                  boxSizing: 'border-box',
+                }}
               />
             </FormGroup>
 
             <Box flex style={{ gap: '8px' }} mb="lg">
-              <Button variant="outlined" disabled={busy} onClick={handlePreview}>
+              <Button
+                variant="outlined"
+                disabled={busy}
+                onClick={handlePreview}
+              >
                 {busy ? 'Rendering...' : 'Preview'}
               </Button>
               <Button variant="contained" disabled={busy} onClick={handleSave}>
@@ -292,11 +361,17 @@ const Presentation: React.FC = () => {
 
             {previewImageBase64 && (
               <Box>
-                <Text fontWeight="bold" mb="sm">Preview (not saved yet)</Text>
+                <Text fontWeight="bold" mb="sm">
+                  Preview (not saved yet)
+                </Text>
                 <img
                   src={`data:image/png;base64,${previewImageBase64}`}
                   alt="Slide preview"
-                  style={{ width: '100%', maxWidth: '960px', border: '1px solid #ddd' }}
+                  style={{
+                    width: '100%',
+                    maxWidth: '960px',
+                    border: '1px solid #ddd',
+                  }}
                 />
               </Box>
             )}

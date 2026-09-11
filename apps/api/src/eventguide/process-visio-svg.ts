@@ -27,7 +27,10 @@ function injectBlinkCss(svg: string): string {
   if (svg.includes('<style')) {
     return svg.replace(/<style([^>]*)>/, `<style$1>${BLINK_CSS}`);
   }
-  return svg.replace(/<svg\b([^>]*)>/, `<svg$1><style type="text/css"><![CDATA[${BLINK_CSS}]]></style>`);
+  return svg.replace(
+    /<svg\b([^>]*)>/,
+    `<svg$1><style type="text/css"><![CDATA[${BLINK_CSS}]]></style>`,
+  );
 }
 
 function extractTableNumber(groupContent: string): number | null {
@@ -39,7 +42,10 @@ function extractTableNumber(groupContent: string): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
-function findGroupBounds(svg: string, titleIndex: number): { start: number, end: number } | null {
+function findGroupBounds(
+  svg: string,
+  titleIndex: number,
+): { start: number; end: number } | null {
   const groupStart = svg.lastIndexOf('<g', titleIndex);
   if (groupStart === -1) {
     return null;
@@ -75,15 +81,21 @@ function replaceGroupId(groupMarkup: string, tableNumber: number): string {
 }
 
 export function isProcessedSvgCorrupt(svg: string): boolean {
-  return /<text[^>]*<g id="table_/i.test(svg)
-    || /[xy]="-?\d+\.?\d*<g id="table_/i.test(svg);
+  return (
+    /<text[^>]*<g id="table_/i.test(svg) ||
+    /[xy]="-?\d+\.?\d*<g id="table_/i.test(svg)
+  );
 }
 
 export function processVisioSvg(svgContent: string): ProcessVisioSvgResult {
   const warnings: string[] = [];
   const tableNumbers: number[] = [];
   const seen = new Set<number>();
-  const replacements: Array<{ start: number, end: number, replacement: string }> = [];
+  const replacements: Array<{
+    start: number;
+    end: number;
+    replacement: string;
+  }> = [];
 
   let searchFrom = 0;
   while (true) {
@@ -124,7 +136,9 @@ export function processVisioSvg(svgContent: string): ProcessVisioSvgResult {
   }
 
   let processed = svgContent;
-  for (const replacement of replacements.sort((left, right) => right.start - left.start)) {
+  for (const replacement of replacements.sort(
+    (left, right) => right.start - left.start,
+  )) {
     processed = `${processed.slice(0, replacement.start)}${replacement.replacement}${processed.slice(replacement.end)}`;
   }
 

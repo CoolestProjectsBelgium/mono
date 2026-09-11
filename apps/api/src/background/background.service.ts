@@ -14,15 +14,19 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import Imap from 'imap';
 import { simpleParser, ParsedMail } from 'mailparser';
 import { EmailLog, MailTemplates } from '@coolestprojects/database';
-import { extractBounceIdentifier, isBounceNotification } from './bounce-detection';
-import { deriveReminderReasons, hasAnyReminderReason } from './reminder-reasons';
+import {
+  extractBounceIdentifier,
+  isBounceNotification,
+} from './bounce-detection';
+import {
+  deriveReminderReasons,
+  hasAnyReminderReason,
+} from './reminder-reasons';
 import { TokensService } from '../tokens/tokens.service';
 import { RegistrationService } from '../registration/registration.service';
 
-
 @Injectable()
 export class BackgroundService implements OnModuleInit {
-
   constructor(
     @InjectModel(Event)
     private readonly eventModel: typeof Event,
@@ -41,7 +45,7 @@ export class BackgroundService implements OnModuleInit {
     private readonly emaillogModel: typeof EmailLog,
     private readonly tokensService: TokensService,
     private readonly registrationService: RegistrationService,
-  ) { }
+  ) {}
 
   private readonly logger = new Logger(BackgroundService.name);
 
@@ -73,7 +77,6 @@ export class BackgroundService implements OnModuleInit {
   }
 
   async handleBounce() {
-
     const activeEvent = await this.eventModel.findOne({
       attributes: [
         'id',
@@ -98,9 +101,7 @@ export class BackgroundService implements OnModuleInit {
     try {
       const messages = await this.getBounceMessages();
 
-      this.logger.log(
-        `Found ${messages.length} bounce message(s)`,
-      );
+      this.logger.log(`Found ${messages.length} bounce message(s)`);
 
       for (const message of messages) {
         try {
@@ -110,39 +111,32 @@ export class BackgroundService implements OnModuleInit {
           }
 
           const messageId = extractBounceIdentifier(message.parsed);
-          const mailMessage = await this.emaillogModel.findOne({ where: { "messageId": messageId } })
+          const mailMessage = await this.emaillogModel.findOne({
+            where: { messageId: messageId },
+          });
 
           if (!mailMessage) {
-            this.logger.debug("email not in email log")
+            this.logger.debug('email not in email log');
             continue;
           }
 
           mailMessage.status = 'bounced';
-          mailMessage.error = message.parsed.text
+          mailMessage.error = message.parsed.text;
 
-          await mailMessage.save()
+          await mailMessage.save();
 
           // Only delete after DB processing has completed
           await message.delete();
-
         } catch (error) {
-          this.logger.error(
-            `Failed to process bounce message`,
-            error,
-          );
+          this.logger.error(`Failed to process bounce message`, error);
         }
       }
     } catch (error) {
-      this.logger.error(
-        'Failed to check bounce mailbox',
-        error,
-      );
+      this.logger.error('Failed to check bounce mailbox', error);
     }
-
   }
 
   async handleMailing() {
-
     const activeEvent = await this.eventModel.findOne({
       attributes: [
         'id',
@@ -176,7 +170,8 @@ export class BackgroundService implements OnModuleInit {
     const deadlineApproachingDate = new Date(activeEvent.projectClosedDate);
     deadlineApproachingDate.setDate(deadlineApproachingDate.getDate() - 7);
     const deadlineApproaching =
-      new Date() > deadlineApproachingDate && new Date() < activeEvent.projectClosedDate;
+      new Date() > deadlineApproachingDate &&
+      new Date() < activeEvent.projectClosedDate;
 
     this.logger.debug('Notification project reminders');
 
@@ -185,22 +180,26 @@ export class BackgroundService implements OnModuleInit {
     // deriveReminderReasons can tell "no project" apart from "project with
     // no photo" (a plain LEFT-JOIN-null check on attachments.id can't).
     const users = await this.userModel.findAll({
-      include: [{
-        model: this.projectModel,
-        as: 'projects',
-        required: false,
-        through: {
-          where: {
-            eventId: activeEvent.id,
-            deletedAt: null,
-          },
-        },
-        include: [{
-          model: this.attachmentModel,
-          as: 'attachments',
+      include: [
+        {
+          model: this.projectModel,
+          as: 'projects',
           required: false,
-        }],
-      }],
+          through: {
+            where: {
+              eventId: activeEvent.id,
+              deletedAt: null,
+            },
+          },
+          include: [
+            {
+              model: this.attachmentModel,
+              as: 'attachments',
+              required: false,
+            },
+          ],
+        },
+      ],
       where: {
         eventId: activeEvent.id,
       },
@@ -212,7 +211,11 @@ export class BackgroundService implements OnModuleInit {
         continue;
       }
 
-      if (await this.alreadySentToday(MailTemplates.dailyReminder, { userId: user.id })) {
+      if (
+        await this.alreadySentToday(MailTemplates.dailyReminder, {
+          userId: user.id,
+        })
+      ) {
         continue;
       }
 
@@ -243,10 +246,14 @@ export class BackgroundService implements OnModuleInit {
         continue;
       }
 
-      const token = this.tokensService.generateRegistrationToken(registration.id);
-      await this.mailerService.sendRegistrationReminderMail(registration, token);
+      const token = this.tokensService.generateRegistrationToken(
+        registration.id,
+      );
+      await this.mailerService.sendRegistrationReminderMail(
+        registration,
+        token,
+      );
     }
-
   }
 
   /**
@@ -269,10 +276,7 @@ export class BackgroundService implements OnModuleInit {
     return existing !== null;
   }
 
-  private deleteMessage(
-    imap: Imap,
-    seqno: number,
-  ): Promise<void> {
+  private deleteMessage(imap: Imap, seqno: number): Promise<void> {
     return new Promise((resolve, reject) => {
       imap.addFlags(seqno, '\\Deleted', (err) => {
         if (err) {
@@ -290,7 +294,9 @@ export class BackgroundService implements OnModuleInit {
     return new Promise((resolve, reject) => {
       const imap = new Imap({
         user: this.configService.getOrThrow<string>('mailing.imap_user'),
-        password: this.configService.getOrThrow<string>('mailing.imap_password'),
+        password: this.configService.getOrThrow<string>(
+          'mailing.imap_password',
+        ),
         host: this.configService.getOrThrow<string>('mailing.imap_host'),
         port: this.configService.getOrThrow<number>('mailing.imap_port'),
         tls: true,
@@ -311,7 +317,9 @@ export class BackgroundService implements OnModuleInit {
 
   private searchUnseenMessages(imap: Imap): Promise<number[]> {
     return new Promise((resolve, reject) => {
-      imap.search(['UNSEEN'], (err, uids) => (err ? reject(err) : resolve(uids)));
+      imap.search(['UNSEEN'], (err, uids) =>
+        err ? reject(err) : resolve(uids),
+      );
     });
   }
 
@@ -361,7 +369,9 @@ export class BackgroundService implements OnModuleInit {
   ): Promise<Array<{ parsed: ParsedMail; delete: () => Promise<void> }>> {
     return new Promise((resolve, reject) => {
       const fetch = imap.fetch(uids, { bodies: '', markSeen: true });
-      const pending: Array<Promise<{ parsed: ParsedMail; delete: () => Promise<void> } | null>> = [];
+      const pending: Array<
+        Promise<{ parsed: ParsedMail; delete: () => Promise<void> } | null>
+      > = [];
 
       fetch.on('message', (msg, seqno) => {
         pending.push(
@@ -399,5 +409,4 @@ export class BackgroundService implements OnModuleInit {
       return uids.length ? this.fetchAndParseMessages(imap, uids) : [];
     });
   }
-
 }

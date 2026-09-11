@@ -2,7 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import * as nodemailer from 'nodemailer';
 import { MailerService } from './mailer.service';
-import { Event, EmailTemplate, Registration, User, Project, EmailLog } from '@coolestprojects/database';
+import {
+  Event,
+  EmailTemplate,
+  Registration,
+  User,
+  Project,
+  EmailLog,
+} from '@coolestprojects/database';
 
 /**
  * A real `User`/`Registration` instance (via prototype, no DB needed) — `buildMailContext`
@@ -75,13 +82,17 @@ describe('MailerService', () => {
   });
 
   it('registrationMail sends login url and Coolest Projects subject', async () => {
-    const registration = fakePerson(Registration, {
-      eventId: 1,
-      email: 'kid@test.be',
-      email_guardian: 'parent@test.be',
-      language: 'nl',
-      firstname: 'Jan',
-    }, event);
+    const registration = fakePerson(
+      Registration,
+      {
+        eventId: 1,
+        email: 'kid@test.be',
+        email_guardian: 'parent@test.be',
+        language: 'nl',
+        firstname: 'Jan',
+      },
+      event,
+    );
 
     await service.registrationMail(registration, 'jwt-token');
 
@@ -100,9 +111,18 @@ describe('MailerService', () => {
   });
 
   it.each([
-    ['nl', 'https://registration.coolestprojects.localhost:8443/login?token=abc'],
-    ['en', 'https://registration.coolestprojects.localhost:8443/en/login?token=abc'],
-    ['fr', 'https://registration.coolestprojects.localhost:8443/fr/login?token=abc'],
+    [
+      'nl',
+      'https://registration.coolestprojects.localhost:8443/login?token=abc',
+    ],
+    [
+      'en',
+      'https://registration.coolestprojects.localhost:8443/en/login?token=abc',
+    ],
+    [
+      'fr',
+      'https://registration.coolestprojects.localhost:8443/fr/login?token=abc',
+    ],
   ])(
     'registrationMail builds locale-aware url for %s',
     async (language, expectedUrl) => {
@@ -111,12 +131,16 @@ describe('MailerService', () => {
         language,
       });
 
-      const registration = fakePerson(Registration, {
-        eventId: 1,
-        email: 'kid@test.be',
-        language,
-        firstname: 'Test',
-      }, event);
+      const registration = fakePerson(
+        Registration,
+        {
+          eventId: 1,
+          email: 'kid@test.be',
+          language,
+          firstname: 'Test',
+        },
+        event,
+      );
 
       await service.registrationMail(registration, 'abc');
 
@@ -137,12 +161,16 @@ describe('MailerService', () => {
       contentRich: '{{url}}',
     });
 
-    const user = fakePerson(User, {
-      eventId: 1,
-      email: 'user@test.be',
-      language: 'en',
-      firstname: 'Jane',
-    }, event);
+    const user = fakePerson(
+      User,
+      {
+        eventId: 1,
+        email: 'user@test.be',
+        language: 'en',
+        firstname: 'Jane',
+      },
+      event,
+    );
 
     await service.loginMail(user, 'login-jwt');
 
@@ -165,12 +193,16 @@ describe('MailerService', () => {
       contentRich: '{{project.title}}',
     });
 
-    const user = fakePerson(User, {
-      eventId: 1,
-      email: 'owner@test.be',
-      language: 'en',
-      firstname: 'Owner',
-    }, event);
+    const user = fakePerson(
+      User,
+      {
+        eventId: 1,
+        email: 'owner@test.be',
+        language: 'en',
+        firstname: 'Owner',
+      },
+      event,
+    );
 
     const project = {
       id: 42,
@@ -198,12 +230,16 @@ describe('MailerService', () => {
       contentRich: '{{registration.firstname}}',
     });
 
-    const registration = fakePerson(Registration, {
-      eventId: 1,
-      email: 'wait@test.be',
-      language: 'en',
-      firstname: 'Waiting',
-    }, event);
+    const registration = fakePerson(
+      Registration,
+      {
+        eventId: 1,
+        email: 'wait@test.be',
+        language: 'en',
+        firstname: 'Waiting',
+      },
+      event,
+    );
 
     await service.waitingListMail(registration);
 
@@ -221,12 +257,16 @@ describe('MailerService', () => {
       contentRich: '{{project.title}}',
     });
 
-    const user = fakePerson(User, {
-      eventId: 1,
-      email: 'coworker@test.be',
-      language: 'en',
-      firstname: 'Co',
-    }, event);
+    const user = fakePerson(
+      User,
+      {
+        eventId: 1,
+        email: 'coworker@test.be',
+        language: 'en',
+        firstname: 'Co',
+      },
+      event,
+    );
 
     const project = {
       id: 7,
@@ -255,11 +295,15 @@ describe('MailerService', () => {
     });
 
     await service.emailExistsMail(
-      fakePerson(Registration, {
-        eventId: 1,
-        email: 'dup@test.be',
-        language: 'en',
-      }, event),
+      fakePerson(
+        Registration,
+        {
+          eventId: 1,
+          email: 'dup@test.be',
+          language: 'en',
+        },
+        event,
+      ),
     );
 
     expect(emailTemplateModel.findOne).toHaveBeenCalledWith({

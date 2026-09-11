@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from '@coolestprojects/database';
 import { Affiliation } from '@coolestprojects/database';
@@ -17,7 +13,8 @@ export class UserinfoService {
 
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
-    @InjectModel(Affiliation) private readonly affiliationModel: typeof Affiliation,
+    @InjectModel(Affiliation)
+    private readonly affiliationModel: typeof Affiliation,
     private readonly mailerService: MailerService,
   ) {}
 

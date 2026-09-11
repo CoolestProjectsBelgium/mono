@@ -1,6 +1,13 @@
 import { copyFile, mkdir, stat } from 'node:fs/promises';
 import * as path from 'node:path';
-import type { Attachment, Event, Project, Question, QuestionUser, User } from '@coolestprojects/database';
+import type {
+  Attachment,
+  Event,
+  Project,
+  Question,
+  QuestionUser,
+  User,
+} from '@coolestprojects/database';
 import type { CreationAttributes } from 'sequelize';
 import { findActiveEvent } from './seed-voting-fixtures';
 
@@ -36,7 +43,11 @@ export async function seedProjectPicture(
   await stat(fixtureImage);
   await stat(fixtureThumbnail);
 
-  const projectDir = path.join(uploadRoot, eventFolderName, `project_${project.id}`);
+  const projectDir = path.join(
+    uploadRoot,
+    eventFolderName,
+    `project_${project.id}`,
+  );
   await mkdir(projectDir, { recursive: true });
 
   const filepath = path.join(projectDir, 'project-photo.png');
@@ -66,7 +77,13 @@ export async function seedProjectPictures(
 
   for (let i = 0; i < activeProjects.length && i < FIXTURE_COUNT; i++) {
     attachments.push(
-      await seedProjectPicture(uploadRoot, eventFolderName, eventId, activeProjects[i], i),
+      await seedProjectPicture(
+        uploadRoot,
+        eventFolderName,
+        eventId,
+        activeProjects[i],
+        i,
+      ),
     );
   }
 

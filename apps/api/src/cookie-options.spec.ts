@@ -1,7 +1,9 @@
 import { ConfigService } from '@nestjs/config';
 import { buildAppCookieOptions, clearLegacyJwtCookies } from './cookie-options';
 
-function mockConfig(values: Record<string, string | undefined> = {}): ConfigService {
+function mockConfig(
+  values: Record<string, string | undefined> = {},
+): ConfigService {
   return {
     get: (key: string) => values[key],
   } as ConfigService;
@@ -22,7 +24,11 @@ describe('buildAppCookieOptions', () => {
   });
 
   it('uses SameSite=lax without a shared cookie domain in production', () => {
-    expect(buildAppCookieOptions(mockConfig({ enviroment: 'production' }), { secure: false })).toEqual({
+    expect(
+      buildAppCookieOptions(mockConfig({ enviroment: 'production' }), {
+        secure: false,
+      }),
+    ).toEqual({
       httpOnly: true,
       signed: true,
       path: '/',
@@ -77,8 +83,13 @@ describe('buildAppCookieOptions', () => {
   });
 
   it('uses SameSite=none in non-production when CORS includes localhost', () => {
-    process.env.CORS_ORIGINS = 'https://registration.coolestprojects.localhost:8443';
-    expect(buildAppCookieOptions(mockConfig({ enviroment: 'development' }), { secure: false })).toEqual({
+    process.env.CORS_ORIGINS =
+      'https://registration.coolestprojects.localhost:8443';
+    expect(
+      buildAppCookieOptions(mockConfig({ enviroment: 'development' }), {
+        secure: false,
+      }),
+    ).toEqual({
       httpOnly: true,
       signed: true,
       path: '/',

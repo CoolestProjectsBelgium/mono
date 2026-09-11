@@ -1,12 +1,12 @@
-export { componentLoader, Components } from './loader.js'
-import { Handler as DashboardHandler } from './dashboard/handler.js'
-import { Handler as PictureHandler } from './pictures/handler.js'
-import { Handler as VotingHandler } from './voting/handler.js'
-import { Handler as TablesHandler } from './tables/handler.js'
-import { Handler as EmailTemplatesHandler } from './email-templates/handler.js'
-import { Handler as FloorplansHandler } from './floorplans/handler.js'
-import { Handler as PresentationHandler } from './presentation/handler.js'
-import { Handler as PresentationAssetsHandler } from './presentation-assets/handler.js'
+export { componentLoader, Components } from './loader.js';
+import { Handler as DashboardHandler } from './dashboard/handler.js';
+import { Handler as PictureHandler } from './pictures/handler.js';
+import { Handler as VotingHandler } from './voting/handler.js';
+import { Handler as TablesHandler } from './tables/handler.js';
+import { Handler as EmailTemplatesHandler } from './email-templates/handler.js';
+import { Handler as FloorplansHandler } from './floorplans/handler.js';
+import { Handler as PresentationHandler } from './presentation/handler.js';
+import { Handler as PresentationAssetsHandler } from './presentation-assets/handler.js';
 
 const Handlers = {
   Dashboard: DashboardHandler,
@@ -17,6 +17,6 @@ const Handlers = {
   Floorplans: FloorplansHandler,
   Presentation: PresentationHandler,
   PresentationAssets: PresentationAssetsHandler,
-}
+};
 
-export { Handlers }
+export { Handlers };

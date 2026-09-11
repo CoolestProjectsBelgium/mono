@@ -4,7 +4,8 @@ export function normalizeAffiliation(
   viaType: string | null | undefined,
   via: string | null | undefined,
 ): { via_type: ViaType; via: string } {
-  const type: ViaType = viaType === 'dojo' || viaType === 'other' ? viaType : null;
+  const type: ViaType =
+    viaType === 'dojo' || viaType === 'other' ? viaType : null;
   const name = (via ?? '').trim();
 
   if (!type) {

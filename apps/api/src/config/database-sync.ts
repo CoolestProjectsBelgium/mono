@@ -20,9 +20,7 @@ export function buildSequelizeSyncOptions(
 ): SequelizeSyncOptions {
   const syncAlter = envFlag(env.DB_SYNC_ALTER);
   const synchronize =
-    syncAlter ||
-    envFlag(env.DB_SYNCHRONIZE) ||
-    env.NODE_ENV !== 'production';
+    syncAlter || envFlag(env.DB_SYNCHRONIZE) || env.NODE_ENV !== 'production';
 
   return {
     synchronize,

@@ -2,7 +2,8 @@ import { PresentationSlide as PresentationSlideModel } from '@coolestprojects/da
 import { sequelize } from '../../database.js';
 import { NestApiClient } from '../../api/nest-api-client.js';
 
-const PresentationSlide = sequelize.models.PresentationSlide as typeof PresentationSlideModel;
+const PresentationSlide = sequelize.models
+  .PresentationSlide as typeof PresentationSlideModel;
 
 export interface PresentationSlideConfig {
   id: number;
@@ -45,10 +46,15 @@ function buildSlideImageUrl(key: string, hash: string): string {
   return `${getApiBaseUrl()}/admin/presentation-slides/preview/${encodeURIComponent(key)}/image?v=${encodeURIComponent(hash)}`;
 }
 
-async function listConfigs(eventId: number): Promise<PresentationSlideConfig[]> {
+async function listConfigs(
+  eventId: number,
+): Promise<PresentationSlideConfig[]> {
   const rows = await PresentationSlide.findAll({
     where: { eventId },
-    order: [['order', 'ASC'], ['id', 'ASC']],
+    order: [
+      ['order', 'ASC'],
+      ['id', 'ASC'],
+    ],
   });
 
   return rows.map((row) => ({
@@ -67,7 +73,13 @@ async function loadDeck(
   api: NestApiClient,
 ): Promise<{ slides: DeckSlideSummary[]; deckHash: string }> {
   const response = await api.get<{
-    slides: { key: string; order: number; time: number; hash: string; generatedAt: string | null }[];
+    slides: {
+      key: string;
+      order: number;
+      time: number;
+      hash: string;
+      generatedAt: string | null;
+    }[];
     hash: string;
   }>('/admin/presentation-slides/preview');
 
@@ -97,7 +109,9 @@ export const Handler = async (
     const action = String(payload.action ?? '');
 
     if (action === 'load-projects') {
-      const response = await api.get<ProjectOption[]>('/admin/presentation-slides/preview/projects');
+      const response = await api.get<ProjectOption[]>(
+        '/admin/presentation-slides/preview/projects',
+      );
       const { slides, deckHash } = await loadDeck(api);
       return { configs, slides, deckHash, projectOptions: response.data };
     }
@@ -108,15 +122,25 @@ export const Handler = async (
         throw new Error('A slide must be selected');
       }
       const body = String(payload.body ?? '');
-      const projectId = payload.projectId ? Number(payload.projectId) : undefined;
+      const projectId = payload.projectId
+        ? Number(payload.projectId)
+        : undefined;
 
-      const response = await api.post<{ imageBase64: string }>('/admin/presentation-slides/preview/draft', {
-        slideId,
-        body,
-        projectId,
-      });
+      const response = await api.post<{ imageBase64: string }>(
+        '/admin/presentation-slides/preview/draft',
+        {
+          slideId,
+          body,
+          projectId,
+        },
+      );
       const { slides, deckHash } = await loadDeck(api);
-      return { configs, slides, deckHash, previewImageBase64: response.data.imageBase64 };
+      return {
+        configs,
+        slides,
+        deckHash,
+        previewImageBase64: response.data.imageBase64,
+      };
     }
 
     throw new Error(`Unknown action: ${action}`);

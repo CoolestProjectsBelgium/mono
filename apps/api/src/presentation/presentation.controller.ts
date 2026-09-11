@@ -1,4 +1,12 @@
-import { Controller, Get, Head, Param, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Head,
+  Param,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { PresentationService } from './presentation.service';
@@ -25,10 +33,8 @@ export class PresentationController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { file, hash, generatedAt } = await this.presentationService.getSlideImage(
-      info.currentEvent,
-      key,
-    );
+    const { file, hash, generatedAt } =
+      await this.presentationService.getSlideImage(info.currentEvent, key);
 
     const etag = `"${hash}"`;
     if (req.headers['if-none-match'] === etag) {
@@ -51,7 +57,10 @@ export class PresentationController {
     @Param('key') key: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { hash, generatedAt } = await this.presentationService.getSlideMeta(info.currentEvent, key);
+    const { hash, generatedAt } = await this.presentationService.getSlideMeta(
+      info.currentEvent,
+      key,
+    );
 
     res.setHeader('ETag', `"${hash}"`);
     if (generatedAt) {

@@ -1,6 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
-import { Account, Award, Event, EventTable, Project, Vote, VoteCategory } from '@coolestprojects/database';
+import {
+  Account,
+  Award,
+  Event,
+  EventTable,
+  Project,
+  Vote,
+  VoteCategory,
+} from '@coolestprojects/database';
 import { Sequelize } from 'sequelize-typescript';
 import { VotingService } from './voting.service';
 
@@ -26,7 +34,10 @@ describe('VotingService', () => {
           provide: Sequelize,
           useValue: { query },
         },
-        { provide: getModelToken(Event), useValue: { findOne: eventFindOne, findByPk: eventFindByPk } },
+        {
+          provide: getModelToken(Event),
+          useValue: { findOne: eventFindOne, findByPk: eventFindByPk },
+        },
         { provide: getModelToken(Vote), useValue: { destroy: voteDestroy } },
         { provide: getModelToken(Project), useValue: {} },
         { provide: getModelToken(VoteCategory), useValue: {} },
@@ -70,8 +81,9 @@ describe('VotingService', () => {
     it('rejects non-positive voting durations', async () => {
       eventFindByPk.mockResolvedValue({ votingOpen: false });
 
-      await expect(service.openVotingWithDuration(1, 0))
-        .rejects.toThrow('Voting duration must be greater than zero');
+      await expect(service.openVotingWithDuration(1, 0)).rejects.toThrow(
+        'Voting duration must be greater than zero',
+      );
     });
 
     it('clears previous votes and awards only when requested', async () => {
@@ -101,7 +113,9 @@ describe('VotingService', () => {
       expect(event.save).toHaveBeenCalled();
       expect(events).toHaveLength(1);
       expect(events[0]).toMatchObject({ type: 'timer' });
-      expect(event.votingEndDate.getTime()).toBeGreaterThan(event.votingStartDate.getTime());
+      expect(event.votingEndDate.getTime()).toBeGreaterThan(
+        event.votingStartDate.getTime(),
+      );
     });
 
     it('allows stopping an already closed voting window', async () => {
@@ -122,10 +136,13 @@ describe('VotingService', () => {
 
       await service.calculateVotes(42);
 
-      expect(query).toHaveBeenCalledWith(expect.stringContaining('WHERE v.eventId = :eventId'), {
-        type: expect.anything(),
-        replacements: { eventId: 42 },
-      });
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('WHERE v.eventId = :eventId'),
+        {
+          type: expect.anything(),
+          replacements: { eventId: 42 },
+        },
+      );
     });
   });
 });

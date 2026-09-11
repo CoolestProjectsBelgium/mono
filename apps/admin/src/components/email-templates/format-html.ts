@@ -10,8 +10,20 @@ export interface PrepareHtmlResult {
 
 const HANDLEBARS_TOKEN = /\{\{[\s\S]*?\}\}/g;
 const VOID_ELEMENTS = new Set([
-  'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
-  'link', 'meta', 'param', 'source', 'track', 'wbr',
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
 ]);
 
 interface MaskResult {
@@ -30,7 +42,10 @@ export function maskHandlebars(html: string): MaskResult {
 }
 
 export function unmaskHandlebars(masked: string, tokens: string[]): string {
-  return masked.replace(/__HB(\d+)__/g, (_match, index) => tokens[Number(index)] ?? '');
+  return masked.replace(
+    /__HB(\d+)__/g,
+    (_match, index) => tokens[Number(index)] ?? '',
+  );
 }
 
 export function prettyPrintHtml(html: string): string {
@@ -85,8 +100,9 @@ function formatMaskedHtml(input: string): string {
     }
 
     const openingMatch = chunk.match(/^<([a-zA-Z0-9-]+)(?:\s|>|\/)/);
-    const selfClosing = chunk.endsWith('/>')
-      || (openingMatch && VOID_ELEMENTS.has(openingMatch[1].toLowerCase()));
+    const selfClosing =
+      chunk.endsWith('/>') ||
+      (openingMatch && VOID_ELEMENTS.has(openingMatch[1].toLowerCase()));
     if (openingMatch && !closingMatch && !selfClosing) {
       depth += 1;
     }
@@ -115,7 +131,10 @@ export function lintHtml(html: string): HtmlLintWarning[] {
       if (fullTag.startsWith('</')) {
         const last = stack.pop();
         if (!last) {
-          warnings.push({ message: `Unexpected closing tag </${tagName}>`, line: lineNumber });
+          warnings.push({
+            message: `Unexpected closing tag </${tagName}>`,
+            line: lineNumber,
+          });
         } else if (last.tag !== tagName) {
           warnings.push({
             message: `Mismatched tag: expected </${last.tag}>, found </${tagName}>`,
@@ -133,7 +152,10 @@ export function lintHtml(html: string): HtmlLintWarning[] {
     }
 
     if (/<(?![a-zA-Z!/])/.test(line)) {
-      warnings.push({ message: 'Stray "<" character in HTML', line: lineNumber });
+      warnings.push({
+        message: 'Stray "<" character in HTML',
+        line: lineNumber,
+      });
     }
 
     if (/\shref\s*=\s*(['"])\s*\1/.test(line)) {

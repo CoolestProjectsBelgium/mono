@@ -6,7 +6,9 @@ import {
 describe('floorplan-path', () => {
   describe('sanitizeFloorplanFilename', () => {
     it('accepts a simple svg filename', () => {
-      expect(sanitizeFloorplanFilename('cp2025_zaal.svg')).toBe('cp2025_zaal.svg');
+      expect(sanitizeFloorplanFilename('cp2025_zaal.svg')).toBe(
+        'cp2025_zaal.svg',
+      );
     });
 
     it('strips directory segments', () => {

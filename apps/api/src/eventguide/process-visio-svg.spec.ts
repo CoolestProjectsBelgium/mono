@@ -1,9 +1,6 @@
 import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
-import {
-  isProcessedSvgCorrupt,
-  processVisioSvg,
-} from './process-visio-svg';
+import { isProcessedSvgCorrupt, processVisioSvg } from './process-visio-svg';
 
 const mapsDir = path.join(__dirname, '../../../../maps');
 

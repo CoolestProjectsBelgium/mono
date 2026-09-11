@@ -21,7 +21,7 @@ npm run build --workspace=apps/api   # build one workspace (also: admin, voting,
 npm test --workspace=apps/api        # test one workspace (see runners below)
 ```
 
-No workspace defines a `lint` script.
+`apps/api` and `apps/admin` define ESLint (flat config, shared root-level Prettier config) as `lint`/`lint:fix`, e.g. `npm run lint --workspace=apps/api`. No other workspace defines a `lint` script.
 
 Test runners differ per workspace:
 

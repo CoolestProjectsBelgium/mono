@@ -46,18 +46,18 @@ import configuration from '../config/configuration.js';
       load: [configuration],
     }),
     SequelizeModule.forRootAsync({
-      imports: [ConfigModule], 
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
-          dialect: 'mysql', 
-          host: configService.get('DB_HOST') || 'localhost', 
+          dialect: 'mysql',
+          host: configService.get('DB_HOST') || 'localhost',
           port: configService.get('DB_PORT') || 3306,
           username: configService.get('DB_USER') || 'coolestproject',
           password: configService.get('DB_PASSWORD') || 'coolestproject',
           database: configService.get('DB_NAME') || 'coolestproject',
           autoLoadModels: true,
-          synchronize: true, 
+          synchronize: true,
           sync: { force: true },
 
           models: [
@@ -128,4 +128,4 @@ import configuration from '../config/configuration.js';
     ParticipantService,
   ],
 })
-export class CliModule { }
+export class CliModule {}

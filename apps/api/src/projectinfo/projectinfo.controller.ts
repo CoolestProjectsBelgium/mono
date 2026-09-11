@@ -1,7 +1,24 @@
 import { Project, Event } from '@coolestprojects/database';
-import { Body, Controller, Delete, Get, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  Request,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+  Param,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { ApiCookieAuth, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiResponse,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtUserAuthGuard } from '../auth/jwt-user-auth.guard';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 import { MandatoryAdminOrJwtUserAuthGuard } from '../auth/mandatory-admin-or-jwt-user-auth.guard';
@@ -20,8 +37,8 @@ import { StreamableFile } from '@nestjs/common';
 export class ProjectinfoController {
   constructor(
     private projectService: ProjectinfoService,
-    private fileUploadService: FileUploadService
-  ) { }
+    private fileUploadService: FileUploadService,
+  ) {}
 
   @Get()
   @ApiResponse({ status: 500, description: 'Internal server error.' })
@@ -42,7 +59,10 @@ export class ProjectinfoController {
     @Request() req: any,
     @Body() createProjectDto: OwnProjectDto,
   ): Promise<OwnProjectDto> {
-    return await this.projectService.createProject(req.user.id, createProjectDto);
+    return await this.projectService.createProject(
+      req.user.id,
+      createProjectDto,
+    );
   }
 
   @Patch()
@@ -55,7 +75,10 @@ export class ProjectinfoController {
     @Request() req: any,
     @Body() updateProjectDto: OwnProjectDto,
   ): Promise<OwnProjectDto> {
-    return await this.projectService.updateProject(req.user.id, updateProjectDto);
+    return await this.projectService.updateProject(
+      req.user.id,
+      updateProjectDto,
+    );
   }
 
   @Delete()
@@ -64,7 +87,7 @@ export class ProjectinfoController {
   @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async deleteProject(@Request() req: any,): Promise<void> {
+  async deleteProject(@Request() req: any): Promise<void> {
     return await this.projectService.deleteProject(req.user.id);
   }
 
@@ -83,12 +106,21 @@ export class ProjectinfoController {
   @ApiCookieAuth('jwt-user-cookie')
   @UseGuards(MandatoryAdminOrJwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async getAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
+  async getAttachment(
+    @Request() req: any,
+    @Param('attachmentId') attachmentId: number,
+  ) {
     let result: StreamableFile;
     if (req.user.isAdmin) {
-      result = await this.projectService.getThumbnailAdmin(req.user.adminUser.eventId, attachmentId);
+      result = await this.projectService.getThumbnailAdmin(
+        req.user.adminUser.eventId,
+        attachmentId,
+      );
     } else {
-      result = await this.projectService.getThumbnail(req.user.id, attachmentId)
+      result = await this.projectService.getThumbnail(
+        req.user.id,
+        attachmentId,
+      );
     }
     return result;
   }
@@ -98,8 +130,14 @@ export class ProjectinfoController {
   @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async getAttachmentOriginal(@Request() req: any, @Param('attachmentId') attachmentId: number) {
-    return await this.projectService.getAttachment(req.user.adminUser.eventId, attachmentId);;
+  async getAttachmentOriginal(
+    @Request() req: any,
+    @Param('attachmentId') attachmentId: number,
+  ) {
+    return await this.projectService.getAttachment(
+      req.user.adminUser.eventId,
+      attachmentId,
+    );
   }
 
   @Delete('attachments/:attachmentId')
@@ -108,7 +146,10 @@ export class ProjectinfoController {
   @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async deleteAttachment(@Request() req: any, @Param('attachmentId') attachmentId: number) {
+  async deleteAttachment(
+    @Request() req: any,
+    @Param('attachmentId') attachmentId: number,
+  ) {
     return await this.fileUploadService.deleteFile(req.user.id, attachmentId);
   }
 
@@ -116,19 +157,13 @@ export class ProjectinfoController {
   @ApiCookieAuth('jwt-user-cookie')
   @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
-  @UseInterceptors(
-    FileInterceptor('file'),
-    FileValidationInterceptor,
-  )
+  @UseInterceptors(FileInterceptor('file'), FileValidationInterceptor)
   async uploadFile(
     @UploadedFile()
     file: MulterFile,
     @Request() req: any,
   ) {
-    await this.fileUploadService.saveFile(
-      req.user.id,
-      file
-    );
+    await this.fileUploadService.saveFile(req.user.id, file);
   }
 
   @Post('participant')
@@ -136,9 +171,7 @@ export class ProjectinfoController {
   @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async createVoucher(
-    @Request() req: any,
-  ): Promise<VoucherCreatedDto> {
+  async createVoucher(@Request() req: any): Promise<VoucherCreatedDto> {
     return await this.projectService.generateVoucher(req.user.id);
   }
 
@@ -151,7 +184,10 @@ export class ProjectinfoController {
     @Request() req: any,
     @Param('voucherGuid') voucherGuid: string,
   ) {
-    return await this.projectService.deleteUnusedVoucher(req.user.id, voucherGuid);
+    return await this.projectService.deleteUnusedVoucher(
+      req.user.id,
+      voucherGuid,
+    );
   }
 
   @Post('change-owner/:newOwnerId')
@@ -163,7 +199,9 @@ export class ProjectinfoController {
     @Request() req: any,
     @Param('newOwnerId') newOwnerId: number,
   ) {
-    return await this.projectService.changeProjectOwner(req.user.id, newOwnerId);
+    return await this.projectService.changeProjectOwner(
+      req.user.id,
+      newOwnerId,
+    );
   }
-
 }

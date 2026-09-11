@@ -1,4 +1,26 @@
-import { Affiliation, Attachment, Account, EmailTemplate, Event, EventTable, PresentationSlide, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
+import {
+  Affiliation,
+  Attachment,
+  Account,
+  EmailTemplate,
+  Event,
+  EventTable,
+  PresentationSlide,
+  Project,
+  Question,
+  QuestionRegistration,
+  QuestionTranslation,
+  QuestionUser,
+  Tshirt,
+  TshirtGroup,
+  TshirtGroupTranslation,
+  TshirtTranslation,
+  User,
+  UserProject,
+  Registration,
+  Vote,
+  VoteCategory,
+} from '@coolestprojects/database';
 import type { CreationAttributes } from 'sequelize';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import { loadSeedDojoNames } from './load-seed-dojos';
@@ -844,11 +866,32 @@ export async function seedDatabase(
     },
   ]);
   const voteCategories = await voteCategoryModel.bulkCreate([
-    { eventId: event.id, name: 'Creativity', min: 1, max: 10, public: false, optional: false },
-    { eventId: event.id, name: 'Technical skill', min: 1, max: 10, public: false, optional: false },
-    { eventId: event.id, name: 'Presentation', min: 1, max: 5, public: false, optional: true },
+    {
+      eventId: event.id,
+      name: 'Creativity',
+      min: 1,
+      max: 10,
+      public: false,
+      optional: false,
+    },
+    {
+      eventId: event.id,
+      name: 'Technical skill',
+      min: 1,
+      max: 10,
+      public: false,
+      optional: false,
+    },
+    {
+      eventId: event.id,
+      name: 'Presentation',
+      min: 1,
+      max: 5,
+      public: false,
+      optional: true,
+    },
   ]);
-  /**/ 
+  /**/
   const registration = await registrationModel.bulkCreate([
     {
       eventId: event.id,
@@ -932,45 +975,233 @@ export async function seedDatabase(
       ...project,
       eventId: event.id,
     })),
-    { name: 'Archived Voting Project', eventId: event.id, language: 'fr', type: 'Technology', description: 'Soft-deleted project for voting edge cases.', maxVoucher: 3, deletedAt: new Date() },
+    {
+      name: 'Archived Voting Project',
+      eventId: event.id,
+      language: 'fr',
+      type: 'Technology',
+      description: 'Soft-deleted project for voting edge cases.',
+      maxVoucher: 3,
+      deletedAt: new Date(),
+    },
   ]);
 
   await assignProjectsToEventTables(event.id, eventTableModel, projects);
 
   const voteStart = Date.now() - 3 * 24 * 60 * 60 * 1000;
   await voteModel.bulkCreate([
-    { eventId: event.id, accountId: accounts[1].id, categoryId: voteCategories[0].id, amount: 9, createdAt: new Date(voteStart + 0 * 10 * 60 * 1000), projectId: projects[0].id },
-    { eventId: event.id, accountId: accounts[1].id, categoryId: voteCategories[1].id, amount: 2, createdAt: new Date(voteStart + 1 * 10 * 60 * 1000), projectId: projects[0].id },
-    { eventId: event.id, accountId: accounts[1].id, categoryId: voteCategories[2].id, amount: 5, createdAt: new Date(voteStart + 2 * 10 * 60 * 1000), projectId: projects[0].id },
+    {
+      eventId: event.id,
+      accountId: accounts[1].id,
+      categoryId: voteCategories[0].id,
+      amount: 9,
+      createdAt: new Date(voteStart + 0 * 10 * 60 * 1000),
+      projectId: projects[0].id,
+    },
+    {
+      eventId: event.id,
+      accountId: accounts[1].id,
+      categoryId: voteCategories[1].id,
+      amount: 2,
+      createdAt: new Date(voteStart + 1 * 10 * 60 * 1000),
+      projectId: projects[0].id,
+    },
+    {
+      eventId: event.id,
+      accountId: accounts[1].id,
+      categoryId: voteCategories[2].id,
+      amount: 5,
+      createdAt: new Date(voteStart + 2 * 10 * 60 * 1000),
+      projectId: projects[0].id,
+    },
 
-    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[0].id, amount: 1, createdAt: new Date(voteStart + 3 * 10 * 60 * 1000), projectId: projects[1].id },
-    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[1].id, amount: 10, createdAt: new Date(voteStart + 4 * 10 * 60 * 1000), projectId: projects[1].id },
-    { eventId: event.id, accountId: accounts[3].id, categoryId: voteCategories[2].id, amount: 4, createdAt: new Date(voteStart + 5 * 10 * 60 * 1000), projectId: projects[1].id },
+    {
+      eventId: event.id,
+      accountId: accounts[3].id,
+      categoryId: voteCategories[0].id,
+      amount: 1,
+      createdAt: new Date(voteStart + 3 * 10 * 60 * 1000),
+      projectId: projects[1].id,
+    },
+    {
+      eventId: event.id,
+      accountId: accounts[3].id,
+      categoryId: voteCategories[1].id,
+      amount: 10,
+      createdAt: new Date(voteStart + 4 * 10 * 60 * 1000),
+      projectId: projects[1].id,
+    },
+    {
+      eventId: event.id,
+      accountId: accounts[3].id,
+      categoryId: voteCategories[2].id,
+      amount: 4,
+      createdAt: new Date(voteStart + 5 * 10 * 60 * 1000),
+      projectId: projects[1].id,
+    },
 
-    { eventId: event.id, accountId: accounts[4].id, categoryId: voteCategories[0].id, amount: 7, createdAt: new Date(voteStart + 6 * 10 * 60 * 1000), projectId: projects[2].id },
-    { eventId: event.id, accountId: accounts[4].id, categoryId: voteCategories[1].id, amount: 7, createdAt: new Date(voteStart + 7 * 10 * 60 * 1000), projectId: projects[2].id },
+    {
+      eventId: event.id,
+      accountId: accounts[4].id,
+      categoryId: voteCategories[0].id,
+      amount: 7,
+      createdAt: new Date(voteStart + 6 * 10 * 60 * 1000),
+      projectId: projects[2].id,
+    },
+    {
+      eventId: event.id,
+      accountId: accounts[4].id,
+      categoryId: voteCategories[1].id,
+      amount: 7,
+      createdAt: new Date(voteStart + 7 * 10 * 60 * 1000),
+      projectId: projects[2].id,
+    },
   ]);
 
   const users = await userModel.bulkCreate([
-    { eventId: event.id, email: 'user1@user.be', firstname: 'User 1', lastname: 'User 1', sex: 'M', language: 'en', birthmonth: new Date(new Date().getFullYear() - 7, 0, 1), postalcode: '1000', municipality_name: 'Brussel', phone: '+32 470 00 00 01', guardian_firstname: 'Guardian 1', guardian_lastname: 'User 1', guardian_email: 'guardian1@user.be', guardian_phone: '+32 470 10 00 01', tshirtId: tshirts[3].id, },
-    { eventId: event.id, email: 'user2@user.be', firstname: 'User 2', lastname: 'User 2', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 12, 0, 1), postalcode: '2000', municipality_name: 'Antwerpen', phone: '+32 470 00 00 02', guardian_firstname: 'Guardian 2', guardian_lastname: 'User 2', guardian_email: 'guardian2@user.be', guardian_phone: '+32 470 10 00 02', tshirtId: tshirts[0].id },
-    { eventId: event.id, email: 'user3@user.be', firstname: 'User 3', lastname: 'User 3', sex: 'F', language: 'nl', birthmonth: new Date(new Date().getFullYear() - 15, 0, 1), postalcode: '3000', municipality_name: 'Leuven', phone: '+32 470 00 00 03', guardian_firstname: 'Guardian 3', guardian_lastname: 'User 3', guardian_email: 'guardian3@user.be', guardian_phone: '+32 470 10 00 03', tshirtId: tshirts[4].id },
-    { eventId: event.id, email: 'user4@user.be', firstname: 'User 4', lastname: 'User 4', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 16, 0, 1), postalcode: '4000', municipality_name: 'Luik', phone: '+32 470 00 00 04', tshirtId: tshirts[1].id },
-    { eventId: event.id, email: 'user5@user.be', firstname: 'User 5', lastname: 'User 5', sex: 'X', language: 'fr', birthmonth: new Date(new Date().getFullYear() - 18, 0, 1), postalcode: '5000', municipality_name: 'Namen', phone: '+32 470 00 00 05', tshirtId: tshirts[1].id }
-  ])
+    {
+      eventId: event.id,
+      email: 'user1@user.be',
+      firstname: 'User 1',
+      lastname: 'User 1',
+      sex: 'M',
+      language: 'en',
+      birthmonth: new Date(new Date().getFullYear() - 7, 0, 1),
+      postalcode: '1000',
+      municipality_name: 'Brussel',
+      phone: '+32 470 00 00 01',
+      guardian_firstname: 'Guardian 1',
+      guardian_lastname: 'User 1',
+      guardian_email: 'guardian1@user.be',
+      guardian_phone: '+32 470 10 00 01',
+      tshirtId: tshirts[3].id,
+    },
+    {
+      eventId: event.id,
+      email: 'user2@user.be',
+      firstname: 'User 2',
+      lastname: 'User 2',
+      sex: 'F',
+      language: 'nl',
+      birthmonth: new Date(new Date().getFullYear() - 12, 0, 1),
+      postalcode: '2000',
+      municipality_name: 'Antwerpen',
+      phone: '+32 470 00 00 02',
+      guardian_firstname: 'Guardian 2',
+      guardian_lastname: 'User 2',
+      guardian_email: 'guardian2@user.be',
+      guardian_phone: '+32 470 10 00 02',
+      tshirtId: tshirts[0].id,
+    },
+    {
+      eventId: event.id,
+      email: 'user3@user.be',
+      firstname: 'User 3',
+      lastname: 'User 3',
+      sex: 'F',
+      language: 'nl',
+      birthmonth: new Date(new Date().getFullYear() - 15, 0, 1),
+      postalcode: '3000',
+      municipality_name: 'Leuven',
+      phone: '+32 470 00 00 03',
+      guardian_firstname: 'Guardian 3',
+      guardian_lastname: 'User 3',
+      guardian_email: 'guardian3@user.be',
+      guardian_phone: '+32 470 10 00 03',
+      tshirtId: tshirts[4].id,
+    },
+    {
+      eventId: event.id,
+      email: 'user4@user.be',
+      firstname: 'User 4',
+      lastname: 'User 4',
+      sex: 'X',
+      language: 'fr',
+      birthmonth: new Date(new Date().getFullYear() - 16, 0, 1),
+      postalcode: '4000',
+      municipality_name: 'Luik',
+      phone: '+32 470 00 00 04',
+      tshirtId: tshirts[1].id,
+    },
+    {
+      eventId: event.id,
+      email: 'user5@user.be',
+      firstname: 'User 5',
+      lastname: 'User 5',
+      sex: 'X',
+      language: 'fr',
+      birthmonth: new Date(new Date().getFullYear() - 18, 0, 1),
+      postalcode: '5000',
+      municipality_name: 'Namen',
+      phone: '+32 470 00 00 05',
+      tshirtId: tshirts[1].id,
+    },
+  ]);
 
   await userProjectModel.bulkCreate([
-    { eventId: event.id, isOwner: true, projectId: projects[0].id, userId: users[0].id },
-    { eventId: event.id, isOwner: false, projectId: projects[0].id, userId: users[1].id, voucherGuid: '1' },
-    { eventId: event.id, isOwner: true, projectId: projects[1].id, userId: users[2].id },
-    { eventId: event.id, isOwner: true, projectId: projects[2].id, userId: users[3].id },
-    { eventId: event.id, isOwner: true, projectId: projects[3].id, userId: users[4].id },
-    { eventId: event.id, isOwner: true, projectId: projects[4].id, userId: users[0].id },
-    { eventId: event.id, isOwner: true, projectId: projects[5].id, userId: users[2].id },
-    { eventId: event.id, isOwner: true, projectId: projects[6].id, userId: users[4].id, deletedAt: new Date() },
-    { eventId: event.id, isOwner: false, projectId: projects[6].id, voucherGuid: '2' },
-    { eventId: event.id, isOwner: false, projectId: projects[6].id, voucherGuid: '3' },
-  ])
+    {
+      eventId: event.id,
+      isOwner: true,
+      projectId: projects[0].id,
+      userId: users[0].id,
+    },
+    {
+      eventId: event.id,
+      isOwner: false,
+      projectId: projects[0].id,
+      userId: users[1].id,
+      voucherGuid: '1',
+    },
+    {
+      eventId: event.id,
+      isOwner: true,
+      projectId: projects[1].id,
+      userId: users[2].id,
+    },
+    {
+      eventId: event.id,
+      isOwner: true,
+      projectId: projects[2].id,
+      userId: users[3].id,
+    },
+    {
+      eventId: event.id,
+      isOwner: true,
+      projectId: projects[3].id,
+      userId: users[4].id,
+    },
+    {
+      eventId: event.id,
+      isOwner: true,
+      projectId: projects[4].id,
+      userId: users[0].id,
+    },
+    {
+      eventId: event.id,
+      isOwner: true,
+      projectId: projects[5].id,
+      userId: users[2].id,
+    },
+    {
+      eventId: event.id,
+      isOwner: true,
+      projectId: projects[6].id,
+      userId: users[4].id,
+      deletedAt: new Date(),
+    },
+    {
+      eventId: event.id,
+      isOwner: false,
+      projectId: projects[6].id,
+      voucherGuid: '2',
+    },
+    {
+      eventId: event.id,
+      isOwner: false,
+      projectId: projects[6].id,
+      voucherGuid: '3',
+    },
+  ]);
 
   await questionUserModel.bulkCreate([
     ...users.map((user) => ({
@@ -988,9 +1219,11 @@ export async function seedDatabase(
       userId: users[1].id,
       questionId: questions[1].id,
     },
-  ])
+  ]);
 
-  await presentationSlideModel.bulkCreate(buildSeedPresentationSlides(event.id));
+  await presentationSlideModel.bulkCreate(
+    buildSeedPresentationSlides(event.id),
+  );
 
   if (process.env.UPLOAD_ROOT) {
     const projectAttachments = await seedProjectPictures(

@@ -43,7 +43,11 @@ describe('FileUploadService', () => {
       thumbnailPath: '/tmp/uploads/project_9/thumbnail_file.jpg',
       destroy,
     });
-    userProjectModel.findOne.mockResolvedValue({ userId: 1, projectId: 9, isOwner: true });
+    userProjectModel.findOne.mockResolvedValue({
+      userId: 1,
+      projectId: 9,
+      isOwner: true,
+    });
 
     const unlinkSpy = jest
       .spyOn(require('fs').promises, 'unlink')
@@ -64,7 +68,9 @@ describe('FileUploadService', () => {
       destroy: jest.fn(),
     });
 
-    await expect(service.deleteFile(1, 2)).rejects.toThrow('Attachment not found');
+    await expect(service.deleteFile(1, 2)).rejects.toThrow(
+      'Attachment not found',
+    );
     expect(userProjectModel.findOne).not.toHaveBeenCalled();
   });
 
@@ -77,7 +83,11 @@ describe('FileUploadService', () => {
       thumbnailPath: '/tmp/uploads/project_9/thumbnail_file.jpg',
       destroy,
     });
-    userProjectModel.findOne.mockResolvedValue({ userId: 1, projectId: 9, isOwner: true });
+    userProjectModel.findOne.mockResolvedValue({
+      userId: 1,
+      projectId: 9,
+      isOwner: true,
+    });
 
     const unlinkSpy = jest
       .spyOn(require('fs').promises, 'unlink')

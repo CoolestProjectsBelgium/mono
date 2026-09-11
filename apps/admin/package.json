@@ -7,7 +7,9 @@
     "test": "tsx --test src/components/email-templates/*.spec.ts src/components/floorplans/*.spec.ts src/components/presentation/*.spec.ts src/components/presentation-assets/*.spec.ts src/api/*.spec.ts",
     "start:dev": "tsx watch src/index.ts",
     "prestart:dev": "npm run build",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix"
   },
   "keywords": [],
   "author": "",
@@ -38,6 +40,8 @@
     "@types/jest": "^30.0.0",
     "@types/mocha": "^10.0.10",
     "@types/styled-components": "^5.1.36",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

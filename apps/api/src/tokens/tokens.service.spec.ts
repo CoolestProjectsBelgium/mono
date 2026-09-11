@@ -9,7 +9,10 @@ describe('TokensService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TokensService,
-        { provide: ConfigService, useValue: { getOrThrow: () => 'test-secret' } },
+        {
+          provide: ConfigService,
+          useValue: { getOrThrow: () => 'test-secret' },
+        },
       ],
     }).compile();
 

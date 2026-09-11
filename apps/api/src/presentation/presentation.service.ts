@@ -89,7 +89,9 @@ export class PresentationService {
     const renders = await this.presentationRenderModel.findAll({
       where: { eventId, slideKey: specs.map((spec) => spec.key) },
     });
-    const renderByKey = new Map(renders.map((render) => [render.slideKey, render]));
+    const renderByKey = new Map(
+      renders.map((render) => [render.slideKey, render]),
+    );
 
     const slides: SlideSummary[] = specs.map((spec) => {
       const hash = this.hashSlide(spec, assetsFingerprint);
@@ -100,7 +102,7 @@ export class PresentationService {
         order: spec.order,
         time: spec.time,
         hash,
-        generatedAt: upToDate ? render!.generatedAt.toISOString() : null,
+        generatedAt: upToDate ? render.generatedAt.toISOString() : null,
       };
     });
 
@@ -117,18 +119,23 @@ export class PresentationService {
     const spec = this.findSpec(specs, key);
     const hash = this.hashSlide(spec, assetsFingerprint);
 
-    const render = await this.presentationRenderModel.findOne({ where: { eventId, slideKey: key } });
+    const render = await this.presentationRenderModel.findOne({
+      where: { eventId, slideKey: key },
+    });
     const upToDate = render && render.contentHash === hash;
 
-    return { hash, generatedAt: upToDate ? render!.generatedAt : null };
+    return { hash, generatedAt: upToDate ? render.generatedAt : null };
   }
 
   async getSlideImage(eventId: number, key: string): Promise<SlideImageResult> {
-    const { common, specs, assetsFingerprint } = await this.loadDeckContext(eventId);
+    const { common, specs, assetsFingerprint } =
+      await this.loadDeckContext(eventId);
     const spec = this.findSpec(specs, key);
     const hash = this.hashSlide(spec, assetsFingerprint);
 
-    let render = await this.presentationRenderModel.findOne({ where: { eventId, slideKey: key } });
+    let render = await this.presentationRenderModel.findOne({
+      where: { eventId, slideKey: key },
+    });
 
     if (!render || render.contentHash !== hash) {
       const imagePath = await this.renderSlide(eventId, common, spec);
@@ -166,7 +173,14 @@ export class PresentationService {
 
   private hashSlide(spec: SlideSpec, assetsFingerprint: string): string {
     return createHash('sha256')
-      .update(JSON.stringify({ body: spec.body, imagePath: spec.imagePath, data: spec.data, assetsFingerprint }))
+      .update(
+        JSON.stringify({
+          body: spec.body,
+          imagePath: spec.imagePath,
+          data: spec.data,
+          assetsFingerprint,
+        }),
+      )
       .digest('hex');
   }
 
@@ -189,7 +203,10 @@ export class PresentationService {
     }
 
     const event = await this.loadEvent(eventId);
-    const common = { ...this.buildCommonContext(event), assets: await this.loadAssetsContext(eventId) };
+    const common = {
+      ...this.buildCommonContext(event),
+      assets: await this.loadAssetsContext(eventId),
+    };
 
     let data: SlideData = { kind: 'none' };
     if (config.dataSource === 'projects') {
@@ -199,7 +216,9 @@ export class PresentationService {
           ? records.find((candidate) => candidate.id === input.projectId)
           : records[0];
         if (!record) {
-          throw new NotFoundException('No visible project available to preview with');
+          throw new NotFoundException(
+            'No visible project available to preview with',
+          );
         }
         data = { kind: 'perRecord', record };
       } else {
@@ -209,15 +228,23 @@ export class PresentationService {
 
     const templateContext = await this.buildTemplateContext(common, data);
     const backgroundDataUri = config.imagePath
-      ? await this.toDataUri(path.join(getPresentationDir(eventId), config.imagePath))
+      ? await this.toDataUri(
+          path.join(getPresentationDir(eventId), config.imagePath),
+        )
       : null;
 
-    const html = this.compileSlideHtml(input.body, backgroundDataUri, templateContext);
+    const html = this.compileSlideHtml(
+      input.body,
+      backgroundDataUri,
+      templateContext,
+    );
     return this.screenshotHtml(html);
   }
 
   /** Visible-project options for the admin's perRecord preview picker. */
-  async listVisibleProjectOptions(eventId: number): Promise<{ id: number; name: string }[]> {
+  async listVisibleProjectOptions(
+    eventId: number,
+  ): Promise<{ id: number; name: string }[]> {
     const records = await this.loadVisibleProjects(eventId);
     return records.map((record) => ({ id: record.id, name: record.name }));
   }
@@ -248,9 +275,7 @@ export class PresentationService {
    * file I/O, so this stays cheap enough to run on every list/meta/image
    * request without penalizing a Pi that's just checking for changes.
    */
-  private async loadDeckContext(
-    eventId: number,
-  ): Promise<{
+  private async loadDeckContext(eventId: number): Promise<{
     event: Event;
     common: Record<string, unknown>;
     specs: SlideSpec[];
@@ -261,7 +286,10 @@ export class PresentationService {
     const assetsFingerprint = await this.loadAssetsFingerprint(eventId);
     const configs = await this.presentationSlideModel.findAll({
       where: { eventId },
-      order: [['order', 'ASC'], ['id', 'ASC']],
+      order: [
+        ['order', 'ASC'],
+        ['id', 'ASC'],
+      ],
     });
 
     let projectRecords: ProjectRecord[] | null = null;
@@ -378,12 +406,21 @@ export class PresentationService {
     spec: SlideSpec,
   ): Promise<string> {
     const assets = await this.loadAssetsContext(eventId);
-    const templateContext = await this.buildTemplateContext({ ...common, assets }, spec.data);
+    const templateContext = await this.buildTemplateContext(
+      { ...common, assets },
+      spec.data,
+    );
     const backgroundDataUri = spec.imagePath
-      ? await this.toDataUri(path.join(getPresentationDir(eventId), spec.imagePath))
+      ? await this.toDataUri(
+          path.join(getPresentationDir(eventId), spec.imagePath),
+        )
       : null;
 
-    const html = this.compileSlideHtml(spec.body, backgroundDataUri, templateContext);
+    const html = this.compileSlideHtml(
+      spec.body,
+      backgroundDataUri,
+      templateContext,
+    );
     const png = await this.screenshotHtml(html);
 
     const dir = getPresentationDir(eventId);
@@ -398,16 +435,23 @@ export class PresentationService {
     data: SlideData,
   ): Promise<Record<string, unknown>> {
     if (data.kind === 'perRecord') {
-      return { ...common, record: await this.projectRecordForTemplate(data.record) };
+      return {
+        ...common,
+        record: await this.projectRecordForTemplate(data.record),
+      };
     }
     if (data.kind === 'single') {
-      const records = await Promise.all(data.records.map((record) => this.projectRecordForTemplate(record)));
+      const records = await Promise.all(
+        data.records.map((record) => this.projectRecordForTemplate(record)),
+      );
       return { ...common, records };
     }
     return { ...common };
   }
 
-  private async projectRecordForTemplate(record: ProjectRecord): Promise<Record<string, unknown>> {
+  private async projectRecordForTemplate(
+    record: ProjectRecord,
+  ): Promise<Record<string, unknown>> {
     return {
       id: record.id,
       name: record.name,
@@ -432,16 +476,23 @@ export class PresentationService {
   private async loadAssetsFingerprint(eventId: number): Promise<string> {
     let entries;
     try {
-      entries = await readdir(getPresentationAssetsDir(eventId), { withFileTypes: true });
+      entries = await readdir(getPresentationAssetsDir(eventId), {
+        withFileTypes: true,
+      });
     } catch {
       return 'none';
     }
 
     const stats = await Promise.all(
       entries
-        .filter((entry) => entry.isFile() && sanitizePresentationAssetFilename(entry.name))
+        .filter(
+          (entry) =>
+            entry.isFile() && sanitizePresentationAssetFilename(entry.name),
+        )
         .map(async (entry) => {
-          const fileStat = await stat(path.join(getPresentationAssetsDir(eventId), entry.name));
+          const fileStat = await stat(
+            path.join(getPresentationAssetsDir(eventId), entry.name),
+          );
           return `${entry.name}:${fileStat.mtimeMs}:${fileStat.size}`;
         }),
     );
@@ -457,10 +508,14 @@ export class PresentationService {
    * Only called on an actual render (cache miss or preview) — never on the
    * hot list/meta poll path, see `loadAssetsFingerprint`.
    */
-  private async loadAssetsContext(eventId: number): Promise<Record<string, string>> {
+  private async loadAssetsContext(
+    eventId: number,
+  ): Promise<Record<string, string>> {
     let entries;
     try {
-      entries = await readdir(getPresentationAssetsDir(eventId), { withFileTypes: true });
+      entries = await readdir(getPresentationAssetsDir(eventId), {
+        withFileTypes: true,
+      });
     } catch {
       return {};
     }
@@ -470,7 +525,9 @@ export class PresentationService {
       if (!entry.isFile() || !sanitizePresentationAssetFilename(entry.name)) {
         continue;
       }
-      const dataUri = await this.toDataUri(path.join(getPresentationAssetsDir(eventId), entry.name));
+      const dataUri = await this.toDataUri(
+        path.join(getPresentationAssetsDir(eventId), entry.name),
+      );
       if (dataUri) {
         assets[entry.name] = dataUri;
       }
@@ -522,7 +579,10 @@ export class PresentationService {
     // Containers (dev and deploy) run this as root with no user-namespace sandboxing
     // available, which Chrome's zygote refuses to start under unless sandboxing is
     // disabled explicitly (see https://crbug.com/638180).
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox'],
+    });
 
     try {
       const page = await browser.newPage();

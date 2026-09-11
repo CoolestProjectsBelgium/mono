@@ -16,7 +16,8 @@ test('maskHandlebars round-trips seed-like tokens', () => {
 });
 
 test('prettyPrintHtml indents HTML while preserving Handlebars tokens', () => {
-  const input = '<p>Hi {{registration.firstname}}</p>{{#if registration.email_guardian}}<p>x</p>{{/if}}';
+  const input =
+    '<p>Hi {{registration.firstname}}</p>{{#if registration.email_guardian}}<p>x</p>{{/if}}';
   const formatted = prettyPrintHtml(input);
 
   assert.match(formatted, /{{registration\.firstname}}/);
@@ -27,7 +28,9 @@ test('prettyPrintHtml indents HTML while preserving Handlebars tokens', () => {
 
 test('lintHtml warns on unclosed tags', () => {
   const warnings = lintHtml('<p>Hello');
-  assert.ok(warnings.some((warning) => /Unclosed <p> tag/.test(warning.message)));
+  assert.ok(
+    warnings.some((warning) => /Unclosed <p> tag/.test(warning.message)),
+  );
 });
 
 test('lintHtml stays quiet on valid seed fragment', () => {

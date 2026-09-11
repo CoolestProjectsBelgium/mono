@@ -5,7 +5,13 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { Account, AdminSession, Affiliation, User, EmailLog } from '@coolestprojects/database';
+import {
+  Account,
+  AdminSession,
+  Affiliation,
+  User,
+  EmailLog,
+} from '@coolestprojects/database';
 import { RegistrationService } from '../registration/registration.service';
 import { MailerService } from '../mailer/mailer.service';
 import { EmailTemplate } from '@coolestprojects/database';
@@ -33,29 +39,65 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     ConfigModule,
-    SequelizeModule.forFeature([User, EmailTemplate, Event, Project, Registration, Question, QuestionUser, QuestionRegistration, Account, AdminSession, UserProject, EmailLog, Affiliation]),
+    SequelizeModule.forFeature([
+      User,
+      EmailTemplate,
+      Event,
+      Project,
+      Registration,
+      Question,
+      QuestionUser,
+      QuestionRegistration,
+      Account,
+      AdminSession,
+      UserProject,
+      EmailLog,
+      Affiliation,
+    ]),
   ],
-  providers: [{
-    provide: AUTH_JWT,
-    inject: [ConfigService],
-    useFactory: (configService: ConfigService) => new JwtService({
-      secret: configService.getOrThrow('api.jwt'),
-      signOptions: {
-        expiresIn: '60m',
-      },
-    }),
-  },
-  {
-    provide: VOTING_JWT,
-    inject: [ConfigService],
-    useFactory: (configService: ConfigService) => new JwtService({
-      secret: configService.getOrThrow('voting.jwt'),
-      signOptions: {
-        expiresIn: '12h',
-      },
-    }
-    ),
-  }, MailerService, TokensService, RegistrationService, JwtStrategy, JwtVotingStrategy, VotingLoginStrategy, AdminCookieStrategy, OptionalAdminCookieStrategy, AdminAuthenticationService, JwtVotingAuthGuard, VotingLoginAuthGuard, PresentationBasicStrategy, PresentationAuthGuard],
-  exports: [AUTH_JWT, VOTING_JWT, JwtVotingAuthGuard, VotingLoginAuthGuard, PresentationAuthGuard],
+  providers: [
+    {
+      provide: AUTH_JWT,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) =>
+        new JwtService({
+          secret: configService.getOrThrow('api.jwt'),
+          signOptions: {
+            expiresIn: '60m',
+          },
+        }),
+    },
+    {
+      provide: VOTING_JWT,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) =>
+        new JwtService({
+          secret: configService.getOrThrow('voting.jwt'),
+          signOptions: {
+            expiresIn: '12h',
+          },
+        }),
+    },
+    MailerService,
+    TokensService,
+    RegistrationService,
+    JwtStrategy,
+    JwtVotingStrategy,
+    VotingLoginStrategy,
+    AdminCookieStrategy,
+    OptionalAdminCookieStrategy,
+    AdminAuthenticationService,
+    JwtVotingAuthGuard,
+    VotingLoginAuthGuard,
+    PresentationBasicStrategy,
+    PresentationAuthGuard,
+  ],
+  exports: [
+    AUTH_JWT,
+    VOTING_JWT,
+    JwtVotingAuthGuard,
+    VotingLoginAuthGuard,
+    PresentationAuthGuard,
+  ],
 })
-export class AuthModule { }
+export class AuthModule {}

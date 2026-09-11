@@ -92,7 +92,9 @@ describe('EventguideService', () => {
     const result = await service.getProjects(1);
 
     expect(result.event.title).toBe('Coolest Projects');
-    expect(result.event.floorplanPath).toBe('eventguide/floorplans/floorplan_active.svg');
+    expect(result.event.floorplanPath).toBe(
+      'eventguide/floorplans/floorplan_active.svg',
+    );
     expect(result.projects).toHaveLength(1);
     expect(result.projects[0]).toMatchObject({
       id: 5,
@@ -133,13 +135,17 @@ describe('EventguideService', () => {
     const result = await service.getProjects(1);
 
     expect(result.projects[0].agreedToPhoto).toBe(true);
-    expect(result.projects[0].thumbnailUrl).toContain('/eventguide/attachments/42/thumbnail');
+    expect(result.projects[0].thumbnailUrl).toContain(
+      '/eventguide/attachments/42/thumbnail',
+    );
   });
 
   it('throws when the event does not exist', async () => {
     eventModel.findByPk.mockResolvedValue(null);
 
-    await expect(service.getProjects(999)).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.getProjects(999)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('rejects thumbnails for unconfirmed attachments', async () => {

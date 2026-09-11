@@ -7,7 +7,9 @@ import {
 } from './user-cookie.interceptor';
 import { TokensService } from './tokens/tokens.service';
 
-function mockConfig(values: Record<string, string | undefined> = {}): ConfigService {
+function mockConfig(
+  values: Record<string, string | undefined> = {},
+): ConfigService {
   return {
     get: (key: string) => values[key],
   } as ConfigService;
@@ -34,7 +36,10 @@ describe('resolveParticipantUserId', () => {
 
   it('rejects admin sessions and principals without an id', () => {
     expect(
-      resolveParticipantUserId({ adminUser: { email: 'admin' }, isAdmin: true }),
+      resolveParticipantUserId({
+        adminUser: { email: 'admin' },
+        isAdmin: true,
+      }),
     ).toBeNull();
     expect(resolveParticipantUserId({ id: undefined })).toBeNull();
     expect(resolveParticipantUserId(null)).toBeNull();

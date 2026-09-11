@@ -17,9 +17,7 @@ describe('EventguideController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventguideController],
-      providers: [
-        { provide: EventguideService, useValue: eventguideService },
-      ],
+      providers: [{ provide: EventguideService, useValue: eventguideService }],
     }).compile();
 
     controller = module.get<EventguideController>(EventguideController);
@@ -27,7 +25,12 @@ describe('EventguideController', () => {
 
   it('returns projects for the current event', async () => {
     const payload = {
-      event: { id: 1, title: 'Test', officialStartDate: '2026-05-01', floorplanPath: 'map.svg' },
+      event: {
+        id: 1,
+        title: 'Test',
+        officialStartDate: '2026-05-01',
+        floorplanPath: 'map.svg',
+      },
       projects: [],
     };
     eventguideService.getProjects.mockResolvedValue(payload);
@@ -46,7 +49,12 @@ describe('EventguideController', () => {
 
   it('returns projects for an explicit event id', async () => {
     const payload = {
-      event: { id: 3, title: 'Past', officialStartDate: '2024-05-01', floorplanPath: 'map.svg' },
+      event: {
+        id: 3,
+        title: 'Past',
+        officialStartDate: '2024-05-01',
+        floorplanPath: 'map.svg',
+      },
       projects: [{ id: 9, name: 'Old project' }],
     };
     eventguideService.getProjects.mockResolvedValue(payload);

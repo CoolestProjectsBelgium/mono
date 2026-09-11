@@ -9,6 +9,7 @@ test('handler proxies floorplan actions through the Nest API', () => {
 
   assert.doesNotMatch(source, /from 'node:fs/);
   assert.match(source, /api\.get<FloorplansOverview>\('\/admin\/floorplans'\)/);
-  assert.match(source, /api\.post<FloorplansOverview>\(`\/admin\/floorplans\/\$\{filename\}\/activate`\)/);
+  assert.match(source, /api\.post<FloorplansOverview>/);
+  assert.match(source, /`\/admin\/floorplans\/\$\{filename\}\/activate`/);
   assert.match(source, /payload\.action === 'upload'/);
 });

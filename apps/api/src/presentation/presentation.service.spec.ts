@@ -62,20 +62,31 @@ describe('PresentationService', () => {
     presentationSlideFindOne = jest.fn().mockResolvedValue(null);
     presentationRenderFindAll = jest.fn().mockResolvedValue([]);
     presentationRenderFindOne = jest.fn().mockResolvedValue(null);
-    presentationRenderCreate = jest.fn().mockImplementation((data) => Promise.resolve({
-      ...data,
-      update: jest.fn().mockResolvedValue(undefined),
-    }));
+    presentationRenderCreate = jest.fn().mockImplementation((data) =>
+      Promise.resolve({
+        ...data,
+        update: jest.fn().mockResolvedValue(undefined),
+      }),
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PresentationService,
-        { provide: getModelToken(Event), useValue: { findByPk: eventFindByPk } },
-        { provide: getModelToken(Project), useValue: { findAll: projectFindAll } },
+        {
+          provide: getModelToken(Event),
+          useValue: { findByPk: eventFindByPk },
+        },
+        {
+          provide: getModelToken(Project),
+          useValue: { findAll: projectFindAll },
+        },
         { provide: getModelToken(Attachment), useValue: {} },
         {
           provide: getModelToken(PresentationSlide),
-          useValue: { findAll: presentationSlideFindAll, findOne: presentationSlideFindOne },
+          useValue: {
+            findAll: presentationSlideFindAll,
+            findOne: presentationSlideFindOne,
+          },
         },
         {
           provide: getModelToken(PresentationRender),
@@ -107,12 +118,22 @@ describe('PresentationService', () => {
     it('throws when the event does not exist', async () => {
       eventFindByPk.mockResolvedValue(null);
 
-      await expect(service.listSlides(999)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.listSlides(999)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it('expands a perRecord/projects config into one slide per visible project, in table order', async () => {
       presentationSlideFindAll.mockResolvedValue([
-        { id: 10, order: 0, time: 20, dataSource: 'projects', cardinality: 'perRecord', body: '{{record.name}}', imagePath: null },
+        {
+          id: 10,
+          order: 0,
+          time: 20,
+          dataSource: 'projects',
+          cardinality: 'perRecord',
+          body: '{{record.name}}',
+          imagePath: null,
+        },
       ]);
       projectFindAll.mockResolvedValue([
         tabledProject({ id: 2, name: 'B project', table: { name: 'Tafel_9' } }),
@@ -121,12 +142,23 @@ describe('PresentationService', () => {
 
       const { slides } = await service.listSlides(1);
 
-      expect(slides.map((slide) => slide.key)).toEqual(['slide-10-1', 'slide-10-2']);
+      expect(slides.map((slide) => slide.key)).toEqual([
+        'slide-10-1',
+        'slide-10-2',
+      ]);
     });
 
     it('excludes projects with no table assignment entirely', async () => {
       presentationSlideFindAll.mockResolvedValue([
-        { id: 10, order: 0, time: 20, dataSource: 'projects', cardinality: 'perRecord', body: 'x', imagePath: null },
+        {
+          id: 10,
+          order: 0,
+          time: 20,
+          dataSource: 'projects',
+          cardinality: 'perRecord',
+          body: 'x',
+          imagePath: null,
+        },
       ]);
       projectFindAll.mockResolvedValue([tabledProject({ id: 1 })]);
 
@@ -137,16 +169,29 @@ describe('PresentationService', () => {
       // happens to hide untabled projects afterwards.
       expect(projectFindAll).toHaveBeenCalledWith(
         expect.objectContaining({
-          include: expect.arrayContaining([expect.objectContaining({ required: true })]),
+          include: expect.arrayContaining([
+            expect.objectContaining({ required: true }),
+          ]),
         }),
       );
     });
 
     it('produces exactly one overview slide for a single/projects config, regardless of project count', async () => {
       presentationSlideFindAll.mockResolvedValue([
-        { id: 11, order: 0, time: 20, dataSource: 'projects', cardinality: 'single', body: 'overview', imagePath: null },
+        {
+          id: 11,
+          order: 0,
+          time: 20,
+          dataSource: 'projects',
+          cardinality: 'single',
+          body: 'overview',
+          imagePath: null,
+        },
       ]);
-      projectFindAll.mockResolvedValue([tabledProject({ id: 1 }), tabledProject({ id: 2 })]);
+      projectFindAll.mockResolvedValue([
+        tabledProject({ id: 1 }),
+        tabledProject({ id: 2 }),
+      ]);
 
       const { slides } = await service.listSlides(1);
 
@@ -156,7 +201,15 @@ describe('PresentationService', () => {
 
     it('produces one slide for a none-sourced (custom/static) config', async () => {
       presentationSlideFindAll.mockResolvedValue([
-        { id: 12, order: 0, time: 10, dataSource: 'none', cardinality: 'single', body: '<h1>Sponsor</h1>', imagePath: null },
+        {
+          id: 12,
+          order: 0,
+          time: 10,
+          dataSource: 'none',
+          cardinality: 'single',
+          body: '<h1>Sponsor</h1>',
+          imagePath: null,
+        },
       ]);
 
       const { slides } = await service.listSlides(1);
@@ -168,12 +221,22 @@ describe('PresentationService', () => {
     });
 
     it('keeps the same hash across calls when nothing changed, and changes it when the body changes', async () => {
-      const config = { id: 12, order: 0, time: 10, dataSource: 'none', cardinality: 'single', body: '<h1>v1</h1>', imagePath: null };
+      const config = {
+        id: 12,
+        order: 0,
+        time: 10,
+        dataSource: 'none',
+        cardinality: 'single',
+        body: '<h1>v1</h1>',
+        imagePath: null,
+      };
       presentationSlideFindAll.mockResolvedValue([config]);
 
       const first = await service.listSlides(1);
 
-      presentationSlideFindAll.mockResolvedValue([{ ...config, body: '<h1>v2</h1>' }]);
+      presentationSlideFindAll.mockResolvedValue([
+        { ...config, body: '<h1>v2</h1>' },
+      ]);
       const second = await service.listSlides(1);
 
       expect(first.slides[0].hash).not.toBe(second.slides[0].hash);
@@ -182,7 +245,15 @@ describe('PresentationService', () => {
 
     it('never touches Puppeteer just to list slides', async () => {
       presentationSlideFindAll.mockResolvedValue([
-        { id: 10, order: 0, time: 20, dataSource: 'projects', cardinality: 'perRecord', body: 'x', imagePath: null },
+        {
+          id: 10,
+          order: 0,
+          time: 20,
+          dataSource: 'projects',
+          cardinality: 'perRecord',
+          body: 'x',
+          imagePath: null,
+        },
       ]);
       projectFindAll.mockResolvedValue([tabledProject()]);
 
@@ -195,7 +266,15 @@ describe('PresentationService', () => {
   describe('getSlideMeta', () => {
     it('never renders — reports generatedAt: null when nothing is cached yet', async () => {
       presentationSlideFindAll.mockResolvedValue([
-        { id: 12, order: 0, time: 10, dataSource: 'none', cardinality: 'single', body: 'x', imagePath: null },
+        {
+          id: 12,
+          order: 0,
+          time: 10,
+          dataSource: 'none',
+          cardinality: 'single',
+          body: 'x',
+          imagePath: null,
+        },
       ]);
 
       const meta = await service.getSlideMeta(1, 'slide-12');
@@ -205,12 +284,24 @@ describe('PresentationService', () => {
     });
 
     it('reports the cached generatedAt when the hash still matches', async () => {
-      const config = { id: 12, order: 0, time: 10, dataSource: 'none', cardinality: 'single', body: 'x', imagePath: null };
+      const config = {
+        id: 12,
+        order: 0,
+        time: 10,
+        dataSource: 'none',
+        cardinality: 'single',
+        body: 'x',
+        imagePath: null,
+      };
       presentationSlideFindAll.mockResolvedValue([config]);
 
       const hash = (await service.getSlideMeta(1, 'slide-12')).hash;
       const generatedAt = new Date();
-      presentationRenderFindOne.mockResolvedValue({ contentHash: hash, generatedAt, imagePath: 'slide-12.png' });
+      presentationRenderFindOne.mockResolvedValue({
+        contentHash: hash,
+        generatedAt,
+        imagePath: 'slide-12.png',
+      });
 
       const meta = await service.getSlideMeta(1, 'slide-12');
 
@@ -221,14 +312,24 @@ describe('PresentationService', () => {
     it('throws for an unknown slide key', async () => {
       presentationSlideFindAll.mockResolvedValue([]);
 
-      await expect(service.getSlideMeta(1, 'slide-999')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.getSlideMeta(1, 'slide-999')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
   });
 
   describe('getSlideImage', () => {
     it('renders via Puppeteer and caches on a miss', async () => {
       presentationSlideFindAll.mockResolvedValue([
-        { id: 12, order: 0, time: 10, dataSource: 'none', cardinality: 'single', body: '<h1>hi</h1>', imagePath: null },
+        {
+          id: 12,
+          order: 0,
+          time: 10,
+          dataSource: 'none',
+          cardinality: 'single',
+          body: '<h1>hi</h1>',
+          imagePath: null,
+        },
       ]);
 
       const result = await service.getSlideImage(1, 'slide-12');
@@ -241,7 +342,15 @@ describe('PresentationService', () => {
     });
 
     it('skips Puppeteer entirely on a cache hit', async () => {
-      const config = { id: 12, order: 0, time: 10, dataSource: 'none', cardinality: 'single', body: '<h1>hi</h1>', imagePath: null };
+      const config = {
+        id: 12,
+        order: 0,
+        time: 10,
+        dataSource: 'none',
+        cardinality: 'single',
+        body: '<h1>hi</h1>',
+        imagePath: null,
+      };
       presentationSlideFindAll.mockResolvedValue([config]);
 
       const first = await service.getSlideImage(1, 'slide-12');
@@ -258,7 +367,15 @@ describe('PresentationService', () => {
     });
 
     it('re-renders when the cached hash no longer matches the current content', async () => {
-      const config = { id: 12, order: 0, time: 10, dataSource: 'none', cardinality: 'single', body: '<h1>v1</h1>', imagePath: null };
+      const config = {
+        id: 12,
+        order: 0,
+        time: 10,
+        dataSource: 'none',
+        cardinality: 'single',
+        body: '<h1>v1</h1>',
+        imagePath: null,
+      };
       presentationSlideFindAll.mockResolvedValue([config]);
 
       const first = await service.getSlideImage(1, 'slide-12');
@@ -268,7 +385,9 @@ describe('PresentationService', () => {
         imagePath: 'slide-12.png',
         update: jest.fn().mockResolvedValue(undefined),
       });
-      presentationSlideFindAll.mockResolvedValue([{ ...config, body: '<h1>v2</h1>' }]);
+      presentationSlideFindAll.mockResolvedValue([
+        { ...config, body: '<h1>v2</h1>' },
+      ]);
       launch.mockClear();
 
       await service.getSlideImage(1, 'slide-12');
@@ -288,13 +407,21 @@ describe('PresentationService', () => {
 
     it('renders a none-sourced slide with the caller-supplied body, without touching the render cache or disk', async () => {
       presentationSlideFindOne.mockResolvedValue({
-        id: 12, dataSource: 'none', cardinality: 'single', imagePath: null,
+        id: 12,
+        dataSource: 'none',
+        cardinality: 'single',
+        imagePath: null,
       });
 
-      const { writeFile } = jest.requireMock('node:fs/promises') as { writeFile: jest.Mock };
+      const { writeFile } = jest.requireMock('node:fs/promises') as {
+        writeFile: jest.Mock;
+      };
       writeFile.mockClear();
 
-      const buffer = await service.previewSlideDraft(1, { slideId: 12, body: '<h1>draft</h1>' });
+      const buffer = await service.previewSlideDraft(1, {
+        slideId: 12,
+        body: '<h1>draft</h1>',
+      });
 
       expect(buffer).toEqual(Buffer.from('fake-png'));
       expect(launch).toHaveBeenCalledTimes(1);
@@ -305,11 +432,20 @@ describe('PresentationService', () => {
 
     it('renders a single/projects slide against every visible project', async () => {
       presentationSlideFindOne.mockResolvedValue({
-        id: 11, dataSource: 'projects', cardinality: 'single', imagePath: null,
+        id: 11,
+        dataSource: 'projects',
+        cardinality: 'single',
+        imagePath: null,
       });
-      projectFindAll.mockResolvedValue([tabledProject({ id: 1 }), tabledProject({ id: 2 })]);
+      projectFindAll.mockResolvedValue([
+        tabledProject({ id: 1 }),
+        tabledProject({ id: 2 }),
+      ]);
 
-      await service.previewSlideDraft(1, { slideId: 11, body: '{{records.length}}' });
+      await service.previewSlideDraft(1, {
+        slideId: 11,
+        body: '{{records.length}}',
+      });
 
       expect(projectFindAll).toHaveBeenCalledTimes(1);
       expect(launch).toHaveBeenCalledTimes(1);
@@ -317,21 +453,31 @@ describe('PresentationService', () => {
 
     it('renders a perRecord/projects slide against the requested project', async () => {
       presentationSlideFindOne.mockResolvedValue({
-        id: 10, dataSource: 'projects', cardinality: 'perRecord', imagePath: null,
+        id: 10,
+        dataSource: 'projects',
+        cardinality: 'perRecord',
+        imagePath: null,
       });
       projectFindAll.mockResolvedValue([
         tabledProject({ id: 1, name: 'A project' }),
         tabledProject({ id: 2, name: 'B project' }),
       ]);
 
-      await service.previewSlideDraft(1, { slideId: 10, body: '{{record.name}}', projectId: 2 });
+      await service.previewSlideDraft(1, {
+        slideId: 10,
+        body: '{{record.name}}',
+        projectId: 2,
+      });
 
       expect(launch).toHaveBeenCalledTimes(1);
     });
 
     it('falls back to the first visible project when no projectId is given', async () => {
       presentationSlideFindOne.mockResolvedValue({
-        id: 10, dataSource: 'projects', cardinality: 'perRecord', imagePath: null,
+        id: 10,
+        dataSource: 'projects',
+        cardinality: 'perRecord',
+        imagePath: null,
       });
       projectFindAll.mockResolvedValue([tabledProject({ id: 1 })]);
 
@@ -342,7 +488,10 @@ describe('PresentationService', () => {
 
     it('throws when a perRecord/projects slide has no visible project to preview with', async () => {
       presentationSlideFindOne.mockResolvedValue({
-        id: 10, dataSource: 'projects', cardinality: 'perRecord', imagePath: null,
+        id: 10,
+        dataSource: 'projects',
+        cardinality: 'perRecord',
+        imagePath: null,
       });
       projectFindAll.mockResolvedValue([]);
 

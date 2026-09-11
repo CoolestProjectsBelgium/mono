@@ -28,7 +28,10 @@ describe('AppService', () => {
         { provide: getModelToken(Registration), useValue: {} },
         { provide: getModelToken(User), useValue: {} },
         { provide: getModelToken(Project), useValue: {} },
-        { provide: getModelToken(Affiliation), useValue: { findAll: affiliationFindAll } },
+        {
+          provide: getModelToken(Affiliation),
+          useValue: { findAll: affiliationFindAll },
+        },
       ],
     }).compile();
 

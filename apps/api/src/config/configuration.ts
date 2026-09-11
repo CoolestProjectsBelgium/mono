@@ -24,12 +24,12 @@ export default () => ({
     imap_password: process.env.IMAP_PASSWORD,
     imap_port: parseInt(process.env.IMAP_PORT!, 10) || 993,
   },
-  adminjs : {
+  adminjs: {
     secret: process.env.ADMINJS_COOKIE_SECRET || undefined, // empty string must fail getOrThrow() too
     port: parseInt(process.env.ADMINJS_PORT!, 10) || 3306,
   },
   cookies: {
-    domain: process.env.COOKIE_DOMAIN
+    domain: process.env.COOKIE_DOMAIN,
   },
   api: {
     jwt: process.env.JWT_KEY,
@@ -38,7 +38,7 @@ export default () => ({
     csrf: process.env.CSRF_SECRET || undefined, // empty string must fail getOrThrow() too
     cors_origin: process.env.CORS_ORIGINS,
     base_url: process.env.API_BASE_URL,
-    upload_root: process.env.UPLOAD_ROOT
+    upload_root: process.env.UPLOAD_ROOT,
   },
   cron: {
     mail: process.env.CRON_JOB_MAIL,
@@ -47,5 +47,5 @@ export default () => ({
   voting: {
     jwt: process.env.VOTING_KEY,
     expires: process.env.JWT_EXPIRES,
-  }
+  },
 });

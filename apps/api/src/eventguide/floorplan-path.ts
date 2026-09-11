@@ -3,7 +3,11 @@ import * as path from 'node:path';
 const SAFE_FILENAME = /^[a-zA-Z0-9._-]+\.svg$/;
 
 export function sanitizeFloorplanFilename(filename: string): string | null {
-  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+  if (
+    filename.includes('..') ||
+    filename.includes('/') ||
+    filename.includes('\\')
+  ) {
     return null;
   }
   const base = path.basename(filename);

@@ -3,25 +3,31 @@ import * as path from 'path';
 import { MulterFile } from './multer-file.type';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Attachment, Event, Project, UserProject } from '@coolestprojects/database';
+import {
+  Attachment,
+  Event,
+  Project,
+  UserProject,
+} from '@coolestprojects/database';
 import sharp from 'sharp';
 
 @Injectable()
 export class FileUploadService {
   public constructor(
-    @InjectModel(UserProject) private readonly userProjectModel: typeof UserProject,
-    @InjectModel(Attachment) private readonly attachmentModel: typeof Attachment,
-  ) { }
+    @InjectModel(UserProject)
+    private readonly userProjectModel: typeof UserProject,
+    @InjectModel(Attachment)
+    private readonly attachmentModel: typeof Attachment,
+  ) {}
 
   async generateThumbnail(file: MulterFile): Promise<Buffer> {
-    return sharp(file.buffer).resize({ width: 200, height: 200, fit: 'cover' }).toFormat('webp').toBuffer();
+    return sharp(file.buffer)
+      .resize({ width: 200, height: 200, fit: 'cover' })
+      .toFormat('webp')
+      .toBuffer();
   }
 
-  async saveFile(
-    userId: number,
-    file: MulterFile,
-  ): Promise<void> {
-
+  async saveFile(userId: number, file: MulterFile): Promise<void> {
     if (!file.buffer) {
       throw new Error('File Error');
     }
@@ -68,12 +74,15 @@ export class FileUploadService {
     });
   }
 
-
   async deleteFile(userId: number, attachmentId: number): Promise<void> {
     const attachment = await this.attachmentModel.findByPk(attachmentId);
 
     // Treat null like false: seeded and newly uploaded photos often leave these unset.
-    if (!attachment || attachment.confirmed === true || attachment.internal === true) {
+    if (
+      !attachment ||
+      attachment.confirmed === true ||
+      attachment.internal === true
+    ) {
       throw new Error('Attachment not found');
     }
 
@@ -99,12 +108,10 @@ export class FileUploadService {
   private async safeUnlink(filePath: string): Promise<void> {
     try {
       await fs.unlink(filePath);
-    }
-    catch (error) {
+    } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw error;
       }
     }
   }
-
 }

@@ -44,20 +44,22 @@ describe('EventguideService floorplan serving', () => {
 
     const result = await service.getFloorplanFilePath('cp2025_zaal.svg');
 
-    expect(result).toBe(path.join('/tmp/uploads/floorplans', 'cp2025_zaal.svg'));
+    expect(result).toBe(
+      path.join('/tmp/uploads/floorplans', 'cp2025_zaal.svg'),
+    );
   });
 
   it('throws when the filename is unsafe', async () => {
-    await expect(service.getFloorplanFilePath('../secret.svg')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.getFloorplanFilePath('../secret.svg'),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('throws when the file does not exist', async () => {
     (access as jest.Mock).mockRejectedValue(new Error('ENOENT'));
 
-    await expect(service.getFloorplanFilePath('missing.svg')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.getFloorplanFilePath('missing.svg'),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });

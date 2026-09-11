@@ -1,10 +1,10 @@
-import type { BrandingOptions } from 'adminjs'
+import type { BrandingOptions } from 'adminjs';
 
 export const myCustomTheme = {
   colors: {
     primary100: '#FF0000',
   },
-} satisfies NonNullable<BrandingOptions['theme']>
+} satisfies NonNullable<BrandingOptions['theme']>;
 
 export const myCustomNavigation = [
   {
@@ -38,4 +38,4 @@ export const myCustomNavigation = [
       },
     ],
   },
-]
+];

@@ -8,7 +8,7 @@ import {
   H1,
   Select,
   FormGroup,
-} from "@adminjs/design-system";
+} from '@adminjs/design-system';
 
 const Login = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -42,27 +42,30 @@ const Login = () => {
       flexDirection="column"
       alignItems="center"
       justifyContent="center"
-      method="POST" as="form"
+      method="POST"
+      as="form"
     >
       <H1>Login</H1>
-      <section style={{ width: "400px" }}>
-        <FormGroup action="login" >
+      <section style={{ width: '400px' }}>
+        <FormGroup action="login">
           <Label htmlFor="email">Account</Label>
           <Input name="email" type="text" variant="default" />
           <Label htmlFor="password">Password</Label>
           <Input name="password" type="password" variant="default" />
           <Label htmlFor="event">Event</Label>
           <Input type="hidden" name="event" value={selectedEvent?.value} />
-          <Select 
-            variant="default" 
-            options={events} 
-            value={selectedEvent} 
+          <Select
+            variant="default"
+            options={events}
+            value={selectedEvent}
             onChange={setEvent}
             isLoading={isLoading}
             isDisabled={isLoading || events.length === 0}
           />
         </FormGroup>
-        <Button variant="primary" type="submit">Login</Button>
+        <Button variant="primary" type="submit">
+          Login
+        </Button>
       </section>
     </Box>
   );

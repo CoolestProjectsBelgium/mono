@@ -187,7 +187,10 @@ describe('AppController (e2e)', () => {
       .get('/dojos')
       .expect(200)
       .expect((res) => {
-        const body = JSON.parse(res.text) as Array<{ id: number; name: string }>;
+        const body = JSON.parse(res.text) as Array<{
+          id: number;
+          name: string;
+        }>;
         expect(Array.isArray(body)).toBe(true);
         for (const entry of body) {
           expect(typeof entry.id).toBe('number');

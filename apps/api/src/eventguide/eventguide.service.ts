@@ -18,10 +18,7 @@ import {
   EventguideProjectsResponseDto,
 } from '../dto/eventguide-project.dto';
 import { parseTableNumber } from './parse-table-number';
-import {
-  resolveFloorplanFilePath,
-  toFloorplanApiPath,
-} from './floorplan-path';
+import { resolveFloorplanFilePath, toFloorplanApiPath } from './floorplan-path';
 import { access, stat } from 'node:fs/promises';
 
 const PHOTO_QUESTION_NAME = 'Agree to Photo';
@@ -91,7 +88,9 @@ export class EventguideService {
         })
       : [];
 
-    const userIds = [...new Set(memberships.map((membership) => membership.userId))];
+    const userIds = [
+      ...new Set(memberships.map((membership) => membership.userId)),
+    ];
     const users = userIds.length
       ? await this.userModel.findAll({
           where: { id: { [Op.in]: userIds } },
@@ -129,7 +128,9 @@ export class EventguideService {
       const tableNumber = parseTableNumber(tableName);
       const projectMemberships = membershipsByProject.get(project.id) ?? [];
 
-      const ownerMembership = projectMemberships.find((membership) => membership.isOwner);
+      const ownerMembership = projectMemberships.find(
+        (membership) => membership.isOwner,
+      );
       const participantMemberships = projectMemberships.filter(
         (membership) => !membership.isOwner,
       );
@@ -141,11 +142,13 @@ export class EventguideService {
       const participants = orderedMemberships
         .map((membership) => userById.get(membership.userId))
         .filter((user): user is User => Boolean(user))
-        .map((user) => this.formatParticipantName(user.firstname, user.lastname));
+        .map((user) =>
+          this.formatParticipantName(user.firstname, user.lastname),
+        );
 
       const agreedToPhoto =
-        orderedMemberships.length > 0
-        && orderedMemberships.every((membership) =>
+        orderedMemberships.length > 0 &&
+        orderedMemberships.every((membership) =>
           photoConsentUserIds.has(membership.userId),
         );
 
@@ -200,10 +203,14 @@ export class EventguideService {
 
   async getFloorplan(filename: string): Promise<StreamableFile> {
     const filePath = await this.getFloorplanFilePath(filename);
-    return new StreamableFile(createReadStream(filePath), { type: 'image/svg+xml' });
+    return new StreamableFile(createReadStream(filePath), {
+      type: 'image/svg+xml',
+    });
   }
 
-  async getThumbnailByAttachmentId(attachmentId: number): Promise<StreamableFile> {
+  async getThumbnailByAttachmentId(
+    attachmentId: number,
+  ): Promise<StreamableFile> {
     const attachment = await this.attachmentModel.findOne({
       where: {
         id: attachmentId,
@@ -246,7 +253,10 @@ export class EventguideService {
       throw new NotFoundException('Project not found');
     }
 
-    const agreedToPhoto = await this.projectHasPhotoConsent(eventId, project.id);
+    const agreedToPhoto = await this.projectHasPhotoConsent(
+      eventId,
+      project.id,
+    );
     if (!agreedToPhoto) {
       throw new NotFoundException('Photo not available');
     }
@@ -302,7 +312,9 @@ export class EventguideService {
     };
   }
 
-  private async getFloorplanVersion(filename: string | null): Promise<string | null> {
+  private async getFloorplanVersion(
+    filename: string | null,
+  ): Promise<string | null> {
     if (!filename) {
       return null;
     }

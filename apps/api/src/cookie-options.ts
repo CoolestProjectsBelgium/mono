@@ -7,11 +7,14 @@ type CookieRequest = {
   headers?: Record<string, string | string[] | undefined>;
 };
 
-export function buildAppCookieOptions(config: ConfigService, request: CookieRequest): CookieOptions {
+export function buildAppCookieOptions(
+  config: ConfigService,
+  request: CookieRequest,
+): CookieOptions {
   const secure =
-    config.get('enviroment')! === 'production'
-    || request.secure
-    || request.headers?.['x-forwarded-proto'] === 'https';
+    config.get('enviroment')! === 'production' ||
+    request.secure ||
+    request.headers?.['x-forwarded-proto'] === 'https';
 
   // COOKIE_DOMAIN, never NODE_ENV — Domain=.production is rejected by the browser.
   const rawDomain = config.get('cookies.domain')?.trim();
@@ -23,20 +26,23 @@ export function buildAppCookieOptions(config: ConfigService, request: CookieRequ
 
   // Browsers reject Domain= on *.localhost. Registration and API are different origins,
   // so dev cookies need SameSite=None; Secure (host-only on the API subdomain).
-  const sharedDomain = rawDomain && !isLocalhostDev
-    ? (rawDomain.startsWith('.') ? rawDomain : `.${rawDomain}`)
-    : undefined;
+  const sharedDomain =
+    rawDomain && !isLocalhostDev
+      ? rawDomain.startsWith('.')
+        ? rawDomain
+        : `.${rawDomain}`
+      : undefined;
   const crossSite =
-    Boolean(sharedDomain)
-    || isLocalhostDev
-    || (isNonProduction && corsHasLocalhost);
+    Boolean(sharedDomain) ||
+    isLocalhostDev ||
+    (isNonProduction && corsHasLocalhost);
 
   return {
     httpOnly: true,
     signed: true,
     path: '/',
     secure: crossSite ? true : secure,
-    sameSite: (crossSite ? 'none' : 'lax') as 'none' | 'lax',
+    sameSite: crossSite ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     ...(sharedDomain ? { domain: sharedDomain } : {}),
   };

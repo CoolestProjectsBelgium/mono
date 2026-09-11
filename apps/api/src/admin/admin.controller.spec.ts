@@ -44,7 +44,13 @@ describe('AdminController', () => {
 
   it('lists floorplans for the logged-in event', async () => {
     const overview = {
-      floorplans: [{ filename: 'cp2025_zaal.svg', uploadedAt: '2026-01-01T00:00:00.000Z', isActive: true }],
+      floorplans: [
+        {
+          filename: 'cp2025_zaal.svg',
+          uploadedAt: '2026-01-01T00:00:00.000Z',
+          isActive: true,
+        },
+      ],
       activeFilename: 'cp2025_zaal.svg',
     };
     adminService.listFloorplans.mockResolvedValue(overview);
@@ -65,22 +71,34 @@ describe('AdminController', () => {
 
   it('uploads a floorplan for the logged-in event', async () => {
     const body = { svgContent: '<svg></svg>', originalName: 'map.svg' };
-    adminService.uploadFloorplan.mockResolvedValue({ floorplans: [], activeFilename: null });
+    adminService.uploadFloorplan.mockResolvedValue({
+      floorplans: [],
+      activeFilename: null,
+    });
 
-    await controller.uploadFloorplan({ user: { adminUser: { eventId: 2 } } }, body);
+    await controller.uploadFloorplan(
+      { user: { adminUser: { eventId: 2 } } },
+      body,
+    );
 
     expect(adminService.uploadFloorplan).toHaveBeenCalledWith(2, body);
   });
 
   it('activates a floorplan for the logged-in event', async () => {
-    adminService.activateFloorplan.mockResolvedValue({ floorplans: [], activeFilename: 'map.svg' });
+    adminService.activateFloorplan.mockResolvedValue({
+      floorplans: [],
+      activeFilename: 'map.svg',
+    });
 
     await controller.activateFloorplan(
       { user: { adminUser: { eventId: 3 } } },
       'cp2025_zaal.svg',
     );
 
-    expect(adminService.activateFloorplan).toHaveBeenCalledWith(3, 'cp2025_zaal.svg');
+    expect(adminService.activateFloorplan).toHaveBeenCalledWith(
+      3,
+      'cp2025_zaal.svg',
+    );
   });
 
   it('fetches the mail template context', async () => {
@@ -95,7 +113,10 @@ describe('AdminController', () => {
   });
 
   it('uploads a presentation slide image for the logged-in event', async () => {
-    const body = { imageContentBase64: 'ZmFrZQ==', originalName: 'sponsor.png' };
+    const body = {
+      imageContentBase64: 'ZmFrZQ==',
+      originalName: 'sponsor.png',
+    };
 
     await controller.uploadPresentationSlideImage(
       { user: { adminUser: { eventId: 4 } } },
@@ -103,14 +124,20 @@ describe('AdminController', () => {
       body,
     );
 
-    expect(adminService.uploadPresentationSlideImage).toHaveBeenCalledWith(4, 7, body);
+    expect(adminService.uploadPresentationSlideImage).toHaveBeenCalledWith(
+      4,
+      7,
+      body,
+    );
   });
 
   it('lists presentation slides for the logged-in event', async () => {
     const result = { slides: [], hash: 'abc' };
     adminService.listPresentationSlides.mockResolvedValue(result);
 
-    const response = await controller.listPresentationSlides({ user: { adminUser: { eventId: 6 } } });
+    const response = await controller.listPresentationSlides({
+      user: { adminUser: { eventId: 6 } },
+    });
 
     expect(adminService.listPresentationSlides).toHaveBeenCalledWith(6);
     expect(response).toEqual(result);
@@ -120,16 +147,24 @@ describe('AdminController', () => {
     const options = [{ id: 1, name: 'A project' }];
     adminService.listPresentationPreviewProjects.mockResolvedValue(options);
 
-    const response = await controller.listPresentationPreviewProjects({ user: { adminUser: { eventId: 6 } } });
+    const response = await controller.listPresentationPreviewProjects({
+      user: { adminUser: { eventId: 6 } },
+    });
 
-    expect(adminService.listPresentationPreviewProjects).toHaveBeenCalledWith(6);
+    expect(adminService.listPresentationPreviewProjects).toHaveBeenCalledWith(
+      6,
+    );
     expect(response).toEqual(options);
   });
 
   it('streams a presentation slide preview image with cache headers', async () => {
     const generatedAt = new Date('2026-01-01T00:00:00.000Z');
     const file = { fake: 'streamable-file' };
-    adminService.getPresentationSlideImage.mockResolvedValue({ file, hash: 'abc123', generatedAt });
+    adminService.getPresentationSlideImage.mockResolvedValue({
+      file,
+      hash: 'abc123',
+      generatedAt,
+    });
     const res = { setHeader: jest.fn() };
 
     const result = await controller.getPresentationSlideImage(
@@ -138,22 +173,33 @@ describe('AdminController', () => {
       res as never,
     );
 
-    expect(adminService.getPresentationSlideImage).toHaveBeenCalledWith(6, 'slide-1');
+    expect(adminService.getPresentationSlideImage).toHaveBeenCalledWith(
+      6,
+      'slide-1',
+    );
     expect(res.setHeader).toHaveBeenCalledWith('ETag', '"abc123"');
-    expect(res.setHeader).toHaveBeenCalledWith('Last-Modified', generatedAt.toUTCString());
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'Last-Modified',
+      generatedAt.toUTCString(),
+    );
     expect(result).toBe(file);
   });
 
   it('renders an unsaved presentation slide draft', async () => {
     const body = { slideId: 5, body: '<h1>x</h1>' };
-    adminService.previewPresentationSlideDraft.mockResolvedValue({ imageBase64: 'ZmFrZQ==' });
+    adminService.previewPresentationSlideDraft.mockResolvedValue({
+      imageBase64: 'ZmFrZQ==',
+    });
 
     const result = await controller.previewPresentationSlideDraft(
       { user: { adminUser: { eventId: 6 } } },
       body,
     );
 
-    expect(adminService.previewPresentationSlideDraft).toHaveBeenCalledWith(6, body);
+    expect(adminService.previewPresentationSlideDraft).toHaveBeenCalledWith(
+      6,
+      body,
+    );
     expect(result).toEqual({ imageBase64: 'ZmFrZQ==' });
   });
 });

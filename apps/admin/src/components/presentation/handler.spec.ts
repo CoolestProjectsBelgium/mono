@@ -13,5 +13,6 @@ test('handler reads slide configs directly and proxies deck rendering through th
   assert.match(source, /action === 'load-projects'/);
   assert.match(source, /'\/admin\/presentation-slides\/preview\/projects'/);
   assert.match(source, /action === 'preview'/);
-  assert.match(source, /api\.post<\{ imageBase64: string \}>\('\/admin\/presentation-slides\/preview\/draft'/);
+  assert.match(source, /api\.post<\{\s*imageBase64: string\s*\}>/);
+  assert.match(source, /'\/admin\/presentation-slides\/preview\/draft'/);
 });

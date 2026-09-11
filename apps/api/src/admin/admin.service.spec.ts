@@ -69,8 +69,13 @@ describe('AdminService floorplans', () => {
 
     expect(result.activeFilename).toBe('cp2025_zaal.svg');
     expect(result.floorplans).toHaveLength(2);
-    expect(result.floorplans.find((item) => item.filename === 'cp2025_zaal.svg')?.isActive).toBe(true);
-    expect(result.floorplans.find((item) => item.filename === 'other.svg')?.isActive).toBe(false);
+    expect(
+      result.floorplans.find((item) => item.filename === 'cp2025_zaal.svg')
+        ?.isActive,
+    ).toBe(true);
+    expect(
+      result.floorplans.find((item) => item.filename === 'other.svg')?.isActive,
+    ).toBe(false);
   });
 
   it('uploads a processed SVG and activates it for the event', async () => {
@@ -82,9 +87,15 @@ describe('AdminService floorplans', () => {
         </g>
       </svg>
     `;
-    eventModel.findByPk.mockResolvedValue({ floorplanPath: 'grondplan-cp-2026.svg' });
-    (readdir as jest.Mock).mockResolvedValue([{ isFile: () => true, name: 'map.svg' }]);
-    (stat as jest.Mock).mockResolvedValue({ mtime: new Date('2026-01-01T00:00:00.000Z') });
+    eventModel.findByPk.mockResolvedValue({
+      floorplanPath: 'grondplan-cp-2026.svg',
+    });
+    (readdir as jest.Mock).mockResolvedValue([
+      { isFile: () => true, name: 'map.svg' },
+    ]);
+    (stat as jest.Mock).mockResolvedValue({
+      mtime: new Date('2026-01-01T00:00:00.000Z'),
+    });
 
     const result = await service.uploadFloorplan(1, {
       svgContent: svg,
@@ -114,8 +125,12 @@ describe('AdminService floorplans', () => {
 
   it('activates an existing floorplan file', async () => {
     eventModel.findByPk.mockResolvedValue({ floorplanPath: 'cp2025_zaal.svg' });
-    (readdir as jest.Mock).mockResolvedValue([{ isFile: () => true, name: 'cp2025_zaal.svg' }]);
-    (stat as jest.Mock).mockResolvedValue({ mtime: new Date('2026-01-01T00:00:00.000Z') });
+    (readdir as jest.Mock).mockResolvedValue([
+      { isFile: () => true, name: 'cp2025_zaal.svg' },
+    ]);
+    (stat as jest.Mock).mockResolvedValue({
+      mtime: new Date('2026-01-01T00:00:00.000Z'),
+    });
 
     const result = await service.activateFloorplan(1, 'cp2025_zaal.svg');
 
@@ -129,9 +144,9 @@ describe('AdminService floorplans', () => {
   it('rejects activating a missing floorplan file', async () => {
     (stat as jest.Mock).mockRejectedValue(new Error('ENOENT'));
 
-    await expect(service.activateFloorplan(1, 'missing.svg')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.activateFloorplan(1, 'missing.svg'),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   describe('getMailTemplateContext', () => {
@@ -154,28 +169,36 @@ describe('AdminService floorplans', () => {
     }
 
     it('rejects when no record type is given', async () => {
-      await expect(service.getMailTemplateContext({} as never)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(
+        service.getMailTemplateContext({} as never),
+      ).rejects.toBeInstanceOf(BadRequestException);
       expect(registrationModel.findOne).not.toHaveBeenCalled();
       expect(userModel.findOne).not.toHaveBeenCalled();
     });
 
     it('previews with the first record of the given kind when no record id is given', async () => {
-      registrationModel.findOne.mockResolvedValue(fakePerson(Registration, {
-        id: 3,
-        eventId: 1,
-        firstname: 'First',
-        lastname: 'Registrant',
-        email: 'first@test.be',
-        email_guardian: null,
-        language: 'nl',
-      }));
+      registrationModel.findOne.mockResolvedValue(
+        fakePerson(Registration, {
+          id: 3,
+          eventId: 1,
+          firstname: 'First',
+          lastname: 'Registrant',
+          email: 'first@test.be',
+          email_guardian: null,
+          language: 'nl',
+        }),
+      );
 
-      const context = await service.getMailTemplateContext({ recordType: 'registration' });
+      const context = await service.getMailTemplateContext({
+        recordType: 'registration',
+      });
 
-      expect(registrationModel.findOne).toHaveBeenCalledWith({ order: [['id', 'ASC']] });
-      expect(context.registration).toEqual(expect.objectContaining({ firstname: 'First' }));
+      expect(registrationModel.findOne).toHaveBeenCalledWith({
+        order: [['id', 'ASC']],
+      });
+      expect(context.registration).toEqual(
+        expect.objectContaining({ firstname: 'First' }),
+      );
       expect(context.user).toBeUndefined();
     });
 
@@ -188,15 +211,17 @@ describe('AdminService floorplans', () => {
     });
 
     it('loads a real user and their owned project', async () => {
-      userModel.findOne.mockResolvedValue(fakePerson(User, {
-        id: 5,
-        eventId: 1,
-        firstname: 'Real',
-        lastname: 'User',
-        email: 'real@test.be',
-        email_guardian: null,
-        language: 'en',
-      }));
+      userModel.findOne.mockResolvedValue(
+        fakePerson(User, {
+          id: 5,
+          eventId: 1,
+          firstname: 'Real',
+          lastname: 'User',
+          email: 'real@test.be',
+          email_guardian: null,
+          language: 'en',
+        }),
+      );
       userProjectModel.findOne.mockResolvedValue({
         project: { id: 9, name: 'Real Project' },
       });
@@ -207,22 +232,30 @@ describe('AdminService floorplans', () => {
       });
 
       expect(userModel.findOne).toHaveBeenCalledWith({ where: { id: 5 } });
-      expect(context.user).toEqual(expect.objectContaining({ firstname: 'Real' }));
+      expect(context.user).toEqual(
+        expect.objectContaining({ firstname: 'Real' }),
+      );
       expect(context.project).toEqual({ id: 9, title: 'Real Project' });
       expect(context.token).toBeTruthy();
     });
 
-    it('derives the event from the record\'s own association, not the admin\'s selected one', async () => {
+    it("derives the event from the record's own association, not the admin's selected one", async () => {
       const pastEvent = { id: 7, officialStartDate: new Date('2024-06-01') };
-      userModel.findOne.mockResolvedValue(fakePerson(User, {
-        id: 5,
-        eventId: 7,
-        firstname: 'Past',
-        lastname: 'Participant',
-        email: 'past@test.be',
-        email_guardian: null,
-        language: 'en',
-      }, pastEvent));
+      userModel.findOne.mockResolvedValue(
+        fakePerson(
+          User,
+          {
+            id: 5,
+            eventId: 7,
+            firstname: 'Past',
+            lastname: 'Participant',
+            email: 'past@test.be',
+            email_guardian: null,
+            language: 'en',
+          },
+          pastEvent,
+        ),
+      );
       userProjectModel.findOne.mockResolvedValue(null);
 
       // Admin is currently working the (unrelated) active event 1, but is
@@ -235,15 +268,21 @@ describe('AdminService floorplans', () => {
       expect(context.year).toBe(2024);
     });
 
-    it('rejects when the record\'s own event no longer exists', async () => {
-      userModel.findOne.mockResolvedValue(fakePerson(User, {
-        id: 5,
-        eventId: 999,
-        firstname: 'Orphan',
-        lastname: 'Record',
-        email: 'orphan@test.be',
-        language: 'en',
-      }, null));
+    it("rejects when the record's own event no longer exists", async () => {
+      userModel.findOne.mockResolvedValue(
+        fakePerson(
+          User,
+          {
+            id: 5,
+            eventId: 999,
+            firstname: 'Orphan',
+            lastname: 'Record',
+            email: 'orphan@test.be',
+            language: 'en',
+          },
+          null,
+        ),
+      );
 
       await expect(
         service.getMailTemplateContext({ recordType: 'user', recordId: 5 }),
@@ -251,22 +290,26 @@ describe('AdminService floorplans', () => {
     });
 
     it('does not look up a project for a registration record', async () => {
-      registrationModel.findOne.mockResolvedValue(fakePerson(Registration, {
-        id: 3,
-        eventId: 1,
-        firstname: 'Reg',
-        lastname: 'Istration',
-        email: 'reg@test.be',
-        email_guardian: 'parent@test.be',
-        language: 'nl',
-      }));
+      registrationModel.findOne.mockResolvedValue(
+        fakePerson(Registration, {
+          id: 3,
+          eventId: 1,
+          firstname: 'Reg',
+          lastname: 'Istration',
+          email: 'reg@test.be',
+          email_guardian: 'parent@test.be',
+          language: 'nl',
+        }),
+      );
 
       const context = await service.getMailTemplateContext({
         recordType: 'registration',
         recordId: 3,
       });
 
-      expect(context.registration).toEqual(expect.objectContaining({ firstname: 'Reg' }));
+      expect(context.registration).toEqual(
+        expect.objectContaining({ firstname: 'Reg' }),
+      );
       expect(context.project).toBeUndefined();
       expect(userProjectModel.findOne).not.toHaveBeenCalled();
     });
@@ -290,8 +333,12 @@ describe('AdminService floorplans', () => {
         originalName: 'Sponsor Logo.PNG',
       });
 
-      expect(presentationSlideModel.findOne).toHaveBeenCalledWith({ where: { id: 5, eventId: 1 } });
-      expect(mkdir).toHaveBeenCalledWith('/tmp/uploads/presentations/1', { recursive: true });
+      expect(presentationSlideModel.findOne).toHaveBeenCalledWith({
+        where: { id: 5, eventId: 1 },
+      });
+      expect(mkdir).toHaveBeenCalledWith('/tmp/uploads/presentations/1', {
+        recursive: true,
+      });
       expect(writeFile).toHaveBeenCalledWith(
         path.join('/tmp/uploads/presentations/1', 'slide-5-upload.png'),
         expect.any(Buffer),
@@ -311,7 +358,10 @@ describe('AdminService floorplans', () => {
     });
 
     it('rejects an unsupported file extension', async () => {
-      presentationSlideModel.findOne.mockResolvedValue({ id: 5, update: jest.fn() });
+      presentationSlideModel.findOne.mockResolvedValue({
+        id: 5,
+        update: jest.fn(),
+      });
 
       await expect(
         service.uploadPresentationSlideImage(1, 5, {
@@ -322,10 +372,16 @@ describe('AdminService floorplans', () => {
     });
 
     it('rejects empty image content', async () => {
-      presentationSlideModel.findOne.mockResolvedValue({ id: 5, update: jest.fn() });
+      presentationSlideModel.findOne.mockResolvedValue({
+        id: 5,
+        update: jest.fn(),
+      });
 
       await expect(
-        service.uploadPresentationSlideImage(1, 5, { imageContentBase64: '', originalName: 'a.png' }),
+        service.uploadPresentationSlideImage(1, 5, {
+          imageContentBase64: '',
+          originalName: 'a.png',
+        }),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
   });
@@ -343,25 +399,44 @@ describe('AdminService floorplans', () => {
       const result = { file: {}, hash: 'abc', generatedAt: new Date() };
       presentationService.getSlideImage.mockResolvedValue(result);
 
-      await expect(service.getPresentationSlideImage(1, 'slide-1')).resolves.toBe(result);
-      expect(presentationService.getSlideImage).toHaveBeenCalledWith(1, 'slide-1');
+      await expect(
+        service.getPresentationSlideImage(1, 'slide-1'),
+      ).resolves.toBe(result);
+      expect(presentationService.getSlideImage).toHaveBeenCalledWith(
+        1,
+        'slide-1',
+      );
     });
 
     it('delegates listPresentationPreviewProjects to PresentationService.listVisibleProjectOptions', async () => {
       const options = [{ id: 1, name: 'A project' }];
       presentationService.listVisibleProjectOptions.mockResolvedValue(options);
 
-      await expect(service.listPresentationPreviewProjects(1)).resolves.toBe(options);
-      expect(presentationService.listVisibleProjectOptions).toHaveBeenCalledWith(1);
+      await expect(service.listPresentationPreviewProjects(1)).resolves.toBe(
+        options,
+      );
+      expect(
+        presentationService.listVisibleProjectOptions,
+      ).toHaveBeenCalledWith(1);
     });
 
     it('base64-encodes the rendered draft buffer', async () => {
-      presentationService.previewSlideDraft.mockResolvedValue(Buffer.from('fake-png'));
+      presentationService.previewSlideDraft.mockResolvedValue(
+        Buffer.from('fake-png'),
+      );
 
-      const result = await service.previewPresentationSlideDraft(1, { slideId: 5, body: '<h1>x</h1>' });
+      const result = await service.previewPresentationSlideDraft(1, {
+        slideId: 5,
+        body: '<h1>x</h1>',
+      });
 
-      expect(presentationService.previewSlideDraft).toHaveBeenCalledWith(1, { slideId: 5, body: '<h1>x</h1>' });
-      expect(result).toEqual({ imageBase64: Buffer.from('fake-png').toString('base64') });
+      expect(presentationService.previewSlideDraft).toHaveBeenCalledWith(1, {
+        slideId: 5,
+        body: '<h1>x</h1>',
+      });
+      expect(result).toEqual({
+        imageBase64: Buffer.from('fake-png').toString('base64'),
+      });
     });
   });
 });

@@ -2,9 +2,14 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtVotingStrategy } from './jwt-voting.strategy';
 
 describe('JwtVotingStrategy', () => {
-  const configService = { getOrThrow: jest.fn().mockReturnValue('voting-secret') };
+  const configService = {
+    getOrThrow: jest.fn().mockReturnValue('voting-secret'),
+  };
   const accountModel = { findOne: jest.fn() };
-  const strategy = new JwtVotingStrategy(configService as never, accountModel as never);
+  const strategy = new JwtVotingStrategy(
+    configService as never,
+    accountModel as never,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();

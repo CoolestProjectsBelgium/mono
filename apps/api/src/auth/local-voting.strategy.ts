@@ -7,7 +7,10 @@ import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
-export class VotingLoginStrategy extends PassportStrategy(Strategy, 'login-voting') {
+export class VotingLoginStrategy extends PassportStrategy(
+  Strategy,
+  'login-voting',
+) {
   constructor(
     @InjectModel(Account) private readonly accountModel: typeof Account,
     @InjectModel(Event) private readonly eventModel: typeof Event,
@@ -31,10 +34,15 @@ export class VotingLoginStrategy extends PassportStrategy(Strategy, 'login-votin
       attributes: ['id'],
     });
 
-    if(!activeEvent){
+    if (!activeEvent) {
       throw new UnauthorizedException();
     }
 
-    return { id: account.id, email: account.email, user: account.email, eventId: activeEvent.id };
+    return {
+      id: account.id,
+      email: account.email,
+      user: account.email,
+      eventId: activeEvent.id,
+    };
   }
 }

@@ -32,9 +32,10 @@ export function resolveParticipantUserId(user: unknown): number | null {
 
 @Injectable()
 export class UserCookieInterceptor implements NestInterceptor {
-  constructor(private readonly tokensService: TokensService,
-    private readonly config: ConfigService
-  ) { }
+  constructor(
+    private readonly tokensService: TokensService,
+    private readonly config: ConfigService,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
@@ -54,7 +55,7 @@ export class UserCookieInterceptor implements NestInterceptor {
             this.tokensService.generateLoginToken(userId),
             buildAppCookieOptions(this.config, request),
           );
-        }
+        },
       }),
     );
   }

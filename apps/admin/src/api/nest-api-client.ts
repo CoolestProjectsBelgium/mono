@@ -1,8 +1,4 @@
-import axios, {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-} from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { CookieJar } from 'tough-cookie';
 import { wrapper } from 'axios-cookiejar-support';
 
@@ -10,7 +6,10 @@ type CsrfResponse = {
   csrfToken: string;
 };
 
-function getRawHeader(rawHeaders: string[] | undefined, name: string): string | undefined {
+function getRawHeader(
+  rawHeaders: string[] | undefined,
+  name: string,
+): string | undefined {
   if (!rawHeaders) {
     return undefined;
   }
@@ -92,9 +91,7 @@ export class NestApiClient {
       return this.csrfToken;
     }
 
-    const response = await this.client.get<CsrfResponse>(
-      '/csrf-token',
-    );
+    const response = await this.client.get<CsrfResponse>('/csrf-token');
 
     this.csrfToken = response.data.csrfToken;
 
@@ -115,17 +112,13 @@ export class NestApiClient {
   ): Promise<AxiosResponse<T>> {
     const csrfToken = await this.ensureCsrfToken();
 
-    return this.client.post<T>(
-      path,
-      data,
-      {
-        ...config,
-        headers: {
-          ...config?.headers,
-          'x-csrf-token': csrfToken,
-        },
+    return this.client.post<T>(path, data, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        'x-csrf-token': csrfToken,
       },
-    );
+    });
   }
 
   async put<T>(
@@ -135,17 +128,13 @@ export class NestApiClient {
   ): Promise<AxiosResponse<T>> {
     const csrfToken = await this.ensureCsrfToken();
 
-    return this.client.put<T>(
-      path,
-      data,
-      {
-        ...config,
-        headers: {
-          ...config?.headers,
-          'x-csrf-token': csrfToken,
-        },
+    return this.client.put<T>(path, data, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        'x-csrf-token': csrfToken,
       },
-    );
+    });
   }
 
   async patch<T>(
@@ -155,17 +144,13 @@ export class NestApiClient {
   ): Promise<AxiosResponse<T>> {
     const csrfToken = await this.ensureCsrfToken();
 
-    return this.client.patch<T>(
-      path,
-      data,
-      {
-        ...config,
-        headers: {
-          ...config?.headers,
-          'x-csrf-token': csrfToken,
-        },
+    return this.client.patch<T>(path, data, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        'x-csrf-token': csrfToken,
       },
-    );
+    });
   }
 
   async delete<T>(
@@ -174,15 +159,12 @@ export class NestApiClient {
   ): Promise<AxiosResponse<T>> {
     const csrfToken = await this.ensureCsrfToken();
 
-    return this.client.delete<T>(
-      path,
-      {
-        ...config,
-        headers: {
-          ...config?.headers,
-          'x-csrf-token': csrfToken,
-        },
+    return this.client.delete<T>(path, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        'x-csrf-token': csrfToken,
       },
-    );
+    });
   }
 }

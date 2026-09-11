@@ -8,12 +8,17 @@ import {
   Query,
   Req,
   Res,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 
 import { Sse, MessageEvent } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ApiBearerAuth, ApiCookieAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import { JwtVotingAuthGuard } from '../auth/jwt-voting-auth.guard';
 import { VotingLoginAuthGuard } from '../auth/local-voting-auth.guard';
@@ -29,7 +34,10 @@ import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard'
 @Controller()
 @ApiTags('voting')
 export class VotingController {
-  constructor(private votingService: VotingService, @Inject(VOTING_JWT) private readonly votingJwtService: JwtService) { }
+  constructor(
+    private votingService: VotingService,
+    @Inject(VOTING_JWT) private readonly votingJwtService: JwtService,
+  ) {}
 
   @Post()
   @ApiCookieAuth('admin-cookie')
@@ -44,7 +52,10 @@ export class VotingController {
   @ApiCookieAuth('admin-cookie')
   @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
-  async startVoting(@Req() req: any, @Body() body: { durationMinutes?: number; deletePreviousResults?: boolean }) {
+  async startVoting(
+    @Req() req: any,
+    @Body() body: { durationMinutes?: number; deletePreviousResults?: boolean },
+  ) {
     await this.votingService.openVotingWithDuration(
       req.user.adminUser.eventId,
       Number(body.durationMinutes ?? 60),
@@ -59,8 +70,10 @@ export class VotingController {
   @UseGuards(MandatoryAdminCookieGuard)
   async stopVoting(@Req() req: any) {
     console.log(req.user);
-    await this.votingService.closeVotingNow(req.user.adminUser.eventId,);
-    const awards = await this.votingService.generateAwards(req.user.adminUser.eventId);
+    await this.votingService.closeVotingNow(req.user.adminUser.eventId);
+    const awards = await this.votingService.generateAwards(
+      req.user.adminUser.eventId,
+    );
     return { success: true, awards };
   }
 
@@ -77,7 +90,7 @@ export class VotingController {
   @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
   getVotingResults(@Req() req: any) {
-    return this.votingService.calculateVotes(req.user.adminUser.eventId,);
+    return this.votingService.calculateVotes(req.user.adminUser.eventId);
   }
 
   @Post('admin/voting/awards/generate')
@@ -88,12 +101,11 @@ export class VotingController {
     return this.votingService.generateAwards(req.user.adminUser.eventId);
   }
 
-
   @Get('admin/voting/awards')
   @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
   async getAwards(@Req() req: any) {
-    return this.votingService.getAwardAssignments(req.user.adminUser.eventId,);
+    return this.votingService.getAwardAssignments(req.user.adminUser.eventId);
   }
 
   @Post('admin/voting/awards/:awardId/assign')
@@ -108,7 +120,9 @@ export class VotingController {
     await this.votingService.assignAward(
       req.user.adminUser.eventId,
       Number(awardId),
-      body.categoryId === null || body.categoryId === undefined ? null : Number(body.categoryId),
+      body.categoryId === null || body.categoryId === undefined
+        ? null
+        : Number(body.categoryId),
     );
     return { success: true };
   }
@@ -117,7 +131,9 @@ export class VotingController {
   @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
   async getVotingStatus(@Req() req: any) {
-    const event = await this.votingService.getVotingStatus(req.user.adminUser.eventId,);
+    const event = await this.votingService.getVotingStatus(
+      req.user.adminUser.eventId,
+    );
     return event;
   }
 
@@ -131,8 +147,12 @@ export class VotingController {
         data: JSON.stringify({
           type: event.type,
           message: event.message,
-          startDate: event.startDate ? new Date(event.startDate).toISOString() : undefined,
-          endDate: event.endDate ? new Date(event.endDate).toISOString() : undefined,
+          startDate: event.startDate
+            ? new Date(event.startDate).toISOString()
+            : undefined,
+          endDate: event.endDate
+            ? new Date(event.endDate).toISOString()
+            : undefined,
         }),
       })),
     );
@@ -168,7 +188,7 @@ export class VotingController {
   @UseGuards(JwtVotingAuthGuard)
   async getUser(@Req() req: any): Promise<AccountDto> {
     const account = await this.votingService.getAccount(req.user.id);
-    return account
+    return account;
   }
 
   @Get('languages')
@@ -185,19 +205,26 @@ export class VotingController {
   @Get('projects')
   @ApiBearerAuth('jwt-voting')
   @UseGuards(JwtVotingAuthGuard)
-  async getProjects(@Req() req: any, @Query() query: any): Promise<ProjectVoteDto | VoteMessage> {
-
+  async getProjects(
+    @Req() req: any,
+    @Query() query: any,
+  ): Promise<ProjectVoteDto | VoteMessage> {
     let languages = ['nl', 'fr', 'en'];
     try {
       languages = JSON.parse(query.languages);
-    } catch { }
+    } catch {}
 
     let skipProjectId = null;
     try {
       skipProjectId = JSON.parse(query.skipProject);
-    } catch { }
+    } catch {}
 
-    return await this.votingService.getProjects(req.user.eventId, skipProjectId, languages, req.user.id)
+    return await this.votingService.getProjects(
+      req.user.eventId,
+      skipProjectId,
+      languages,
+      req.user.id,
+    );
   }
 
   @Post('projects/:projectId')
@@ -211,8 +238,13 @@ export class VotingController {
   ) {
     const votes = body.map((v) => ({
       id: v.id,
-      value: v.value || 0
+      value: v.value || 0,
     }));
-    await this.votingService.submitVotes(req.user.eventId, projectId, req.user.id, votes)
+    await this.votingService.submitVotes(
+      req.user.eventId,
+      projectId,
+      req.user.id,
+      votes,
+    );
   }
 }

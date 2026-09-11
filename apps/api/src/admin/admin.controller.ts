@@ -13,7 +13,10 @@ import {
 } from '@nestjs/common';
 import { ApiCookieAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { FloorplansOverviewDto, UploadFloorplanDto } from '../dto/floorplans-overview.dto';
+import {
+  FloorplansOverviewDto,
+  UploadFloorplanDto,
+} from '../dto/floorplans-overview.dto';
 import { MailTemplateContextRequestDto } from '../dto/mail-template-context.dto';
 import { UploadPresentationSlideImageDto } from '../dto/upload-presentation-slide-image.dto';
 import {
@@ -104,7 +107,10 @@ export class AdminController {
     @Req() req: { user?: AdminRequestUser },
     @Body() body: UploadPresentationAssetDto,
   ): Promise<PresentationAssetsOverviewDto> {
-    return this.adminService.uploadPresentationAsset(this.getEventId(req), body);
+    return this.adminService.uploadPresentationAsset(
+      this.getEventId(req),
+      body,
+    );
   }
 
   @Delete('presentation-assets/:filename')
@@ -114,7 +120,10 @@ export class AdminController {
     @Req() req: { user?: AdminRequestUser },
     @Param('filename') filename: string,
   ): Promise<PresentationAssetsOverviewDto> {
-    return this.adminService.deletePresentationAsset(this.getEventId(req), filename);
+    return this.adminService.deletePresentationAsset(
+      this.getEventId(req),
+      filename,
+    );
   }
 
   @Get('presentation-slides/preview')
@@ -130,7 +139,9 @@ export class AdminController {
   listPresentationPreviewProjects(
     @Req() req: { user?: AdminRequestUser },
   ): Promise<{ id: number; name: string }[]> {
-    return this.adminService.listPresentationPreviewProjects(this.getEventId(req));
+    return this.adminService.listPresentationPreviewProjects(
+      this.getEventId(req),
+    );
   }
 
   @Get('presentation-slides/preview/:key/image')
@@ -140,10 +151,11 @@ export class AdminController {
     @Param('key') key: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
-    const { file, hash, generatedAt } = await this.adminService.getPresentationSlideImage(
-      this.getEventId(req),
-      key,
-    );
+    const { file, hash, generatedAt } =
+      await this.adminService.getPresentationSlideImage(
+        this.getEventId(req),
+        key,
+      );
 
     res.setHeader('ETag', `"${hash}"`);
     res.setHeader('Last-Modified', generatedAt.toUTCString());
@@ -158,7 +170,10 @@ export class AdminController {
     @Req() req: { user?: AdminRequestUser },
     @Body() body: PreviewPresentationSlideDraftDto,
   ): Promise<{ imageBase64: string }> {
-    return this.adminService.previewPresentationSlideDraft(this.getEventId(req), body);
+    return this.adminService.previewPresentationSlideDraft(
+      this.getEventId(req),
+      body,
+    );
   }
 
   private getEventId(req: { user?: AdminRequestUser }): number {

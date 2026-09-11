@@ -70,7 +70,11 @@ export async function assignProjectsToEventTables(
   });
 
   const activeProjects = projects.filter((project) => !project.deletedAt);
-  for (let i = 0; i < activeProjects.length && i < availableTables.length; i++) {
+  for (
+    let i = 0;
+    i < activeProjects.length && i < availableTables.length;
+    i++
+  ) {
     await availableTables[i].update({ projectId: activeProjects[i].id });
   }
 }
@@ -124,7 +128,9 @@ export async function ensureVotingTestProjects(
   for (const project of await projectModel.findAll({
     where: { eventId: activeEvent.id, deletedAt: null },
   })) {
-    const table = await eventTableModel.findOne({ where: { projectId: project.id } });
+    const table = await eventTableModel.findOne({
+      where: { projectId: project.id },
+    });
     if (table) {
       linkedCount += 1;
     }
@@ -149,7 +155,9 @@ export async function ensureVotingTestProjects(
   for (const project of await projectModel.findAll({
     where: { eventId: activeEvent.id, deletedAt: null },
   })) {
-    const table = await eventTableModel.findOne({ where: { projectId: project.id } });
+    const table = await eventTableModel.findOne({
+      where: { projectId: project.id },
+    });
     if (!table) {
       unlinkedProjects.push(project);
     }
@@ -173,7 +181,9 @@ export async function ensureVotingTestProjects(
   for (const project of await projectModel.findAll({
     where: { eventId: activeEvent.id, deletedAt: null },
   })) {
-    const table = await eventTableModel.findOne({ where: { projectId: project.id } });
+    const table = await eventTableModel.findOne({
+      where: { projectId: project.id },
+    });
     if (table) {
       finalLinked += 1;
     }

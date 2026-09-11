@@ -16,7 +16,9 @@ export class EventguideController {
   constructor(private readonly eventguideService: EventguideService) {}
 
   @Get('projects')
-  getCurrentEventProjects(@Req() req: { info?: { currentEvent: number } }): Promise<EventguideProjectsResponseDto> {
+  getCurrentEventProjects(
+    @Req() req: { info?: { currentEvent: number } },
+  ): Promise<EventguideProjectsResponseDto> {
     const eventId = req.info?.currentEvent;
     if (!eventId || eventId < 0) {
       throw new NotFoundException('No active event');
@@ -47,7 +49,8 @@ export class EventguideController {
     @Param('attachmentId', ParseIntPipe) attachmentId: number,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const file = await this.eventguideService.getThumbnailByAttachmentId(attachmentId);
+    const file =
+      await this.eventguideService.getThumbnailByAttachmentId(attachmentId);
     res.setHeader('Cache-Control', 'public, max-age=300');
     return file;
   }

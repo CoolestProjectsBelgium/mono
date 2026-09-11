@@ -11,13 +11,12 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class FileValidationInterceptor implements NestInterceptor {
-  constructor(@InjectModel(User) private readonly userModel: typeof User) { }
+  constructor(@InjectModel(User) private readonly userModel: typeof User) {}
 
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
-
     const req = context.switchToHttp().getRequest();
 
     const file = req.file;
@@ -27,7 +26,7 @@ export class FileValidationInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const user = await this.userModel.findByPk(userId, { include: [Event], });
+    const user = await this.userModel.findByPk(userId, { include: [Event] });
 
     if (!user) {
       throw new BadRequestException('User not found');

@@ -23,7 +23,8 @@ function readAsBase64(file: File): Promise<string> {
       const result = String(reader.result ?? '');
       resolve(result.slice(result.indexOf(',') + 1));
     };
-    reader.onerror = () => reject(reader.error ?? new Error('Failed to read file'));
+    reader.onerror = () =>
+      reject(reader.error ?? new Error('Failed to read file'));
     reader.readAsDataURL(file);
   });
 }
@@ -70,7 +71,9 @@ export const PresentationAssets: React.FC = () => {
       setError(null);
     } catch (err) {
       console.error('Failed to upload asset:', err);
-      setError(err instanceof Error ? err.message : 'Unable to upload the asset.');
+      setError(
+        err instanceof Error ? err.message : 'Unable to upload the asset.',
+      );
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -80,7 +83,11 @@ export const PresentationAssets: React.FC = () => {
   };
 
   const deleteAsset = async (filename: string) => {
-    if (!window.confirm(`Delete "${filename}"? Slides referencing it will lose that image.`)) {
+    if (
+      !window.confirm(
+        `Delete "${filename}"? Slides referencing it will lose that image.`,
+      )
+    ) {
       return;
     }
     setBusyFilename(filename);
@@ -108,7 +115,8 @@ export const PresentationAssets: React.FC = () => {
     <Box variant="grey">
       <H2>Presentation assets</H2>
       <Text mb="lg">
-        Upload logos or other static art for the slide deck. Reference a file from a slide&apos;s body with{' '}
+        Upload logos or other static art for the slide deck. Reference a file
+        from a slide&apos;s body with{' '}
         <code>{"{{lookup assets 'filename.png'}}"}</code>, e.g.{' '}
         <code>{'<img src="{{lookup assets \'logo.png\'}}">'}</code>.
       </Text>
@@ -146,7 +154,9 @@ export const PresentationAssets: React.FC = () => {
           {(data?.assets ?? []).map((asset) => (
             <TableRow key={asset.filename}>
               <TableCell>{asset.filename}</TableCell>
-              <TableCell>{new Date(asset.uploadedAt).toLocaleString()}</TableCell>
+              <TableCell>
+                {new Date(asset.uploadedAt).toLocaleString()}
+              </TableCell>
               <TableCell>
                 <Button
                   size="sm"

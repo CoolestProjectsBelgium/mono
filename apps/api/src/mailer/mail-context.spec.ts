@@ -63,7 +63,7 @@ describe('mail-context', () => {
     const user = fakePerson(User, personFields);
     const registration = fakePerson(Registration, personFields);
 
-    it('resolves the event through the person\'s own association, not a passed-in model', async () => {
+    it("resolves the event through the person's own association, not a passed-in model", async () => {
       await buildMailContext({ person: user });
 
       expect(user.getEvent).toHaveBeenCalled();
@@ -71,7 +71,9 @@ describe('mail-context', () => {
 
     it('nests the person under user or registration depending on its own class', async () => {
       const { context: userContext } = await buildMailContext({ person: user });
-      const { context: registrationContext } = await buildMailContext({ person: registration });
+      const { context: registrationContext } = await buildMailContext({
+        person: registration,
+      });
 
       expect(userContext.user).toEqual(personFields);
       expect(userContext.registration).toBeUndefined();
@@ -80,8 +82,14 @@ describe('mail-context', () => {
     });
 
     it('produces the identical shape for a user and a registration', async () => {
-      const { context: userContext } = await buildMailContext({ person: user, token: 'abc' });
-      const { context: registrationContext } = await buildMailContext({ person: registration, token: 'abc' });
+      const { context: userContext } = await buildMailContext({
+        person: user,
+        token: 'abc',
+      });
+      const { context: registrationContext } = await buildMailContext({
+        person: registration,
+        token: 'abc',
+      });
 
       expect(Object.keys(userContext.user as object).sort()).toEqual(
         Object.keys(registrationContext.registration as object).sort(),
@@ -89,11 +97,16 @@ describe('mail-context', () => {
     });
 
     it('includes token and locale-aware url only when a token is given', async () => {
-      const { context: withToken } = await buildMailContext({ person: user, token: 'abc' });
+      const { context: withToken } = await buildMailContext({
+        person: user,
+        token: 'abc',
+      });
       expect(withToken.token).toBe('abc');
       expect(withToken.url).toBe(`${base}/en/login?token=abc`);
 
-      const { context: withoutToken } = await buildMailContext({ person: user });
+      const { context: withoutToken } = await buildMailContext({
+        person: user,
+      });
       expect(withoutToken.token).toBeUndefined();
       expect(withoutToken.url).toBeUndefined();
     });
@@ -116,7 +129,10 @@ describe('mail-context', () => {
 
   describe('resolveMailEvent', () => {
     it('looks up the event via the person\'s own association, not a passed-in "active" one', async () => {
-      const pastEvent = { id: 5, officialStartDate: new Date('2024-06-01') } as Event;
+      const pastEvent = {
+        id: 5,
+        officialStartDate: new Date('2024-06-01'),
+      } as Event;
       const person = { getEvent: jest.fn().mockResolvedValue(pastEvent) };
 
       const event = await resolveMailEvent(person);

@@ -5,7 +5,7 @@ import type { StringValue } from 'ms';
 
 @Injectable()
 export class TokensService {
-  constructor(private readonly config: ConfigService) { }
+  constructor(private readonly config: ConfigService) {}
   generateRegistrationToken(registration_id: number) {
     return sign(
       {

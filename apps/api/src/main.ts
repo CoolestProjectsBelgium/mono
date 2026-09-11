@@ -16,11 +16,15 @@ async function bootstrap() {
   });
   const config = app.get(ConfigService);
 
-
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
   configureSecurity(app);
 
-  app.use(cookieParser([config.getOrThrow('api.jwt'), config.getOrThrow('adminjs.secret')]));
+  app.use(
+    cookieParser([
+      config.getOrThrow('api.jwt'),
+      config.getOrThrow('adminjs.secret'),
+    ]),
+  );
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (!req.cookies.anonId) {
@@ -32,7 +36,9 @@ async function bootstrap() {
         sameSite: anonCookieOptions.sameSite,
         secure: anonCookieOptions.secure,
         path: '/',
-        ...(anonCookieOptions.domain ? { domain: anonCookieOptions.domain } : {}),
+        ...(anonCookieOptions.domain
+          ? { domain: anonCookieOptions.domain }
+          : {}),
       });
 
       req.cookies.anonId = anonId;
@@ -41,7 +47,10 @@ async function bootstrap() {
     next();
   });
 
-  const csrfCookieOptions = buildAppCookieOptions(config, { secure: true, headers: { 'x-forwarded-proto': 'https' } });
+  const csrfCookieOptions = buildAppCookieOptions(config, {
+    secure: true,
+    headers: { 'x-forwarded-proto': 'https' },
+  });
   const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     getSecret: () => config.getOrThrow('api.csrf'),
 
@@ -62,8 +71,7 @@ async function bootstrap() {
       return req.cookies.anonId;
     },
 
-    getCsrfTokenFromRequest: (req) =>
-      req.headers['x-csrf-token'] as string,
+    getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'],
   });
 
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -89,7 +97,8 @@ async function bootstrap() {
         type: 'apiKey',
         in: 'cookie',
         name: 'jwt',
-        description: 'Signed JWT cookie set after login/registration activation.',
+        description:
+          'Signed JWT cookie set after login/registration activation.',
       },
       'jwt-user-cookie',
     )

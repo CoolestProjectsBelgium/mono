@@ -1,2 +1,1 @@
-describe('AppController', () => {
-});
+describe('AppController', () => {});

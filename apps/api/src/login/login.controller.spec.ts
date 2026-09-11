@@ -45,7 +45,13 @@ describe('LoginController', () => {
         { provide: MailerService, useValue: mailerService },
         { provide: getModelToken(User), useValue: userModel },
         { provide: getModelToken(Registration), useValue: registrationModel },
-        { provide: ConfigService, useValue: { get: jest.fn(), getOrThrow: jest.fn().mockReturnValue('test-jwt-secret') } },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(),
+            getOrThrow: jest.fn().mockReturnValue('test-jwt-secret'),
+          },
+        },
         UserCookieInterceptor,
       ],
     }).compile();

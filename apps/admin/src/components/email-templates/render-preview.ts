@@ -16,7 +16,9 @@ export interface PreviewInput {
 export function renderPreview(input: PreviewInput): PreviewResult {
   try {
     const subject = Handlebars.compile(input.subject)(input.context);
-    const html = Handlebars.compile(input.contentRich, { noEscape: true })(input.context);
+    const html = Handlebars.compile(input.contentRich, { noEscape: true })(
+      input.context,
+    );
     const plainText = Handlebars.compile(input.contentPlain)(input.context);
 
     return { subject, html, plainText };

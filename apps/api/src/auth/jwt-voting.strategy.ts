@@ -6,14 +6,17 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Account } from '@coolestprojects/database';
 
 @Injectable()
-export class JwtVotingStrategy extends PassportStrategy(Strategy, 'jwt-voting') {
+export class JwtVotingStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-voting',
+) {
   constructor(
     private configService: ConfigService,
     @InjectModel(Account) private readonly accountModel: typeof Account,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.getOrThrow("voting.jwt"),
+      secretOrKey: configService.getOrThrow('voting.jwt'),
     });
   }
 

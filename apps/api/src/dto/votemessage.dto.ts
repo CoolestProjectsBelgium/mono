@@ -1,3 +1,3 @@
 export class VoteMessage {
-  message!: string
+  message!: string;
 }

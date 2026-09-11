@@ -20,12 +20,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt-user') {
 
   async validate(payload: any) {
     // we need to activiate the registrationID
-    let user : User | null = null;
-    if(payload.registrationID) {
-      user = await this.registrationService.activateRegistration(payload.registrationID);
+    let user: User | null = null;
+    if (payload.registrationID) {
+      user = await this.registrationService.activateRegistration(
+        payload.registrationID,
+      );
     }
 
-    if(payload.userID){
+    if (payload.userID) {
       user = await this.userModel.findByPk(payload.userID);
     }
 

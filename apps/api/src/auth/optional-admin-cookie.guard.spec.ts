@@ -16,9 +16,9 @@ describe('OptionalAdminCookieGuard', () => {
   const guard = new OptionalAdminCookieGuard();
 
   it('allows requests with no adminjs cookie', () => {
-    expect(guard.canActivate(mockContext({ signedCookies: {}, cookies: {} }))).toBe(
-      true,
-    );
+    expect(
+      guard.canActivate(mockContext({ signedCookies: {}, cookies: {} })),
+    ).toBe(true);
   });
 
   it('allows requests when signedCookies is missing', () => {

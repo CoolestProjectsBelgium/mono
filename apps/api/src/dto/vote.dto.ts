@@ -1,4 +1,4 @@
 export class VoteDto {
-    id!: number;
-    value!: number;
+  id!: number;
+  value!: number;
 }

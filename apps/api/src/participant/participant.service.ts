@@ -11,7 +11,7 @@ export class ParticipantService {
     private readonly projectModel: typeof Project,
     @InjectModel(UserProject)
     private readonly userProjectModel: typeof UserProject,
-  ) { }
+  ) {}
 
   public async generateParticipantVoucher(
     userOwnerId: number,
@@ -24,13 +24,19 @@ export class ParticipantService {
       throw new Error('Project via owner not found');
     }
 
-    const project = await this.projectModel.findByPk(projectOwnerUser.projectId);
+    const project = await this.projectModel.findByPk(
+      projectOwnerUser.projectId,
+    );
     if (!project || project.deletedAt != null) {
       throw new Error('Project not found');
     }
 
     const totalVouchers = await this.userProjectModel.count({
-      where: { projectId: project.id, voucherGuid: { [Op.not]: null }, deletedAt: null },
+      where: {
+        projectId: project.id,
+        voucherGuid: { [Op.not]: null },
+        deletedAt: null,
+      },
     });
     if (totalVouchers >= project.maxVoucher) {
       throw new Error(

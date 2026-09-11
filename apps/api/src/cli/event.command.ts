@@ -1,4 +1,26 @@
-import { Affiliation, Attachment, Account, EmailTemplate, Event, EventTable, PresentationSlide, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Registration, Vote, VoteCategory } from '@coolestprojects/database';
+import {
+  Affiliation,
+  Attachment,
+  Account,
+  EmailTemplate,
+  Event,
+  EventTable,
+  PresentationSlide,
+  Project,
+  Question,
+  QuestionRegistration,
+  QuestionTranslation,
+  QuestionUser,
+  Tshirt,
+  TshirtGroup,
+  TshirtGroupTranslation,
+  TshirtTranslation,
+  User,
+  UserProject,
+  Registration,
+  Vote,
+  VoteCategory,
+} from '@coolestprojects/database';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Command } from 'nestjs-command';
@@ -51,7 +73,7 @@ export class EventCommand {
     private readonly affiliationModel: typeof Affiliation,
     @InjectModel(PresentationSlide)
     private readonly presentationSlideModel: typeof PresentationSlide,
-  ) { }
+  ) {}
 
   @Command({
     command: 'event:init',
@@ -90,7 +112,9 @@ export class EventCommand {
   async seedVotingProjects() {
     const hasEvents = await this.eventModel.count();
     if (hasEvents === 0) {
-      console.log('Database is empty; running full seed (includes voting fixtures)...');
+      console.log(
+        'Database is empty; running full seed (includes voting fixtures)...',
+      );
       await this.initEventDB();
       return;
     }

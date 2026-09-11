@@ -100,7 +100,6 @@ export class MailerService {
         user: link instanceof User ? link : undefined,
         registration: link instanceof Registration ? link : undefined,
       });
-
     } catch (error) {
       await this.logEmail({
         eventId: event.id,
@@ -133,7 +132,7 @@ export class MailerService {
       event,
       to,
       context,
-      user
+      user,
     );
   }
 
@@ -142,7 +141,14 @@ export class MailerService {
 
     const language = user.language ?? 'en';
     const to = this.formatRecipients(user.email, user.email_guardian);
-    await this.sendMail(MailTemplates.waiting, language, event, to, context, user);
+    await this.sendMail(
+      MailTemplates.waiting,
+      language,
+      event,
+      to,
+      context,
+      user,
+    );
   }
 
   async welcomeMailOwner(user: User, project: Project, token: string) {
@@ -160,7 +166,7 @@ export class MailerService {
       event,
       to,
       context,
-      user
+      user,
     );
   }
 
@@ -178,7 +184,7 @@ export class MailerService {
       event,
       to,
       context,
-      user
+      user,
     );
   }
 
@@ -197,7 +203,7 @@ export class MailerService {
       event,
       to,
       context,
-      user
+      user,
     );
   }
 
@@ -210,7 +216,7 @@ export class MailerService {
       event,
       user.email,
       context,
-      user
+      user,
     );
   }
 
@@ -224,7 +230,11 @@ export class MailerService {
    */
   async sendDailyReminderMail(
     user: User,
-    reasons: { noProject: boolean; noPhoto: boolean; deadlineApproaching: boolean },
+    reasons: {
+      noProject: boolean;
+      noPhoto: boolean;
+      deadlineApproaching: boolean;
+    },
     token: string,
   ) {
     const { event, context } = await buildMailContext({
@@ -240,17 +250,23 @@ export class MailerService {
       event,
       to,
       { ...context, ...reasons },
-      user
+      user,
     );
   }
 
-  async sendRegistrationReminderMail(registration: Registration, token: string) {
+  async sendRegistrationReminderMail(
+    registration: Registration,
+    token: string,
+  ) {
     const { event, context } = await buildMailContext({
       person: registration,
       token,
     });
 
-    const to = this.formatRecipients(registration.email, registration.email_guardian);
+    const to = this.formatRecipients(
+      registration.email,
+      registration.email_guardian,
+    );
     const language = registration.language ?? 'en';
     await this.sendMail(
       MailTemplates.registrationReminder,
@@ -258,12 +274,17 @@ export class MailerService {
       event,
       to,
       context,
-      registration
+      registration,
     );
   }
 
   /** Sent to the project owner when a co-worker joins via their voucher. */
-  async notifyProjectOwner(owner: User, coworker: User, project: Project, token: string) {
+  async notifyProjectOwner(
+    owner: User,
+    coworker: User,
+    project: Project,
+    token: string,
+  ) {
     const { event, context } = await buildMailContext({
       person: owner,
       token,
@@ -277,8 +298,14 @@ export class MailerService {
       language,
       event,
       to,
-      { ...context, coworker: { firstname: coworker.firstname, lastname: coworker.lastname } },
-      owner
+      {
+        ...context,
+        coworker: {
+          firstname: coworker.firstname,
+          lastname: coworker.lastname,
+        },
+      },
+      owner,
     );
   }
 
@@ -304,9 +331,12 @@ export class MailerService {
       to,
       {
         ...context,
-        coworker: { firstname: formerParticipant.firstname, lastname: formerParticipant.lastname },
+        coworker: {
+          firstname: formerParticipant.firstname,
+          lastname: formerParticipant.lastname,
+        },
       },
-      owner
+      owner,
     );
   }
 
@@ -316,7 +346,14 @@ export class MailerService {
 
     const to = this.formatRecipients(user.email, user.email_guardian);
     const language = user.language ?? 'en';
-    await this.sendMail(MailTemplates.accountDeleted, language, event, to, context, user);
+    await this.sendMail(
+      MailTemplates.accountDeleted,
+      language,
+      event,
+      to,
+      context,
+      user,
+    );
   }
 
   async deleteMail() {}
@@ -325,14 +362,14 @@ export class MailerService {
   async ask4TokenMail() {}
 
   private async logEmail(entry: {
-    eventId: number
-    template: string
-    to: string
-    messageId: string
-    status: 'sent' | 'failed'
-    error?: string
-    user?: User
-    registration?: Registration
+    eventId: number;
+    template: string;
+    to: string;
+    messageId: string;
+    status: 'sent' | 'failed';
+    error?: string;
+    user?: User;
+    registration?: Registration;
   }): Promise<void> {
     const emailLog = this.emailLogModel.build({
       eventId: entry.eventId,
@@ -344,11 +381,10 @@ export class MailerService {
       userId: entry.user?.id,
       registrationId: entry.registration?.id,
     });
-    
+
     try {
       await emailLog.save();
-    }
-    catch (logError) {
+    } catch (logError) {
       console.error('[mailer] Failed to log email:', logError);
     }
   }

@@ -1,4 +1,8 @@
-import { deriveReminderReasons, hasAnyReminderReason, ReminderReasons } from './reminder-reasons';
+import {
+  deriveReminderReasons,
+  hasAnyReminderReason,
+  ReminderReasons,
+} from './reminder-reasons';
 
 describe('deriveReminderReasons', () => {
   it('flags noProject and never noPhoto when the user has no projects at all', () => {
@@ -29,7 +33,9 @@ describe('deriveReminderReasons', () => {
   });
 
   it('passes deadlineApproaching through independently, combined with either project state', () => {
-    expect(deriveReminderReasons({ projects: [] }, true)).toEqual<ReminderReasons>({
+    expect(
+      deriveReminderReasons({ projects: [] }, true),
+    ).toEqual<ReminderReasons>({
       noProject: true,
       noPhoto: false,
       deadlineApproaching: true,
@@ -48,19 +54,35 @@ describe('deriveReminderReasons', () => {
 describe('hasAnyReminderReason', () => {
   it('is false when nothing applies', () => {
     expect(
-      hasAnyReminderReason({ noProject: false, noPhoto: false, deadlineApproaching: false }),
+      hasAnyReminderReason({
+        noProject: false,
+        noPhoto: false,
+        deadlineApproaching: false,
+      }),
     ).toBe(false);
   });
 
   it('is true when any single reason applies', () => {
     expect(
-      hasAnyReminderReason({ noProject: true, noPhoto: false, deadlineApproaching: false }),
+      hasAnyReminderReason({
+        noProject: true,
+        noPhoto: false,
+        deadlineApproaching: false,
+      }),
     ).toBe(true);
     expect(
-      hasAnyReminderReason({ noProject: false, noPhoto: true, deadlineApproaching: false }),
+      hasAnyReminderReason({
+        noProject: false,
+        noPhoto: true,
+        deadlineApproaching: false,
+      }),
     ).toBe(true);
     expect(
-      hasAnyReminderReason({ noProject: false, noPhoto: false, deadlineApproaching: true }),
+      hasAnyReminderReason({
+        noProject: false,
+        noPhoto: false,
+        deadlineApproaching: true,
+      }),
     ).toBe(true);
   });
 });

@@ -8,7 +8,7 @@ export class EventService {
   constructor(
     @InjectModel(Event)
     private readonly eventModel: typeof Event,
-  ) { }
+  ) {}
 
   async create(event: EventDto) {
     return await this.eventModel.create({

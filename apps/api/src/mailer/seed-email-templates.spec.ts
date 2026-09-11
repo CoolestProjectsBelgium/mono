@@ -9,7 +9,9 @@ describe('buildSeedEmailTemplates', () => {
   });
 
   it('includes branded Coolest Projects subjects for key templates', () => {
-    const subjects = rows.map((row) => `${row.template}:${row.language}:${row.subject}`);
+    const subjects = rows.map(
+      (row) => `${row.template}:${row.language}:${row.subject}`,
+    );
     expect(subjects).toEqual(
       expect.arrayContaining([
         'registration:en:Coolest Projects {{year}}: Please confirm your registration',
@@ -24,7 +26,9 @@ describe('buildSeedEmailTemplates', () => {
       (row) => row.template === 'registration' && row.language === 'en',
     );
     expect(registrationEn).toBeDefined();
-    expect(registrationEn!.contentPlain).toContain('{{registration.firstname}}');
+    expect(registrationEn!.contentPlain).toContain(
+      '{{registration.firstname}}',
+    );
     expect(registrationEn!.contentPlain).toContain('{{url}}');
     expect(registrationEn!.contentRich).toContain('{{registration.firstname}}');
     expect(registrationEn!.contentRich).toContain('{{url}}');
@@ -45,13 +49,20 @@ describe('buildSeedEmailTemplates', () => {
       (row) => row.template === 'registrationReminder' && row.language === 'en',
     );
     expect(registrationReminderEn).toBeDefined();
-    expect(registrationReminderEn!.contentPlain).toContain('{{registration.firstname}}');
+    expect(registrationReminderEn!.contentPlain).toContain(
+      '{{registration.firstname}}',
+    );
     expect(registrationReminderEn!.contentRich).toContain('{{url}}');
   });
 
   it('includes project-owner participant-change templates with the coworker context var', () => {
-    for (const template of ['notifyNewProjectOwner', 'notifyProjectParticipantLeft']) {
-      const en = rows.find((row) => row.template === template && row.language === 'en');
+    for (const template of [
+      'notifyNewProjectOwner',
+      'notifyProjectParticipantLeft',
+    ]) {
+      const en = rows.find(
+        (row) => row.template === template && row.language === 'en',
+      );
       expect(en).toBeDefined();
       expect(en!.contentPlain).toContain('{{coworker.firstname}}');
       expect(en!.contentRich).toContain('{{project.title}}');

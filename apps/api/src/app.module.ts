@@ -1,4 +1,31 @@
-import { Account, AdminSession, Affiliation, Attachment, Award, Certificate, EmailTemplate, Event, EventTable, Message, PresentationRender, PresentationSlide, Project, Question, QuestionRegistration, QuestionTranslation, QuestionUser, Registration, Tshirt, TshirtGroup, TshirtGroupTranslation, TshirtTranslation, User, UserProject, Vote, VoteCategory } from '@coolestprojects/database';
+import {
+  Account,
+  AdminSession,
+  Affiliation,
+  Attachment,
+  Award,
+  Certificate,
+  EmailTemplate,
+  Event,
+  EventTable,
+  Message,
+  PresentationRender,
+  PresentationSlide,
+  Project,
+  Question,
+  QuestionRegistration,
+  QuestionTranslation,
+  QuestionUser,
+  Registration,
+  Tshirt,
+  TshirtGroup,
+  TshirtGroupTranslation,
+  TshirtTranslation,
+  User,
+  UserProject,
+  Vote,
+  VoteCategory,
+} from '@coolestprojects/database';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -29,7 +56,7 @@ import { UserCookieInterceptor } from './user-cookie.interceptor';
 import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
 import { EmailLog } from '@coolestprojects/database';
-import { AdminAuthenticationService } from './auth/adminauth.service'
+import { AdminAuthenticationService } from './auth/adminauth.service';
 import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
 
@@ -40,7 +67,7 @@ import configuration from './config/configuration.js';
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [configuration]
+      load: [configuration],
     }),
     AuthModule,
     SequelizeModule.forRootAsync({
@@ -117,7 +144,7 @@ import configuration from './config/configuration.js';
       PresentationRender,
     ]),
   ],
-  controllers: [ 
+  controllers: [
     AppController,
     RegistrationController,
     ProjectinfoController,
@@ -150,4 +177,4 @@ import configuration from './config/configuration.js';
   ],
   exports: [],
 })
-export class AppModule { }
+export class AppModule {}

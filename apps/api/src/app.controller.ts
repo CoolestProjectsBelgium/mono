@@ -43,5 +43,4 @@ export class AppController {
   getSettings(@Info() info: InfoDto): Promise<SettingDto> {
     return this.appService.getSettings(info);
   }
-  
 }

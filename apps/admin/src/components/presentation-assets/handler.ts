@@ -9,7 +9,11 @@ export interface PresentationAssetsOverview {
   assets: PresentationAssetListItem[];
 }
 
-export const Handler = async (request: any, _response: any, context: any): Promise<PresentationAssetsOverview> => {
+export const Handler = async (
+  request: any,
+  _response: any,
+  context: any,
+): Promise<PresentationAssetsOverview> => {
   const eventId = context.currentAdmin?.eventId;
   if (!eventId) {
     throw new Error('No event selected');
@@ -22,18 +26,29 @@ export const Handler = async (request: any, _response: any, context: any): Promi
   if (method === 'post') {
     if (payload.action === 'delete') {
       const filename = encodeURIComponent(String(payload.filename ?? ''));
-      return (await api.delete<PresentationAssetsOverview>(`/admin/presentation-assets/${filename}`)).data;
+      return (
+        await api.delete<PresentationAssetsOverview>(
+          `/admin/presentation-assets/${filename}`,
+        )
+      ).data;
     }
 
     if (payload.action === 'upload') {
-      return (await api.post<PresentationAssetsOverview>('/admin/presentation-assets', {
-        imageContentBase64: String(payload.imageContentBase64 ?? ''),
-        originalName: String(payload.originalName ?? 'asset.png'),
-      })).data;
+      return (
+        await api.post<PresentationAssetsOverview>(
+          '/admin/presentation-assets',
+          {
+            imageContentBase64: String(payload.imageContentBase64 ?? ''),
+            originalName: String(payload.originalName ?? 'asset.png'),
+          },
+        )
+      ).data;
     }
 
     throw new Error('Unknown action');
   }
 
-  return (await api.get<PresentationAssetsOverview>('/admin/presentation-assets')).data;
+  return (
+    await api.get<PresentationAssetsOverview>('/admin/presentation-assets')
+  ).data;
 };

@@ -8,9 +8,7 @@ export class OptionalAdminCookieStrategy extends PassportStrategy(
   Strategy,
   'optional-admin-cookie',
 ) {
-  constructor(
-    private readonly adminAuth: AdminAuthenticationService,
-  ) {
+  constructor(private readonly adminAuth: AdminAuthenticationService) {
     super({
       cookieName: 'adminjs',
       signed: true,

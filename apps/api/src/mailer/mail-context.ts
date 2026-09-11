@@ -36,9 +36,9 @@ export function eventYear(event: Event): number {
  * or not the admin's currently selected one, and they must still be able to
  * receive mail for it (e.g. a login link for a past event).
  */
-export async function resolveMailEvent(
-  person: { getEvent(): Promise<Event | null> },
-): Promise<Event> {
+export async function resolveMailEvent(person: {
+  getEvent(): Promise<Event | null>;
+}): Promise<Event> {
   const event = await person.getEvent();
   if (!event) {
     throw new Error('Event not found');
@@ -111,7 +111,9 @@ export async function buildMailContext(
   const language = person.language ?? 'en';
   const year = eventYear(event);
   const website = registrationWebsiteUrl();
-  const url = token ? buildLoginUrl(registrationAppUrl(), language, token) : undefined;
+  const url = token
+    ? buildLoginUrl(registrationAppUrl(), language, token)
+    : undefined;
   const kind = mailContextKind(person);
 
   return {
