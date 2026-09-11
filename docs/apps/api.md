@@ -161,7 +161,7 @@ Response shape: `{ event: { id, title, officialStartDate, floorplanPath }, proje
 Staff-only routes on `AdminController` (`AuthGuard('mandatory-admin-cookie')` — signed `adminjs` session cookie):
 
 - `GET /admin/floorplans` — list SVG files in `UPLOAD_ROOT/floorplans/` for the logged-in event (includes `isActive` from `Event.floorplanPath`)
-- `POST /admin/floorplans` — upload and process a Visio SVG (`{ svgContent, originalName }`); writes to API disk and sets active floor plan for the event
+- `POST /admin/floorplans` — upload and process a Visio SVG; real `multipart/form-data` (`FileInterceptor('file')`, `@UploadedFile()` — no size limit), not a JSON body. Writes to API disk and sets active floor plan for the event. See [Admin file uploads](#admin-file-uploads) for how the multipart request gets from an AdminJS page to this route.
 - `POST /admin/floorplans/:filename/activate` — set `Event.floorplanPath` to an existing uploaded file
 
 The AdminJS Floorplans page handler proxies these endpoints server-side. Visio processing lives in `apps/api/src/eventguide/process-visio-svg.ts`.
@@ -177,7 +177,9 @@ The AdminJS Floorplans page handler proxies these endpoints server-side. Visio p
 **Slides are admin-configured, not hardcoded.** Every slide — event info, per-project, project overview, floor map, sponsor/custom — is one `PresentationSlide` row (event-scoped, managed via the AdminJS **Presentation** resource), ordered by its own `order` column:
 - `dataSource: 'none' | 'projects'` — what feeds the Handlebars `body`. Event fields (`eventTitle`, dates) and `year`/`website` are always in context regardless of `dataSource`, so an event-info slide or a floor-map slide (referencing `event.floorplanPath`) are just ordinary `'none'` rows the admin authors — no dedicated code path for either.
 - `cardinality: 'single' | 'perRecord'` — only meaningful with `dataSource: 'projects'`. `perRecord` expands into **one rendered slide per visible project** (`record` in context) — the per-project "explanation + room location" slide. `single` produces **one** slide with every visible project as `records` — the project-overview style. `'none'` rows are always effectively single.
-- `imagePath` — optional static art for a `'none'` slide (e.g. a sponsor backdrop), uploaded via `POST /admin/presentation-slides/:id/image` (base64 JSON body, mirrors the floorplan-upload pattern) to `UPLOAD_ROOT/presentations/<eventId>/`. Plain file, **not** an `Attachment` row — same for the rendered slide PNGs themselves. No AdminJS upload widget yet; staff use the API endpoint directly (or a future admin page) — a known, deliberately-deferred gap, not an oversight.
+- `imagePath` — optional static art for a `'none'` slide (e.g. a sponsor backdrop), uploaded via `POST /admin/presentation-slides/:id/image` (multipart, see [Admin file uploads](#admin-file-uploads)) to `UPLOAD_ROOT/presentations/<eventId>/`. Plain file, **not** an `Attachment` row — same for the rendered slide PNGs themselves. No AdminJS upload widget yet; staff use the API endpoint directly (or a future admin page) — a known, deliberately-deferred gap, not an oversight.
+
+Dev seed data (`apps/api/src/seeder/seed-presentation-slides.ts`, applied by `seedDatabase`): three `PresentationSlide` rows styled after `apps/eventguide`'s branding (teal `#00AEA9`, `#f5f7fa` hero background) — an "All projects overview" (`projects`/`single`), a "Project spotlight" (`projects`/`perRecord`, one slide per visible project with photo/name/description/table badge), and a "Thank you sponsors" (`none`) slide demonstrating the `{{lookup assets 'filename.png'}}` pattern (see [Presentation assets](#presentation-assets) below), falling back to placeholder text when no logo has been uploaded yet.
 
 **Project visibility is table-assignment-gated — the opposite of the event guide.** The "visible projects" data source only includes projects with an `EventTable` row (`required: true` on that include); a project with no table assignment is hidden from the deck entirely. `eventguide`'s equivalent query uses `required: false` (shows every project, `tableNumber: null` if unassigned) — these are deliberately different rules for different audiences, not shared code. Ordered by table number then name (same convention as `eventguide`). The project's image is just its first confirmed `Attachment` — no photo-consent gate; that's specific to the event guide's public-online use case and doesn't apply to a venue-only display.
 
@@ -190,6 +192,27 @@ The AdminJS Floorplans page handler proxies these endpoints server-side. Visio p
 - `HEAD /presentation/:key` → same headers, no body, never renders.
 
 Slide keys are stable strings (`slide-<configId>` or `slide-<configId>-<projectId>`), not array indices — indices would silently point at the wrong slide once a project is added/removed.
+
+### Presentation assets
+
+Logos/art an admin uploads for reuse **across** slides (as opposed to a single slide's own `imagePath`), managed via the AdminJS **Presentation assets** page. Staff-only routes on `AdminController`, same guard as floorplans:
+
+- `GET /admin/presentation-assets` — list files (filename + `uploadedAt`) under `UPLOAD_ROOT/presentations/<eventId>/assets/`
+- `POST /admin/presentation-assets` — upload (multipart, see [Admin file uploads](#admin-file-uploads)); filename is derived from the uploaded file's mimetype, not trusted from the client
+- `DELETE /admin/presentation-assets/:filename` — delete (ENOENT-tolerant)
+
+A slide's Handlebars `body` references an uploaded asset with `{{lookup assets 'logo.png'}}` (Handlebars' built-in `lookup` helper), e.g. `<img src="{{lookup assets 'logo.png'}}">` — `assets` is a `{ filename: dataUri }` map `PresentationService` builds from that folder at render time (`loadAssetsContext`). No `Attachment` row, same plain-filesystem convention as `imagePath`.
+
+Only browser/Chromium-decodable image formats are accepted (`png`/`jpg`/`jpeg`/`webp`/`gif`/`svg`, mimetype-checked) — not because of `feh` (the Pi only ever downloads the final rendered PNG, see [presentation.md](presentation.md), never a raw asset file), but because the asset is inlined as a `data:` URI into HTML that Puppeteer/Chromium has to actually decode to render the slide. No size limit — gated by admin/super_admin auth, same as the other admin uploads.
+
+**Keeping the hot poll path cheap.** `GET /presentation`'s per-slide hash (used by every Pi's delta-sync poll — see above) folds in an `assetsFingerprint`: a hash of the assets folder's filenames/mtimes/sizes only, *not* file contents, so a change to any asset invalidates every slide's cache (assets are shared across the whole deck, body is free-form Handlebars so there's no way to know which slides reference which asset) without the hot list/meta path paying to read and base64-encode every logo on every poll. The full `{ filename: dataUri }` map (`loadAssetsContext`) is only ever built on an actual render — a cache miss or an admin preview — never on the list/meta path.
+
+### Admin file uploads
+
+Every staff file upload (floorplan SVG, a slide's own `imagePath`, presentation assets) reaches these routes as real `multipart/form-data` — `FileInterceptor('file')` + `@UploadedFile()`, same mechanism `projectinfo`'s participant attachment upload uses — **not** a JSON body with base64-encoded content. Two differences from the participant upload:
+
+- **No size limit and no `FileValidationInterceptor`.** The participant-facing attachment route validates `file.size`/`file.mimetype` against the uploader's `Event.maxFileSize`/`allowedMimeTypes` because it's exposed to a much less trusted caller. Admin uploads are gated by `MandatoryAdminCookieGuard` (admin/super_admin auth) alone; content is trusted, though floorplan/asset routes still enforce their own *functional* checks (valid SVG structure, a Chromium-decodable image format) — see the sections above.
+- **The request is multipart before it even reaches this app.** AdminJS's own Express router already parses every page-handler POST as multipart via `express-formidable` (`@adminjs/express`'s `buildRouter.js` wraps the whole router in it) — the AdminJS page handler in `apps/admin` reads the parsed file (`payload.file`, spooled to a temp path) and re-encodes it once into a real multipart request (`form-data` package) via `NestApiClient.postForm()`, forwarding it to the routes above. See [admin.md](admin.md#file-uploads) for that side. `buildAuthenticatedRouter`'s `formidableOptions` is set to `{ maxFileSize: Infinity }` in `apps/admin/src/index.ts` so formidable's own 200MB default doesn't reintroduce a cap.
 
 ### Admin presentation preview
 
@@ -214,7 +237,7 @@ The AdminJS **Presentation** page's handler reads `PresentationSlide` rows direc
 - Real-world Gmail/Outlook (Microsoft 365)/Yahoo bounce coverage — not verified against actual bounce samples (see [Bounce mail detection](#bounce-mail-detection))
 - Production secrets
 - Whether other frontends send `x-csrf-token` on mutating API calls (registration and voting do)
-- No AdminJS upload widget for `PresentationSlide.imagePath` yet — the API endpoint exists (`POST /admin/presentation-slides/:id/image`), a proper admin page (mirroring Floorplans) is a deliberate follow-up, not built in the initial pass
+- No AdminJS upload widget for a single slide's own `imagePath` yet — the multipart API endpoint exists (`POST /admin/presentation-slides/:id/image`), a proper admin page (mirroring Floorplans/Presentation assets) is a deliberate follow-up, not built in this pass. The shared logos folder (Presentation assets, see [Presentation assets](#presentation-assets)) does have a page.
 - Real Raspberry Pi display client — `apps/presentation` is still a placeholder; whether the actual Pi-side client lives in this monorepo or elsewhere is undecided (see [presentation.md](presentation.md))
 
 ## Status

@@ -12,6 +12,8 @@ Supported local development path: **VS Code / Cursor Dev Container**.
 1. Open the repo and **Reopen in Container** (uses [`.devcontainer/devcontainer.json`](../.devcontainer/devcontainer.json)).
 2. `postCreateCommand` runs `npm install`.
 3. `postStartCommand` runs [`.devcontainer/start.sh`](../.devcontainer/start.sh), which:
+   - Trusts the dev CA in the container's system store (see [Certificates](#certificates))
+   - Installs headless Chrome's runtime shared libraries (`libnspr4`, `libnss3`, etc. — the base image ships none) and the Chrome binary itself (`npx puppeteer browsers install chrome`), for `apps/api`'s presentation slide-deck rendering (Puppeteer) — see [Presentation slide deck](apps/api.md#presentation-slide-deck)
    - Installs Nest CLI globally
    - Builds `packages/database` and `apps/api`
    - Seeds the database (`npm run seed-db --workspace=apps/api`)
@@ -83,6 +85,15 @@ certutil -addstore -user Root .devcontainer\certs\pki\ca.crt
 ```
 
 Restart the browser after installing the CA.
+
+## Puppeteer / headless Chrome
+
+`apps/api` renders the presentation slide deck (Handlebars → HTML → Puppeteer screenshot — see [apps/api.md](apps/api.md#presentation-slide-deck)) via Puppeteer/Chrome. Two container-specific things `start.sh` handles that a bare `npm install` doesn't:
+
+- **Chrome's runtime shared libraries.** The base image ships none of what headless Chrome links against at launch (`libnspr4`, `libnss3`, `libgtk-3-0t64`, etc.) — without them Chrome downloads fine but fails at launch with `error while loading shared libraries`. `start.sh` installs them via `apt-get` and then runs `npx puppeteer browsers install chrome`.
+- **`--no-sandbox`.** `PresentationService.screenshotHtml()` passes `args: ['--no-sandbox']` to `puppeteer.launch()`. Containers (dev and deploy) run as root with no user-namespace sandboxing available, which Chrome's zygote process refuses to start under otherwise (`Running as root without --no-sandbox is not supported`, https://crbug.com/638180).
+
+If you change either of these, verify by actually rendering a slide (e.g. through the AdminJS **Presentation** page's preview), not just that Chrome downloaded — a missing shared library or a missing `--no-sandbox` only surfaces when Chrome actually tries to launch.
 
 ## Manual commands
 
