@@ -630,6 +630,10 @@ const start = async () => {
       },
       name: 'adminjs',
     },
+    // Admin file uploads (floorplans, presentation assets/slide images) are
+    // gated by admin/super_admin auth, not by size — express-formidable's
+    // default cap (200MB) would otherwise apply to every page-handler POST.
+    { maxFileSize: Infinity },
   );
 
   app.use('/api', eventLoginRouter);

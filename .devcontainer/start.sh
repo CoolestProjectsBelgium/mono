@@ -8,6 +8,15 @@
 cp .devcontainer/certs/pki/ca.crt /usr/local/share/ca-certificates/coolestprojects-dev-ca.crt
 update-ca-certificates
 
+# `update-ca-certificates` only updates the OS trust store — Node's own TLS
+# stack (used by axios in apps/admin's NestApiClient, e.g. for the floorplan/
+# presentation-assets admin pages) ignores it and ships its own bundled root
+# list, so without this every outbound HTTPS call through the proxy to
+# *.coolestprojects.localhost fails with "unable to verify the first
+# certificate". Exported here so every background process started below
+# inherits it.
+export NODE_EXTRA_CA_CERTS="$(pwd)/.devcontainer/certs/pki/ca.crt"
+
 # Puppeteer (used by apps/api for presentation PDF export) needs both the Chrome
 # binary itself and, since the base image ships no browser runtime deps, the
 # shared libraries Chrome links against at launch (e.g. libnspr4/libnss3) —

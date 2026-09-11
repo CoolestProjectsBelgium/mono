@@ -16,19 +16,6 @@ import type { PresentationAssetsOverview } from './handler.js';
 
 const api = new ApiClient();
 
-function readAsBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result ?? '');
-      resolve(result.slice(result.indexOf(',') + 1));
-    };
-    reader.onerror = () =>
-      reject(reader.error ?? new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-}
-
 export const PresentationAssets: React.FC = () => {
   const [data, setData] = useState<PresentationAssetsOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,15 +44,18 @@ export const PresentationAssets: React.FC = () => {
   const uploadAsset = async (file: File) => {
     setUploading(true);
     try {
-      const imageContentBase64 = await readAsBase64(file);
+      // A real multipart body — AdminJS's own router parses this via
+      // express-formidable for every page-handler action (see
+      // buildAuthenticatedRouter in index.ts), same as a resource's file
+      // upload would be. axios sends a FormData as multipart automatically.
+      const formData = new FormData();
+      formData.append('action', 'upload');
+      formData.append('file', file, file.name);
+
       const response = await api.getPage({
         pageName: 'PresentationAssets',
         method: 'post',
-        data: {
-          action: 'upload',
-          imageContentBase64,
-          originalName: file.name,
-        },
+        data: formData,
       });
       setData(response.data as PresentationAssetsOverview);
       setError(null);

@@ -1,9 +1,22 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, stat, unlink, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { Registration, User } from '@coolestprojects/database';
 import { AdminService } from './admin.service';
 import { getFloorplanDir } from '../eventguide/floorplan-path';
+import { MulterFile } from '../file-upload/multer-file.type';
+
+function makeFile(overrides: Partial<MulterFile> = {}): MulterFile {
+  return {
+    fieldname: 'file',
+    originalname: 'upload.png',
+    encoding: '7bit',
+    mimetype: 'image/png',
+    size: overrides.buffer?.length ?? 0,
+    buffer: Buffer.alloc(0),
+    ...overrides,
+  };
+}
 
 jest.mock('puppeteer', () => ({
   __esModule: true,
@@ -15,6 +28,7 @@ jest.mock('node:fs/promises', () => ({
   readdir: jest.fn(),
   stat: jest.fn(),
   writeFile: jest.fn(),
+  unlink: jest.fn(),
 }));
 
 jest.mock('../eventguide/floorplan-path', () => ({
@@ -97,10 +111,14 @@ describe('AdminService floorplans', () => {
       mtime: new Date('2026-01-01T00:00:00.000Z'),
     });
 
-    const result = await service.uploadFloorplan(1, {
-      svgContent: svg,
-      originalName: 'Grondplan CP 2026.svg',
-    });
+    const result = await service.uploadFloorplan(
+      1,
+      makeFile({
+        originalname: 'Grondplan CP 2026.svg',
+        mimetype: 'image/svg+xml',
+        buffer: Buffer.from(svg, 'utf8'),
+      }),
+    );
 
     expect(writeFile).toHaveBeenCalledWith(
       path.join('/tmp/uploads/floorplans', 'grondplan-cp-2026.svg'),
@@ -116,10 +134,14 @@ describe('AdminService floorplans', () => {
 
   it('rejects corrupt SVG uploads', async () => {
     await expect(
-      service.uploadFloorplan(1, {
-        svgContent: '<text><g id="table_01"></g></text>',
-        originalName: 'bad.svg',
-      }),
+      service.uploadFloorplan(
+        1,
+        makeFile({
+          originalname: 'bad.svg',
+          mimetype: 'image/svg+xml',
+          buffer: Buffer.from('<text><g id="table_01"></g></text>', 'utf8'),
+        }),
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
@@ -324,14 +346,19 @@ describe('AdminService floorplans', () => {
   });
 
   describe('uploadPresentationSlideImage', () => {
-    it('writes the decoded image under UPLOAD_ROOT/presentations/<eventId>/ and stores the filename', async () => {
+    it('writes the uploaded image under UPLOAD_ROOT/presentations/<eventId>/ and stores the filename', async () => {
       const update = jest.fn().mockResolvedValue(undefined);
       presentationSlideModel.findOne.mockResolvedValue({ id: 5, update });
 
-      await service.uploadPresentationSlideImage(1, 5, {
-        imageContentBase64: Buffer.from('fake-png').toString('base64'),
-        originalName: 'Sponsor Logo.PNG',
-      });
+      await service.uploadPresentationSlideImage(
+        1,
+        5,
+        makeFile({
+          originalname: 'Sponsor Logo.PNG',
+          mimetype: 'image/png',
+          buffer: Buffer.from('fake-png'),
+        }),
+      );
 
       expect(presentationSlideModel.findOne).toHaveBeenCalledWith({
         where: { id: 5, eventId: 1 },
@@ -350,24 +377,30 @@ describe('AdminService floorplans', () => {
       presentationSlideModel.findOne.mockResolvedValue(null);
 
       await expect(
-        service.uploadPresentationSlideImage(1, 999, {
-          imageContentBase64: Buffer.from('x').toString('base64'),
-          originalName: 'a.png',
-        }),
+        service.uploadPresentationSlideImage(
+          1,
+          999,
+          makeFile({ buffer: Buffer.from('x') }),
+        ),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('rejects an unsupported file extension', async () => {
+    it('rejects a mimetype Chromium cannot render as an image', async () => {
       presentationSlideModel.findOne.mockResolvedValue({
         id: 5,
         update: jest.fn(),
       });
 
       await expect(
-        service.uploadPresentationSlideImage(1, 5, {
-          imageContentBase64: Buffer.from('x').toString('base64'),
-          originalName: 'a.gif',
-        }),
+        service.uploadPresentationSlideImage(
+          1,
+          5,
+          makeFile({
+            originalname: 'a.pdf',
+            mimetype: 'application/pdf',
+            buffer: Buffer.from('x'),
+          }),
+        ),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
@@ -378,11 +411,97 @@ describe('AdminService floorplans', () => {
       });
 
       await expect(
-        service.uploadPresentationSlideImage(1, 5, {
-          imageContentBase64: '',
-          originalName: 'a.png',
-        }),
+        service.uploadPresentationSlideImage(
+          1,
+          5,
+          makeFile({ buffer: Buffer.alloc(0) }),
+        ),
       ).rejects.toBeInstanceOf(BadRequestException);
+    });
+  });
+
+  describe('presentation assets', () => {
+    it('lists assets under UPLOAD_ROOT/presentations/<eventId>/assets/', async () => {
+      (readdir as jest.Mock).mockResolvedValue([
+        { isFile: () => true, name: 'logo.png' },
+        { isFile: () => true, name: '../secret.png' },
+      ]);
+      (stat as jest.Mock).mockResolvedValue({
+        mtime: new Date('2026-01-01T00:00:00.000Z'),
+      });
+
+      const result = await service.listPresentationAssets(1);
+
+      expect(mkdir).toHaveBeenCalledWith(
+        '/tmp/uploads/presentations/1/assets',
+        { recursive: true },
+      );
+      expect(result.assets).toEqual([
+        { filename: 'logo.png', uploadedAt: '2026-01-01T00:00:00.000Z' },
+      ]);
+    });
+
+    it('writes an uploaded asset and returns the refreshed list', async () => {
+      (readdir as jest.Mock).mockResolvedValue([
+        { isFile: () => true, name: 'logo.png' },
+      ]);
+      (stat as jest.Mock).mockResolvedValue({
+        mtime: new Date('2026-01-01T00:00:00.000Z'),
+      });
+
+      await service.uploadPresentationAsset(
+        1,
+        makeFile({
+          originalname: 'Sponsor Logo.png',
+          mimetype: 'image/png',
+          buffer: Buffer.from('fake-png'),
+        }),
+      );
+
+      expect(writeFile).toHaveBeenCalledWith(
+        path.join('/tmp/uploads/presentations/1/assets', 'sponsor-logo.png'),
+        expect.any(Buffer),
+      );
+    });
+
+    it('rejects a mimetype Chromium cannot render as an image', async () => {
+      await expect(
+        service.uploadPresentationAsset(
+          1,
+          makeFile({
+            originalname: 'a.pdf',
+            mimetype: 'application/pdf',
+            buffer: Buffer.from('x'),
+          }),
+        ),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('rejects empty asset content', async () => {
+      await expect(
+        service.uploadPresentationAsset(
+          1,
+          makeFile({ buffer: Buffer.alloc(0) }),
+        ),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('deletes an asset and tolerates it already being gone', async () => {
+      (readdir as jest.Mock).mockResolvedValue([]);
+
+      const result = await service.deletePresentationAsset(1, 'logo.png');
+
+      expect(unlink).toHaveBeenCalledWith(
+        path.join('/tmp/uploads/presentations/1/assets', 'logo.png'),
+      );
+      expect(result.assets).toEqual([]);
+    });
+
+    it('rejects an unsafe asset filename', async () => {
+      await expect(
+        service.deletePresentationAsset(1, '../../etc/passwd'),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(unlink).not.toHaveBeenCalled();
     });
   });
 

@@ -540,7 +540,8 @@ export class PresentationService {
     try {
       const buffer = await readFile(filePath);
       const ext = path.extname(filePath).slice(1).toLowerCase();
-      const mime = ext === 'jpg' ? 'jpeg' : ext || 'png';
+      const mime =
+        ext === 'jpg' ? 'jpeg' : ext === 'svg' ? 'svg+xml' : ext || 'png';
       return `data:image/${mime};base64,${buffer.toString('base64')}`;
     } catch {
       return null;

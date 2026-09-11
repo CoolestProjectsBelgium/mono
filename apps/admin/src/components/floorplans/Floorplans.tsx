@@ -62,15 +62,18 @@ export const Floorplans: React.FC = () => {
   const uploadSvg = async (file: File) => {
     setUploading(true);
     try {
-      const svgContent = await file.text();
+      // A real multipart body — AdminJS's own router parses this via
+      // express-formidable for every page-handler action (see
+      // buildAuthenticatedRouter in index.ts), same as a resource's file
+      // upload would be. axios sends a FormData as multipart automatically.
+      const formData = new FormData();
+      formData.append('action', 'upload');
+      formData.append('file', file, file.name);
+
       const response = await api.getPage({
         pageName: 'Floorplans',
         method: 'post',
-        data: {
-          action: 'upload',
-          svgContent,
-          originalName: file.name,
-        },
+        data: formData,
       });
       setData(response.data as FloorplansOverview);
       setError(null);

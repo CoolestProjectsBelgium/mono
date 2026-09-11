@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { CookieJar } from 'tough-cookie';
 import { wrapper } from 'axios-cookiejar-support';
+import FormData from 'form-data';
 
 type CsrfResponse = {
   csrfToken: string;
@@ -165,6 +166,29 @@ export class NestApiClient {
         ...config?.headers,
         'x-csrf-token': csrfToken,
       },
+    });
+  }
+
+  /**
+   * Forwards a file AdminJS's own page-handler pipeline already received
+   * (parsed by `express-formidable`, see `buildAuthenticatedRouter`'s
+   * `formidableOptions` in index.ts) on to the matching Nest `FileInterceptor`
+   * route as a real multipart/form-data request — same mechanism as every
+   * other file upload in this codebase, just re-encoded once since AdminJS's
+   * own body-parsing already consumed the original request stream.
+   * Uncapped body size: admin uploads are gated by admin/super_admin auth,
+   * not by size.
+   */
+  async postForm<T>(path: string, form: FormData): Promise<AxiosResponse<T>> {
+    const csrfToken = await this.ensureCsrfToken();
+
+    return this.client.post<T>(path, form, {
+      headers: {
+        ...form.getHeaders(),
+        'x-csrf-token': csrfToken,
+      },
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
     });
   }
 }

@@ -17,6 +17,9 @@ describe('AdminController', () => {
     activateFloorplan: jest.fn(),
     getMailTemplateContext: jest.fn(),
     uploadPresentationSlideImage: jest.fn(),
+    listPresentationAssets: jest.fn(),
+    uploadPresentationAsset: jest.fn(),
+    deletePresentationAsset: jest.fn(),
     listPresentationSlides: jest.fn(),
     listPresentationPreviewProjects: jest.fn(),
     getPresentationSlideImage: jest.fn(),
@@ -70,7 +73,14 @@ describe('AdminController', () => {
   });
 
   it('uploads a floorplan for the logged-in event', async () => {
-    const body = { svgContent: '<svg></svg>', originalName: 'map.svg' };
+    const file = {
+      fieldname: 'file',
+      originalname: 'map.svg',
+      encoding: '7bit',
+      mimetype: 'image/svg+xml',
+      size: 9,
+      buffer: Buffer.from('<svg></svg>'),
+    };
     adminService.uploadFloorplan.mockResolvedValue({
       floorplans: [],
       activeFilename: null,
@@ -78,10 +88,10 @@ describe('AdminController', () => {
 
     await controller.uploadFloorplan(
       { user: { adminUser: { eventId: 2 } } },
-      body,
+      file as never,
     );
 
-    expect(adminService.uploadFloorplan).toHaveBeenCalledWith(2, body);
+    expect(adminService.uploadFloorplan).toHaveBeenCalledWith(2, file);
   });
 
   it('activates a floorplan for the logged-in event', async () => {
@@ -113,21 +123,70 @@ describe('AdminController', () => {
   });
 
   it('uploads a presentation slide image for the logged-in event', async () => {
-    const body = {
-      imageContentBase64: 'ZmFrZQ==',
-      originalName: 'sponsor.png',
+    const file = {
+      fieldname: 'file',
+      originalname: 'sponsor.png',
+      encoding: '7bit',
+      mimetype: 'image/png',
+      size: 4,
+      buffer: Buffer.from('fake'),
     };
 
     await controller.uploadPresentationSlideImage(
       { user: { adminUser: { eventId: 4 } } },
       '7',
-      body,
+      file as never,
     );
 
     expect(adminService.uploadPresentationSlideImage).toHaveBeenCalledWith(
       4,
       7,
-      body,
+      file,
+    );
+  });
+
+  it('lists presentation assets for the logged-in event', async () => {
+    const overview = { assets: [{ filename: 'logo.png', uploadedAt: '2026-01-01T00:00:00.000Z' }] };
+    adminService.listPresentationAssets.mockResolvedValue(overview);
+
+    const result = await controller.listPresentationAssets({
+      user: { adminUser: { eventId: 4 } },
+    });
+
+    expect(adminService.listPresentationAssets).toHaveBeenCalledWith(4);
+    expect(result).toEqual(overview);
+  });
+
+  it('uploads a presentation asset for the logged-in event', async () => {
+    const file = {
+      fieldname: 'file',
+      originalname: 'logo.png',
+      encoding: '7bit',
+      mimetype: 'image/png',
+      size: 4,
+      buffer: Buffer.from('fake'),
+    };
+    adminService.uploadPresentationAsset.mockResolvedValue({ assets: [] });
+
+    await controller.uploadPresentationAsset(
+      { user: { adminUser: { eventId: 4 } } },
+      file as never,
+    );
+
+    expect(adminService.uploadPresentationAsset).toHaveBeenCalledWith(4, file);
+  });
+
+  it('deletes a presentation asset for the logged-in event', async () => {
+    adminService.deletePresentationAsset.mockResolvedValue({ assets: [] });
+
+    await controller.deletePresentationAsset(
+      { user: { adminUser: { eventId: 4 } } },
+      'logo.png',
+    );
+
+    expect(adminService.deletePresentationAsset).toHaveBeenCalledWith(
+      4,
+      'logo.png',
     );
   });
 

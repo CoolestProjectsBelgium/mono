@@ -14,16 +14,10 @@ import {
 } from '@coolestprojects/database';
 import { mkdir, readdir, stat, unlink, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
-import {
-  FloorplansOverviewDto,
-  UploadFloorplanDto,
-} from '../dto/floorplans-overview.dto';
+import { FloorplansOverviewDto } from '../dto/floorplans-overview.dto';
 import { MailTemplateContextRequestDto } from '../dto/mail-template-context.dto';
-import { UploadPresentationSlideImageDto } from '../dto/upload-presentation-slide-image.dto';
-import {
-  PresentationAssetsOverviewDto,
-  UploadPresentationAssetDto,
-} from '../dto/presentation-assets.dto';
+import { PresentationAssetsOverviewDto } from '../dto/presentation-assets.dto';
+import { MulterFile } from '../file-upload/multer-file.type';
 import {
   getFloorplanDir,
   resolveFloorplanFilePath,
@@ -56,6 +50,22 @@ function slugifyFilename(originalName: string): string {
     .slice(0, 80);
   return `${slug || 'floorplan'}.svg`;
 }
+
+/**
+ * Admin image uploads (slide backgrounds, presentation assets) end up as a
+ * `data:` URI inlined into HTML that Puppeteer/Chromium renders — the
+ * extension just needs to match what Chromium can decode, not feh (the
+ * Pi only ever sees the resulting rendered PNG, never these source files).
+ * Keyed by mimetype rather than trusting the client-supplied filename, so
+ * the saved extension and actual content can never disagree.
+ */
+const BROWSER_IMAGE_MIME_TO_EXT: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/svg+xml': 'svg',
+};
 
 /** Re-uploading the same original name overwrites its asset, same as `slugifyFilename` does for floor plans. */
 function slugifyAssetFilename(originalName: string, ext: string): string {
@@ -122,10 +132,10 @@ export class AdminService {
 
   async uploadFloorplan(
     eventId: number,
-    body: UploadFloorplanDto,
+    file: MulterFile,
   ): Promise<FloorplansOverviewDto> {
-    const svgContent = String(body.svgContent ?? '');
-    const originalName = String(body.originalName ?? 'floorplan.svg');
+    const svgContent = (file.buffer ?? Buffer.alloc(0)).toString('utf8');
+    const originalName = file.originalname || 'floorplan.svg';
 
     if (!svgContent.trim().startsWith('<')) {
       throw new BadRequestException('Upload must be an SVG file');
@@ -193,14 +203,14 @@ export class AdminService {
   /**
    * Static art for a `dataSource: 'none'` presentation slide (e.g. a sponsor
    * backdrop) — a plain file under `UPLOAD_ROOT/presentations/<eventId>/`,
-   * same as the rendered slide PNGs; no `Attachment` row. Content comes as
-   * base64 in the JSON body (mirrors `uploadFloorplan`'s text-content
-   * pattern, just binary instead of SVG text).
+   * same as the rendered slide PNGs; no `Attachment` row. No size limit —
+   * gated by admin/super_admin auth (`MandatoryAdminCookieGuard`), not by
+   * content restrictions the way the participant-facing attachment upload is.
    */
   async uploadPresentationSlideImage(
     eventId: number,
     slideId: number,
-    body: UploadPresentationSlideImageDto,
+    file: MulterFile,
   ): Promise<void> {
     const slide = await this.presentationSlideModel.findOne({
       where: { id: slideId, eventId },
@@ -209,16 +219,12 @@ export class AdminService {
       throw new NotFoundException('Slide not found');
     }
 
-    const ext =
-      path
-        .extname(String(body.originalName ?? ''))
-        .slice(1)
-        .toLowerCase() || 'png';
-    if (!['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
-      throw new BadRequestException('Unsupported image type');
+    const ext = BROWSER_IMAGE_MIME_TO_EXT[file.mimetype];
+    if (!ext) {
+      throw new BadRequestException(`Unsupported image type: ${file.mimetype}`);
     }
 
-    const buffer = Buffer.from(String(body.imageContentBase64 ?? ''), 'base64');
+    const buffer = file.buffer ?? Buffer.alloc(0);
     if (buffer.length === 0) {
       throw new BadRequestException('Invalid image content');
     }
@@ -267,22 +273,19 @@ export class AdminService {
 
   async uploadPresentationAsset(
     eventId: number,
-    body: UploadPresentationAssetDto,
+    file: MulterFile,
   ): Promise<PresentationAssetsOverviewDto> {
-    const ext = path
-      .extname(String(body.originalName ?? ''))
-      .slice(1)
-      .toLowerCase();
-    if (!['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif'].includes(ext)) {
-      throw new BadRequestException('Unsupported image type');
+    const ext = BROWSER_IMAGE_MIME_TO_EXT[file.mimetype];
+    if (!ext) {
+      throw new BadRequestException(`Unsupported image type: ${file.mimetype}`);
     }
 
-    const buffer = Buffer.from(String(body.imageContentBase64 ?? ''), 'base64');
+    const buffer = file.buffer ?? Buffer.alloc(0);
     if (buffer.length === 0) {
       throw new BadRequestException('Invalid image content');
     }
 
-    const filename = slugifyAssetFilename(String(body.originalName ?? ''), ext);
+    const filename = slugifyAssetFilename(file.originalname, ext);
     const dir = getPresentationAssetsDir(eventId);
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, filename), buffer);

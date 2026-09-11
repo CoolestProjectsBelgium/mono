@@ -9,22 +9,19 @@ import {
   Req,
   Res,
   StreamableFile,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express/multer';
 import { ApiCookieAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import {
-  FloorplansOverviewDto,
-  UploadFloorplanDto,
-} from '../dto/floorplans-overview.dto';
+import { FloorplansOverviewDto } from '../dto/floorplans-overview.dto';
 import { MailTemplateContextRequestDto } from '../dto/mail-template-context.dto';
-import { UploadPresentationSlideImageDto } from '../dto/upload-presentation-slide-image.dto';
-import {
-  PresentationAssetsOverviewDto,
-  UploadPresentationAssetDto,
-} from '../dto/presentation-assets.dto';
+import { PresentationAssetsOverviewDto } from '../dto/presentation-assets.dto';
 import { PreviewPresentationSlideDraftDto } from '../dto/presentation-preview.dto';
 import { SlideListResponseDto } from '../dto/slide.dto';
+import { MulterFile } from '../file-upload/multer-file.type';
 import { AdminService } from './admin.service';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 
@@ -51,11 +48,12 @@ export class AdminController {
   @Post('floorplans')
   @UseGuards(MandatoryAdminCookieGuard)
   @ApiSecurity('csrf')
+  @UseInterceptors(FileInterceptor('file'))
   uploadFloorplan(
     @Req() req: { user?: AdminRequestUser },
-    @Body() body: UploadFloorplanDto,
+    @UploadedFile() file: MulterFile,
   ): Promise<FloorplansOverviewDto> {
-    return this.adminService.uploadFloorplan(this.getEventId(req), body);
+    return this.adminService.uploadFloorplan(this.getEventId(req), file);
   }
 
   @Post('floorplans/:filename/activate')
@@ -80,15 +78,16 @@ export class AdminController {
   @Post('presentation-slides/:id/image')
   @UseGuards(MandatoryAdminCookieGuard)
   @ApiSecurity('csrf')
+  @UseInterceptors(FileInterceptor('file'))
   uploadPresentationSlideImage(
     @Req() req: { user?: AdminRequestUser },
     @Param('id') id: string,
-    @Body() body: UploadPresentationSlideImageDto,
+    @UploadedFile() file: MulterFile,
   ): Promise<void> {
     return this.adminService.uploadPresentationSlideImage(
       this.getEventId(req),
       Number(id),
-      body,
+      file,
     );
   }
 
@@ -103,13 +102,14 @@ export class AdminController {
   @Post('presentation-assets')
   @UseGuards(MandatoryAdminCookieGuard)
   @ApiSecurity('csrf')
+  @UseInterceptors(FileInterceptor('file'))
   uploadPresentationAsset(
     @Req() req: { user?: AdminRequestUser },
-    @Body() body: UploadPresentationAssetDto,
+    @UploadedFile() file: MulterFile,
   ): Promise<PresentationAssetsOverviewDto> {
     return this.adminService.uploadPresentationAsset(
       this.getEventId(req),
-      body,
+      file,
     );
   }
 
