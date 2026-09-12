@@ -16,10 +16,10 @@ Source of truth for Coolest Projects monorepo architecture and per-package orien
 | App | Doc | Status |
 |-----|-----|--------|
 | API | [apps/api.md](apps/api.md) | deep |
-| Admin | [apps/admin.md](apps/admin.md) | stub |
+| Admin | [apps/admin.md](apps/admin.md) | deep |
 | Voting | [apps/voting.md](apps/voting.md) | deep |
-| Registration | [apps/registration.md](apps/registration.md) | stub |
-| Event guide | [apps/eventguide.md](apps/eventguide.md) | stub |
+| Registration | [apps/registration.md](apps/registration.md) | deep |
+| Event guide | [apps/eventguide.md](apps/eventguide.md) | deep |
 | CDJ web INT gallery | [apps/cdj-web-int.md](apps/cdj-web-int.md) | stub |
 | Presentation | [apps/presentation.md](apps/presentation.md) | stub |
 

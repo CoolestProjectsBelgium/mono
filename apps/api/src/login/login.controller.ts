@@ -3,10 +3,12 @@ import {
   Body,
   Post,
   Request,
+  UseGuards,
   UseInterceptors,
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import {
   ApiCookieAuth,
   ApiResponse,
@@ -114,6 +116,10 @@ export class LoginController {
   @Post('mailToken')
   @ApiSecurity('csrf')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
+  // Sends an email and doubles as an email-enumeration/spam vector — throttle
+  // tighter than the module default (see security-assessment-2026-09.md H1).
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async mailToken(@Body() loginMailDto: LoginMailDto): Promise<LoginDto> {
     const user = await this.userModel.findOne({
       where: { email: loginMailDto.email },

@@ -30,6 +30,7 @@ import { VotingService } from './voting.service';
 import { VotingEvent } from '../dto/votingevent.dto';
 import { Observable, map } from 'rxjs';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller()
 @ApiTags('voting')
@@ -160,7 +161,13 @@ export class VotingController {
 
   @Post('auth/login')
   @ApiSecurity('csrf')
-  @UseGuards(VotingLoginAuthGuard)
+  // ThrottlerGuard first so a brute-force burst is rejected before
+  // VotingLoginAuthGuard ever runs the bcrypt/DB credential check.
+  @UseGuards(ThrottlerGuard, VotingLoginAuthGuard)
+  // Password login for a small, fixed set of jury accounts — throttle
+  // tighter than the module default against brute force (see
+  // security-assessment-2026-09.md H1, endpoint inventory "jury brute force").
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async login(@Req() req: any, @Res() res: Response) {
     console.log('user:', req.user);
 

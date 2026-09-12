@@ -10,19 +10,19 @@
 
 ## Executive summary
 
-Since the 2026-09-05 baseline, **8 of the original 22 critical/high findings have been fixed** (2 of 3 critical, 6 of 12 high), including the top two risks from the original report (AdminJS RBAC role mismatch, unauthenticated Puppeteer endpoint) plus the dev-proxy JWT auth break. Swagger UI (`/api`) was gated out of production as part of this pass. No medium or low finding has changed since the baseline — those 13 medium and 7 low items are carried forward unchanged. Dependency findings got slightly worse (72 → 78 npm audit findings) since no CI gate exists yet.
+Since the 2026-09-05 baseline, **9 of the original 22 critical/high findings have been fixed** (2 of 3 critical, 7 of 12 high), including the top two risks from the original report (AdminJS RBAC role mismatch, unauthenticated Puppeteer endpoint), the dev-proxy JWT auth break, and — this pass — rate limiting on the endpoints named in H1. Swagger UI (`/api`) was also gated out of production. No medium or low finding has changed since the baseline — those 13 medium and 7 low items are carried forward unchanged. Dependency findings got slightly worse (72 → 78 npm audit findings) since no CI gate exists yet.
 
-**Overall posture:** Moderate risk, improving. C2 (committed TLS private keys) is confirmed to be dev-only tooling — a self-signed easy-rsa CA used solely by the dev container's local HTTPS proxy, never referenced by prod config or deploy scripts, and committed intentionally so every contributor gets an identical multi-subdomain cert layout for testing. It remains a git-hygiene item worth cleaning up (gitignore + generation script) but is not a production secret exposure. The item with the largest real blast radius that is still open is H1 (no rate limiting anywhere), along with the CI/dependency hardening (H7) flagged as a separate effort in the original report.
+**Overall posture:** Moderate risk, improving. C2 (committed TLS private keys) is confirmed to be dev-only tooling — a self-signed easy-rsa CA used solely by the dev container's local HTTPS proxy, never referenced by prod config or deploy scripts, and committed intentionally so every contributor gets an identical multi-subdomain cert layout for testing. It remains a git-hygiene item worth cleaning up (gitignore + generation script) but is not a production secret exposure. With H1 addressed, the item with the largest real blast radius that is still open is the CI/dependency hardening (H7) flagged as a separate effort in the original report, followed by the voting-JWT/localStorage and `DB_SYNC_ALTER` pair (H4/H10).
 
 ### Top 5 risks (current)
 
 | # | ID | Risk | Environment |
 |---|-----|------|-------------|
-| 1 | **C2** | TLS private keys + CA key still committed to git (`.devcontainer/certs/pki/private/`) — last standing critical. Dev-only self-signed easy-rsa CA (see context below) — not a production secret, but still committed key material | Dev |
-| 2 | **H7** | 78 npm audit findings (2 critical, 20 high) — no CI gate or Dependabot; worse than baseline (72) | Both |
-| 3 | **H1** | No rate limiting anywhere (login, magic-link, registration, voting, uploads) | Both |
-| 4 | **H4/H10** | Voting JWT persisted in localStorage (XSS = full account compromise); `DB_SYNC_ALTER` still allows runtime DDL in prod | Prod |
-| 5 | **M-cluster** | Unsanitized SVG `innerHTML`, no Multer size caps, client-supplied `mimetype` trusted, no global `ValidationPipe` — all unchanged | Prod |
+| 1 | **H7** | 78 npm audit findings (2 critical, 20 high) — no CI gate or Dependabot; worse than baseline (72) | Both |
+| 2 | **H4/H10** | Voting JWT persisted in localStorage (XSS = full account compromise); `DB_SYNC_ALTER` still allows runtime DDL in prod | Prod |
+| 3 | **M-cluster** | Unsanitized SVG `innerHTML`, no Multer size caps, client-supplied `mimetype` trusted, no global `ValidationPipe` — all unchanged | Prod |
+| 4 | **H8/H9** | Hardcoded secrets in `docker-compose.yml`; seed credentials (`admin`/`admin`, `jury`/`jury`) — dev-only but still open | Dev |
+| 5 | **C2** | TLS private keys + CA key still committed to git — dev-only self-signed easy-rsa CA (see context below), not a production secret, but still a git-hygiene item | Dev |
 
 ### What's been fixed since 2026-09-05
 
@@ -36,6 +36,7 @@ Since the 2026-09-05 baseline, **8 of the original 22 critical/high findings hav
 | H6 | Swagger UI always enabled at `/api` | **Fixed in this pass** — `main.ts` now only builds/mounts the Swagger document when `NODE_ENV !== 'production'`. |
 | H11 | Jury AdminJS access largely unrestricted | Resolved as a consequence of C1 — jury has no AdminJS session to exploit. |
 | H12 | Dead `filesign` guard / unregistered controller | Old `file-upload.controller.ts` removed; uploads now go through Multer in the admin app ("move admin fileupload to multer"). |
+| H1 | No rate limiting on login, magic-link, registration, voting, uploads | `@nestjs/throttler` added to `apps/api` and applied per-route (not as a global `APP_GUARD` — see rationale below) to the three endpoints with real abuse value: `POST /login/mailToken` (5/min, email-bomb/enumeration risk), `POST /registration` (10/min, scripted mass registration), `POST /auth/login` voting (5/min, jury brute force — the exact risk H1's own endpoint inventory named). Verified with a standalone smoke test: 5 requests succeed, the 6th returns a real `429`. |
 
 ---
 
@@ -131,7 +132,7 @@ No new resource-level RBAC audit was needed for `super_admin`/`admin` since the 
 
 | ID | Finding | Env | Status | Recommendation |
 |----|---------|-----|--------|----------------|
-| H1 | No rate limiting on login, magic-link, registration, voting, uploads | Both | **Open, unchanged** | Add `@nestjs/throttler` or equivalent |
+| H1 | No rate limiting on login, magic-link, registration, voting, uploads | Both | **Fixed, scoped (this pass)** | `@nestjs/throttler` per-route on `/login/mailToken`, `/registration`, voting `/auth/login`. Deliberately **not** a global `APP_GUARD`: event-day traffic legitimately comes from many participants behind one shared venue/school NAT, so a blanket per-IP limit risks locking out a whole room. Participant-facing attachment uploads were left unthrottled for the same reason (already behind `JwtUserAuthGuard`, and a real classroom/venue can legitimately generate a burst of uploads) — revisit if abuse is observed |
 | H2 | JWT empty-secret fallback | Prod | **Fixed** | — |
 | H3 | Voting JWT not re-validated against DB on each request | Prod | **Fixed** | — |
 | H4 | Voting JWT persisted in localStorage (XSS = full account compromise) | Prod | **Open, unchanged** | Document XSS risk; consider httpOnly cookie |
@@ -226,6 +227,7 @@ Unchanged from the 2026-09-05 baseline except `FILE_SIGN_SECRET` — `JWT_KEY`, 
 - Voting JWT strategy re-validates jury account existence/role against the DB on every request (H3 fix)
 - Jury accounts have no path into AdminJS at all (C1/H11 fix)
 - Swagger/OpenAPI surface not mounted in production (H6 fix, this pass)
+- Rate limiting (`@nestjs/throttler`) on magic-link request, registration, and voting login (H1 fix, this pass)
 
 ---
 
@@ -246,7 +248,7 @@ All original P0 items are now closed.
 
 | Finding | Action | Status |
 |---------|--------|--------|
-| H1 | Rate limiting on auth, registration, upload endpoints | **Open** |
+| H1 | Rate limiting on auth, registration, upload endpoints | **Done** (scoped to login/mailToken, registration, voting login — see Findings inventory above for why uploads and a global guard were deliberately skipped) |
 | H3/H4 | Voting JWT DB re-validation; document XSS risk for localStorage token | H3 **done**; H4 doc/mitigation still **open** |
 | H7 | Add Dependabot + `npm audit` CI gate | **Open** (findings count rising) |
 | H11 | Complete jury RBAC audit and lock down PII resources | **Done** (resolved via C1) |
@@ -293,9 +295,10 @@ Baseline was 72 (51 moderate, 19 high, 2 critical) — findings increased across
 - H7: `npm audit` → 78 vulnerabilities (2 critical, 20 high, 56 moderate), up from 72.
 - M3/M4: `projectinfo.controller.ts` L160 `FileInterceptor('file')` has no `limits`; `file-validation.interceptor.ts` L41 checks `file.mimetype`.
 - L3: root cause clarified — `apps/api/src/**/*.ts` uses `process.env.UPLOAD_ROOT` exclusively (11 references across `presentation-path.ts`, `floorplan-path.ts`, `file-upload.service.ts`, `certificate-path.ts`, `configuration.ts`, seeders); `apps/api/.env.example` still documents the old `UPLOADS_DIR` name, `build_tools/env/api-prod.env.example` already has the correct `UPLOAD_ROOT`.
+- H1: fixed in this session — added `@nestjs/throttler` (`apps/api/package.json`), registered via `ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }])` in `app.module.ts` (imported, not bound as `APP_GUARD`), and applied `@UseGuards(ThrottlerGuard, ...)` + `@Throttle(...)` to `login.controller.ts` (`POST /login/mailToken`, 5/min), `registration.controller.ts` (`POST /registration`, 10/min), and `voting.controller.ts` (`POST /auth/login`, 5/min) — `ThrottlerGuard` listed first in each `@UseGuards(...)` so a throttled request never reaches the underlying auth guard's bcrypt/DB check. Verified with a standalone Nest app mirroring the mailToken config: 5 requests returned `201`, the 6th and 7th returned `429`. Existing unit specs for the three touched controllers needed `ThrottlerModule.forRoot(...)` added to their `TestingModule` (`login.controller.spec.ts`, `registration.controller.spec.ts`, `voting.controller.spec.ts`) so `ThrottlerGuard`'s constructor deps resolve — `npm test --workspace=apps/api` confirmed identical pass/fail counts to the pre-change baseline (11 failed suites / 19 failed tests, all pre-existing) afterward.
 
 ---
 
 ## Suggested follow-up
 
-P0 is fully closed. Next recommended PR: rate limiting (H1) + Dependabot/npm audit CI gate (H7) — these cover the current top real risks now that C2 is understood to be dev-only tooling rather than a leaked production secret. SVG sanitization (M2) and Multer limits (M3/M4) are small, isolated fixes that could ride along in the same PR or immediately after. C2's git-hygiene cleanup (gitignore the private keys, add a generation script per `docs/local-setup.md`) is worth doing but is no longer time-critical.
+P0 is fully closed, and H1 (rate limiting) is now done. Next recommended PR: Dependabot/npm audit CI gate (H7) — the current top real risk. SVG sanitization (M2) and Multer limits (M3/M4) are small, isolated fixes that could ride along in the same PR or immediately after. C2's git-hygiene cleanup (gitignore the private keys, add a generation script per `docs/local-setup.md`) and the H8/H9 dev-secret/seed-credential cleanup are worth doing but are no longer time-critical.

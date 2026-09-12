@@ -32,6 +32,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -73,6 +74,13 @@ import configuration from './config/configuration.js';
       isGlobal: true,
       load: [configuration],
     }),
+    // Not bound globally (via APP_GUARD): event-day traffic legitimately comes
+    // from many participants behind one shared venue/school NAT, so a blanket
+    // per-IP limit would risk locking out a whole room. Applied per-route with
+    // @UseGuards(ThrottlerGuard) + @Throttle(...) only on the endpoints the
+    // security assessment flagged as brute-force/abuse targets (login,
+    // magic-link, voting login) — see docs/security-assessment-2026-09.md H1.
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }]),
     AuthModule,
     SequelizeModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule to access ConfigService

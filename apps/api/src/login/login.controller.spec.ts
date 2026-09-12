@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { verify } from 'jsonwebtoken';
 import { getModelToken } from '@nestjs/sequelize';
 import { LoginController } from './login.controller';
@@ -38,6 +39,7 @@ describe('LoginController', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
+      imports: [ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }])],
       controllers: [LoginController],
       providers: [
         { provide: RegistrationService, useValue: registrationService },

@@ -19,6 +19,7 @@ import { RegistrationDto } from '../dto/registration.dto';
 import { Info } from '../info.decorator';
 import { InfoDto } from '../dto/info.dto';
 import { OptionalAdminCookieGuard } from '../auth/optional-admin-cookie.guard';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('registration')
 @ApiTags('registration')
@@ -38,7 +39,10 @@ export class RegistrationController {
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   @ApiCookieAuth('admin-cookie')
   @ApiSecurity('csrf')
-  @UseGuards(OptionalAdminCookieGuard)
+  @UseGuards(ThrottlerGuard, OptionalAdminCookieGuard)
+  // Open, unauthenticated endpoint — throttle against scripted mass
+  // registration (see security-assessment-2026-09.md H1).
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   async create(
     @Info() info: InfoDto,
     @Body() createRegistrationDto: RegistrationDto,

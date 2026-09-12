@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { RegistrationController } from './registration.controller';
 
 describe('RegistrationController', () => {
@@ -6,6 +7,7 @@ describe('RegistrationController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }])],
       controllers: [RegistrationController],
     }).compile();
 
