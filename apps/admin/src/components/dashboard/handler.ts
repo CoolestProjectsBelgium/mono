@@ -47,6 +47,7 @@ export interface DashboardResponse {
   maxRegistration: number;
   total_usedVouchers: number;
   total_users: number;
+  total_users_without_project: number;
   total_videos: number;
   tlang_nl: number;
   tlang_fr: number;
@@ -56,6 +57,14 @@ export interface DashboardResponse {
   total_X: number;
   questions: DashboardTableItem[];
   tshirts: DashboardTableItem[];
+  /** Raw milestone dates driving the dashboard's event timeline — status (done/active/upcoming) is derived client-side from these. */
+  registrationOpenDate?: Date;
+  registrationClosedDate?: Date;
+  projectClosedDate?: Date;
+  eventBeginDate?: Date;
+  eventEndDate?: Date;
+  votingStartDate?: Date;
+  votingEndDate?: Date;
 }
 
 /*
@@ -176,90 +185,6 @@ async function getQuestions(
 
   return questionsData;
 }
-/*
-SELECT
-    u.email AS user_email,
-    q.id AS question_id,
-    'has not' AS exeptions,
-    q.name AS q_name,
-    qt.description AS missing_desc
-FROM
-    `Users` u
-CROSS JOIN `Questions` q LEFT JOIN `QuestionUsers` uq ON
-    (
-        u.id = uq.userId AND q.id = uq.questionId
-    )
-INNER JOIN `QuestionTranslations` qt ON
-    (
-        q.id = qt.questionId AND qt.language = 'nl'
-    )
-WHERE
-    uq.userId IS NULL;
-
-const privacyComplianceAction = {
-  resource: User, 
-  options: {
-    actions: {
-      check_missing_responses: { // Naam aangepast naar "Ontbrekende Antwoorden"
-        actionType: 'list',
-        handler: async (request, context) => {
-          const { sequelize } = context;
-
-          // De definitieve query die alle combinaties vindt waarbij de koppeling ontbreekt.
-          // Dit geeft exact weer welke vragen een gebruiker NIET heeft bevestigd als 'Ja'.
-          const rawQuery = `
-            SELECT 
-                u.email AS user_email,
-                q.id AS question_id,
-                'has not' AS exeptions,
-                q.name AS q_name,
-                qt.description AS missing_desc
-            FROM 
-                \`Users\` u
-            CROSS JOIN 
-                \`Questions\` q
-            LEFT JOIN 
-                \`QuestionUsers\` uq ON (u.id = uq.userId AND q.id = uq.questionId)
-            INNER JOIN 
-                \`QuestionTranslations\` qt ON (q.id = qt.questionId AND qt.language = 'nl')
-            WHERE 
-                uq.userId IS NULL;
-          `;
-
-          try {
-            const results = await sequelize.query(rawQuery, {
-              type: context.sequelize.QueryTypes.SELECT
-            });
-
-            return {
-              records: results.map((row) => ({
-                // Unieke ID voor AdminJS lijstweergave (Email + QuestionID)
-                id: `${row.user_email}-${row.question_id}`, 
-                data: {
-                  email: row.user_email,
-                  status: row.exeptions,       // 'has not'
-                  questionName: row.q_name,    // De naam van de vraag (bijv. "Foto")
-                  description: row.missing_desc // De beschrijving/uitleg van die vraag
-                },
-              })),
-            };
-          } catch (error) {
-            console.error("CRITICAL ERROR - Missing Responses Query:", error);
-            throw new Error("Kon de lijst met ontbrekende vragen niet ophalen.");
-          }
-        },
-        options: {
-          // De kolommen die je ziet in het AdminJS dashboard
-          listProperties: ['email', 'status', 'questionName', 'description'],
-        },
-      },
-    },
-  },
-};
-
-// Voeg dit toe aan je modules array
-//
-*/
 
 export const Handler = async (
   _request: any,
@@ -340,6 +265,10 @@ export const Handler = async (
     maxRegistration: currentEvent?.maxRegistration || 64,
     total_usedVouchers: totalUsedVouchers,
     total_users: totalUsers,
+    total_users_without_project: Math.max(
+      0,
+      totalUsers - totalUsedVouchers - totalProjects,
+    ),
     total_videos: totalVideos,
 
     tlang_nl: tlangNl,
@@ -352,5 +281,13 @@ export const Handler = async (
 
     questions: questionsData,
     tshirts: tshirtsData,
+
+    registrationOpenDate: currentEvent?.registrationOpenDate,
+    registrationClosedDate: currentEvent?.registrationClosedDate,
+    projectClosedDate: currentEvent?.projectClosedDate,
+    eventBeginDate: currentEvent?.eventBeginDate,
+    eventEndDate: currentEvent?.eventEndDate,
+    votingStartDate: currentEvent?.votingStartDate,
+    votingEndDate: currentEvent?.votingEndDate,
   };
 };
