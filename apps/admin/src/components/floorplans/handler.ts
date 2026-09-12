@@ -42,6 +42,13 @@ export const Handler = async (
       ).data;
     }
 
+    if (payload.action === 'delete') {
+      const filename = encodeURIComponent(String(payload.filename ?? ''));
+      return (
+        await api.delete<FloorplansOverview>(`/admin/floorplans/${filename}`)
+      ).data;
+    }
+
     if (payload.action === 'upload') {
       // AdminJS's own router already parses multipart bodies for every
       // page-handler action via express-formidable (see buildAuthenticatedRouter

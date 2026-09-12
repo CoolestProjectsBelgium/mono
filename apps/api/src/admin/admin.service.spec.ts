@@ -40,6 +40,7 @@ describe('AdminService floorplans', () => {
   const eventModel = {
     findByPk: jest.fn(),
     update: jest.fn(),
+    count: jest.fn(),
   };
   const registrationModel = { findOne: jest.fn() };
   const userModel = { findOne: jest.fn() };
@@ -169,6 +170,44 @@ describe('AdminService floorplans', () => {
     await expect(
       service.activateFloorplan(1, 'missing.svg'),
     ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('deletes a floorplan not active for any event and tolerates it already being gone', async () => {
+    eventModel.count.mockResolvedValue(0);
+    eventModel.findByPk.mockResolvedValue({ floorplanPath: 'cp2025_zaal.svg' });
+    (readdir as jest.Mock).mockResolvedValue([
+      { isFile: () => true, name: 'cp2025_zaal.svg' },
+    ]);
+    (stat as jest.Mock).mockResolvedValue({
+      mtime: new Date('2026-01-01T00:00:00.000Z'),
+    });
+
+    const result = await service.deleteFloorplan(1, 'old-map.svg');
+
+    expect(eventModel.count).toHaveBeenCalledWith({
+      where: { floorplanPath: 'old-map.svg' },
+    });
+    expect(unlink).toHaveBeenCalledWith(
+      path.join('/tmp/uploads/floorplans', 'old-map.svg'),
+    );
+    expect(result.floorplans).toHaveLength(1);
+  });
+
+  it('rejects deleting a floorplan active for an event', async () => {
+    eventModel.count.mockResolvedValue(1);
+
+    await expect(
+      service.deleteFloorplan(1, 'cp2025_zaal.svg'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(unlink).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unsafe floorplan filename', async () => {
+    await expect(
+      service.deleteFloorplan(1, '../../etc/passwd'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(eventModel.count).not.toHaveBeenCalled();
+    expect(unlink).not.toHaveBeenCalled();
   });
 
   describe('getMailTemplateContext', () => {

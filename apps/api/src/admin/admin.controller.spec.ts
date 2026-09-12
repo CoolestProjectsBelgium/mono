@@ -15,6 +15,7 @@ describe('AdminController', () => {
     listFloorplans: jest.fn(),
     uploadFloorplan: jest.fn(),
     activateFloorplan: jest.fn(),
+    deleteFloorplan: jest.fn(),
     getMailTemplateContext: jest.fn(),
     uploadPresentationSlideImage: jest.fn(),
     listPresentationAssets: jest.fn(),
@@ -88,7 +89,7 @@ describe('AdminController', () => {
 
     await controller.uploadFloorplan(
       { user: { adminUser: { eventId: 2 } } },
-      file as never,
+      file,
     );
 
     expect(adminService.uploadFloorplan).toHaveBeenCalledWith(2, file);
@@ -109,6 +110,20 @@ describe('AdminController', () => {
       3,
       'cp2025_zaal.svg',
     );
+  });
+
+  it('deletes a floorplan for the logged-in event', async () => {
+    adminService.deleteFloorplan.mockResolvedValue({
+      floorplans: [],
+      activeFilename: null,
+    });
+
+    await controller.deleteFloorplan(
+      { user: { adminUser: { eventId: 3 } } },
+      'old-map.svg',
+    );
+
+    expect(adminService.deleteFloorplan).toHaveBeenCalledWith(3, 'old-map.svg');
   });
 
   it('fetches the mail template context', async () => {
@@ -135,7 +150,7 @@ describe('AdminController', () => {
     await controller.uploadPresentationSlideImage(
       { user: { adminUser: { eventId: 4 } } },
       '7',
-      file as never,
+      file,
     );
 
     expect(adminService.uploadPresentationSlideImage).toHaveBeenCalledWith(
@@ -146,7 +161,11 @@ describe('AdminController', () => {
   });
 
   it('lists presentation assets for the logged-in event', async () => {
-    const overview = { assets: [{ filename: 'logo.png', uploadedAt: '2026-01-01T00:00:00.000Z' }] };
+    const overview = {
+      assets: [
+        { filename: 'logo.png', uploadedAt: '2026-01-01T00:00:00.000Z' },
+      ],
+    };
     adminService.listPresentationAssets.mockResolvedValue(overview);
 
     const result = await controller.listPresentationAssets({
@@ -170,7 +189,7 @@ describe('AdminController', () => {
 
     await controller.uploadPresentationAsset(
       { user: { adminUser: { eventId: 4 } } },
-      file as never,
+      file,
     );
 
     expect(adminService.uploadPresentationAsset).toHaveBeenCalledWith(4, file);

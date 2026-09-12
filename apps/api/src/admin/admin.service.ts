@@ -201,6 +201,46 @@ export class AdminService {
   }
 
   /**
+   * Floor plans are a shared pool (`UPLOAD_ROOT/floorplans/`, no per-event
+   * subdir — see `getFloorplanDir`), not per-event like presentation assets,
+   * so deleting one can't just check the currently-selected event: any
+   * event (past or present) whose `floorplanPath` still points at this file
+   * would lose its floor map. Blocked rather than silently orphaning that
+   * reference.
+   */
+  async deleteFloorplan(
+    eventId: number,
+    filename: string,
+  ): Promise<FloorplansOverviewDto> {
+    const safeFilename = sanitizeFloorplanFilename(filename);
+    if (!safeFilename) {
+      throw new BadRequestException('Invalid floor plan filename');
+    }
+
+    const activeForEvent = await this.eventModel.count({
+      where: { floorplanPath: safeFilename },
+    });
+    if (activeForEvent > 0) {
+      throw new BadRequestException(
+        'Cannot delete a floor plan that is active for an event',
+      );
+    }
+
+    const filePath = resolveFloorplanFilePath(safeFilename);
+    if (filePath) {
+      try {
+        await unlink(filePath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+          throw error;
+        }
+      }
+    }
+
+    return this.listFloorplans(eventId);
+  }
+
+  /**
    * Static art for a `dataSource: 'none'` presentation slide (e.g. a sponsor
    * backdrop) — a plain file under `UPLOAD_ROOT/presentations/<eventId>/`,
    * same as the rendered slide PNGs; no `Attachment` row. No size limit —

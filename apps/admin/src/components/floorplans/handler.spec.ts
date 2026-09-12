@@ -10,6 +10,11 @@ test('handler proxies floorplan actions through the Nest API', () => {
   assert.match(source, /api\.get<FloorplansOverview>\('\/admin\/floorplans'\)/);
   assert.match(source, /api\.post<FloorplansOverview>/);
   assert.match(source, /`\/admin\/floorplans\/\$\{filename\}\/activate`/);
+  assert.match(source, /payload\.action === 'delete'/);
+  assert.match(
+    source,
+    /api\.delete<FloorplansOverview>\(`\/admin\/floorplans\/\$\{filename\}`\)/,
+  );
   // Upload re-encodes the formidable-parsed file (payload.file) into a real
   // multipart request via NestApiClient.postForm, reaching Nest's
   // FileInterceptor route the same way every other upload in this codebase does.

@@ -59,6 +59,29 @@ export const Floorplans: React.FC = () => {
     }
   };
 
+  const deleteFloorplan = async (filename: string) => {
+    if (!window.confirm(`Delete "${filename}"? This cannot be undone.`)) {
+      return;
+    }
+    setBusyFilename(filename);
+    try {
+      const response = await api.getPage({
+        pageName: 'Floorplans',
+        method: 'post',
+        data: { action: 'delete', filename },
+      });
+      setData(response.data as FloorplansOverview);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to delete floor plan:', err);
+      setError(
+        err instanceof Error ? err.message : 'Unable to delete the floor plan.',
+      );
+    } finally {
+      setBusyFilename(null);
+    }
+  };
+
   const uploadSvg = async (file: File) => {
     setUploading(true);
     try {
@@ -130,6 +153,7 @@ export const Floorplans: React.FC = () => {
             <TableCell>Uploaded</TableCell>
             <TableCell>Status</TableCell>
             <TableCell />
+            <TableCell />
           </TableRow>
         </TableHead>
         <TableBody>
@@ -151,6 +175,18 @@ export const Floorplans: React.FC = () => {
                   onClick={() => setActive(floorplan.filename)}
                 >
                   Use for this event
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  disabled={
+                    floorplan.isActive || busyFilename === floorplan.filename
+                  }
+                  onClick={() => deleteFloorplan(floorplan.filename)}
+                >
+                  Delete
                 </Button>
               </TableCell>
             </TableRow>

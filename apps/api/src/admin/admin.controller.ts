@@ -66,6 +66,16 @@ export class AdminController {
     return this.adminService.activateFloorplan(this.getEventId(req), filename);
   }
 
+  @Delete('floorplans/:filename')
+  @UseGuards(MandatoryAdminCookieGuard)
+  @ApiSecurity('csrf')
+  deleteFloorplan(
+    @Req() req: { user?: AdminRequestUser },
+    @Param('filename') filename: string,
+  ): Promise<FloorplansOverviewDto> {
+    return this.adminService.deleteFloorplan(this.getEventId(req), filename);
+  }
+
   @Post('mail-templates/context')
   @UseGuards(MandatoryAdminCookieGuard)
   @ApiSecurity('csrf')

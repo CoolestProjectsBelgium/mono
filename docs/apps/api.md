@@ -163,6 +163,7 @@ Staff-only routes on `AdminController` (`AuthGuard('mandatory-admin-cookie')` �
 - `GET /admin/floorplans` — list SVG files in `UPLOAD_ROOT/floorplans/` for the logged-in event (includes `isActive` from `Event.floorplanPath`)
 - `POST /admin/floorplans` — upload and process a Visio SVG; real `multipart/form-data` (`FileInterceptor('file')`, `@UploadedFile()` — no size limit), not a JSON body. Writes to API disk and sets active floor plan for the event. See [Admin file uploads](#admin-file-uploads) for how the multipart request gets from an AdminJS page to this route.
 - `POST /admin/floorplans/:filename/activate` — set `Event.floorplanPath` to an existing uploaded file
+- `DELETE /admin/floorplans/:filename` — delete an uploaded file. Floor plans are a **shared pool**, not per-event (`getFloorplanDir()` has no event subdir — `Event.floorplanPath` just points at whichever shared file an event is using), so this rejects (400) if *any* event — not just the logged-in one — still has this filename as its `floorplanPath`, to avoid silently orphaning another event's active map. ENOENT-tolerant otherwise.
 
 The AdminJS Floorplans page handler proxies these endpoints server-side. Visio processing lives in `apps/api/src/eventguide/process-visio-svg.ts`.
 
