@@ -11,10 +11,7 @@
   "types": "./dist/index.d.ts",
   "description": "",
   "dependencies": {
-    "@adminjs/express": "^6.1.1",
-    "@nestjs/config": "^4.0.4",
     "@types/bcrypt": "^6.0.0",
-    "adminjs": "^7.8.17",
     "bcrypt": "^6.0.0",
     "sequelize-typescript": "^2.1.6"
   }

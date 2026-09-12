@@ -111,5 +111,4 @@ npm run check-docs
 ## Unknowns
 
 - Native (non-container) setup is unsupported in this doc
-- Production parity for file upload URLs (`FILE_BASE_URL`)
 - Whether `synchronize: true` is acceptable beyond local dev
