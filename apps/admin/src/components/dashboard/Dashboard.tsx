@@ -137,6 +137,15 @@ function isSubActivityOpen(
   return now >= new Date(start).getTime() && now <= new Date(end).getTime();
 }
 
+/** Later of end-of-event-day and votingEndDate — wrap-up can't start before either. */
+function wrapUpStartDate(data: DashboardResponse): Date | undefined {
+  if (!data.officialStartDate) return undefined;
+  const eventDayEnd = endOfDay(data.officialStartDate);
+  if (!data.votingEndDate) return eventDayEnd;
+  const votingEnd = new Date(data.votingEndDate);
+  return votingEnd > eventDayEnd ? votingEnd : eventDayEnd;
+}
+
 function buildTimeline(data: DashboardResponse, now: number): TimelineStep[] {
   return [
     {
@@ -199,10 +208,11 @@ function buildTimeline(data: DashboardResponse, now: number): TimelineStep[] {
       key: 'wrap-up',
       label: 'Results & wrap-up',
       icon: 'CheckCircle',
-      // Runs from the end of voting until eventEndDate, when the event is
-      // fully closed down for the year (logins disabled — see the `closed`
-      // virtual on the Event model).
-      start: data.votingEndDate,
+      // Starts once the event day itself is over (not merely once voting
+      // closes, which can happen hours before the event day ends), and runs
+      // until eventEndDate, when the event is fully closed down for the year
+      // (logins disabled — see the `closed` virtual on the Event model).
+      start: data.officialStartDate && wrapUpStartDate(data),
       end: data.eventEndDate,
       links: [
         { label: 'Awards', href: resourceUrl('Awards') },

@@ -4,7 +4,7 @@ import path from 'node:path';
 import AdminJSExpress from '@adminjs/express';
 import passwordsFeature from '@adminjs/passwords';
 import * as AdminJSSequelize from '@adminjs/sequelize';
-import { Account } from '@coolestprojects/database';
+import { Account, type Event as EventModel } from '@coolestprojects/database';
 import AdminJS from 'adminjs';
 import connectSessionSequelize from 'connect-session-sequelize';
 import express from 'express';
@@ -112,7 +112,23 @@ const start = async () => {
     icon: 'Grid',
   };
 
+  // Named explicitly (rather than left to AdminJS's own '/admin' default) so the
+  // branding favicon URL below can reference it without a circular type reference
+  // through `admin.options.rootPath`.
+  const rootPath = '/admin';
+
   const admin = new AdminJS({
+    rootPath,
+    branding: async (currentAdmin: any) => {
+      const eventId = currentAdmin?.eventId;
+      const currentEvent = eventId
+        ? await (sequelize.models.Event as typeof EventModel).findByPk(eventId)
+        : null;
+      return {
+        companyName: currentEvent?.eventTitle || 'Coolest Projects',
+        favicon: `${rootPath}/frontend/assets/coderdojo-icon.png`,
+      };
+    },
     dashboard: {
       component: Components.Dashboard,
       handler: Handlers.Dashboard,

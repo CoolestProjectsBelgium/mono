@@ -7,7 +7,7 @@
     "test": "tsx --test src/components/email-templates/*.spec.ts src/components/floorplans/*.spec.ts src/components/presentation/*.spec.ts src/components/presentation-assets/*.spec.ts src/api/*.spec.ts",
     "start:dev": "tsx watch src/index.ts",
     "prestart:dev": "npm run build",
-    "build": "tsc",
+    "build": "tsc && node -e \"require('node:fs').cpSync('src/frontend/assets','dist/frontend/assets',{recursive:true})\"",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix"
   },
