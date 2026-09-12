@@ -34,7 +34,7 @@ const ParticipantBadge: React.FC<{ participant: ProjectParticipant }> = ({
       participant.agreedToPhoto ? 'agreed to photo' : 'did not agree to photo',
     ].join(' · ')}
   >
-    <Box flex alignItems="center" gap="default">
+    <Box flex alignItems="center" style={{ gap: '8px' }}>
       {participant.isOwner && <Icon icon="Star" size={14} />}
       <Icon
         icon={participant.agreedToPhoto ? 'Camera' : 'CameraOff'}
@@ -161,31 +161,37 @@ export const PictureHandlerPage: React.FC = () => {
       {Object.entries(data).map(
         ([projectName, { participants, attachments }]) => (
           <Box key={projectName} mb="xxl" bg="white" p="lg" boxShadow="card">
-            <Box
-              flex
-              alignItems="center"
-              flexWrap="wrap"
-              gap="lg"
-              rowGap="default"
-              marginBottom="xl"
-            >
-              <Title mb={0} mr="default">
-                {projectName}
-              </Title>
-              <Box
-                flex
-                alignItems="center"
-                flexWrap="wrap"
-                gap="lg"
-                rowGap="default"
+            <Title mb="lg">{projectName}</Title>
+
+            <Box mb="xl">
+              <Text
+                fontSize="xs"
+                fontWeight="bold"
+                color="grey60"
+                mb="sm"
+                style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}
               >
-                {participants.map((participant) => (
-                  <ParticipantBadge
-                    key={participant.id}
-                    participant={participant}
-                  />
-                ))}
-              </Box>
+                Participants &amp; photo consent
+              </Text>
+              {participants.length === 0 ? (
+                <Text color="grey60" fontSize="sm">
+                  No participants linked to this project yet.
+                </Text>
+              ) : (
+                <Box
+                  flex
+                  alignItems="center"
+                  flexWrap="wrap"
+                  style={{ gap: '8px' }}
+                >
+                  {participants.map((participant) => (
+                    <ParticipantBadge
+                      key={participant.id}
+                      participant={participant}
+                    />
+                  ))}
+                </Box>
+              )}
             </Box>
             {attachments.length === 0 ? (
               <Text color="grey60">No attachments found for this project.</Text>
@@ -265,7 +271,7 @@ export const PictureHandlerPage: React.FC = () => {
                       </TableCell>
 
                       <TableCell align="right">
-                        <Box flex alignItems="center" gap="lg">
+                        <Box flex alignItems="center" style={{ gap: '16px' }}>
                           <Button
                             size="sm"
                             variant="contained"
