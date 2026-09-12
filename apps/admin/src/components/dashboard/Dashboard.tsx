@@ -206,6 +206,7 @@ function buildTimeline(data: DashboardResponse, now: number): TimelineStep[] {
       end: data.eventEndDate,
       links: [
         { label: 'Awards', href: resourceUrl('Awards') },
+        { label: 'Certificates', href: pageUrl('Certificates') },
         { label: 'Reporting', href: resourceUrl('view_Export_all') },
       ],
     },

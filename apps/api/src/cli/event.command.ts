@@ -2,6 +2,8 @@ import {
   Affiliation,
   Attachment,
   Account,
+  Certificate,
+  CertificateTemplate,
   EmailTemplate,
   Event,
   EventTable,
@@ -73,6 +75,10 @@ export class EventCommand {
     private readonly affiliationModel: typeof Affiliation,
     @InjectModel(PresentationSlide)
     private readonly presentationSlideModel: typeof PresentationSlide,
+    @InjectModel(Certificate)
+    private readonly certificateModel: typeof Certificate,
+    @InjectModel(CertificateTemplate)
+    private readonly certificateTemplateModel: typeof CertificateTemplate,
   ) {}
 
   @Command({
@@ -102,6 +108,8 @@ export class EventCommand {
       this.voteModel,
       this.affiliationModel,
       this.presentationSlideModel,
+      this.certificateModel,
+      this.certificateTemplateModel,
     );
   }
 

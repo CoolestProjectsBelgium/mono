@@ -120,6 +120,8 @@ import configuration from '../config/configuration.js';
       VoteCategory,
       Affiliation,
       PresentationSlide,
+      Certificate,
+      CertificateTemplate,
     ]),
   ],
   providers: [

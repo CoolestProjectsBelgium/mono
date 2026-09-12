@@ -358,6 +358,7 @@ export const Certificates: React.FC = () => {
           <Label>Body HTML</Label>
           <TextArea
             rows={16}
+            width={1}
             value={templateBody}
             onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
               setTemplateBody(event.target.value)

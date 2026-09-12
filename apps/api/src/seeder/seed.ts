@@ -2,6 +2,8 @@ import {
   Affiliation,
   Attachment,
   Account,
+  Certificate,
+  CertificateTemplate,
   EmailTemplate,
   Event,
   EventTable,
@@ -23,6 +25,7 @@ import {
 } from '@coolestprojects/database';
 import type { CreationAttributes } from 'sequelize';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
+import { buildSeedCertificateTemplates } from './seed-certificate-template';
 import { loadSeedDojoNames } from './load-seed-dojos';
 import { buildSeedPresentationSlides } from './seed-presentation-slides';
 import {
@@ -55,6 +58,8 @@ export async function seedDatabase(
   voteModel: typeof Vote,
   affiliationModel: typeof Affiliation,
   presentationSlideModel: typeof PresentationSlide,
+  certificateModel: typeof Certificate,
+  certificateTemplateModel: typeof CertificateTemplate,
 ) {
   const eventBeginDate = new Date();
   eventBeginDate.setDate(new Date().getDate() - 100);
@@ -1225,6 +1230,27 @@ export async function seedDatabase(
   await presentationSlideModel.bulkCreate(
     buildSeedPresentationSlides(event.id),
   );
+
+  await certificateTemplateModel.bulkCreate(
+    buildSeedCertificateTemplates(event.id),
+  );
+
+  // Example certificate text for a couple of projects, showing both a
+  // hand-written blurb and one that reads as if seeded from an award — the
+  // rest are left blank so the "sync from awards"/manual-entry flow on the
+  // admin Certificates page has something to demonstrate too.
+  await certificateModel.bulkCreate([
+    {
+      eventId: event.id,
+      projectId: projects[0].id,
+      text: 'Your line-following robot impressed the jury with its clean wiring and reliable sensor tuning — great engineering!',
+    },
+    {
+      eventId: event.id,
+      projectId: projects[1].id,
+      text: 'A polished, genuinely useful dashboard — the jury loved how clearly the live readings were presented.',
+    },
+  ]);
 
   if (process.env.UPLOAD_ROOT) {
     const projectAttachments = await seedProjectPictures(
