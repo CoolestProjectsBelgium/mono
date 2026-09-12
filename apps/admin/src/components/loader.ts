@@ -25,6 +25,10 @@ const Components = {
     'PresentationAssets',
     './presentation-assets/PresentationAssets.tsx',
   ),
+  Certificates: componentLoader.add(
+    'Certificates',
+    './certificates/Certificates.tsx',
+  ),
 };
 
 export { componentLoader, Components };

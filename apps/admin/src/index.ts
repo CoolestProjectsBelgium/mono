@@ -161,6 +161,13 @@ const start = async () => {
         // @ts-expect-error AdminJS supports label on pages at runtime
         label: 'Presentation assets',
       },
+      Certificates: {
+        component: Components.Certificates,
+        handler: Handlers.Certificates,
+        icon: 'Award',
+        // @ts-expect-error AdminJS supports label on pages at runtime
+        label: 'Certificates',
+      },
     },
     resources: [
       // --- System: global, not event-scoped, super_admin-only writes ---
@@ -472,6 +479,42 @@ const start = async () => {
       {
         resource: sequelize.models.VoteCategory,
         options: { navigation: navVoting },
+      },
+      {
+        resource: sequelize.models.Certificate,
+        options: {
+          navigation: navVoting,
+          properties: {
+            eventId: { isVisible: false },
+            text: { type: 'textarea', props: { rows: 12 } },
+          },
+          actions: {
+            new: { before: filterEventId('eventId') },
+            list: { before: filterEventId('eventId') },
+            search: { before: filterEventId('eventId') },
+            edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            show: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            delete: { isAccessible: canAccessResourceFieldFilter('eventId') },
+          },
+        },
+      },
+      {
+        resource: sequelize.models.CertificateTemplate,
+        options: {
+          navigation: navVoting,
+          properties: {
+            eventId: { isVisible: false },
+            bodyHtml: { type: 'textarea', props: { rows: 20 } },
+          },
+          actions: {
+            new: { before: filterEventId('eventId') },
+            list: { before: filterEventId('eventId') },
+            search: { before: filterEventId('eventId') },
+            edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            show: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            delete: { isAccessible: canAccessResourceFieldFilter('eventId') },
+          },
+        },
       },
 
       // --- Communication ---

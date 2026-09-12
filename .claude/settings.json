@@ -52,7 +52,10 @@
       "Bash(node render-seed-slides.js)",
       "Bash(rm -f /workspace/apps/api/dist/render-seed-slides.js)",
       "Bash(rm -rf /tmp/claude-0/-workspace/6e227a8f-9ec9-4722-892d-9910704a8da8/scratchpad/slide-renders)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(timeout 300 npm run build --workspace=apps/admin)"
     ]
   }
 }

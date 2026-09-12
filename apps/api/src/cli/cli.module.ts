@@ -14,6 +14,8 @@ import { Affiliation } from '@coolestprojects/database';
 import { Attachment } from '@coolestprojects/database';
 import { Award } from '@coolestprojects/database';
 import { Certificate } from '@coolestprojects/database';
+import { CertificateRender } from '@coolestprojects/database';
+import { CertificateTemplate } from '@coolestprojects/database';
 import { Event } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { Message } from '@coolestprojects/database';
@@ -88,6 +90,8 @@ import configuration from '../config/configuration.js';
             Affiliation,
             PresentationSlide,
             PresentationRender,
+            CertificateTemplate,
+            CertificateRender,
           ],
         };
       },

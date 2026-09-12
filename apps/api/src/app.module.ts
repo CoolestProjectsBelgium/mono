@@ -5,6 +5,8 @@ import {
   Attachment,
   Award,
   Certificate,
+  CertificateRender,
+  CertificateTemplate,
   EmailTemplate,
   Event,
   EventTable,
@@ -34,6 +36,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { BackgroundService } from './background/background.service';
+import { CertificateController } from './certificate/certificate.controller';
+import { CertificateService } from './certificate/certificate.service';
 import { EventService } from './event/event.service';
 import { EventguideController } from './eventguide/eventguide.controller';
 import { EventguideService } from './eventguide/eventguide.service';
@@ -112,6 +116,8 @@ import configuration from './config/configuration.js';
             Affiliation,
             PresentationSlide,
             PresentationRender,
+            CertificateTemplate,
+            CertificateRender,
           ],
         };
       },
@@ -142,6 +148,9 @@ import configuration from './config/configuration.js';
       Affiliation,
       PresentationSlide,
       PresentationRender,
+      Certificate,
+      CertificateTemplate,
+      CertificateRender,
     ]),
   ],
   controllers: [
@@ -155,6 +164,7 @@ import configuration from './config/configuration.js';
     EventguideController,
     PresentationController,
     AdminController,
+    CertificateController,
   ],
   providers: [
     { provide: 'APP_INTERCEPTOR', useClass: InfoInterceptor },
@@ -174,6 +184,7 @@ import configuration from './config/configuration.js';
     UserCookieInterceptor,
     AdminAuthenticationService,
     AdminService,
+    CertificateService,
   ],
   exports: [],
 })

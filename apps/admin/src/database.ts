@@ -2,6 +2,8 @@ import 'dotenv/config';
 import {
   Account,
   Award,
+  Certificate,
+  CertificateTemplate,
   Event,
   EventTable,
   EmailTemplate,
@@ -59,6 +61,8 @@ export const sequelize = new Sequelize({
     Affiliation,
     EmailTemplate,
     PresentationSlide,
+    Certificate,
+    CertificateTemplate,
   ],
   logging: process.env.NODE_ENV === 'production' ? false : console.log,
 } as any);
