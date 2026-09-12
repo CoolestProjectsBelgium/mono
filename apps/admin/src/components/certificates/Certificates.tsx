@@ -465,6 +465,7 @@ export const Certificates: React.FC = () => {
                 <TableCell style={{ minWidth: '320px' }}>
                   <TextArea
                     rows={3}
+                    width={1}
                     value={projectDrafts[project.projectId] ?? ''}
                     onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
                       setProjectDrafts((prev) => ({
