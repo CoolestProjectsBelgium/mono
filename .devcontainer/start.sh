@@ -8,6 +8,16 @@
 cp .devcontainer/certs/pki/ca.crt /usr/local/share/ca-certificates/coolestprojects-dev-ca.crt
 update-ca-certificates
 
+# docker-compose.yml sets NODE_OPTIONS=--use-system-ca on the workspace
+# service for exactly this reason, but that only reaches the container's
+# own init process — postStartCommand (this script) runs via a separate
+# `docker exec`-style attach that does not inherit it, so every app
+# started below (admin's NestApiClient calls to the API over the proxy,
+# in particular) would otherwise fail with "unable to verify the first
+# certificate". Re-asserted here so it reliably reaches every child this
+# script backgrounds, regardless of how this script itself was invoked.
+export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--use-system-ca"
+
 # Puppeteer (used by apps/api for presentation PDF export) needs both the Chrome
 # binary itself and, since the base image ships no browser runtime deps, the
 # shared libraries Chrome links against at launch (e.g. libnspr4/libnss3) —

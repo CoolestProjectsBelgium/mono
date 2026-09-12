@@ -60,6 +60,7 @@ interface SubActivity {
   label: string;
   start?: Date | string;
   end?: Date | string;
+  isOpen?: boolean;
 }
 
 interface TimelineStep {
@@ -70,7 +71,7 @@ interface TimelineStep {
   end?: Date | string;
   /** Show the start time (e.g. event day's kickoff hour) alongside the date instead of just the date. */
   showStartTime?: boolean;
-  /** A same-day activity nested inside this step (voting happens during the event day, not as its own phase). */
+  /** An activity nested inside this step (voting is tracked separately from the event day — its window can start before and run for days after). */
   subActivity?: SubActivity;
   links: TimelineLink[];
 }
@@ -105,13 +106,38 @@ function stepDateLabel(step: TimelineStep): string {
   return `${formatDate(step.start)} → ${formatDate(step.end)}`;
 }
 
-function subActivityLabel(activity: SubActivity): string {
-  if (!activity.start) return `${activity.label}: not scheduled`;
-  if (!activity.end) return `${activity.label}: ${formatTime(activity.start)}`;
-  return `${activity.label}: ${formatTime(activity.start)} – ${formatTime(activity.end)}`;
+function isSameDay(a: Date | string, b: Date | string): boolean {
+  const dateA = new Date(a);
+  const dateB = new Date(b);
+  return (
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
 }
 
-function buildTimeline(data: DashboardResponse): TimelineStep[] {
+/** Voting's window isn't confined to the event day, so unlike `stepDateLabel` this always shows the date, not just the time. */
+function subActivityLabel(activity: SubActivity): string {
+  if (!activity.start) return `${activity.label}: not scheduled`;
+  if (!activity.end) {
+    return `${activity.label}: ${formatDate(activity.start)}, ${formatTime(activity.start)}`;
+  }
+  if (isSameDay(activity.start, activity.end)) {
+    return `${activity.label}: ${formatDate(activity.start)}, ${formatTime(activity.start)} – ${formatTime(activity.end)}`;
+  }
+  return `${activity.label}: ${formatDate(activity.start)}, ${formatTime(activity.start)} – ${formatDate(activity.end)}, ${formatTime(activity.end)}`;
+}
+
+function isSubActivityOpen(
+  now: number,
+  start?: Date | string,
+  end?: Date | string,
+): boolean {
+  if (!start || !end) return false;
+  return now >= new Date(start).getTime() && now <= new Date(end).getTime();
+}
+
+function buildTimeline(data: DashboardResponse, now: number): TimelineStep[] {
   return [
     {
       key: 'setup',
@@ -161,6 +187,7 @@ function buildTimeline(data: DashboardResponse): TimelineStep[] {
         label: 'Voting',
         start: data.votingStartDate,
         end: data.votingEndDate,
+        isOpen: isSubActivityOpen(now, data.votingStartDate, data.votingEndDate),
       },
       links: [
         { label: 'Floor plans', href: pageUrl('Floorplans') },
@@ -172,7 +199,11 @@ function buildTimeline(data: DashboardResponse): TimelineStep[] {
       key: 'wrap-up',
       label: 'Results & wrap-up',
       icon: 'CheckCircle',
+      // Runs from the end of voting until eventEndDate, when the event is
+      // fully closed down for the year (logins disabled — see the `closed`
+      // virtual on the Event model).
       start: data.votingEndDate,
+      end: data.eventEndDate,
       links: [
         { label: 'Awards', href: resourceUrl('Awards') },
         { label: 'Reporting', href: resourceUrl('view_Export_all') },
@@ -257,12 +288,27 @@ const StepCard: React.FC<{ step: TimelineStep; status: StepStatus }> = ({
           padding: '4px 8px',
           borderRadius: '4px',
           width: 'fit-content',
+          gap: '8px',
         }}
       >
         <Icon icon="Award" size={12} color="grey60" />
         <Text ml="sm" fontSize="xs" color="grey100">
           {subActivityLabel(step.subActivity)}
         </Text>
+        {step.subActivity.isOpen && (
+          <Text
+            color="white"
+            bg="#16a34a"
+            fontSize="xs"
+            fontWeight="bold"
+            style={{
+              padding: '2px 8px',
+              borderRadius: '9999px',
+            }}
+          >
+            OPEN NOW
+          </Text>
+        )}
       </Box>
     )}
 
@@ -363,7 +409,7 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const timeline = buildTimeline(data);
+  const timeline = buildTimeline(data, now);
   const stepsWithStatus = timeline.map((step) => ({
     step,
     status: getStepStatus(now, step),

@@ -74,11 +74,12 @@ export async function seedDatabase(
   const eventEndDate = new Date();
   eventEndDate.setDate(new Date().getDate() + 40);
 
-  const votingStartDate = new Date();
-  votingStartDate.setDate(new Date().getDate() - 1);
+  // Voting is a 4-hour window during the event day itself.
+  const votingStartDate = new Date(officialStartDate);
 
-  const votingEndDate = new Date();
-  votingEndDate.setDate(new Date().getDate() + 30);
+  const votingEndDate = new Date(
+    officialStartDate.getTime() + 4 * 60 * 60 * 1000,
+  );
 
   const event = await eventModel.create({
     floorplanPath: SEED_FLOORPLAN_FILENAME,
