@@ -97,7 +97,9 @@ Skip view apply: `deploy.mjs --skip-views`.
 
 Pack Node apps on **Linux** (Dev Container) so `sharp` / `bcrypt` native addons match Agency. Puppeteer Chromium is skipped (`PUPPETEER_SKIP_DOWNLOAD=1`). Admin pack Rollup-builds custom components once, then copies `frontend/assets/components.bundle.js` into the artifact. Dest serves that file; it does not compile AdminJS at boot. `.adminjs/` is rsync-excluded.
 
-Smoke for Node: `fetch` the component `publicUrl` + `smokePath` (e.g. `https://api-dev.coolestprojects-test.be/api`) from the deploy runner, with up to ~60s of retries while systemd respawns the process. Do not probe `127.0.0.1:<port>` over SSH — Level27 Node components listen in an isolated network namespace (`IP_NS`), so localhost from the SSH shell never reaches the app. If smoke still fails, check the remote `app/.env` (`DB_HOST` must reach `db-dev`) and whether `node main.js` is running; deploy never overwrites an existing `.env`.
+Smoke for Node: `fetch` the component `publicUrl` + `smokePath` from the deploy runner, with up to ~60s of retries while systemd respawns the process. API smoke uses `/settings` (a public JSON route). `/api` is Swagger UI and is **not** mounted when `NODE_ENV=production`, so it 404s on the live estate. Admin smoke uses `/admin` (login redirect 302 counts as pass). Do not probe `127.0.0.1:<port>` over SSH — Level27 Node components listen in an isolated network namespace (`IP_NS`), so localhost from the SSH shell never reaches the app. If smoke still fails, check the remote `app/.env` (`DB_HOST` must reach `db-dev`) and whether `node main.js` is running; deploy never overwrites an existing `.env`.
+
+Public hostnames live on `coolestprojects.be` (`api-dev`, `admin-dev`, `registration-dev`, … for test; `api`, `admin`, `registration`, … for prod). SPA `generateEnv` bakes the matching API origin at pack time.
 
 ## Talks to
 

@@ -10,10 +10,10 @@ import {
 test('buildSmokeUrl joins publicUrl and smokePath', () => {
   assert.equal(
     buildSmokeUrl({
-      publicUrl: 'https://api-dev.coolestprojects-test.be',
-      smokePath: '/api',
+      publicUrl: 'https://api-dev.coolestprojects.be',
+      smokePath: '/settings',
     }),
-    'https://api-dev.coolestprojects-test.be/api',
+    'https://api-dev.coolestprojects.be/settings',
   );
 });
 
@@ -29,8 +29,8 @@ test('smokePublicUrl retries until a success code', async () => {
   const sleeps = [];
   const code = await smokePublicUrl(
     {
-      publicUrl: 'https://api-dev.coolestprojects-test.be',
-      smokePath: '/api',
+      publicUrl: 'https://api-dev.coolestprojects.be',
+      smokePath: '/settings',
     },
     {
       attempts: 5,
@@ -58,7 +58,7 @@ test('smokePublicUrl fails after exhausting attempts', async () => {
   await assert.rejects(
     () => smokePublicUrl(
       {
-        publicUrl: 'https://admin-dev.coolestprojects-test.be',
+        publicUrl: 'https://admin-dev.coolestprojects.be',
         smokePath: '/admin',
       },
       {

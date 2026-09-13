@@ -73,7 +73,9 @@ See [local-setup.md](local-setup.md).
 
 ## Production (Level27)
 
-Public marketing site `coolestprojects.be` is still Telenet/Hostbasket; the current Azure apps are the legacy stack. The reworked monorepo publishes to **Level27 Agency** hosting on `coolestprojects-test.be`:
+<a id="production-level27"></a>
+
+The reworked monorepo publishes to **Level27 Agency** hosting on `coolestprojects.be` (test hosts are `*-dev`, production hosts are unprefixed):
 
 | Role | Components |
 |------|------------|
@@ -89,5 +91,4 @@ Publish with [build-tools.md](build-tools.md) (`build_tools/`). Infra inventory 
 ## Unknowns
 
 - Full auth matrix across all frontends
-- DNS for `api-dev` / `admin-dev` (zone is Level27; some SPA hostnames already resolve)
 - Whether `mail-prod` is an IMAP-capable mailbox, and what `IMAP_HOST` should be set to for it — the API's bounce-detection job (`CRON_JOB_BOUNCE`, see [docs/apps/api.md](apps/api.md#bounce-mail-detection)) reads bounces via IMAP; `IMAP_HOST` falls back to the outbound `SMTP_HOST` if unset, which is only correct if `mail-prod` is a real mailbox (rather than a capture-only tool like Mailpit) acting as both
