@@ -189,7 +189,7 @@ describe('project page coworker leave', () => {
   it('shows photos link and leave button for coworkers', async () => {
     const wrapper = await mountSuspended(ProjectPage)
     await vi.waitFor(() => {
-      expect(wrapper.get('[data-testid="photos-link"]').text()).toBe('Foto\'s')
+      expect(wrapper.get('[data-testid="photos-link"]').text()).toBe('Foto\'s toevoegen')
       expect(wrapper.get('[data-testid="leave-project-button"]').exists()).toBe(true)
     })
   })

@@ -228,7 +228,7 @@ The AdminJS **Presentation** page's handler reads `PresentationSlide` rows direc
 
 ### Shared reads
 
-`GET /tshirts`, `GET /questions`, `GET /dojos`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /dojos` returns event-scoped `Affiliation` names (CoderDojo catalog). `GET /settings` includes `maxAttachments` (currently 10; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.
+`GET /tshirts`, `GET /questions`, `GET /dojos`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /dojos` returns event-scoped `Affiliation` names (CoderDojo catalog). `GET /settings` includes `maxAttachments` (currently 5; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.
 
 ## Out of scope / unknowns
 

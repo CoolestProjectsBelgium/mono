@@ -146,11 +146,11 @@ export async function seedDatabase(
       eventId: event.id,
       language: 'en',
       questionId: questions[0].id,
-      positive: 'That is no problem',
+      positive: "Yes, that's no problem",
       negative:
-        "Don't use any pictures or movies where the participant is reconizable",
+        "No, don't use any images where the participant is recognizable",
       description:
-        'It is possible that the participant is photographed or filmed',
+        'May we take photos or videos where the participant is recognizable?',
     },
     {
       eventId: event.id,
@@ -158,7 +158,7 @@ export async function seedDatabase(
       questionId: questions[1].id,
       positive: 'Yes',
       negative: 'No',
-      description: 'Can CoderDojo contact you for the next edition',
+      description: 'Can CoderDojo Belgium contact you for the next edition?',
     },
     {
       eventId: event.id,
@@ -166,17 +166,16 @@ export async function seedDatabase(
       questionId: questions[2].id,
       positive: 'Yes',
       negative: 'No',
-      description: 'Do you agree to our rules?',
+      description: 'I have read the rules and I agree.',
     },
     {
       eventId: event.id,
       language: 'nl',
       questionId: questions[0].id,
-      positive: 'Dat is geen probleem',
-      negative:
-        'Gelieve geen foto’s en filmpjes te gebruiken waarop de deelnemer herkenbaar is',
+      positive: 'Ja, dat is geen probleem',
+      negative: 'Nee, gebruik geen beeld waarop de deelnemer herkenbaar is',
       description:
-        'Het is mogelijk dat de deelnemer gefotografeerd of gefilmd wordt',
+        "Mogen we foto's of filmpjes maken waarop de deelnemer herkenbaar is?",
     },
     {
       eventId: event.id,
@@ -184,7 +183,8 @@ export async function seedDatabase(
       questionId: questions[1].id,
       positive: 'Ja',
       negative: 'Nee',
-      description: 'Mag CoderDojo je contacteren voor de volgende editie?',
+      description:
+        'Mag CoderDojo Belgium je contacteren voor de volgende editie?',
     },
     {
       eventId: event.id,
@@ -192,34 +192,34 @@ export async function seedDatabase(
       questionId: questions[2].id,
       positive: 'Ja',
       negative: 'Nee',
-      description: 'Ga je akkoord met onze regels?',
+      description: 'Ik heb de regels gelezen en ga ermee akkoord.',
     },
     {
       eventId: event.id,
       language: 'fr',
       questionId: questions[0].id,
-      positive: "Je suis d'accord",
+      positive: 'Oui, pas de problème',
       negative:
-        'Je ne suis pas d’accord que l’on utilise les images et vidéos si le ou la participant.e est reconnaissable',
+        "Non, n'utilisez pas d'images où le ou la participant·e est reconnaissable",
       description:
-        'Le ou la participant.e peut être photographié.e ou filmé.e.',
+        'Pouvons-nous prendre des photos ou vidéos où le ou la participant·e est reconnaissable ?',
     },
     {
       eventId: event.id,
       language: 'fr',
       questionId: questions[1].id,
-      positive: 'Qui',
+      positive: 'Oui',
       negative: 'Non',
       description:
-        'CoderDojo peut-il vous contacter pour la prochaine édition ?',
+        'CoderDojo Belgium peut-il te contacter pour la prochaine édition ?',
     },
     {
       eventId: event.id,
       language: 'fr',
       questionId: questions[2].id,
-      positive: 'Qui',
+      positive: 'Oui',
       negative: 'Non',
-      description: "Es-tu d'accord avec nos règles ?",
+      description: "J'ai lu les règles et je les accepte.",
     },
   ]);
 

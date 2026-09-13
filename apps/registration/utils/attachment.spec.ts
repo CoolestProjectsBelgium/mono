@@ -25,6 +25,6 @@ describe('isAttachmentLimitReached', () => {
 
 describe('resolveMaxAttachments', () => {
   it('falls back to the default when settings omit maxAttachments', () => {
-    expect(resolveMaxAttachments(undefined)).toBe(10)
+    expect(resolveMaxAttachments(undefined)).toBe(5)
   })
 })

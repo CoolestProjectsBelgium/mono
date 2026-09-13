@@ -46,7 +46,7 @@ describe('UploadAttachments', () => {
       },
     })
 
-    expect(wrapper.props('maxAttachments')).toBe(10)
+    expect(wrapper.props('maxAttachments')).toBe(5)
   })
 
   it('shows inline error for oversized file without uploading', async () => {

@@ -1,12 +1,26 @@
 <template>
   <FormSection :title="$t('attachments.title')">
     <p class="text-sm text-gray-600" data-testid="attachments-count">
-      {{ $t('attachments.count', { count: attachments.length, max: effectiveMax }) }}
+      {{
+        $t('attachments.count', {
+          count: attachments.length,
+          max: effectiveMax,
+          min: MIN_PROJECT_ATTACHMENTS,
+        })
+      }}
     </p>
-    <p v-if="!attachments.length" class="text-gray-500" data-testid="attachments-empty">
+    <p
+      v-if="!attachments.length"
+      class="text-gray-500"
+      data-testid="attachments-empty"
+    >
       {{ $t('attachments.empty') }}
     </p>
-    <table v-else class="w-full text-left text-sm" data-testid="attachments-table">
+    <table
+      v-else
+      class="w-full text-left text-sm"
+      data-testid="attachments-table"
+    >
       <thead>
         <tr class="border-b">
           <th class="py-2">{{ $t('attachments.columnPreview') }}</th>
@@ -84,109 +98,116 @@
 </template>
 
 <script setup lang="ts">
-import type { AttachmentDto } from '~/types/api'
-import { MAX_PROJECT_ATTACHMENTS, resolveMaxAttachments } from '~/utils/attachment'
-import { inferAttachmentMediaKind } from '~/utils/attachment-media'
+import type { AttachmentDto } from '~/types/api';
+import {
+  MAX_PROJECT_ATTACHMENTS,
+  MIN_PROJECT_ATTACHMENTS,
+  resolveMaxAttachments,
+} from '~/utils/attachment';
+import { inferAttachmentMediaKind } from '~/utils/attachment-media';
 
-const props = withDefaults(defineProps<{
-  attachments: AttachmentDto[]
-  maxAttachments?: number
-  disabled?: boolean
-  canDelete?: boolean
-}>(), {
-  maxAttachments: MAX_PROJECT_ATTACHMENTS,
-  canDelete: true,
-})
+const props = withDefaults(
+  defineProps<{
+    attachments: AttachmentDto[];
+    maxAttachments?: number;
+    disabled?: boolean;
+    canDelete?: boolean;
+  }>(),
+  {
+    maxAttachments: MAX_PROJECT_ATTACHMENTS,
+    canDelete: true,
+  },
+);
 
-const effectiveMax = computed(() => resolveMaxAttachments(props.maxAttachments))
+const effectiveMax = computed(() =>
+  resolveMaxAttachments(props.maxAttachments),
+);
 
 const emit = defineEmits<{
-  deleted: []
-}>()
+  deleted: [];
+}>();
 
-const { t } = useI18n()
-const { deleteAttachment, fetchThumbnailObjectUrl } = useAttachments()
-const { notify } = useNotification()
+const { t } = useI18n();
+const { deleteAttachment, fetchThumbnailObjectUrl } = useAttachments();
+const { notify } = useNotification();
 
-const deletingId = ref<string | null>(null)
-const openingId = ref<string | null>(null)
-const showDeleteDialog = ref(false)
-const pendingDelete = ref<AttachmentDto | null>(null)
-const lightboxOpen = ref(false)
-const lightboxUrl = ref<string | null>(null)
-const lightboxFilename = ref('')
-const lightboxMediaKind = ref<'image' | 'video' | 'unknown'>('unknown')
+const deletingId = ref<string | null>(null);
+const openingId = ref<string | null>(null);
+const showDeleteDialog = ref(false);
+const pendingDelete = ref<AttachmentDto | null>(null);
+const lightboxOpen = ref(false);
+const lightboxUrl = ref<string | null>(null);
+const lightboxFilename = ref('');
+const lightboxMediaKind = ref<'image' | 'video' | 'unknown'>('unknown');
 
 const deleteMessage = computed(() =>
   pendingDelete.value
     ? t('attachments.deleteMessage', { filename: pendingDelete.value.name })
     : '',
-)
+);
 
 function onDeleteClick(attachment: AttachmentDto) {
   if (props.disabled || deletingId.value != null) {
-    return
+    return;
   }
-  pendingDelete.value = attachment
-  showDeleteDialog.value = true
+  pendingDelete.value = attachment;
+  showDeleteDialog.value = true;
 }
 
 async function onDeleteConfirm() {
-  const attachment = pendingDelete.value
+  const attachment = pendingDelete.value;
   if (!attachment || deletingId.value != null) {
-    return
+    return;
   }
 
-  deletingId.value = attachment.id
+  deletingId.value = attachment.id;
   try {
-    const ok = await deleteAttachment(attachment.id)
+    const ok = await deleteAttachment(attachment.id);
     if (!ok) {
-      notify('error', 'error_An error occurred')
-      return
+      notify('error', 'error_An error occurred');
+      return;
     }
-    showDeleteDialog.value = false
-    pendingDelete.value = null
-    emit('deleted')
-    notify('success', 'message_successChange')
-  }
-  finally {
-    deletingId.value = null
+    showDeleteDialog.value = false;
+    pendingDelete.value = null;
+    emit('deleted');
+    notify('success', 'message_successChange');
+  } finally {
+    deletingId.value = null;
   }
 }
 
 async function openLightbox(attachment: AttachmentDto) {
   if (props.disabled || openingId.value != null) {
-    return
+    return;
   }
 
-  const mediaKind = inferAttachmentMediaKind(attachment.name)
-  openingId.value = attachment.id
+  const mediaKind = inferAttachmentMediaKind(attachment.name);
+  openingId.value = attachment.id;
   try {
-    const url = await fetchThumbnailObjectUrl(attachment.id)
+    const url = await fetchThumbnailObjectUrl(attachment.id);
     if (!url) {
-      notify('error', 'error_An error occurred')
-      return
+      notify('error', 'error_An error occurred');
+      return;
     }
-    lightboxUrl.value = url
-    lightboxFilename.value = attachment.name
-    lightboxMediaKind.value = mediaKind
-    lightboxOpen.value = true
-  }
-  finally {
-    openingId.value = null
+    lightboxUrl.value = url;
+    lightboxFilename.value = attachment.name;
+    lightboxMediaKind.value = mediaKind;
+    lightboxOpen.value = true;
+  } finally {
+    openingId.value = null;
   }
 }
 
 function onPreviewClick(attachment: AttachmentDto) {
-  void openLightbox(attachment)
+  void openLightbox(attachment);
 }
 
 async function onOpen(attachment: AttachmentDto) {
-  const url = await fetchThumbnailObjectUrl(attachment.id)
+  const url = await fetchThumbnailObjectUrl(attachment.id);
   if (!url) {
-    notify('error', 'error_An error occurred')
-    return
+    notify('error', 'error_An error occurred');
+    return;
   }
-  window.open(url, '_blank', 'noopener,noreferrer')
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 </script>
