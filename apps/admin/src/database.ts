@@ -26,18 +26,15 @@ import {
   Affiliation,
 } from '@coolestprojects/database';
 
-import { ConfigService } from '@nestjs/config';
 import { Sequelize } from 'sequelize-typescript';
 
-const configService = new ConfigService();
-
 export const sequelize = new Sequelize({
-  dialect: configService.get('DB_DIALECT') as string,
-  host: configService.get('DB_HOST'),
-  port: configService.get('DB_PORT'),
-  username: configService.get('DB_USER'),
-  password: configService.get('DB_PASSWORD'),
-  database: configService.get('DB_NAME'),
+  dialect: process.env.DB_DIALECT as string,
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   models: [
     Event,
     Award,

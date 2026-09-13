@@ -12,7 +12,7 @@ Do **not** apply `.agents/skills/nestjs-best-practices` or voting/registration U
 
 ## Wrong vs right
 
-- No Nest modules, controllers, services, guards, pipes, interceptors, or new `@nestjs/*` imports. `database.ts` already uses `ConfigService` for `DB_*` — leave that; do not spread Nest further.
+- No Nest modules, controllers, services, guards, pipes, interceptors, or `@nestjs/*` imports. `database.ts` reads `DB_*` from `process.env`.
 - No Vue, Tailwind, Nuxt UI, Pinia, or MUI.
 - No `@adminjs/nestjs`. Mount with `@adminjs/express`.
 - CRUD belongs in resource `options` / `actions` / `features` in `index.ts`, not new Nest-style routes.

@@ -17,7 +17,7 @@ Read [docs/apps/admin.md](../../../docs/apps/admin.md) and copy existing files u
 ## Do not
 
 - Nest modules / controllers / services / guards / pipes / interceptors / DTOs
-- New `@nestjs/*` imports (`database.ts` already uses `ConfigService` for env — that is the only Nest leftover)
+- `@nestjs/*` imports (`database.ts` reads `DB_*` from `process.env`)
 - `@adminjs/nestjs`
 - Vue SFCs, Tailwind, Nuxt UI, Pinia, MUI, generic `styled-components`
 - HTTP calls to `apps/api` for CRUD (AdminJS talks to MySQL via Sequelize)
