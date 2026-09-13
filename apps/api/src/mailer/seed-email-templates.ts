@@ -12,22 +12,18 @@ const registrationTemplates: Record<
   { subject: string; contentPlain: string; contentRich: string }
 > = {
   nl: {
-    subject: 'Coolest Projects {{year}}: Bevestig jouw registratie aub',
+    subject: 'Coolest Projects {{year}}: Bevestig jouw registratie',
     contentPlain: `Hallo {{registration.firstname}},
 
 We zijn ontzettend blij dat je wil deelnemen aan Coolest Projects Belgium {{year}}!
 {{#if registration.email_guardian}}
 Je ouders hebben deze mail ook gekregen. Jij of je ouders moeten je deelname bevestigen.
 {{/if}}
-Kopieer en plak deze link tussen "..."
+Klik op de activatielink om je registratie te bevestigen. Doe dit binnen de 2 dagen, zodat je deelname zeker is.
 
-"{{url}}"
+Werkt de knop niet? Kopieer dan deze link volledig in je browser: {{url}}
 
- in de browser om uw project te activeren.
-
-Zorg ervoor dat je je deze activatie binnen de 2 dagen doet, om je deelname te bevestigen.
-
-Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ https://coolestprojects.be/faq-nl/ eens na op onze website.
+Vragen? Contacteer ons via info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Hallo {{registration.firstname}},</p>
@@ -35,10 +31,9 @@ Coolest Projects Team Belgium`,
 {{#if registration.email_guardian}}
 <p>Je ouders hebben deze mail ook gekregen. Jij of je ouders moeten je deelname bevestigen.</p>
 {{/if}}
-<p>LET OP: Om jouw registratie te bevestigen, dien je op de <a href="{{url}}">activatielink</a> te klikken.</p>
-<p>Als de bovenstaande link niet werkt in je email programma, copieer en plak dan de volgende url volledig in een browser scherm: {{url}}</p>
-<p>Zorg ervoor dat u binnen 2 dagen op deze activatie link klikt om zeker te zijn van je deelname.</p>
-<p>Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ <a href="https://coolestprojects.be/faq-nl/">https://coolestprojects.be/faq-nl/</a> eens na op onze website.</p>
+<p>Klik op de <a href="{{url}}">activatielink</a> om je registratie te bevestigen. Doe dit binnen de 2 dagen, zodat je deelname zeker is.</p>
+<p>Werkt de knop niet? Kopieer dan deze link volledig in je browser: {{url}}</p>
+<p>Vragen? Contacteer ons via <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
@@ -47,54 +42,48 @@ Coolest Projects Team Belgium`,
 
 We're very pleased that you want to participate in the next Coolest Projects Belgium {{year}}!
 {{#if registration.email_guardian}}
-Your parents also received this mail. Either you or them need to confirm your participation.
+Your parents also received this mail. Either you or they need to confirm your participation.
 {{/if}}
-Cat & paste this link between "..."
+Click the activation link to confirm your registration. Make sure to do this within 2 days to secure your participation.
 
-"{{url}}"
+Button not working? Copy and paste this full link into your browser: {{url}}
 
-into your browser to activate your project.
+Questions? Contact us at info@coderdojobelgium.be
 
-If you have any more questions, please check out the FAQ https://coolestprojects.be/en/faq-en/ section on our website!
-
-Coolest Project Team Belgium`,
+Coolest Projects Team Belgium`,
     contentRich: `<p>Hi {{registration.firstname}},</p>
 <p>We're very pleased that you want to participate in the next Coolest Projects Belgium {{year}}!</p>
 {{#if registration.email_guardian}}
-<p>Your parents also received this mail. Either you or them need to confirm your participation.</p>
+<p>Your parents also received this mail. Either you or they need to confirm your participation.</p>
 {{/if}}
-<p>To confirm your registration, click the <a href="{{url}}">activation link</a>. Make sure to click this activation link within 2 days to ensure your participation.</p>
-<p>If the above link does not work in your email client, please copy and paste this full url in a browser window: {{url}}</p>
-<p>If you have any more questions, please check out the FAQ <a href="https://coolestprojects.be/en/faq-en/">https://coolestprojects.be/en/faq-en/</a> section on our website!</p>
-<p>Coolest Project Team Belgium</p>`,
+<p>Click the <a href="{{url}}">activation link</a> to confirm your registration. Make sure to do this within 2 days to secure your participation.</p>
+<p>Button not working? Copy and paste this full link into your browser: {{url}}</p>
+<p>Questions? Contact us at <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
+<p>Coolest Projects Team Belgium</p>`,
   },
   fr: {
     subject: 'Coolest Projects {{year}}: Merci de confirmer ton inscription',
     contentPlain: `Salut {{registration.firstname}},
 
-Nous sommes très heureux⸱ses de voir que tu participes à la prochaine édition de Coolest Projects Belgium {{year}}!
+Nous sommes très heureux de voir que tu participes à la prochaine édition de Coolest Projects Belgium {{year}} !
 {{#if registration.email_guardian}}
-Tes parents ont aussi reçu ce mail. L'un d'entre vous doit confirmer ta participation.
+Tes parents ont aussi reçu ce mail. Toi ou tes parents devez confirmer ta participation.
 {{/if}}
-Copie et colle ce lien entre "..."
+Clique sur le lien d'activation pour confirmer ton inscription. Fais-le dans les 2 jours pour garantir ta participation.
 
-"{{url}}"
+Le bouton ne fonctionne pas ? Copie et colle ce lien complet dans ton navigateur : {{url}}
 
-dans ton navigateur.
-
-Assurez-vous de cliquer sur ce lien d'activation dans les 2 jours pour garantir votre participation.
-
-Si tu as d'autres questions, tu peux consulter la section FAQ https://coolestprojects.be/fr/faq-fr/ sur notre site web.
+Des questions ? Contacte-nous à info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Salut {{registration.firstname}},</p>
-<p>Nous sommes très heureux⸱ses de voir que tu participes à la prochaine édition de Coolest Projects Belgium {{year}}!</p>
+<p>Nous sommes très heureux de voir que tu participes à la prochaine édition de Coolest Projects Belgium {{year}} !</p>
 {{#if registration.email_guardian}}
-<p>Tes parents ont aussi reçu ce mail. L'un d'entre vous doit confirmer ta participation.</p>
+<p>Tes parents ont aussi reçu ce mail. Toi ou tes parents devez confirmer ta participation.</p>
 {{/if}}
-<p>ATTENTION: Pour valider ton inscription, clique sur le <a href="{{url}}">lien d'activation</a>. Assure-toi de cliquer sur ce lien d'activation dans les 2 jours pour confirmer ta participation.</p>
-<p>Si le lien ci-dessus ne fonctionne pas dans votre programme de messagerie, copiez et collez complètement l'URL suivante dans une fenêtre de navigateur: {{url}}</p>
-<p>Si tu as d'autres questions, tu peux consulter la section FAQ <a href="https://coolestprojects.be/fr/faq-fr/">https://coolestprojects.be/fr/faq-fr/</a> sur notre site web.</p>
+<p>Clique sur le <a href="{{url}}">lien d'activation</a> pour confirmer ton inscription. Fais-le dans les 2 jours pour garantir ta participation.</p>
+<p>Le bouton ne fonctionne pas ? Copie et colle ce lien complet dans ton navigateur : {{url}}</p>
+<p>Des questions ? Contacte-nous à <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
 };
@@ -104,97 +93,99 @@ const welcomeOwnerTemplates: Record<
   { subject: string; contentPlain: string; contentRich: string }
 > = {
   nl: {
-    subject: 'Coolest Projects {{year}}: Welkom!',
+    subject: 'Coolest Projects {{year}}: Welkom',
     contentPlain: `Hallo {{user.firstname}},
 
 Jouw project met titel '{{project.title}}' werd succesvol geactiveerd!
 
-Kopieer en plak deze link tussen "..."
+Gebruik de link 'Ga naar mijn project' om je pagina te openen. Via deze weg kan je:
+- je persoonlijke gegevens aanpassen (uitgezonderd e-mail, leeftijd, ...)
+- je projectnaam en beschrijving aanpassen
+- medewerkers uitnodigen voor je project via de knop 'CO-WORKERS' (max. 3)
 
-"{{url}}"
+Enkel de projecteigenaar kan info over het project aanpassen.
 
- in de browser. Via deze weg kan je aanpassingen doen aan je project, je persoonlijke info aanvullen of aanpassen en/of co-workers uitnodigen (max. 3),
+Werkt de knop niet? Kopieer dan deze link volledig in je browser: {{url}}
 
-Enkel de project-eigenaar kan info over het project aanpassen. Jij kan Go2MyProject gebruiken om de registratiepagina te openen en je persoonlijke informatie aan te vullen en/of aan te passen.
+Vragen? Contacteer ons via info@coderdojobelgium.be
 
-Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ https://coolestprojects.be/faq-nl/ eens na op onze website.
-
-Veel succes, {{user.firstname}}
+Veel succes, {{user.firstname}}!
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Hallo {{user.firstname}},</p>
 <p>Jouw project met titel '{{project.title}}' werd succesvol geactiveerd!</p>
-<p>Gebruik deze link <a href="{{url}}">Go2MyProject</a> om je pagina te openen. Via deze weg kan je aanpassingen doen aan je project, je persoonlijke info aanvullen of aanpassen en/of co-workers uitnodigen (max. 3)</p>
-<p>Enkel de project-eigenaar kan info over het project aanpassen.</p>
-<p>Als de bovenstaande link niet werkt in je email programma, copieer en plak dan de volgende url volledig in een browser scherm: {{url}}</p>
+<p>Gebruik de link <a href="{{url}}">Ga naar mijn project</a> om je pagina te openen. Via deze weg kan je:</p>
 <ul>
-<li>Je persoonlijke gegevens aanpassen (uitgezonderd e-mail, leeftijd, etc.)</li>
-<li>Projectnaam en beschrijving aanpassen</li>
-<li>Medewerkers uitnodigen voor je project door op de knop 'CO-WORKERS' te klikken</li>
+<li>je persoonlijke gegevens aanpassen (uitgezonderd e-mail, leeftijd, ...)</li>
+<li>je projectnaam en beschrijving aanpassen</li>
+<li>medewerkers uitnodigen voor je project via de knop 'CO-WORKERS' (max. 3)</li>
 </ul>
-<p>Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ <a href="https://coolestprojects.be/faq-nl/">https://coolestprojects.be/faq-nl/</a> eens na op onze website.</p>
-<p>Veel succes, {{user.firstname}}</p>
+<p>Enkel de projecteigenaar kan info over het project aanpassen.</p>
+<p>Werkt de knop niet? Kopieer dan deze link volledig in je browser: {{url}}</p>
+<p>Vragen? Contacteer ons via <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
+<p>Veel succes, {{user.firstname}}!</p>
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
     subject: 'Coolest Projects {{year}}: Welcome',
     contentPlain: `Hi {{user.firstname}},
 
-You were successfully added to the project with the title '{{project.title}}'.
+You have successfully activated your project '{{project.title}}'!
 
-If you want to make changes on your project or if you would like to invite co-workers on your project
-please Cat & paste this link between "..."
-
-"{{url}}"
-
-into your browser to activate your project.
+Use the 'Go to my project' link to open your page. There you can:
+- change your personal data (except email, age, ...)
+- change your project name and description
+- invite co-workers to your project via the 'CO-WORKERS' button (max. 3)
 
 Only the project owner can make changes to the project.
 
-If you have any more questions, please check out the FAQ https://coolestprojects.be/en/faq-en/ section on our website.
+Button not working? Copy and paste this full link into your browser: {{url}}
 
-Coolest Project Team Belgium`,
+Questions? Contact us at info@coderdojobelgium.be
+
+Coolest Projects Team Belgium`,
     contentRich: `<p>Hi {{user.firstname}},</p>
-<p>You were successfully added to the project with the title '{{project.title}}'.</p>
-<p>If you want to make changes on your project or if you would like to invite co-workers on your project please use the following link <a href="{{url}}">Go2MyProject</a> to open your page.</p>
-<p>Only the project owner can make changes to the project.</p>
-<p>If the above link does not work in your email client, please copy and paste this full url in a browser window: {{url}}</p>
+<p>You have successfully activated your project '{{project.title}}'!</p>
+<p>Use the <a href="{{url}}">Go to my project</a> link to open your page. There you can:</p>
 <ul>
-<li>Change your personal data (except the e-mail address, age, ...)</li>
-<li>Change your project name and description</li>
-<li>Invite co-workers to your project by clicking the button 'CO-WORKERS'</li>
+<li>change your personal data (except email, age, ...)</li>
+<li>change your project name and description</li>
+<li>invite co-workers to your project via the 'CO-WORKERS' button (max. 3)</li>
 </ul>
-<p>If you have any more questions, please check out the FAQ <a href="https://coolestprojects.be/en/faq-en/">https://coolestprojects.be/en/faq-en/</a> section on our website.</p>
-<p>Coolest Project Team Belgium</p>`,
+<p>Only the project owner can make changes to the project.</p>
+<p>Button not working? Copy and paste this full link into your browser: {{url}}</p>
+<p>Questions? Contact us at <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
+<p>Coolest Projects Team Belgium</p>`,
   },
   fr: {
     subject: 'Coolest Projects {{year}}: Bienvenue',
     contentPlain: `Salut {{user.firstname}},
 
-Tu as activé avec succès le projet portant le titre '{{project.title}}'.
+Tu as activé avec succès ton projet '{{project.title}}' !
 
-Si tu souhaites modifier ton projet, ajuster tes informations personnelles ou inviter des co-participant.e.s (max. 3), copie et colle ce lien entre "..."
+Utilise le lien 'Accéder à mon projet' pour ouvrir ta page. Tu peux y :
+- modifier tes données personnelles (sauf l'e-mail, l'âge, ...)
+- modifier le nom et la description de ton projet
+- inviter des co-participants via le bouton 'CO-WORKERS' (max. 3)
 
-"{{url}}"
+Seul le ou la propriétaire du projet peut modifier le projet.
 
-dans ton navigateur.
+Le bouton ne fonctionne pas ? Copie et colle ce lien complet dans ton navigateur : {{url}}
 
-Seul le propriétaire du projet peut apporter des modifications au projet.
-
-Si tu as d'autres questions, tu peux consulter la section FAQ https://coolestprojects.be/fr/faq-fr/ sur notre site web.
+Des questions ? Contacte-nous à info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Salut {{user.firstname}},</p>
-<p>Tu as activé avec succès le projet portant le titre '{{project.title}}'.</p>
-<p>Si tu souhaites modifier ton projet ou inviter des co-participant⸱es, merci d'utiliser ce lien <a href="{{url}}">Go2MyProject</a> pour ouvrir ta page.</p>
-<p>Seul⸱e le ou la propriétaire du projet peut effectuer des modifications au projet.</p>
-<p>Si le lien ci-dessus ne fonctionne pas dans votre programme de messagerie, copiez et collez complètement l'URL suivante dans une fenêtre de navigateur: {{url}}</p>
+<p>Tu as activé avec succès ton projet '{{project.title}}' !</p>
+<p>Utilise le lien <a href="{{url}}">Accéder à mon projet</a> pour ouvrir ta page. Tu peux y :</p>
 <ul>
-<li>Modifier tes données personnelles (sauf l'email, l'âge ,...)</li>
-<li>Modifier le nom et la description de ton projet</li>
-<li>Inviter des collaborateur⸱ices en appuyant sur le bouton "CO-WORKERS" (max. 3)</li>
+<li>modifier tes données personnelles (sauf l'e-mail, l'âge, ...)</li>
+<li>modifier le nom et la description de ton projet</li>
+<li>inviter des co-participants via le bouton 'CO-WORKERS' (max. 3)</li>
 </ul>
-<p>Si tu as d'autres questions, tu peux consulter la section FAQ <a href="https://coolestprojects.be/fr/faq-fr/">https://coolestprojects.be/fr/faq-fr/</a> sur notre site web.</p>
+<p>Seul le ou la propriétaire du projet peut modifier le projet.</p>
+<p>Le bouton ne fonctionne pas ? Copie et colle ce lien complet dans ton navigateur : {{url}}</p>
+<p>Des questions ? Contacte-nous à <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
 };
@@ -204,87 +195,81 @@ const welcomeCoWorkerTemplates: Record<
   { subject: string; contentPlain: string; contentRich: string }
 > = {
   nl: {
-    subject: 'Coolest Projects {{year}}: Welkom!',
+    subject: 'Coolest Projects {{year}}: Welkom',
     contentPlain: `Hoi {{user.firstname}},
 
 Je bent met succes medewerker geworden van het project met de titel '{{project.title}}'.
 
-Enkel de project-eigenaar kan info over het project aanpassen.
-Gebruik deze link Go2MyProject om je pagina te openen.
+Enkel de projecteigenaar kan info over het project aanpassen. Gebruik de link 'Ga naar mijn project' om je pagina te openen. Via deze weg kan je:
+- de projectinformatie bekijken
+- je projectdeelname verwijderen en een eigen project aanmaken
 
-Kopieer en plak deze link tussen "..."
+Werkt de knop niet? Kopieer dan deze link volledig in je browser: {{url}}
 
-"{{url}}"
-
- in de browser.
-
-Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ https://coolestprojects.be/faq-nl/ eens na op onze website.
+Vragen? Contacteer ons via info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Hoi {{user.firstname}},</p>
 <p>Je bent met succes medewerker geworden van het project met de titel '{{project.title}}'.</p>
-<p>Enkel de project-eigenaar kan info over het project aanpassen. Gebruik deze link <a href="{{url}}">Go2MyProject</a> om je pagina te openen.</p>
-<p>Als de bovenstaande link niet werkt in je email programma, copieer en plak dan de volgende url volledig in een browser scherm: {{url}}</p>
+<p>Enkel de projecteigenaar kan info over het project aanpassen. Gebruik de link <a href="{{url}}">Ga naar mijn project</a> om je pagina te openen. Via deze weg kan je:</p>
 <ul>
-<li>De projectinformatie bekijken</li>
-<li>Je project deelname verwijderen en een eigen project aanmaken</li>
+<li>de projectinformatie bekijken</li>
+<li>je projectdeelname verwijderen en een eigen project aanmaken</li>
 </ul>
-<p>Indien je hier nog vragen bij zou hebben, lees dan zeker onze FAQ <a href="https://coolestprojects.be/faq-nl/">https://coolestprojects.be/faq-nl/</a> eens na op onze website.</p>
+<p>Werkt de knop niet? Kopieer dan deze link volledig in je browser: {{url}}</p>
+<p>Vragen? Contacteer ons via <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
     subject: 'Coolest Projects {{year}}: Welcome',
     contentPlain: `Hi {{user.firstname}},
 
-You have successfully joined the project with the title '{{project.title}}' as coworker.
+You have successfully joined the project '{{project.title}}' as a co-worker.
 
-Only the project owner can make changes to the project.
-Please use the following link Go2MyProject to open your page.
+Only the project owner can make changes to the project. Use the 'Go to my project' link to open your page. There you can:
+- view the project information
+- leave the project and create your own
 
-Please, Cat & paste the link between "..." into your browser to open your project
+Button not working? Copy and paste this full link into your browser: {{url}}
 
-"{{url}}"
+Questions? Contact us at info@coderdojobelgium.be
 
-If you have any more questions, please check out the FAQ https://coolestprojects.be/en/faq-en/ section on our website.
-
-Coolest Project Team Belgium`,
+Coolest Projects Team Belgium`,
     contentRich: `<p>Hi {{user.firstname}},</p>
-<p>You have successfully joined the project with the title '{{project.title}}' as coworker.</p>
-<p>Only the project owner can make changes to the project. Please use the following link <a href="{{url}}">Go2MyProject</a> to open your page.</p>
-<p>If the above link does not work in your email client, please copy and paste this full url in a browser window: {{url}}</p>
+<p>You have successfully joined the project '{{project.title}}' as a co-worker.</p>
+<p>Only the project owner can make changes to the project. Use the <a href="{{url}}">Go to my project</a> link to open your page. There you can:</p>
 <ul>
-<li>View the project information</li>
-<li>Leave the project and create your own</li>
+<li>view the project information</li>
+<li>leave the project and create your own</li>
 </ul>
-<p>If you have any more questions, please check out the FAQ <a href="https://coolestprojects.be/en/faq-en/">https://coolestprojects.be/en/faq-en/</a> section on our website.</p>
-<p>Coolest Project Team Belgium</p>`,
+<p>Button not working? Copy and paste this full link into your browser: {{url}}</p>
+<p>Questions? Contact us at <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
+<p>Coolest Projects Team Belgium</p>`,
   },
   fr: {
     subject: 'Coolest Projects {{year}}: Bienvenue',
     contentPlain: `Salut {{user.firstname}},
 
-Vous avez été ajouté avec succès au projet avec le titre '{{project.title}}'.
+Tu as bien rejoint le projet '{{project.title}}'.
 
-Seul⸱e le propriétaire du projet peut apporter des modifications au projet.
+Seul le ou la propriétaire du projet peut modifier le projet. Utilise le lien 'Accéder à mon projet' pour ouvrir ta page. Tu peux y :
+- afficher les informations du projet
+- quitter le projet et créer le tien
 
-copiez et collez ce lien entre "..."
+Le bouton ne fonctionne pas ? Copie et colle ce lien complet dans ton navigateur : {{url}}
 
-"{{url}}"
-
-dans ton navigateur.
-
-Si tu as d'autres questions, tu peux consulter la section FAQ https://coolestprojects.be/fr/faq-fr/ sur notre site web.
+Des questions ? Contacte-nous à info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Salut {{user.firstname}},</p>
-<p>Vous avez été ajouté avec succès au projet avec le titre '{{project.title}}'.</p>
-<p>Seul⸱e le propriétaire du projet peut apporter des modifications au projet. Tu peux utiliser ce lien <a href="{{url}}">Go2MyProject</a> pour ouvrir la page d'inscription et mettre à jour tes informations personnelles.</p>
-<p>Si le lien ci-dessus ne fonctionne pas dans votre programme de messagerie, copiez et collez complètement l'URL suivante dans une fenêtre de navigateur: {{url}}</p>
+<p>Tu as bien rejoint le projet '{{project.title}}'.</p>
+<p>Seul le ou la propriétaire du projet peut modifier le projet. Utilise le lien <a href="{{url}}">Accéder à mon projet</a> pour ouvrir ta page. Tu peux y :</p>
 <ul>
-<li>Afficher les informations du projet</li>
-<li>Quittez le projet et créez le tiens</li>
+<li>afficher les informations du projet</li>
+<li>quitter le projet et créer le tien</li>
 </ul>
-<p>Si tu as d'autres questions, tu peux consulter la section FAQ <a href="https://coolestprojects.be/fr/faq-fr/">https://coolestprojects.be/fr/faq-fr/</a> sur notre site web.</p>
+<p>Le bouton ne fonctionne pas ? Copie et colle ce lien complet dans ton navigateur : {{url}}</p>
+<p>Des questions ? Contacte-nous à <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
 };
@@ -299,21 +284,23 @@ const waitingTemplates: Record<
 
 We zijn ontzettend blij dat je wil deelnemen aan Coolest Projects Belgium {{year}}!
 {{#if registration.email_guardian}}
-Je ouders zullen deze e-mail ook ontvangen.
+Je ouders ontvangen deze e-mail ook.
 {{/if}}
-Maar we hebben het maximum aantal projecten bereikt. Je staat dus op de wachtlijst.
-Als er een plek vrijkomt, krijg je een activatiemail om je registratie af te ronden.
+We hebben het maximum aantal projecten bereikt, dus je staat op de wachtlijst. Komt er een plek vrij, dan krijg je een activatiemail om je registratie af te ronden.
 
-Veel succes, {{registration.firstname}}.
+Vragen? Contacteer ons via info@coderdojobelgium.be
+
+Veel succes, {{registration.firstname}}!
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Hallo {{registration.firstname}},</p>
 <p>We zijn ontzettend blij dat je wil deelnemen aan Coolest Projects Belgium {{year}}!</p>
 {{#if registration.email_guardian}}
-<p>Je ouders zullen deze e-mail ook ontvangen.</p>
+<p>Je ouders ontvangen deze e-mail ook.</p>
 {{/if}}
-<p>Maar we hebben het maximum aantal projecten bereikt. Je staat dus op de wachtlijst. Als er een plek vrijkomt, krijg je een activatiemail om je registratie af te ronden.</p>
-<p>Veel succes, {{registration.firstname}}.</p>
+<p>We hebben het maximum aantal projecten bereikt, dus je staat op de wachtlijst. Komt er een plek vrij, dan krijg je een activatiemail om je registratie af te ronden.</p>
+<p>Vragen? Contacteer ons via <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
+<p>Veel succes, {{registration.firstname}}!</p>
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
@@ -322,42 +309,48 @@ Coolest Projects Team Belgium`,
 
 We're very pleased that you want to participate in the next Coolest Projects Belgium {{year}}!
 {{#if registration.email_guardian}}
-Your parents will also receive this mail.
+Your parents also received this mail.
 {{/if}}
-You are on a waiting list, this means that you will receive an activation mail as soon as a spot becomes available.
+You are on the waiting list. This means you will receive an activation mail as soon as a spot becomes available.
 
-Good luck, {{registration.firstname}}.
+Questions? Contact us at info@coderdojobelgium.be
+
+Good luck, {{registration.firstname}}!
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Hi {{registration.firstname}},</p>
 <p>We're very pleased that you want to participate in the next Coolest Projects Belgium {{year}}!</p>
 {{#if registration.email_guardian}}
-<p>Your parents will also receive this mail.</p>
+<p>Your parents also received this mail.</p>
 {{/if}}
-<p>You are on a waiting list, this means that you will receive an activation mail as soon as a spot becomes available.</p>
-<p>Good luck, {{registration.firstname}}.</p>
+<p>You are on the waiting list. This means you will receive an activation mail as soon as a spot becomes available.</p>
+<p>Questions? Contact us at <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
+<p>Good luck, {{registration.firstname}}!</p>
 <p>Coolest Projects Team Belgium</p>`,
   },
   fr: {
-    subject: "Coolest Projects {{year}}: Bienvenu sur la liste d'attente",
+    subject: "Coolest Projects {{year}}: Bienvenue sur la liste d'attente",
     contentPlain: `Salut {{registration.firstname}},
 
-Nous sommes très heureux⸱ses de voir que tu participes à la prochaine édition de Coolest Projects Belgium {{year}}!
+Nous sommes très heureux de voir que tu participes à la prochaine édition de Coolest Projects Belgium {{year}} !
 {{#if registration.email_guardian}}
-Vos parents recevront également ce courrier.
+Tes parents reçoivent également ce courrier.
 {{/if}}
-Tu es sur une liste d'attente, cela signifie que tu recevras un mail d'activation lorsqu'une place sera disponible.
+Tu es sur la liste d'attente : cela signifie que tu recevras un mail d'activation dès qu'une place se libère.
 
-Bonne chance, {{registration.firstname}}.
+Des questions ? Contacte-nous à info@coderdojobelgium.be
+
+Bonne chance, {{registration.firstname}} !
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Salut {{registration.firstname}},</p>
-<p>Nous sommes très heureux⸱ses de voir que tu participes à la prochaine édition de Coolest Projects Belgium {{year}}!</p>
+<p>Nous sommes très heureux de voir que tu participes à la prochaine édition de Coolest Projects Belgium {{year}} !</p>
 {{#if registration.email_guardian}}
-<p>Vos parents recevront également ce courrier.</p>
+<p>Tes parents reçoivent également ce courrier.</p>
 {{/if}}
-<p>Tu es sur une liste d'attente, cela signifie que tu recevras un mail d'activation lorsqu'une place sera disponible.</p>
-<p>Bonne chance, {{registration.firstname}}.</p>
+<p>Tu es sur la liste d'attente : cela signifie que tu recevras un mail d'activation dès qu'une place se libère.</p>
+<p>Des questions ? Contacte-nous à <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
+<p>Bonne chance, {{registration.firstname}} !</p>
 <p>Coolest Projects Team Belgium</p>`,
   },
 };
@@ -370,53 +363,51 @@ const ask4TokenTemplates: Record<
     subject: 'Coolest Projects {{year}}: Jouw login link',
     contentPlain: `Hallo {{user.firstname}},
 
-Gebruik Go2MyProject om jouw pagina te openen: {{url}}
+Gebruik de link 'Ga naar mijn project' om je pagina te openen.
 
-Kopieer en plak deze link tussen "..."
+Werkt de knop niet? Kopieer dan deze link volledig in je browser: {{url}}
 
-"{{url}}"
-
- in de browser om je project te openen.
+Vragen? Contacteer ons via info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Hallo {{user.firstname}},</p>
-<p><a href="{{url}}">Gebruik Go2MyProject om jouw pagina te openen.</a></p>
-<p>Als de bovenstaande link niet werkt in je email programma, copieer en plak dan de volgende url volledig in een browser scherm: {{url}}</p>
+<p>Gebruik de link <a href="{{url}}">Ga naar mijn project</a> om je pagina te openen.</p>
+<p>Werkt de knop niet? Kopieer dan deze link volledig in je browser: {{url}}</p>
+<p>Vragen? Contacteer ons via <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
-    subject:
-      'Coolest Projects {{year}}: Receive a token to login into your project',
+    subject: 'Coolest Projects {{year}}: Your login link',
     contentPlain: `Hi {{user.firstname}},
 
-Please, use the following link to open your project in your browser {{url}} .
+Use the 'Go to my project' link to open your project.
 
-Please, Cat & paste the link between "..." into your browser to open your project
+Button not working? Copy and paste this full link into your browser: {{url}}
 
-"{{url}}"
+Questions? Contact us at info@coderdojobelgium.be
 
-Coolest Project Team Belgium`,
+Coolest Projects Team Belgium`,
     contentRich: `<p>Hi {{user.firstname}},</p>
-<p>Please, use the following link to open your project in your browser <a href="{{url}}">Go2MyProject</a>.</p>
-<p>If the above link does not work in your email client, please copy and paste this full url in a browser window: {{url}}</p>
-<p>Coolest Project Team Belgium</p>`,
+<p>Use the <a href="{{url}}">Go to my project</a> link to open your project.</p>
+<p>Button not working? Copy and paste this full link into your browser: {{url}}</p>
+<p>Questions? Contact us at <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
+<p>Coolest Projects Team Belgium</p>`,
   },
   fr: {
     subject: 'Coolest Projects {{year}}: Ton lien de connexion',
     contentPlain: `Salut {{user.firstname}},
 
-Merci d'utiliser le lien suivant pour ouvrir ton navigateur et accéder à ton projet : Go2MyProject
+Utilise le lien 'Accéder à mon projet' pour ouvrir ton projet.
 
-copiez et collez ce lien entre "..."
+Le bouton ne fonctionne pas ? Copie et colle ce lien complet dans ton navigateur : {{url}}
 
-"{{url}}"
-
-dans ton navigateur.
+Des questions ? Contacte-nous à info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Salut {{user.firstname}},</p>
-<p>Merci d'utiliser le lien suivant pour ouvrir ton navigateur et accéder à ton projet : <a href="{{url}}">Go2MyProject</a></p>
-<p>Si le lien ci-dessus ne fonctionne pas dans votre programme de messagerie, copiez et collez complètement l'URL suivante dans une fenêtre de navigateur: {{url}}</p>
+<p>Utilise le lien <a href="{{url}}">Accéder à mon projet</a> pour ouvrir ton projet.</p>
+<p>Le bouton ne fonctionne pas ? Copie et colle ce lien complet dans ton navigateur : {{url}}</p>
+<p>Des questions ? Contacte-nous à <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
 };
@@ -432,18 +423,21 @@ const emailExistsTemplates: Record<
 
 Let op, er was een aanvullende registratie met jouw e-mailadres.
 
-Als je jezelf probeert te registreren, houd er dan rekening mee dat je al een Coolest Project hebt. Controleer je e-mail om de activering te vinden of de bevestigingsmail voor toegang tot je project en gebruikersinformatie.
+Als je jezelf probeerde te registreren: je hebt al een Coolest Project. Controleer je e-mail voor de activatie- of bevestigingsmail om toegang te krijgen tot je project en gebruikersinformatie.
 
-Als je link niet meer werkt, gebruik dan de Login-knop op de hoofdpagina om een nieuwe Login-token voor je e-mailadres aan te vragen.
+Werkt je link niet meer? Gebruik dan de Login-knop op de hoofdpagina om een nieuwe login-token voor je e-mailadres aan te vragen.
 
-Als je zelf geen nieuw registratieverzoek hebt gedaan, kan je deze e-mail gerust negeren. Er is geen risico dat je inschrijving is overgenomen. Deel nooit links die je van ons hebt ontvangen met iemand anders.
+Heb je zelf geen nieuw registratieverzoek gedaan? Dan kan je deze e-mail gerust negeren. Er is geen risico dat je inschrijving is overgenomen. Deel nooit links die je van ons ontving met iemand anders.
+
+Vragen? Contacteer ons via info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Hallo,</p>
 <p>Let op, er was een aanvullende registratie met jouw e-mailadres.</p>
-<p>Als je jezelf probeert te registreren, houd er dan rekening mee dat je al een Coolest Project hebt. Controleer je e-mail om de activering te vinden of de bevestigingsmail voor toegang tot je project en gebruikersinformatie.</p>
-<p>Als je link niet meer werkt, gebruik dan de Login-knop op de hoofdpagina om een nieuwe Login-token voor je e-mailadres aan te vragen.</p>
-<p>Als je zelf geen nieuw registratieverzoek hebt gedaan, kan je deze e-mail gerust negeren. Er is geen risico dat je inschrijving is overgenomen. Deel nooit links die je van ons hebt ontvangen met iemand anders.</p>
+<p>Als je jezelf probeerde te registreren: je hebt al een Coolest Project. Controleer je e-mail voor de activatie- of bevestigingsmail om toegang te krijgen tot je project en gebruikersinformatie.</p>
+<p>Werkt je link niet meer? Gebruik dan de Login-knop op de hoofdpagina om een nieuwe login-token voor je e-mailadres aan te vragen.</p>
+<p>Heb je zelf geen nieuw registratieverzoek gedaan? Dan kan je deze e-mail gerust negeren. Er is geen risico dat je inschrijving is overgenomen. Deel nooit links die je van ons ontving met iemand anders.</p>
+<p>Vragen? Contacteer ons via <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
   en: {
@@ -453,39 +447,45 @@ Coolest Projects Team Belgium`,
 
 Attention please, there was an additional registration with your email address.
 
-If you tried to register yourself, please note that you already have a Coolest Project. Check your email folder to find the activation or the confirmation e-mail to access your project and user information.
+If you tried to register yourself, please note that you already have a Coolest Project. Check your email folder for the activation or confirmation email to access your project and user information.
 
-If your link is not working anymore please use the Login button on the main page to ask for a new Login token for your email address.
+If your link no longer works, use the Login button on the main page to request a new login token for your email address.
 
-If your did not make a new registration request yourself, you can safely ignore this mail. There is no risk that your registration has been taken over. Never share links that you received from us with anyone else.
+If you did not make a new registration request yourself, you can safely ignore this mail. There is no risk that your registration has been taken over. Never share links that you received from us with anyone else.
+
+Questions? Contact us at info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Hi,</p>
 <p>Attention please, there was an additional registration with your email address.</p>
-<p>If you tried to register yourself, please note that you already have a Coolest Project. Check your email folder to find the activation or the confirmation e-mail to access your project and user information.</p>
-<p>If your link is not working anymore please use the Login button on the main page to ask for a new Login token for your email address.</p>
-<p>If your did not make a new registration request yourself, you can safely ignore this mail. There is no risk that your registration has been taken over. Never share links that you received from us with anyone else.</p>
+<p>If you tried to register yourself, please note that you already have a Coolest Project. Check your email folder for the activation or confirmation email to access your project and user information.</p>
+<p>If your link no longer works, use the Login button on the main page to request a new login token for your email address.</p>
+<p>If you did not make a new registration request yourself, you can safely ignore this mail. There is no risk that your registration has been taken over. Never share links that you received from us with anyone else.</p>
+<p>Questions? Contact us at <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
   fr: {
     subject:
-      'Coolest Projects {{year}}: Attention ! Une inscription à Coolest Projects avec ton adresse mail est déjà enregistrée.',
+      'Coolest Projects {{year}}: Attention, une inscription à Coolest Projects avec ton adresse mail est déjà enregistrée.',
     contentPlain: `Salut,
 
 Attention ! Une inscription à Coolest Projects avec ton adresse mail est déjà enregistrée.
 
-Si tu as essayé de t'inscrire, sache que tu es déjà associé à un Coolest Project. Vérifie ta boîte mail afin de trouver le mail d'activation ou le mail de bienvenue pour accéder à ton projet ainsi qu'à tes informations personnelles.
+Si tu as essayé de t'inscrire, sache que tu es déjà associé à un Coolest Project. Vérifie ta boîte mail pour trouver le mail d'activation ou de bienvenue afin d'accéder à ton projet et à tes informations personnelles.
 
-Si ton lien ne fonctionne plus, tu peux utiliser le bouton "Connexion" sur la page principale afin de recevoir un nouvel accès via votre adresse e-mail.
+Si ton lien ne fonctionne plus, utilise le bouton "Connexion" sur la page principale pour recevoir un nouvel accès via ton adresse e-mail.
 
-Si tu n'as pas fait de nouvelle demande d´inscription toi-même, tu peux ignorer ce courriel en toute sécurité. Il n'y a aucun risque pour la prise en compte de votre enregistrement. Ne partage jamais les liens que tu as reçus de notre part avec quelqu´un d´autre.
+Si tu n'as pas fait de nouvelle demande d'inscription toi-même, tu peux ignorer ce courriel en toute sécurité. Il n'y a aucun risque pour la prise en compte de ton enregistrement. Ne partage jamais les liens que tu as reçus de notre part avec quelqu'un d'autre.
+
+Des questions ? Contacte-nous à info@coderdojobelgium.be
 
 Coolest Projects Team Belgium`,
     contentRich: `<p>Salut,</p>
 <p>Attention ! Une inscription à Coolest Projects avec ton adresse mail est déjà enregistrée.</p>
-<p>Si tu as essayé de t'inscrire, sache que tu es déjà associé à un Coolest Project. Vérifie ta boîte mail afin de trouver le mail d'activation ou le mail de bienvenue pour accéder à ton projet ainsi qu'à tes informations personnelles.</p>
-<p>Si ton lien ne fonctionne plus, tu peux utiliser le bouton "Connexion" sur la page principale afin de recevoir un nouvel accès via votre adresse e-mail.</p>
-<p>Si tu n'as pas fait de nouvelle demande d´inscription toi-même, tu peux ignorer ce courriel en toute sécurité. Il n'y a aucun risque pour la prise en compte de votre enregistrement. Ne partage jamais les liens que tu as reçus de notre part avec quelqu´un d´autre.</p>
+<p>Si tu as essayé de t'inscrire, sache que tu es déjà associé à un Coolest Project. Vérifie ta boîte mail pour trouver le mail d'activation ou de bienvenue afin d'accéder à ton projet et à tes informations personnelles.</p>
+<p>Si ton lien ne fonctionne plus, utilise le bouton "Connexion" sur la page principale pour recevoir un nouvel accès via ton adresse e-mail.</p>
+<p>Si tu n'as pas fait de nouvelle demande d'inscription toi-même, tu peux ignorer ce courriel en toute sécurité. Il n'y a aucun risque pour la prise en compte de ton enregistrement. Ne partage jamais les liens que tu as reçus de notre part avec quelqu'un d'autre.</p>
+<p>Des questions ? Contacte-nous à <a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a></p>
 <p>Coolest Projects Team Belgium</p>`,
   },
 };

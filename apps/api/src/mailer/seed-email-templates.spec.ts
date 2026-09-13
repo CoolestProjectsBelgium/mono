@@ -15,7 +15,7 @@ describe('buildSeedEmailTemplates', () => {
     expect(subjects).toEqual(
       expect.arrayContaining([
         'registration:en:Coolest Projects {{year}}: Please confirm your registration',
-        'ask4Token:en:Coolest Projects {{year}}: Receive a token to login into your project',
+        'ask4Token:en:Coolest Projects {{year}}: Your login link',
         'welcomeOwner:en:Coolest Projects {{year}}: Welcome',
       ]),
     );

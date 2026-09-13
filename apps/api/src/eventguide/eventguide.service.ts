@@ -153,10 +153,9 @@ export class EventguideService {
         );
 
       const confirmedAttachment = project.attachments?.[0];
-      const thumbnailUrl =
-        agreedToPhoto && confirmedAttachment
-          ? this.getThumbnailUrl(confirmedAttachment.id)
-          : null;
+      const thumbnailUrl = confirmedAttachment
+        ? this.getThumbnailUrl(confirmedAttachment.id)
+        : null;
 
       return {
         id: project.id,
@@ -171,9 +170,13 @@ export class EventguideService {
       };
     });
 
-    mappedProjects.sort((left, right) => {
-      const leftTable = left.tableNumber ?? Number.MAX_SAFE_INTEGER;
-      const rightTable = right.tableNumber ?? Number.MAX_SAFE_INTEGER;
+    const tableAssignedProjects = mappedProjects.filter(
+      (project) => project.tableNumber != null,
+    );
+
+    tableAssignedProjects.sort((left, right) => {
+      const leftTable = left.tableNumber!;
+      const rightTable = right.tableNumber!;
       if (leftTable !== rightTable) {
         return leftTable - rightTable;
       }
@@ -182,7 +185,7 @@ export class EventguideService {
 
     return {
       event: await this.mapEvent(event),
-      projects: mappedProjects,
+      projects: tableAssignedProjects,
     };
   }
 
@@ -253,53 +256,27 @@ export class EventguideService {
       throw new NotFoundException('Project not found');
     }
 
-    const agreedToPhoto = await this.projectHasPhotoConsent(
-      eventId,
-      project.id,
-    );
-    if (!agreedToPhoto) {
-      throw new NotFoundException('Photo not available');
-    }
-
-    const file = createReadStream(attachment.thumbnailPath);
+    const imagePath = await this.resolveAttachmentImagePath(attachment);
+    const file = createReadStream(imagePath);
     return new StreamableFile(file, { type: attachment.mimetype });
   }
 
-  private async projectHasPhotoConsent(
-    eventId: number,
-    projectId: number,
-  ): Promise<boolean> {
-    const photoQuestion = await this.questionModel.findOne({
-      where: { eventId, name: PHOTO_QUESTION_NAME },
-      attributes: ['id'],
-    });
-
-    if (!photoQuestion) {
-      return false;
+  private async resolveAttachmentImagePath(
+    attachment: Attachment,
+  ): Promise<string> {
+    for (const candidate of [attachment.thumbnailPath, attachment.filepath]) {
+      if (!candidate) {
+        continue;
+      }
+      try {
+        await access(candidate);
+        return candidate;
+      } catch {
+        // try next path
+      }
     }
 
-    const memberships = await this.userProjectModel.findAll({
-      where: {
-        projectId,
-        eventId,
-        deletedAt: null,
-        userId: { [Op.ne]: null },
-      },
-    });
-
-    if (memberships.length === 0) {
-      return false;
-    }
-
-    const consentCount = await this.questionUserModel.count({
-      where: {
-        eventId,
-        questionId: photoQuestion.id,
-        userId: { [Op.in]: memberships.map((membership) => membership.userId) },
-      },
-    });
-
-    return consentCount === memberships.length;
+    throw new NotFoundException('Attachment file not found');
   }
 
   private async mapEvent(event: Event): Promise<EventguideEventDto> {

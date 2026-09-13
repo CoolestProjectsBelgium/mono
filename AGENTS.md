@@ -40,6 +40,7 @@ npm workspaces monorepo (`package.json`):
 |------|-------|
 | `repo-docs.mdc` | Always — expand stub docs when touched |
 | `api-nestjs.mdc` | `apps/api/**` (NestJS) |
+| `email-templates.mdc` | `apps/api/src/mailer/**`, `docs/email-templates/**` (canonical email copy) |
 | `database-sequelize.mdc` | `packages/database/**` |
 | `admin-adminjs.mdc` | `apps/admin/**` (AdminJS + Express — not Nest, not Nuxt) |
 | `voting-nuxt.mdc` | `apps/voting/**` (Nuxt 3) |

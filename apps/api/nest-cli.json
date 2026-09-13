@@ -11,6 +11,11 @@
         "include": "seeder/fixtures/**/*",
         "outDir": "dist",
         "watchAssets": true
+      },
+      {
+        "include": "seeder/be-dojos.json",
+        "outDir": "dist",
+        "watchAssets": true
       }
     ]
   }

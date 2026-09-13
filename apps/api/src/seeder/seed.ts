@@ -29,6 +29,12 @@ import { buildSeedCertificateTemplates } from './seed-certificate-template';
 import { loadSeedDojoNames } from './load-seed-dojos';
 import { buildSeedPresentationSlides } from './seed-presentation-slides';
 import {
+  APPROVAL_QUESTION_NAME,
+  CONTACT_QUESTION_NAME,
+  PHOTO_QUESTION_NAME,
+  buildQuestionTranslationRows,
+} from './seed-question-translations';
+import {
   assignProjectsToEventTables,
   VOTING_TEST_PROJECTS,
 } from './seed-voting-fixtures';
@@ -122,15 +128,15 @@ export async function seedDatabase(
   const questions = await questionModel.bulkCreate([
     {
       eventId: event.id,
-      name: 'Agree to Photo',
+      name: PHOTO_QUESTION_NAME,
     },
     {
       eventId: event.id,
-      name: 'Agree to Contact',
+      name: CONTACT_QUESTION_NAME,
     },
     {
       eventId: event.id,
-      name: 'Approved',
+      name: APPROVAL_QUESTION_NAME,
       mandatory: 1,
     },
   ]);
@@ -141,87 +147,13 @@ export async function seedDatabase(
     })),
   );
 
-  await questionTranslationModel.bulkCreate([
-    {
-      eventId: event.id,
-      language: 'en',
-      questionId: questions[0].id,
-      positive: 'That is no problem',
-      negative:
-        "Don't use any pictures or movies where the participant is reconizable",
-      description:
-        'It is possible that the participant is photographed or filmed',
-    },
-    {
-      eventId: event.id,
-      language: 'en',
-      questionId: questions[1].id,
-      positive: 'Yes',
-      negative: 'No',
-      description: 'Can CoderDojo contact you for the next edition',
-    },
-    {
-      eventId: event.id,
-      language: 'en',
-      questionId: questions[2].id,
-      positive: 'Yes',
-      negative: 'No',
-      description: 'Do you agree to our rules?',
-    },
-    {
-      eventId: event.id,
-      language: 'nl',
-      questionId: questions[0].id,
-      positive: 'Dat is geen probleem',
-      negative:
-        'Gelieve geen foto’s en filmpjes te gebruiken waarop de deelnemer herkenbaar is',
-      description:
-        'Het is mogelijk dat de deelnemer gefotografeerd of gefilmd wordt',
-    },
-    {
-      eventId: event.id,
-      language: 'nl',
-      questionId: questions[1].id,
-      positive: 'Ja',
-      negative: 'Nee',
-      description: 'Mag CoderDojo je contacteren voor de volgende editie?',
-    },
-    {
-      eventId: event.id,
-      language: 'nl',
-      questionId: questions[2].id,
-      positive: 'Ja',
-      negative: 'Nee',
-      description: 'Ga je akkoord met onze regels?',
-    },
-    {
-      eventId: event.id,
-      language: 'fr',
-      questionId: questions[0].id,
-      positive: "Je suis d'accord",
-      negative:
-        'Je ne suis pas d’accord que l’on utilise les images et vidéos si le ou la participant.e est reconnaissable',
-      description:
-        'Le ou la participant.e peut être photographié.e ou filmé.e.',
-    },
-    {
-      eventId: event.id,
-      language: 'fr',
-      questionId: questions[1].id,
-      positive: 'Qui',
-      negative: 'Non',
-      description:
-        'CoderDojo peut-il vous contacter pour la prochaine édition ?',
-    },
-    {
-      eventId: event.id,
-      language: 'fr',
-      questionId: questions[2].id,
-      positive: 'Qui',
-      negative: 'Non',
-      description: "Es-tu d'accord avec nos règles ?",
-    },
-  ]);
+  await questionTranslationModel.bulkCreate(
+    buildQuestionTranslationRows(event.id, {
+      [PHOTO_QUESTION_NAME]: questions[0].id,
+      [CONTACT_QUESTION_NAME]: questions[1].id,
+      [APPROVAL_QUESTION_NAME]: questions[2].id,
+    }),
+  );
 
   await tshirtGroupTranslationModel.bulkCreate([
     {

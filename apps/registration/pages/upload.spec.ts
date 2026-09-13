@@ -100,7 +100,7 @@ describe('upload page', () => {
     const wrapper = await mountSuspended(UploadPage)
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.getComponent({ ref: 'uploadRef' }).props('maxAttachments')).toBe(10)
+    expect(wrapper.getComponent({ ref: 'uploadRef' }).props('maxAttachments')).toBe(5)
   })
 
   it('shows attachment list without upload form for coworkers', async () => {

@@ -19,3 +19,34 @@ export function resolveApiBase(configuredBase: string): string {
 
   return trimmed
 }
+
+function eventguideAssetPath(url: string): string {
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return new URL(url).pathname
+  }
+
+  return url.startsWith('/') ? url : `/${url}`
+}
+
+/**
+ * Resolve eventguide asset URLs (thumbnails, etc.) for the current browser origin.
+ * The API may return absolute api-host URLs; on the local eventguide proxy host we
+ * load them same-origin via /eventguide/* instead.
+ */
+export function resolveEventguideAssetUrl(
+  url: string | null,
+  apiBase: string,
+): string | null {
+  if (!url) {
+    return null
+  }
+
+  const path = eventguideAssetPath(url)
+
+  if (import.meta.client && window.location.hostname === 'eventguide.coolestprojects.localhost') {
+    return path
+  }
+
+  const base = apiBase.replace(/\/$/, '')
+  return `${base}${path}`
+}

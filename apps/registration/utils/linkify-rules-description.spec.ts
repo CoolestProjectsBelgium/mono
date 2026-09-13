@@ -4,37 +4,37 @@ import { linkifyRulesDescription } from './linkify-rules-description'
 describe('linkifyRulesDescription', () => {
   it('wraps the Dutch rules word', () => {
     expect(linkifyRulesDescription(
-      'Ga je akkoord met onze regels?',
+      'Ik heb de regels gelezen en ga ermee akkoord.',
       'regels',
       'Reglement',
     )).toEqual([
-      { type: 'text', text: 'Ga je akkoord met onze ' },
+      { type: 'text', text: 'Ik heb de ' },
       { type: 'link', text: 'regels' },
-      { type: 'text', text: '?' },
+      { type: 'text', text: ' gelezen en ga ermee akkoord.' },
     ])
   })
 
   it('wraps the English rules word case-insensitively', () => {
     expect(linkifyRulesDescription(
-      'Do you agree to our rules?',
+      'I have read the rules and I agree.',
       'rules',
       'Rules',
     )).toEqual([
-      { type: 'text', text: 'Do you agree to our ' },
+      { type: 'text', text: 'I have read the ' },
       { type: 'link', text: 'rules' },
-      { type: 'text', text: '?' },
+      { type: 'text', text: ' and I agree.' },
     ])
   })
 
   it('wraps the French rules word', () => {
     expect(linkifyRulesDescription(
-      "Es-tu d'accord avec nos règles ?",
+      "J'ai lu les règles et je les accepte.",
       'règles',
       'Des règles',
     )).toEqual([
-      { type: 'text', text: "Es-tu d'accord avec nos " },
+      { type: 'text', text: "J'ai lu les " },
       { type: 'link', text: 'règles' },
-      { type: 'text', text: ' ?' },
+      { type: 'text', text: ' et je les accepte.' },
     ])
   })
 

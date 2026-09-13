@@ -1,6 +1,7 @@
 <template>
   <div>
     <h1 class="text-3xl font-bold">{{ $t('upload.photoTitle') }}</h1>
+    <p class="mt-2 text-gray-600">{{ $t('upload.photoHint') }}</p>
     <UploadAttachments
       v-if="settings && isProjectOwner"
       ref="uploadRef"

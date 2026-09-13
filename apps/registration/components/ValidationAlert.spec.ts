@@ -26,7 +26,7 @@ describe('ValidationAlert', () => {
 
     expect(wrapper.text()).toContain('Vul alle verplichte velden in.')
     expect(wrapper.text()).toContain('Voornaam')
-    expect(wrapper.text()).toContain('E-mail adres')
+    expect(wrapper.text()).toContain('E-mailadres')
     expect(wrapper.find('ul li').exists()).toBe(true)
   })
 

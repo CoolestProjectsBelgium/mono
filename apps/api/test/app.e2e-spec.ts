@@ -140,7 +140,7 @@ describe('AppController (e2e)', () => {
       .get('/settings')
       .expect(200)
       .expect(
-        '{"maxAge":18,"minAge":7,"guardianAge":16,"enviroment":"production","waitingListActive":false,"maxUploadSize":2147483647,"startDateEvent":"2024-09-01T00:00:00.000Z","tshirtDate":"2025-04-01T00:00:00.000Z","eventBeginDate":"2024-09-01T00:00:00.000Z","registrationOpenDate":"2024-11-01T00:00:00.000Z","registrationClosedDate":"2025-04-01T00:00:00.000Z","projectClosedDate":"2025-04-12T00:00:00.000Z","officialStartDate":"2025-04-26T00:00:00.000Z","eventEndDate":"2025-08-31T00:00:00.000Z","eventTitle":"Coolest Projects 2025","maxRegistration":64,"maxParticipants":3,"maxAttachments":10,"isRegistrationOpen":true,"isProjectClosed":false,"isActive":true}',
+        '{"maxAge":18,"minAge":7,"guardianAge":16,"enviroment":"production","waitingListActive":false,"maxUploadSize":2147483647,"startDateEvent":"2024-09-01T00:00:00.000Z","tshirtDate":"2025-04-01T00:00:00.000Z","eventBeginDate":"2024-09-01T00:00:00.000Z","registrationOpenDate":"2024-11-01T00:00:00.000Z","registrationClosedDate":"2025-04-01T00:00:00.000Z","projectClosedDate":"2025-04-12T00:00:00.000Z","officialStartDate":"2025-04-26T00:00:00.000Z","eventEndDate":"2025-08-31T00:00:00.000Z","eventTitle":"Coolest Projects 2025","maxRegistration":64,"maxParticipants":3,"maxAttachments":5,"isRegistrationOpen":true,"isProjectClosed":false,"isActive":true}',
       );
   });
 
@@ -167,9 +167,9 @@ describe('AppController (e2e)', () => {
 
   // Test for /questions (GET)
   const expected_questions_outputs = {
-    en: '[{"id":1,"name":"Agree to Photo","description":"It is possible that the participant is photographed or filmed","positive":"That is no problem","negative":"Don\'t use any pictures or movies where the participant is reconizable"},{"id":2,"name":"Agree to Contact","description":"Can CoderDojo contact you for the next edition","positive":"Yes","negative":"No"}]',
-    nl: '[{"id":1,"name":"Agree to Photo","description":"Het is mogelijk dat de deelnemer gefotografeerd of gefilmd wordt","positive":"Dat is geen probleem","negative":"Gelieve geen foto’s en filmpjes te gebruiken waarop de deelnemer herkenbaar is"},{"id":2,"name":"Agree to Contact","description":"Mag CoderDojo je contacteren voor de volgende editie?","positive":"Ja","negative":"Nee"}]',
-    fr: '[{"id":1,"name":"Agree to Photo","description":"Le ou la participant.e peut être photographié.e ou filmé.e.","positive":"Je suis d\'accord","negative":"Je ne suis pas d’accord que l’on utilise les images et vidéos si le ou la participant.e est reconnaissable"},{"id":2,"name":"Agree to Contact","description":"CoderDojo peut-il vous contacter pour la prochaine édition ?","positive":"Qui","negative":"Non"}]',
+    en: '[{"id":1,"name":"Agree to Photo","description":"May we take photos or videos where the participant is recognizable?","positive":"Yes, that\'s no problem","negative":"No, don\'t use any images where the participant is recognizable"},{"id":2,"name":"Agree to Contact","description":"Can CoderDojo Belgium contact you for the next edition?","positive":"Yes","negative":"No"}]',
+    nl: '[{"id":1,"name":"Agree to Photo","description":"Mogen we foto\'s of filmpjes maken waarop de deelnemer herkenbaar is?","positive":"Ja, dat is geen probleem","negative":"Nee, gebruik geen beeld waarop de deelnemer herkenbaar is"},{"id":2,"name":"Agree to Contact","description":"Mag CoderDojo Belgium je contacteren voor de volgende editie?","positive":"Ja","negative":"Nee"}]',
+    fr: '[{"id":1,"name":"Agree to Photo","description":"Pouvons-nous prendre des photos ou vidéos où le ou la participant·e est reconnaissable ?","positive":"Oui, pas de problème","negative":"Non, n\'utilisez pas d\'images où le ou la participant·e est reconnaissable"},{"id":2,"name":"Agree to Contact","description":"CoderDojo Belgium peut-il te contacter pour la prochaine édition ?","positive":"Oui","negative":"Non"}]',
   };
 
   for (const [lang, expected] of Object.entries(expected_questions_outputs)) {
@@ -204,9 +204,9 @@ describe('AppController (e2e)', () => {
 
   // Test for /approvals (GET)
   const expected_approvals_outputs = {
-    en: '[{"id":3,"name":"Approved","description":"Do you agree to our rules?"}]',
-    nl: '[{"id":3,"name":"Approved","description":"Ga je akkoord met onze regels?"}]',
-    fr: '[{"id":3,"name":"Approved","description":"Es-tu d\'accord avec nos règles ?"}]',
+    en: '[{"id":3,"name":"Approved","description":"I have read the rules and I agree."}]',
+    nl: '[{"id":3,"name":"Approved","description":"Ik heb de regels gelezen en ga ermee akkoord."}]',
+    fr: '[{"id":3,"name":"Approved","description":"J\'ai lu les règles et je les accepte."}]',
   };
 
   for (const [lang, expected] of Object.entries(expected_approvals_outputs)) {

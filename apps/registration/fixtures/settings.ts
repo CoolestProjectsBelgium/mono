@@ -21,7 +21,7 @@ export const activeSettingsFixture: SettingDto = {
   isProjectClosed: false,
   maxRegistration: 500,
   maxParticipants: 4,
-  maxAttachments: 10,
+  maxAttachments: 5,
 }
 
 export const inactiveSettingsFixture: SettingDto = {

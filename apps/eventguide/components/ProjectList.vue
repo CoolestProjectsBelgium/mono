@@ -39,7 +39,7 @@
           v-if="project.thumbnailUrl"
           :src="project.thumbnailUrl"
           :alt="project.name"
-          class="mb-4 max-h-64 w-full rounded-md object-cover"
+          class="mb-4 max-h-64 w-full rounded-md bg-gray-50 object-contain"
         >
         <p class="whitespace-pre-wrap text-sm text-gray-700">
           {{ project.description }}

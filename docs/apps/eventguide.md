@@ -33,7 +33,7 @@ Local URL (via proxy): `https://eventguide.coolestprojects.localhost:8443`
   - `GET /eventguide/projects` — current active event (via `InfoInterceptor`)
   - `GET /eventguide/events/:eventId/projects` — explicit event (including past events)
   - `GET /eventguide/floorplans/:filename` — processed floor plan SVG from `UPLOAD_ROOT/floorplans/`
-  - `GET /eventguide/attachments/:attachmentId/thumbnail` — confirmed project photo (photo consent required)
+  - `GET /eventguide/attachments/:attachmentId/thumbnail` — confirmed project photo (served when the attachment is confirmed; falls back to the original file if the thumbnail is missing on disk)
 - API base: `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`). On `https://eventguide.coolestprojects.localhost:8443` dev, Nitro proxies `/eventguide/**` → port 3001.
 - Does not import `@coolestprojects/database` directly
 
@@ -46,7 +46,7 @@ Local URL (via proxy): `https://eventguide.coolestprojects.localhost:8443`
 
 ### Project list
 
-Fetches `EventguideProjectsResponse` (`event` metadata + `projects[]`). Projects are sorted by table number. Accordion rows show language badge, photo-consent icon, participants, description, and optional thumbnail. “Show on map” opens a modal highlighting the table on the SVG floor plan.
+Fetches `EventguideProjectsResponse` (`event` metadata + `projects[]`). The API returns **only projects with a table assignment** (`tableNumber` parsed from `EventTable.name`); unassigned projects are omitted from both list and map payloads. Projects are sorted by table number. Accordion rows show language badge, photo-consent icon, participants, description, and optional thumbnail (`object-contain`). “Show on map” opens a modal highlighting the table on the SVG floor plan.
 
 ### Map view
 
@@ -56,7 +56,11 @@ Staff upload Visio SVG exports via Admin → **Floor plans**; the AdminJS handle
 
 ### Photo consent
 
-`agreedToPhoto` is `true` only when every registered participant (owner + co-participants) has a `QuestionUser` row for the `"Agree to Photo"` question. Thumbnails are omitted when consent is missing.
+`agreedToPhoto` is `true` only when every registered participant (owner + co-participants) has a `QuestionUser` row for the `"Agree to Photo"` question. The consent icon reflects that flag. A **confirmed** project photo may still be shown in the list or map detail sheet when `agreedToPhoto` is `false`; unconfirmed uploads are never exposed.
+
+### Map project detail
+
+Tapping a table polygon (or a search result) opens `ProjectDetailSheet` — a bottom sheet on mobile and a centered dialog on desktop — with a large `object-contain` photo, language badge, consent icon, participants, and description. Leaflet popups are not used.
 
 ## Out of scope / unknowns
 

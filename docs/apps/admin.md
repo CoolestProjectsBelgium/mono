@@ -11,7 +11,7 @@ AdminJS-based admin panel for Coolest Projects staff. Manages events, registrati
 - Custom UI: React bundled by AdminJS `ComponentLoader` (Rollup), using `@adminjs/design-system`
 - `@coolestprojects/database` for models and Sequelize connection
 
-Do not add Nest modules, controllers, guards, or `@adminjs/nestjs`. Do not use Vue, Tailwind, or Nuxt UI here. The only Nest leftover is `@nestjs/config` `ConfigService` in `database.ts` for `DB_*` env.
+Do not add Nest modules, controllers, guards, or `@adminjs/nestjs`. Do not use Vue, Tailwind, or Nuxt UI here. `database.ts` reads `DB_*` from `process.env` after `dotenv/config` — dest `npm install --omit=dev` only installs this app's `package.json` dependencies, so a Nest leftover would crash boot (`Cannot find package '@nestjs/config'`).
 
 ## Entrypoints
 

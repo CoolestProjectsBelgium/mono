@@ -23,6 +23,7 @@ Central NestJS HTTP API for Coolest Projects. Serves registration, login, projec
 | `npm run seed-db --workspace=apps/api` | Seed DB via `event:init` CLI |
 | `npm run seed-voting --workspace=apps/api` | Ensure jury voting test projects (links projects to event tables; runs full seed if DB is empty) |
 | `npm run seed-pictures --workspace=apps/api` | Add confirmed project photo attachments for the active event (`event:seed-pictures`; idempotent when attachments already exist) |
+| `npm run sync-copy --workspace=apps/api` | Sync question/approval translations and the six core email templates for the active event (`event:sync-copy`; upserts only — does not touch reminder/owner-change templates) |
 
 Local URL (via proxy): `https://api.coolestprojects.localhost:8443`
 
@@ -79,7 +80,7 @@ Registration confirmation emails contain a JWT with `registrationID`. The first 
 
 ### Email templates
 
-Branded en/nl/fr copy lives in [`apps/api/src/mailer/seed-email-templates.ts`](../../apps/api/src/mailer/seed-email-templates.ts) and is inserted by `seedDatabase` in [`apps/api/src/seeder/seed.ts`](../../apps/api/src/seeder/seed.ts). After changing templates, rebuild the API and re-run `npm run seed-db --workspace=apps/api` on a fresh database (or replace `EmailTemplates` rows for the active event). In the Dev Container, captured mail appears at http://localhost:18025.
+Canonical plain-text copy for the six core participant templates (`registration`, `welcomeOwner`, `welcomeCoWorker`, `waiting`, `ask4Token`, `emailExists`) lives in [`docs/email-templates/`](../email-templates/README.md) (en / nl / fr). [`apps/api/src/mailer/seed-email-templates.ts`](../../apps/api/src/mailer/seed-email-templates.ts) mirrors that copy (`contentPlain` + HTML `contentRich`) and is inserted by `seedDatabase` in [`apps/api/src/seeder/seed.ts`](../../apps/api/src/seeder/seed.ts). Question/approval copy is shared via [`apps/api/src/seeder/seed-question-translations.ts`](../../apps/api/src/seeder/seed-question-translations.ts). Edit the markdown files first, then sync seed and run `npm run sync-copy --workspace=apps/api` (or `node cli event:sync-copy` on a deployed host) to upsert `QuestionTranslations` and the six core `EmailTemplates` rows for the active event — without re-running `event:init`. After changing seed only, rebuild the API and re-run `npm run seed-db --workspace=apps/api` on a fresh database. In the Dev Container, captured mail appears at http://localhost:18025.
 
 All Handlebars context passed to a template — for a real send and for an admin preview alike — is built by the single `buildMailContext` function in [`apps/api/src/mailer/mail-context.ts`](../../apps/api/src/mailer/mail-context.ts). It takes the raw `User` or `Registration` Sequelize record directly (no separate DTO/interface stands in for it) and nests it under `context.user` or `context.registration` — which one is recognised from the record's own class via `instanceof`, never passed in separately, so it can't drift from the actual record. `MailerService` is the only place that ever supplies a *real* token (minted by `TokensService` at send time) — `buildMailContext` itself never generates one.
 
@@ -228,7 +229,7 @@ The AdminJS **Presentation** page's handler reads `PresentationSlide` rows direc
 
 ### Shared reads
 
-`GET /tshirts`, `GET /questions`, `GET /dojos`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /dojos` returns event-scoped `Affiliation` names (CoderDojo catalog). `GET /settings` includes `maxAttachments` (currently 10; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.
+`GET /tshirts`, `GET /questions`, `GET /dojos`, `GET /settings` on `AppController` — used by registration and other frontends. `GET /dojos` returns event-scoped `Affiliation` names (CoderDojo catalog). `GET /settings` includes `maxAttachments` (currently 5; not an Event column) so the registration upload UI can cap photos without a Vue Number-prop warning.
 
 ## Out of scope / unknowns
 

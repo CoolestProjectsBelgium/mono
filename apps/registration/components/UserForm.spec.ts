@@ -351,7 +351,7 @@ describe('UserForm', () => {
 
     const na = wrapper.get('[data-testid="affiliation"] input[value="na"]')
     expect((na.element as HTMLInputElement).checked).toBe(true)
-    expect(wrapper.text()).toContain('Niet van toepassing')
+    expect(wrapper.text()).toContain('Nee, ik neem individueel deel')
     expect(wrapper.text()).not.toContain('Niet verplicht')
   })
 })

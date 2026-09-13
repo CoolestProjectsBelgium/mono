@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { buildEventguideProjectsPath, useEventguideProjects } from '~/composables/useEventguideProjects'
+import {
+  buildEventguideProjectsPath,
+  normalizeEventguideProjectsResponse,
+  useEventguideProjects,
+} from '~/composables/useEventguideProjects'
 import { mockFetch } from '../tests/setup'
 import type { EventguideProjectsResponse } from '~/types/api'
 
@@ -14,6 +18,31 @@ const sample: EventguideProjectsResponse = {
   },
   projects: [],
 }
+
+describe('normalizeEventguideProjectsResponse', () => {
+  it('rewrites thumbnail URLs to the resolved API base', () => {
+    const normalized = normalizeEventguideProjectsResponse(
+      {
+        event: sample.event,
+        projects: [{
+          id: 1,
+          name: 'Robot',
+          description: 'Desc',
+          language: 'en',
+          tableNumber: 1,
+          tableName: 'Tafel_01',
+          participants: ['Alex'],
+          agreedToPhoto: true,
+          thumbnailUrl: 'https://api.example.com/eventguide/attachments/9/thumbnail',
+        }],
+      },
+      'https://api.example.com',
+    )
+
+    expect(normalized.projects[0].thumbnailUrl)
+      .toBe('https://api.example.com/eventguide/attachments/9/thumbnail')
+  })
+})
 
 describe('buildEventguideProjectsPath', () => {
   it('uses the current-event endpoint by default', () => {

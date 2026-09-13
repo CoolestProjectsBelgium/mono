@@ -22,8 +22,8 @@
         "sshUser": "nj10446",
         "remotePath": "app",
         "port": 3001,
-        "publicUrl": "https://api-dev.coolestprojects-test.be",
-        "smokePath": "/api",
+        "publicUrl": "https://api-dev.coolestprojects.be",
+        "smokePath": "/settings",
         "dbUser": "db35160"
       },
       "prod": {
@@ -32,8 +32,8 @@
         "sshUser": "nj10447",
         "remotePath": "app",
         "port": 3001,
-        "publicUrl": "https://api.coolestprojects-test.be",
-        "smokePath": "/api",
+        "publicUrl": "https://api.coolestprojects.be",
+        "smokePath": "/settings",
         "dbUser": "db35161"
       }
     },
@@ -54,7 +54,7 @@
         "sshUser": "nj10448",
         "remotePath": "app",
         "port": 3000,
-        "publicUrl": "https://admin-dev.coolestprojects-test.be",
+        "publicUrl": "https://admin-dev.coolestprojects.be",
         "smokePath": "/admin",
         "dbUser": "db35160"
       },
@@ -64,7 +64,7 @@
         "sshUser": "nj10449",
         "remotePath": "app",
         "port": 3000,
-        "publicUrl": "https://admin.coolestprojects-test.be",
+        "publicUrl": "https://admin.coolestprojects.be",
         "smokePath": "/admin",
         "dbUser": "db35161"
       }
@@ -75,10 +75,10 @@
       "generate": "nuxt",
       "generateEnv": {
         "dev": {
-          "API_BASE_URL": "https://api-dev.coolestprojects-test.be"
+          "API_BASE_URL": "https://api-dev.coolestprojects.be"
         },
         "prod": {
-          "API_BASE_URL": "https://api.coolestprojects-test.be"
+          "API_BASE_URL": "https://api.coolestprojects.be"
         }
       },
       "dev": {
@@ -86,7 +86,7 @@
         "componentName": "registration-dev",
         "sshUser": "vd35113",
         "remotePath": "public_html/registration",
-        "publicUrl": "https://registration-dev.coolestprojects-test.be",
+        "publicUrl": "https://registration-dev.coolestprojects.be",
         "smokePath": "/"
       },
       "prod": {
@@ -94,7 +94,7 @@
         "componentName": "registration-prod",
         "sshUser": "vd35114",
         "remotePath": "public_html/registration",
-        "publicUrl": "https://registration.coolestprojects-test.be",
+        "publicUrl": "https://registration.coolestprojects.be",
         "smokePath": "/"
       }
     },
@@ -104,10 +104,10 @@
       "generate": "nuxt",
       "generateEnv": {
         "dev": {
-          "NUXT_PUBLIC_API_BASE_URL": "https://api-dev.coolestprojects-test.be"
+          "NUXT_PUBLIC_API_BASE_URL": "https://api-dev.coolestprojects.be"
         },
         "prod": {
-          "NUXT_PUBLIC_API_BASE_URL": "https://api.coolestprojects-test.be"
+          "NUXT_PUBLIC_API_BASE_URL": "https://api.coolestprojects.be"
         }
       },
       "dev": {
@@ -115,7 +115,7 @@
         "componentName": "voting-dev",
         "sshUser": "vd35113",
         "remotePath": "public_html/voting",
-        "publicUrl": "https://voting-dev.coolestprojects-test.be",
+        "publicUrl": "https://voting-dev.coolestprojects.be",
         "smokePath": "/"
       },
       "prod": {
@@ -123,7 +123,7 @@
         "componentName": "voting-prod",
         "sshUser": "vd35114",
         "remotePath": "public_html/voting",
-        "publicUrl": "https://voting.coolestprojects-test.be",
+        "publicUrl": "https://voting.coolestprojects.be",
         "smokePath": "/"
       }
     },
@@ -133,10 +133,10 @@
       "generate": "nuxt",
       "generateEnv": {
         "dev": {
-          "NUXT_PUBLIC_API_BASE_URL": "https://api-dev.coolestprojects-test.be"
+          "NUXT_PUBLIC_API_BASE_URL": "https://api-dev.coolestprojects.be"
         },
         "prod": {
-          "NUXT_PUBLIC_API_BASE_URL": "https://api.coolestprojects-test.be"
+          "NUXT_PUBLIC_API_BASE_URL": "https://api.coolestprojects.be"
         }
       },
       "dev": {
@@ -144,7 +144,7 @@
         "componentName": "eventguide-dev",
         "sshUser": "vd35113",
         "remotePath": "public_html/eventguide",
-        "publicUrl": "https://eventguide-dev.coolestprojects-test.be",
+        "publicUrl": "https://eventguide-dev.coolestprojects.be",
         "smokePath": "/"
       },
       "prod": {
@@ -152,7 +152,7 @@
         "componentName": "eventguide-prod",
         "sshUser": "vd35114",
         "remotePath": "public_html/eventguide",
-        "publicUrl": "https://eventguide.coolestprojects-test.be",
+        "publicUrl": "https://eventguide.coolestprojects.be",
         "smokePath": "/"
       }
     },
@@ -166,7 +166,7 @@
         "componentName": "cdj-web-int",
         "sshUser": "vd35113",
         "remotePath": "public_html/cdj-web-int",
-        "publicUrl": "https://cdj-web-int.coolestprojects-test.be",
+        "publicUrl": "https://cdj-web-int.coolestprojects.be",
         "smokePath": "/"
       },
       "prod": {
