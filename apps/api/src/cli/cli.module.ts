@@ -52,15 +52,15 @@ import configuration from '../config/configuration.js';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
-          dialect: 'mysql',
-          host: configService.get('DB_HOST') || 'localhost',
-          port: configService.get('DB_PORT') || 3306,
-          username: configService.get('DB_USER') || 'coolestproject',
-          password: configService.get('DB_PASSWORD') || 'coolestproject',
-          database: configService.get('DB_NAME') || 'coolestproject',
+          dialect: configService.get('database.dialect') || 'mysql',
+          host: configService.get('database.host') || 'localhost',
+          port: configService.get('database.port') || 3306,
+          username: configService.get('database.user') || 'coolestproject',
+          password: configService.get('database.password') || 'coolestproject',
+          database: configService.get('database.name') || 'coolestproject',
           autoLoadModels: true,
-          synchronize: true,
-          sync: { force: true },
+          synchronize: configService.get('database.synchronize'),
+          sync: configService.get('database.sync'),
 
           models: [
             Event,
