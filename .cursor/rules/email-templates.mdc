@@ -1,0 +1,34 @@
+---
+description: Canonical email copy for core participant templates (en/nl/fr)
+globs: apps/api/src/mailer/**,docs/email-templates/**
+alwaysApply: false
+---
+
+# Email template copy
+
+Read [docs/email-templates/README.md](../../docs/email-templates/README.md) first.
+
+## Source of truth
+
+Plain-text copy for these six templates lives in:
+
+- [docs/email-templates/en.md](../../docs/email-templates/en.md)
+- [docs/email-templates/nl.md](../../docs/email-templates/nl.md)
+- [docs/email-templates/fr.md](../../docs/email-templates/fr.md)
+
+Edit the markdown files before changing seed or production rows.
+
+## Seed and HTML
+
+[`seed-email-templates.ts`](../../apps/api/src/mailer/seed-email-templates.ts) must match the markdown (`contentPlain` verbatim; `contentRich` as HTML with the same wording).
+
+- Activation/login links: `<a href="{{url}}">…</a>` using the localized label from the md file.
+- Contact line: `<a href="mailto:info@coderdojobelgium.be">info@coderdojobelgium.be</a>`
+- Bullet lists in md → `<ul><li>…</li></ul>` in `contentRich`
+- Keep Handlebars blocks (`{{#if …}}`) identical between plain and rich
+
+## Do not
+
+- Reintroduce FAQ URLs or `Go2MyProject`
+- Use “copy between quotes” URL instructions
+- Change copy in seed only without updating the matching `docs/email-templates/*.md`
