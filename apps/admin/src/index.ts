@@ -20,6 +20,7 @@ import {
 import { componentLoader, Components, Handlers } from './components/index.js';
 import { Authenticate } from './components/login/authenticate.js';
 import eventLoginRouter from './components/login/router.js';
+import { restrictPropertiesToRoleFeature } from './features/restrict-properties-to-role/index.js';
 import importExportFeature from '@adminjs/import-export';
 import { sequelize } from './database.js';
 import {
@@ -190,7 +191,13 @@ const start = async () => {
       {
         resource: sequelize.models.Account,
         options: {
-          properties: { encryptedPassword: { isVisible: false } },
+          properties: {
+            encryptedPassword: { isVisible: false },
+            // Self-edit is allowed (see the `edit` action below), but only a super_admin
+            // may change account_type — prevents an admin from escalating their own
+            // privileges. Enforced by restrictPropertiesToRoleFeature (see features below).
+            account_type: { custom: { role: 'super_admin' } },
+          },
           navigation: navSystem,
           actions: {
             // Everyone sees only their own account (e.g. to change their password);
@@ -230,6 +237,7 @@ const start = async () => {
             componentLoader,
             hash: Account.hashPassword,
           }),
+          restrictPropertiesToRoleFeature,
         ],
       },
       {
