@@ -13,7 +13,7 @@ const projects: EventguideProject[] = [
     tableName: 'Tafel_03',
     participants: ['Alex Owner'],
     agreedToPhoto: true,
-    thumbnailUrl: null,
+    thumbnailUrl: 'https://api.example/eventguide/attachments/1/thumbnail',
   },
 ]
 
@@ -35,5 +35,23 @@ describe('ProjectList', () => {
     await wrapper.get('[data-testid="project-toggle-1"]').trigger('click')
 
     expect(wrapper.get('[data-testid="project-panel-1"]').text()).toContain('A walking robot')
+  })
+
+  it('uses object-contain for expanded project photos', async () => {
+    const wrapper = mount(ProjectList, {
+      props: { projects },
+      global: {
+        stubs: {
+          LanguageBadge: true,
+          PhotoConsentIcon: true,
+        },
+      },
+    })
+
+    await wrapper.get('[data-testid="project-toggle-1"]').trigger('click')
+
+    const image = wrapper.get('[data-testid="project-panel-1"] img')
+    expect(image.classes()).toContain('object-contain')
+    expect(image.classes()).not.toContain('object-cover')
   })
 })

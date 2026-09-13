@@ -59,6 +59,12 @@
         data-testid="project-map"
       />
     </div>
+
+    <ProjectDetailSheet
+      :open="selectedProject != null"
+      :project="selectedProject"
+      @close="selectedProject = null"
+    />
   </div>
 </template>
 
@@ -92,6 +98,7 @@ const floorplanBounds = ref<LeafletBounds | null>(null)
 const floorplanLoading = ref(true)
 const mapReady = ref(false)
 const loadError = ref<string | null>(null)
+const selectedProject = ref<EventguideProject | null>(null)
 
 let map: LeafletMap | null = null
 let markersLayer: LayerGroup | null = null
@@ -132,37 +139,18 @@ const filteredLayers = computed(() => {
   )
 })
 
-function buildPopupHtml(project: EventguideProject, title: string): string {
-  const participants = project.participants
-    .map((name) => `<span class="inline-block rounded bg-gray-100 px-2 py-1 text-xs">${name}</span>`)
-    .join(' ')
-
-  const photoIcon = project.agreedToPhoto ? '📷' : '🚫'
-  const image = project.thumbnailUrl
-    ? `<img src="${project.thumbnailUrl}" alt="${project.name}" style="width:100%;border-radius:0.375rem;margin-bottom:0.5rem;" />`
-    : ''
-
-  return `
-    <div>
-      <strong>${title}</strong>
-      ${image}
-      <div style="display:flex;gap:0.5rem;align-items:center;margin:0.5rem 0;">
-        <span style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">${project.language}</span>
-        <span>${photoIcon}</span>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-bottom:0.5rem;">${participants}</div>
-      <p style="margin:0;font-size:0.875rem;">${project.description}</p>
-    </div>
-  `
+function openProjectDetail(project: EventguideProject) {
+  selectedProject.value = project
 }
 
 function focusLayer(tableNumber: number) {
+  const layer = layers.value.find((entry) => entry.tableNumber === tableNumber)
   const polygon = polygonByTable.get(tableNumber)
-  if (!polygon || !map) {
+  if (!layer || !polygon || !map) {
     return
   }
   map.fitBounds(polygon.getBounds(), { maxZoom: 2 })
-  polygon.openPopup()
+  openProjectDetail(layer.project)
   searchQuery.value = ''
 }
 
@@ -188,7 +176,7 @@ function renderProjectLayers(leaflet: typeof import('leaflet')) {
       fillOpacity: 0.35,
     })
 
-    polygon.bindPopup(buildPopupHtml(layer.project, layer.title))
+    polygon.on('click', () => openProjectDetail(layer.project))
     markersLayer.addLayer(polygon)
     polygonByTable.set(layer.tableNumber, polygon)
   }
@@ -322,4 +310,6 @@ onBeforeUnmount(() => {
   revokeFloorplanObjectUrl()
   map?.remove()
 })
+
+defineExpose({ focusLayer, openProjectDetail })
 </script>

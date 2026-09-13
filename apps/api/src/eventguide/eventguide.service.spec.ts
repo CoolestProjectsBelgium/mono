@@ -11,7 +11,18 @@ import {
   User,
   UserProject,
 } from '@coolestprojects/database';
+import { createReadStream } from 'node:fs';
+import { access } from 'node:fs/promises';
 import { EventguideService } from './eventguide.service';
+
+jest.mock('node:fs/promises', () => ({
+  access: jest.fn(),
+  stat: jest.fn(),
+}));
+
+jest.mock('node:fs', () => ({
+  createReadStream: jest.fn(),
+}));
 
 describe('EventguideService', () => {
   let service: EventguideService;
@@ -102,8 +113,51 @@ describe('EventguideService', () => {
       tableName: 'Tafel_26',
       participants: ['Alex Owner', 'Sam Helper'],
       agreedToPhoto: false,
-      thumbnailUrl: null,
+      thumbnailUrl: '/eventguide/attachments/99/thumbnail',
     });
+  });
+
+  it('omits projects without a parseable table assignment', async () => {
+    eventModel.findByPk.mockResolvedValue({
+      id: 1,
+      eventTitle: 'Coolest Projects',
+      officialStartDate: new Date('2026-05-01T10:00:00.000Z'),
+      floorplanPath: 'floorplan_active.svg',
+    });
+    questionModel.findOne.mockResolvedValue(null);
+    projectModel.findAll.mockResolvedValue([
+      {
+        id: 1,
+        name: 'On map',
+        description: 'Has table',
+        language: 'nl',
+        table: { name: 'Tafel_01' },
+        attachments: [],
+      },
+      {
+        id: 2,
+        name: 'No table',
+        description: 'Unassigned',
+        language: 'nl',
+        table: null,
+        attachments: [],
+      },
+      {
+        id: 3,
+        name: 'Bad table name',
+        description: 'Unparseable',
+        language: 'nl',
+        table: { name: 'Lobby' },
+        attachments: [],
+      },
+    ]);
+    userProjectModel.findAll.mockResolvedValue([]);
+    userModel.findAll.mockResolvedValue([]);
+
+    const result = await service.getProjects(1);
+
+    expect(result.projects).toHaveLength(1);
+    expect(result.projects[0].id).toBe(1);
   });
 
   it('includes thumbnail URL when every participant agreed to photos', async () => {
@@ -154,5 +208,55 @@ describe('EventguideService', () => {
     await expect(service.getThumbnailByAttachmentId(1)).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('serves confirmed thumbnails without full photo consent', async () => {
+    attachmentModel.findOne.mockResolvedValue({
+      id: 42,
+      eventId: 1,
+      projectId: 5,
+      confirmed: true,
+      thumbnailPath: '/uploads/project_5/thumb.jpg',
+      filepath: '/uploads/project_5/photo.jpg',
+      mimetype: 'image/jpeg',
+    });
+    projectModel.findOne.mockResolvedValue({
+      id: 5,
+      eventId: 1,
+      deletedAt: null,
+    });
+    (access as jest.Mock).mockResolvedValue(undefined);
+    (createReadStream as jest.Mock).mockReturnValue('stream');
+
+    const result = await service.getThumbnailByAttachmentId(42);
+
+    expect(result).toBeDefined();
+    expect(createReadStream).toHaveBeenCalledWith('/uploads/project_5/thumb.jpg');
+    expect(questionUserModel.count).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the original filepath when the thumbnail file is missing', async () => {
+    attachmentModel.findOne.mockResolvedValue({
+      id: 42,
+      eventId: 1,
+      projectId: 5,
+      confirmed: true,
+      thumbnailPath: '/uploads/project_5/thumb.jpg',
+      filepath: '/uploads/project_5/photo.jpg',
+      mimetype: 'image/jpeg',
+    });
+    projectModel.findOne.mockResolvedValue({
+      id: 5,
+      eventId: 1,
+      deletedAt: null,
+    });
+    (access as jest.Mock)
+      .mockRejectedValueOnce(new Error('missing thumb'))
+      .mockResolvedValueOnce(undefined);
+    (createReadStream as jest.Mock).mockReturnValue('stream');
+
+    await service.getThumbnail(1, 42);
+
+    expect(createReadStream).toHaveBeenCalledWith('/uploads/project_5/photo.jpg');
   });
 });

@@ -39,5 +39,30 @@ describe('ProjectMap', () => {
 
     expect(wrapper.get('[data-testid="map-search"]').exists()).toBe(true)
     expect(wrapper.get('[data-testid="project-map"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="project-detail-sheet"]').exists()).toBe(false)
+  })
+
+  it('opens the project detail sheet when a project is selected', async () => {
+    const wrapper = mount(ProjectMap, {
+      props: {
+        projects,
+        floorplanPath: 'map.svg',
+      },
+      global: {
+        stubs: {
+          LanguageBadge: true,
+          PhotoConsentIcon: true,
+        },
+      },
+    })
+
+    const vm = wrapper.vm as { openProjectDetail: (project: EventguideProject) => void }
+    vm.openProjectDetail(projects[0])
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.get('[data-testid="project-detail-sheet"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="project-detail-description"]').text()).toContain(
+      'A walking robot',
+    )
   })
 })
