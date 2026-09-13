@@ -27,8 +27,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Command } from 'nestjs-command';
 import { seedDatabase } from '../seeder/seed';
-import { ensureVotingTestProjects } from '../seeder/seed-voting-fixtures';
+import {
+  ensureVotingTestProjects,
+  findActiveEvent,
+} from '../seeder/seed-voting-fixtures';
 import { ensureSeedProjectPictures } from '../seeder/seed-project-pictures';
+import { syncEventCopy } from '../seeder/sync-event-copy';
 
 @Injectable()
 export class EventCommand {
@@ -155,6 +159,33 @@ export class EventCommand {
     );
     console.log(
       `Project pictures ready: ${result.attachmentsCreated} attachments created, ${result.photoConsentsCreated} photo consents added.`,
+    );
+  }
+
+  @Command({
+    command: 'event:sync-copy',
+    describe:
+      'Sync question/approval translations and core email templates for the active event',
+  })
+  async syncEventCopyCommand() {
+    const event = await findActiveEvent(this.eventModel);
+    if (!event) {
+      throw new Error('No active event found');
+    }
+
+    const result = await syncEventCopy(
+      event,
+      this.questionModel,
+      this.questionTranslationModel,
+      this.emailTemplateModel,
+    );
+
+    console.log(
+      `Copy sync ready for event ${result.eventId}: ` +
+        `${result.questionTranslationsUpdated} question translations updated, ` +
+        `${result.questionTranslationsCreated} created; ` +
+        `${result.emailTemplatesUpdated} email templates updated, ` +
+        `${result.emailTemplatesCreated} created.`,
     );
   }
 }

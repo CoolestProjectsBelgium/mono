@@ -14,7 +14,8 @@
     "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
     "seed-db": "node ./dist/cli event:init",
     "seed-voting": "node ./dist/cli event:seed-voting",
-    "seed-pictures": "node ./dist/cli event:seed-pictures"
+    "seed-pictures": "node ./dist/cli event:seed-pictures",
+    "sync-copy": "node ./dist/cli event:sync-copy"
   },
   "author": "",
   "license": "ISC",

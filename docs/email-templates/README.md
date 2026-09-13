@@ -12,7 +12,7 @@ When changing these templates:
 
 1. Edit the markdown file(s) first.
 2. Mirror the same wording in [`apps/api/src/mailer/seed-email-templates.ts`](../../apps/api/src/mailer/seed-email-templates.ts) (`contentPlain` + HTML `contentRich` with `<a href="{{url}}">` and `mailto:info@coderdojobelgium.be`).
-3. Update production `EmailTemplates` rows for the active event (Admin → Email templates, or a one-off SQL/script).
+3. Rebuild the API and run `npm run sync-copy --workspace=apps/api` (CLI: `event:sync-copy`) to upsert the six core `EmailTemplates` rows for the active event. On a deployed API host, run `node cli event:sync-copy` from the app directory. Reminder and owner-change templates are not overwritten.
 
 Conventions (all languages):
 
