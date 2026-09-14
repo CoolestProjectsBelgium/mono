@@ -68,6 +68,7 @@ AdminJS merges groups by name, not by the JS variable holding them.
 | `UserProject` | Membership/voucher link; has its own `deletedAt` |
 | `Account` | Password via `@adminjs/passwords`; `encryptedPassword` hidden. Not event-scoped: any role can see/edit only their own account (`id` match against `currentAdmin.id`); only `super_admin` sees/edits the full list, creates, or deletes accounts. Lives in the **System** navigation group. |
 | `Event` | Not event-scoped by a foreign key — it's the event itself. `super_admin` sees and can create/edit/delete every event; every other role only sees the event tied to their session (`id` match against `currentAdmin.eventId`) and gets read-only access (`show` only, no `new`/`edit`/`delete`). Lives in the **System** navigation group. |
+| `Log` | AdminJS `@adminjs/logger` audit trail (`createLoggerResource` in `index.ts`); lives in **System** |
 | `Affiliation` | Event-scoped CoderDojo catalog (`name`); same list as `GET /dojos` |
 | `EmailTemplate` | Event-scoped CRUD + import/export; prefer **EmailTemplates** page for editing copy |
 

@@ -83,7 +83,40 @@ describe('DojoSearchField', () => {
 
     const option = wrapper.findAll('[role="option"]').find(item => item.text() === 'Balen')
     expect(option).toBeDefined()
-    await option!.trigger('mousedown')
+    await option!.trigger('pointerdown', { pointerType: 'mouse' })
+    await nextTick()
+
+    expect(model.value).toBe('Balen')
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(false)
+  })
+
+  it('updates the model on click after a touch press', async () => {
+    const model = ref('')
+
+    const wrapper = await mountSuspended(DojoSearchField, {
+      props: {
+        modelValue: model.value,
+        dojos: dojoFixture,
+        label: 'Zoek een Dojo',
+        'onUpdate:modelValue': (value: string) => {
+          model.value = value
+        },
+      },
+      global: {
+        stubs: { FormField: formFieldStub },
+      },
+    })
+
+    await wrapper.find('#via').setValue('bal')
+    await waitForSearch()
+
+    const option = wrapper.findAll('[role="option"]').find(item => item.text() === 'Balen')
+    expect(option).toBeDefined()
+    await option!.trigger('pointerdown', { pointerType: 'touch' })
+    await nextTick()
+    expect(model.value).toBe('')
+
+    await option!.trigger('click')
     await nextTick()
 
     expect(model.value).toBe('Balen')

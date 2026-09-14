@@ -18,6 +18,6 @@ export class Log extends Model<InferAttributes<Log>, InferCreationAttributes<Log
   @Column({ type: DataType.STRING(128), allowNull: false })
   declare recordTitle: string;
 
-  @Column({ type: DataType.JSONB, allowNull: true })
+  @Column({ type: DataType.JSON, allowNull: true })
   declare difference: Record<string, unknown> | null;
 }

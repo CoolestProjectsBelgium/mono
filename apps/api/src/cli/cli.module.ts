@@ -37,6 +37,7 @@ import { VoteCategory } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
 import { EmailLog } from '@coolestprojects/database';
+import { Log } from '@coolestprojects/database';
 import { AdminSession } from '@coolestprojects/database';
 import configuration from '../config/configuration.js';
 
@@ -86,6 +87,7 @@ import configuration from '../config/configuration.js';
             Award,
             EmailTemplate,
             EmailLog,
+            Log,
             AdminSession,
             Affiliation,
             PresentationSlide,

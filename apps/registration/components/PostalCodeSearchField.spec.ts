@@ -58,7 +58,39 @@ describe('PostalCodeSearchField', () => {
 
     const option = wrapper.findAll('[role="option"]').find(item => item.text().includes('Mechelen'))
     expect(option).toBeDefined()
-    await option!.trigger('mousedown')
+    await option!.trigger('pointerdown', { pointerType: 'mouse' })
+    await nextTick()
+
+    expect(model.value.postalcode).toBe(2800)
+    expect(model.value.municipality_name).toBe('Mechelen')
+  })
+
+  it('updates the model on click after a touch press', async () => {
+    const model = ref({ postalcode: 0, municipality_name: '' })
+
+    const wrapper = await mountSuspended(PostalCodeSearchField, {
+      props: {
+        modelValue: model.value,
+        label: 'Postcode / gemeente',
+        'onUpdate:modelValue': (value: typeof model.value) => {
+          model.value = value
+        },
+      },
+      global: {
+        stubs: { FormField: formFieldStub },
+      },
+    })
+
+    await wrapper.find('#postalcode').setValue('2800')
+    await waitForSearch()
+
+    const option = wrapper.findAll('[role="option"]').find(item => item.text().includes('Mechelen'))
+    expect(option).toBeDefined()
+    await option!.trigger('pointerdown', { pointerType: 'touch' })
+    await nextTick()
+    expect(model.value.postalcode).toBe(0)
+
+    await option!.trigger('click')
     await nextTick()
 
     expect(model.value.postalcode).toBe(2800)
