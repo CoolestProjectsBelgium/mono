@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # (Re)launches feh as a fullscreen kiosk slideshow reading the ordered
-# filelist sync-deck.sh writes (FEH_LIST_FILE). Meant to be used two ways:
+# filelist sync-deck.sh writes (SLIDE_LIST_FILE). Meant to be used two ways:
 #   1. As sync-deck.sh's ON_DECK_CHANGED_CMD, so feh restarts whenever the
 #      deck actually changes (feh has no way to notice a changed filelist
 #      on its own — restarting it is the reliable option).
@@ -12,15 +12,16 @@
 # desktop session is Wayland (labwc), where this script (and feh itself)
 # won't work unmodified. Either switch the Pi to the X11 desktop session
 # (raspi-config -> Advanced Options -> Wayland -> X11), or run this under
-# XWayland if your setup provides one. There's no systemd *system* service
-# here on purpose: feh needs a logged-in graphical session (DISPLAY +
-# Xauthority), which a plain system service doesn't have — launch this
-# from .xinitrc, an autostart entry, or a systemd --user unit tied to the
-# graphical session instead.
+# XWayland if your setup provides one. On Wayland, use imv-slideshow.sh
+# instead — or slideshow.sh, which picks the right one automatically.
+# There's no systemd *system* service here on purpose: feh needs a
+# logged-in graphical session (DISPLAY + Xauthority), which a plain system
+# service doesn't have — launch this from .xinitrc, an autostart entry, or
+# a systemd --user unit tied to the graphical session instead.
 #
 # Config (env vars):
-#   FEH_LIST_FILE       required — same path sync-deck.sh's FEH_LIST_FILE writes to
-#   FEH_TICK_SECONDS    optional — must match sync-deck.sh's FEH_TICK_SECONDS (default: 1)
+#   SLIDE_LIST_FILE     required — same path sync-deck.sh's SLIDE_LIST_FILE writes to
+#   SLIDE_TICK_SECONDS  optional — must match sync-deck.sh's SLIDE_TICK_SECONDS (default: 1)
 #   FEH_PID_FILE        optional — where the running feh's pid is tracked (default: /tmp/presentation-feh.pid)
 #   DISPLAY             optional — X display to use (default: :0)
 #
@@ -28,8 +29,8 @@
 
 set -euo pipefail
 
-: "${FEH_LIST_FILE:?FEH_LIST_FILE must be set to the filelist sync-deck.sh writes}"
-FEH_TICK_SECONDS="${FEH_TICK_SECONDS:-1}"
+: "${SLIDE_LIST_FILE:?SLIDE_LIST_FILE must be set to the filelist sync-deck.sh writes}"
+SLIDE_TICK_SECONDS="${SLIDE_TICK_SECONDS:-1}"
 FEH_PID_FILE="${FEH_PID_FILE:-/tmp/presentation-feh.pid}"
 export DISPLAY="${DISPLAY:-:0}"
 
@@ -42,8 +43,8 @@ if ! command -v feh >/dev/null 2>&1; then
   exit 1
 fi
 
-if [[ ! -s "$FEH_LIST_FILE" ]]; then
-  log "FEH_LIST_FILE (${FEH_LIST_FILE}) is missing or empty — nothing to show yet"
+if [[ ! -s "$SLIDE_LIST_FILE" ]]; then
+  log "SLIDE_LIST_FILE (${SLIDE_LIST_FILE}) is missing or empty — nothing to show yet"
   exit 1
 fi
 
@@ -67,10 +68,10 @@ if [[ -f "$FEH_PID_FILE" ]]; then
   fi
 fi
 
-log "Starting feh (tick ${FEH_TICK_SECONDS}s, filelist ${FEH_LIST_FILE})"
+log "Starting feh (tick ${SLIDE_TICK_SECONDS}s, filelist ${SLIDE_LIST_FILE})"
 feh --fullscreen --hide-pointer --auto-zoom --borderless \
-  --slideshow-delay "$FEH_TICK_SECONDS" \
-  --filelist "$FEH_LIST_FILE" \
+  --slideshow-delay "$SLIDE_TICK_SECONDS" \
+  --filelist "$SLIDE_LIST_FILE" \
   >/tmp/presentation-feh.log 2>&1 &
 
 echo $! > "$FEH_PID_FILE"
