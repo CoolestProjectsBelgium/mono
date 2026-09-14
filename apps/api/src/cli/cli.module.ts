@@ -3,6 +3,7 @@ import { CommandModule } from 'nestjs-command';
 import { RegistrationService } from '../registration/registration.service';
 import { ParticipantService } from '../participant/participant.service';
 import { EventCommand } from './event.command';
+import { MigrateCommand } from './migrate.command';
 import { CliService } from './cli.service';
 import { MailerService } from '../mailer/mailer.service';
 import { TokensService } from '../tokens/tokens.service';
@@ -130,6 +131,7 @@ import configuration from '../config/configuration.js';
     TokensService,
     EventService,
     EventCommand,
+    MigrateCommand,
     CliService,
     ParticipantService,
   ],

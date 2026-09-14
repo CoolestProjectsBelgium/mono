@@ -15,6 +15,7 @@ Shared Sequelize-TypeScript models for Coolest Projects. Consumed by `apps/api` 
 | Path / command | Role |
 |----------------|------|
 | `packages/database/src/models/` | Model definitions |
+| `packages/database/src/migrations/` | Umzug migrations — required alongside any model change, see below |
 | `packages/database/src/index.ts` | Public barrel exports |
 | `npm run build --workspace=packages/database` | Compile (required before API/admin dev) |
 
@@ -75,16 +76,24 @@ Exports are listed in `packages/database/src/index.ts`.
 
 `Account` model used by AdminJS with role-based resource access in `apps/admin`.
 
-### Schema changes (models + views)
+### Schema changes (models + migrations + views)
 
 | Change | Developer edits | Applied on |
 |--------|-----------------|------------|
-| Table/column | `packages/database/src/models/*.ts` | API boot when `DB_SYNC_ALTER=true` (Level27 test + prod) or `DB_SYNCHRONIZE=true` (Dev Container) |
+| Table/column (Dev Container) | `packages/database/src/models/*.ts` | API boot when `DB_SYNCHRONIZE=true` (Dev Container) or `DB_SYNC_ALTER=true` (Level27 test estate only) |
+| Table/column (test estate + prod) | `packages/database/src/models/*.ts` **and** a matching migration in `packages/database/src/migrations/*.ts` | `node dist/cli db:migrate` during **api** deploy (before restart) — see [build-tools.md](../build-tools.md) |
 | SQL view | `apps/admin/src/components/admin/SQL-data/*` + AdminJS column defs in `apps/admin/src/index.ts` | `node apply-views.cjs` during **api** deploy (before restart) |
 
-Level27 uses `NODE_ENV=production`; schema flags are explicit (`DB_SYNC_ALTER`, `DB_SYNCHRONIZE`), not tied to `NODE_ENV`.
+**Every schema change ships as both a model edit and a migration file** in `packages/database/src/migrations/*.ts` (`up`/`down` against `QueryInterface`, resolved via Umzug's glob loader — see `apps/api/src/cli/migrate.command.ts`, naming convention `<timestamp>-<description>.ts` per the existing `20260101000000-baseline.ts`). This applies whether the change is:
 
-Deploy does not overwrite remote `.env`. Add `DB_SYNC_ALTER=true` to existing api-dev and api-prod `.env` once. See [build-tools.md](../build-tools.md).
+- **A brand-new model** (e.g. a new file under `src/models/`, new table) → migration calls `queryInterface.createTable(...)` for it.
+- **A new/changed column on an existing model** → migration calls `queryInterface.addColumn(...)` / `changeColumn(...)` / `removeColumn(...)`.
+
+The model edit alone is not enough to reach prod once `DB_SYNC_ALTER` is off there — a PR (including one produced by an agent) that adds or edits a model under `packages/database/src/models/` without a matching migration is incomplete.
+
+Level27 uses `NODE_ENV=production`; schema flags are explicit (`DB_SYNC_ALTER`, `DB_SYNCHRONIZE`), not tied to `NODE_ENV`. **api-prod** no longer runs with `DB_SYNC_ALTER` — migrations are the only way schema reaches it. **api-dev** (Level27 test estate) still keeps `DB_SYNC_ALTER=true` running alongside migrations as an extra safety net.
+
+Deploy does not overwrite remote `.env`. See [build-tools.md](../build-tools.md).
 
 ### TypeScript class fields
 
@@ -92,7 +101,6 @@ Deploy does not overwrite remote `.env`. Add `DB_SYNC_ALTER=true` to existing ap
 
 ## Out of scope / unknowns
 
-- Hand-written Umzug migration files for routine column adds (use `DB_SYNC_ALTER` instead)
 - Model validation rules beyond Sequelize column definitions
 - Indexes and performance tuning
 

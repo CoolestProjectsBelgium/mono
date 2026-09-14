@@ -10,6 +10,7 @@ import { buildRsyncArgs, rsyncDestination } from '../lib/rsync.mjs';
 import { run } from '../lib/run.mjs';
 import { smokePublicUrl } from '../lib/smoke.mjs';
 import { remoteApplyViewsCommand } from '../lib/sql-views.mjs';
+import { remoteMigrateCommand } from '../lib/db-migrate.mjs';
 import { remoteFileExists, restartNodeCommand, sshExec, uploadTextFile } from '../lib/ssh.mjs';
 
 async function main(argv = process.argv.slice(2)) {
@@ -74,6 +75,11 @@ async function main(argv = process.argv.slice(2)) {
     sshExec({ ...target, command: remoteApplyViewsCommand(target) });
   }
 
+  if (target.app === 'api' && !args.skipMigrations) {
+    process.stdout.write('Running database migrations via SSH...\n');
+    sshExec({ ...target, command: remoteMigrateCommand(target) });
+  }
+
   if (target.kind === 'node' && !args.skipRestart) {
     process.stdout.write('Restarting node via SSH (systemd respawn)...\n');
     sshExec({ ...target, command: restartNodeCommand() });
@@ -98,6 +104,7 @@ function printDryRun(target, paths) {
   );
   if (target.app === 'api') {
     process.stdout.write(`apply views ssh ${remoteApplyViewsCommand(target)}\n`);
+    process.stdout.write(`migrate ssh ${remoteMigrateCommand(target)}\n`);
   }
   if (target.kind === 'node') {
     process.stdout.write(`env example=${paths.envExamplePath}\n`);

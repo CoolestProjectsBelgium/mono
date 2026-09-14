@@ -47,7 +47,7 @@ Test and prod use the **same** deploy script. Schema changes are applied automat
 
 If remote `app/.env` already exists, deploy leaves it unchanged. If it is missing, deploy uploads `example + secrets` once. Level27 MySQL schema name matches the db user (`db35160` on dest, `db35161` on prod), not `coolestproject`.
 
-**Existing api `.env` files:** add `DB_SYNC_ALTER=true` manually on api-dev and api-prod so model changes apply on API restart (deploy does not overwrite `.env`).
+**Existing api `.env` files:** add `DB_SYNC_ALTER=true` manually on api-dev (Level27 test estate) so model changes apply on API restart (deploy does not overwrite `.env`) — kept there as a safety net alongside migrations. **api-prod does not use `DB_SYNC_ALTER`**; schema changes reach it only through migrations (`db:migrate`, run automatically during deploy — see [Database package](packages/database.md)).
 
 ### GitHub Actions (test estate)
 
@@ -70,7 +70,7 @@ Workflow: [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod
 **One-time prod CI setup:**
 
 1. Attach the same CI **public** SSH key to all five `*-prod` components (`nj10447`, `nj10449`, `vd35114`).
-2. Ensure api-prod remote `.env` includes `DB_SYNC_ALTER=true` (see env example).
+2. api-prod remote `.env` should **not** include `DB_SYNC_ALTER` — schema changes reach it via migrations only (see [Database package](packages/database.md)).
 3. Push to `production` or run **Deploy production** from the Actions tab.
 
 ### Schema on deploy (api only)
@@ -78,9 +78,10 @@ Workflow: [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod
 After rsync, before API restart:
 
 1. SSH: `node apply-views.cjs` in the remote `app/` directory (reads `sql-views/` bundled from `apps/admin/src/components/admin/SQL-data/`).
-2. API restart runs Sequelize with `DB_SYNC_ALTER=true` → `sync({ alter: true })` for model/table columns.
+2. SSH: `node dist/cli db:migrate` in the remote `app/` directory — runs any pending Umzug migrations from `packages/database/src/migrations/` (see [Database package](packages/database.md)).
+3. API restart. On api-dev only, this additionally runs Sequelize with `DB_SYNC_ALTER=true` → `sync({ alter: true })`, kept as a safety net alongside migrations; api-prod relies on migrations alone.
 
-Skip view apply: `deploy.mjs --skip-views`.
+Skip view apply: `deploy.mjs --skip-views`. Skip migrations: `deploy.mjs --skip-migrations`.
 
 ### Apps
 
@@ -106,7 +107,7 @@ Public hostnames live on `coolestprojects.be` (`api-dev`, `admin-dev`, `registra
 - `apps/api`, `apps/admin`, `packages/database` (build + pack)
 - `apps/registration`, `apps/voting`, `apps/eventguide` (Nuxt generate)
 - Agency SSH (rsync + Node restart)
-- MySQL (view SQL via api deploy; DDL via API `DB_SYNC_ALTER` on restart)
+- MySQL (view SQL via api deploy; DDL via `db:migrate` during api deploy, plus `DB_SYNC_ALTER` on api-dev restart only)
 - Does not call the Level27 CP4 API (nodejs components reject `{type:restart}`)
 - Does not apply OpenTofu; does not create DNS or SSL
 

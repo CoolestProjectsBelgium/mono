@@ -15,7 +15,10 @@
     "seed-db": "node ./dist/cli event:init",
     "seed-voting": "node ./dist/cli event:seed-voting",
     "seed-pictures": "node ./dist/cli event:seed-pictures",
-    "sync-copy": "node ./dist/cli event:sync-copy"
+    "sync-copy": "node ./dist/cli event:sync-copy",
+    "db:migrate": "node ./dist/cli db:migrate",
+    "db:migrate:undo": "node ./dist/cli db:migrate:undo",
+    "db:migrate:status": "node ./dist/cli db:migrate:status"
   },
   "author": "",
   "license": "ISC",
@@ -49,7 +52,8 @@
     "passport-local": "^1.0.0",
     "puppeteer": "^25.2.1",
     "sequelize": "^6.37.8",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "umzug": "^3.8.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.23",

@@ -58,7 +58,9 @@
       "Bash(timeout 300 npm run build --workspace=apps/admin)",
       "Bash(npm view *)",
       "Bash(npm install *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(L27_SSH_HOST=web.level27.eu node build_tools/bin/deploy.mjs --app api --env dev --dry-run)",
+      "Bash(git stash *)"
     ]
   }
 }

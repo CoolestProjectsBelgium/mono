@@ -111,4 +111,5 @@ npm run check-docs
 ## Unknowns
 
 - Native (non-container) setup is unsupported in this doc
-- Whether `synchronize: true` is acceptable beyond local dev
+
+Resolved: `synchronize: true` (live `sync({ alter: true })`) stays Dev-Container-only by design. api-prod schema changes go through versioned migrations instead (`packages/database/src/migrations/`, run via `db:migrate` during deploy) — see [Database package](packages/database.md) and [build-tools.md](build-tools.md).

@@ -18,6 +18,11 @@ test('parseArgs maps flags', () => {
   assert.equal(args.skipBuild, true);
 });
 
+test('parseArgs maps --skip-migrations', () => {
+  const args = parseArgs(['--app', 'api', '--env', 'dev', '--skip-migrations']);
+  assert.equal(args.skipMigrations, true);
+});
+
 test('main requires app and env', async () => {
   await assert.rejects(() => main([]), /--app and --env are required/);
 });
@@ -46,6 +51,7 @@ test('prod dry-run prints prod user and path without connecting', async () => {
     assert.match(text, /api-prod/);
     assert.match(text, /--exclude \.env/);
     assert.match(text, /pkill -u/);
+    assert.match(text, /migrate ssh .*node dist\/cli db:migrate/);
   } finally {
     process.stdout.write = origWrite;
     if (previous == null) {
