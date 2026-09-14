@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "tsx --test src/components/email-templates/*.spec.ts src/components/floorplans/*.spec.ts src/components/presentation/*.spec.ts src/components/presentation-assets/*.spec.ts src/api/*.spec.ts",
+    "test": "tsx --test src/components/email-templates/*.spec.ts src/components/floorplans/*.spec.ts src/components/presentation/*.spec.ts src/components/presentation-assets/*.spec.ts src/components/login/*.spec.ts src/api/*.spec.ts",
     "start:dev": "tsx watch src/index.ts",
     "prestart:dev": "npm run build",
     "build": "tsc && node -e \"require('node:fs').cpSync('src/frontend/assets','dist/frontend/assets',{recursive:true})\"",
@@ -32,6 +32,8 @@
     "form-data": "^4.0.6",
     "handlebars": "^4.7.9",
     "mysql2": "^3.24.2",
+    "otplib": "^13.5.0",
+    "qrcode": "^1.5.4",
     "recharts": "2.15.4",
     "sequelize-typescript": "^2.1.6",
     "tough-cookie": "^6.0.2"
@@ -41,6 +43,7 @@
     "@types/express-session": "^1.19.0",
     "@types/jest": "^30.0.0",
     "@types/mocha": "^10.0.10",
+    "@types/qrcode": "^1.5.6",
     "@types/styled-components": "^5.1.36",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
