@@ -32,7 +32,6 @@
           :id="listboxId"
           role="listbox"
           class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg touch-pan-y"
-          @pointerdown="onListPointerDown"
         >
           <li
             v-for="(entry, index) in results"
@@ -47,11 +46,7 @@
               tabindex="-1"
               class="w-full cursor-pointer px-3 py-2 text-left text-sm touch-manipulation"
               :class="index === highlightedIndex ? 'bg-primary/10 text-primary' : 'text-gray-900 hover:bg-gray-50'"
-              @pointerdown="onOptionPointerDown(entry, $event)"
-              @pointerup="onOptionPointerUp(entry, $event)"
-              @pointercancel="onOptionPointerCancel(entry, $event)"
-              @touchstart="onOptionTouchStart(entry, $event)"
-              @touchend="onOptionTouchEnd(entry, $event)"
+              @mousedown="onOptionMouseDown(entry, $event)"
               @click="onOptionClick(entry)"
             >
               {{ entry.name }}
@@ -110,12 +105,7 @@ const {
   highlightedIndex,
   rootRef,
   reveal,
-  onListPointerDown,
-  onOptionPointerDown,
-  onOptionPointerUp,
-  onOptionPointerCancel,
-  onOptionTouchStart,
-  onOptionTouchEnd,
+  onOptionMouseDown,
   onOptionClick,
   onInputBlur,
   onInputKeydown,
@@ -148,16 +138,22 @@ function runSearch(query: string) {
   reveal()
 }
 
-function onInput() {
+function onInput(event: Event) {
+  // Android keyboards keep an IME composition open for the whole word, and
+  // v-model does not sync until it ends (vuejs/core#5580). Read the element
+  // directly so the search runs on what the user actually typed.
+  const value = (event.target as HTMLInputElement).value
+  inputText.value = value
+
   emit('clear-error')
-  if (model.value && inputText.value !== model.value) {
+  if (model.value && value !== model.value) {
     model.value = ''
   }
   if (searchTimer) {
     clearTimeout(searchTimer)
   }
   searchTimer = setTimeout(() => {
-    runSearch(inputText.value)
+    runSearch(value)
   }, 200)
 }
 

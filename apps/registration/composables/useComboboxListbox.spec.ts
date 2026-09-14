@@ -2,6 +2,10 @@ import { describe, expect, it, vi, afterEach } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { callComposable } from '~/tests/composable-utils'
 
+function mouseEvent(type: string, init: MouseEventInit = {}) {
+  return new MouseEvent(type, { bubbles: true, cancelable: true, ...init })
+}
+
 function pointerEvent(type: string, init: PointerEventInit = {}) {
   return new PointerEvent(type, {
     bubbles: true,
@@ -9,10 +13,6 @@ function pointerEvent(type: string, init: PointerEventInit = {}) {
     pointerType: 'mouse',
     ...init,
   })
-}
-
-async function flushBlur() {
-  await new Promise(resolve => setTimeout(resolve, 0))
 }
 
 describe('useComboboxListbox', () => {
@@ -51,12 +51,22 @@ describe('useComboboxListbox', () => {
     expect(highlightedIndex.value).toBe(0)
   })
 
-  it('selects on mouse pointerdown and prevents default', async () => {
-    const { reveal, onOptionPointerDown, onSelect, isOpen } = await setup()
+  it('keeps the list closed when there are no items', async () => {
+    const { isOpen, highlightedIndex, reveal, list } = await setup()
+    list.value = []
+
     reveal()
 
-    const event = pointerEvent('pointerdown', { pointerType: 'mouse' })
-    onOptionPointerDown('Balen', event)
+    expect(isOpen.value).toBe(false)
+    expect(highlightedIndex.value).toBe(-1)
+  })
+
+  it('selects on mousedown and prevents the focus shift', async () => {
+    const { reveal, onOptionMouseDown, onSelect, isOpen } = await setup()
+    reveal()
+
+    const event = mouseEvent('mousedown', { button: 0 })
+    onOptionMouseDown('Balen', event)
 
     expect(event.defaultPrevented).toBe(true)
     expect(onSelect).toHaveBeenCalledOnce()
@@ -64,100 +74,36 @@ describe('useComboboxListbox', () => {
     expect(isOpen.value).toBe(false)
   })
 
-  it('does not select on touch pointerdown', async () => {
-    const { reveal, onOptionPointerDown, onSelect, isOpen } = await setup()
+  it('ignores mousedown from a non-primary button', async () => {
+    const { reveal, onOptionMouseDown, onSelect, isOpen } = await setup()
     reveal()
 
-    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch' }))
+    const event = mouseEvent('mousedown', { button: 2 })
+    onOptionMouseDown('Balen', event)
 
+    expect(event.defaultPrevented).toBe(false)
     expect(onSelect).not.toHaveBeenCalled()
     expect(isOpen.value).toBe(true)
   })
 
-  it('selects on touch pointerup when the pointer barely moved', async () => {
-    const { reveal, onOptionPointerDown, onOptionPointerUp, onSelect, isOpen } = await setup()
+  it('does not select again on the click that follows mousedown', async () => {
+    const { reveal, onOptionMouseDown, onOptionClick, onSelect } = await setup()
     reveal()
 
-    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
-    expect(onSelect).not.toHaveBeenCalled()
-
-    onOptionPointerUp('Balen', pointerEvent('pointerup', { pointerType: 'touch', clientX: 12, clientY: 11 }))
-
-    expect(onSelect).toHaveBeenCalledOnce()
-    expect(onSelect).toHaveBeenCalledWith('Balen')
-    expect(isOpen.value).toBe(false)
-  })
-
-  it('does not select on touch pointerup after a scroll', async () => {
-    const { reveal, onOptionPointerDown, onOptionPointerUp, onSelect, isOpen } = await setup()
-    reveal()
-
-    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
-    onOptionPointerUp('Balen', pointerEvent('pointerup', { pointerType: 'touch', clientX: 10, clientY: 40 }))
-
-    expect(onSelect).not.toHaveBeenCalled()
-    expect(isOpen.value).toBe(true)
-  })
-
-  it('selects on click after a touch press', async () => {
-    const { reveal, onOptionPointerDown, onOptionClick, onSelect, isOpen } = await setup()
-    reveal()
-
-    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch' }))
-    onOptionClick('Balen')
-
-    expect(onSelect).toHaveBeenCalledOnce()
-    expect(onSelect).toHaveBeenCalledWith('Balen')
-    expect(isOpen.value).toBe(false)
-  })
-
-  it('does not select twice when click follows a touch pointerup', async () => {
-    const { reveal, onOptionPointerDown, onOptionPointerUp, onOptionClick, onSelect } = await setup()
-    reveal()
-
-    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
-    onOptionPointerUp('Balen', pointerEvent('pointerup', { pointerType: 'touch', clientX: 10, clientY: 10 }))
+    onOptionMouseDown('Balen', mouseEvent('mousedown', { button: 0 }))
     onOptionClick('Balen')
 
     expect(onSelect).toHaveBeenCalledOnce()
   })
 
-  it('does not select twice when mouse click follows pointerdown', async () => {
-    const { reveal, onOptionPointerDown, onOptionClick, onSelect } = await setup()
+  it('selects on a click that arrives without a mousedown', async () => {
+    const { reveal, onOptionClick, onSelect, isOpen } = await setup()
     reveal()
 
-    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'mouse' }))
-    onOptionClick('Balen')
+    onOptionClick('Westerlo')
 
     expect(onSelect).toHaveBeenCalledOnce()
-  })
-
-  it('selects on touch pointercancel when the pointer barely moved', async () => {
-    const { reveal, onOptionPointerDown, onOptionPointerCancel, onSelect, isOpen } = await setup()
-    reveal()
-
-    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
-    onOptionPointerCancel('Balen', pointerEvent('pointercancel', { pointerType: 'touch', clientX: 11, clientY: 10 }))
-
-    expect(onSelect).toHaveBeenCalledOnce()
-    expect(onSelect).toHaveBeenCalledWith('Balen')
-    expect(isOpen.value).toBe(false)
-  })
-
-  it('selects on touchend when pointer events never fire', async () => {
-    const { reveal, onOptionTouchStart, onOptionTouchEnd, onSelect, isOpen } = await setup()
-    reveal()
-
-    const start = { changedTouches: [], touches: [{ clientX: 10, clientY: 10 }], preventDefault: vi.fn() } as unknown as TouchEvent
-    const end = { changedTouches: [{ clientX: 11, clientY: 10 }], touches: [], preventDefault: vi.fn() } as unknown as TouchEvent
-
-    onOptionTouchStart('Balen', start)
-    expect(onSelect).not.toHaveBeenCalled()
-
-    onOptionTouchEnd('Balen', end)
-
-    expect(onSelect).toHaveBeenCalledOnce()
-    expect(onSelect).toHaveBeenCalledWith('Balen')
+    expect(onSelect).toHaveBeenCalledWith('Westerlo')
     expect(isOpen.value).toBe(false)
   })
 
@@ -166,7 +112,6 @@ describe('useComboboxListbox', () => {
     reveal()
 
     onInputBlur()
-    await flushBlur()
 
     expect(isOpen.value).toBe(true)
     expect(onDismiss).not.toHaveBeenCalled()
@@ -177,7 +122,6 @@ describe('useComboboxListbox', () => {
 
     expect(isOpen.value).toBe(false)
     onInputBlur()
-    await flushBlur()
 
     expect(onDismiss).toHaveBeenCalledOnce()
   })
@@ -188,6 +132,17 @@ describe('useComboboxListbox', () => {
     await nextTick()
 
     document.dispatchEvent(pointerEvent('pointerdown'))
+
+    expect(isOpen.value).toBe(false)
+    expect(onDismiss).toHaveBeenCalledOnce()
+  })
+
+  it('dismisses on touchend outside the combobox', async () => {
+    const { reveal, onDismiss, isOpen } = await setup()
+    reveal()
+    await nextTick()
+
+    document.dispatchEvent(new Event('touchend', { bubbles: true }))
 
     expect(isOpen.value).toBe(false)
     expect(onDismiss).toHaveBeenCalledOnce()

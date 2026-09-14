@@ -83,14 +83,14 @@ describe('DojoSearchField', () => {
 
     const option = wrapper.findAll('[role="option"]').find(item => item.text() === 'Balen')
     expect(option).toBeDefined()
-    await option!.find('button').trigger('pointerdown', { pointerType: 'mouse' })
+    await option!.find('button').trigger('mousedown', { button: 0 })
     await nextTick()
 
     expect(model.value).toBe('Balen')
     expect(wrapper.find('[role="listbox"]').exists()).toBe(false)
   })
 
-  it('updates the model on touch pointerup', async () => {
+  it('shows search results while the keyboard holds an open composition', async () => {
     const model = ref('')
 
     const wrapper = await mountSuspended(DojoSearchField, {
@@ -107,20 +107,14 @@ describe('DojoSearchField', () => {
       },
     })
 
-    await wrapper.find('#via').setValue('bal')
+    // Android keyboards compose the whole word, which stops v-model from syncing.
+    const input = wrapper.find('#via')
+    await input.trigger('compositionstart')
+    ;(input.element as HTMLInputElement).value = 'bal'
+    await input.trigger('input')
     await waitForSearch()
 
-    const option = wrapper.findAll('[role="option"]').find(item => item.text() === 'Balen')
-    expect(option).toBeDefined()
-    const button = option!.find('button')
-    await button.trigger('pointerdown', { pointerType: 'touch' })
-    await nextTick()
-    expect(model.value).toBe('')
-
-    await button.trigger('pointerup', { pointerType: 'touch' })
-    await nextTick()
-
-    expect(model.value).toBe('Balen')
-    expect(wrapper.find('[role="listbox"]').exists()).toBe(false)
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Balen')
   })
 })

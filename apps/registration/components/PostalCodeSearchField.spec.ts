@@ -58,14 +58,14 @@ describe('PostalCodeSearchField', () => {
 
     const option = wrapper.findAll('[role="option"]').find(item => item.text().includes('Mechelen'))
     expect(option).toBeDefined()
-    await option!.find('button').trigger('pointerdown', { pointerType: 'mouse' })
+    await option!.find('button').trigger('mousedown', { button: 0 })
     await nextTick()
 
     expect(model.value.postalcode).toBe(2800)
     expect(model.value.municipality_name).toBe('Mechelen')
   })
 
-  it('updates the model on touch pointerup', async () => {
+  it('shows search results while the keyboard holds an open composition', async () => {
     const model = ref({ postalcode: 0, municipality_name: '' })
 
     const wrapper = await mountSuspended(PostalCodeSearchField, {
@@ -81,21 +81,15 @@ describe('PostalCodeSearchField', () => {
       },
     })
 
-    await wrapper.find('#postalcode').setValue('2800')
+    // Android keyboards compose the whole word, which stops v-model from syncing.
+    const input = wrapper.find('#postalcode')
+    await input.trigger('compositionstart')
+    ;(input.element as HTMLInputElement).value = 'meche'
+    await input.trigger('input')
     await waitForSearch()
 
-    const option = wrapper.findAll('[role="option"]').find(item => item.text().includes('Mechelen'))
-    expect(option).toBeDefined()
-    const button = option!.find('button')
-    await button.trigger('pointerdown', { pointerType: 'touch' })
-    await nextTick()
-    expect(model.value.postalcode).toBe(0)
-
-    await button.trigger('pointerup', { pointerType: 'touch' })
-    await nextTick()
-
-    expect(model.value.postalcode).toBe(2800)
-    expect(model.value.municipality_name).toBe('Mechelen')
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Mechelen')
   })
 
   it('displays the selected value from the model', async () => {
