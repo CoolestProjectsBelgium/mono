@@ -7,6 +7,7 @@ import {
   Event,
   EventTable,
   EmailTemplate,
+  Log,
   Project,
   Question,
   QuestionRegistration,
@@ -60,6 +61,7 @@ export const sequelize = new Sequelize({
     PresentationSlide,
     Certificate,
     CertificateTemplate,
+    Log,
   ],
   logging: process.env.NODE_ENV === 'production' ? false : console.log,
 } as any);

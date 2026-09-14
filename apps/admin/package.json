@@ -18,6 +18,7 @@
   "dependencies": {
     "@adminjs/express": "^6.1.1",
     "@adminjs/import-export": "^3.0.0",
+    "@adminjs/logger": "^5.0.1",
     "@adminjs/passwords": "^4.0.0",
     "@adminjs/sequelize": "^4.1.1",
     "@coolestprojects/database": "*",
@@ -27,8 +28,8 @@
     "connect-session-sequelize": "^8.0.6",
     "dotenv": "^17.4.1",
     "express-formidable": "^1.2.0",
-    "form-data": "^4.0.6",
     "express-session": "^1.19.0",
+    "form-data": "^4.0.6",
     "handlebars": "^4.7.9",
     "mysql2": "^3.24.2",
     "recharts": "2.15.4",

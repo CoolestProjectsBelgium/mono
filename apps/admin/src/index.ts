@@ -22,6 +22,7 @@ import { Authenticate } from './components/login/authenticate.js';
 import eventLoginRouter from './components/login/router.js';
 import { restrictPropertiesToRoleFeature } from './features/restrict-properties-to-role/index.js';
 import importExportFeature from '@adminjs/import-export';
+import loggerFeature, { createLoggerResource } from '@adminjs/logger';
 import { sequelize } from './database.js';
 import {
   exportAllResource,
@@ -112,6 +113,13 @@ const start = async () => {
     name: 'Reporting',
     icon: 'Grid',
   };
+
+  const auditLog = () =>
+    loggerFeature({
+      componentLoader,
+      propertiesMapping: { user: 'accountId' },
+      userIdAttribute: 'id',
+    });
 
   // Named explicitly (rather than left to AdminJS's own '/admin' default) so the
   // branding favicon URL below can reference it without a circular type reference
@@ -238,10 +246,24 @@ const start = async () => {
             hash: Account.hashPassword,
           }),
           restrictPropertiesToRoleFeature,
+          auditLog(),
         ],
       },
+      createLoggerResource({
+        componentLoader,
+        resource: sequelize.models.Log,
+        featureOptions: {
+          componentLoader,
+          propertiesMapping: { user: 'accountId' },
+          userIdAttribute: 'id',
+          resourceOptions: {
+            navigation: navSystem,
+          },
+        },
+      }),
       {
         resource: sequelize.models.Event,
+        features: [auditLog()],
         options: {
           navigation: navSystem,
           actions: {
@@ -277,6 +299,7 @@ const start = async () => {
       // --- Event setup ---
       {
         resource: sequelize.models.Tshirt,
+        features: [auditLog()],
         options: {
           navigation: navEventSetup,
           properties: {
@@ -300,39 +323,46 @@ const start = async () => {
       },
       {
         resource: sequelize.models.TshirtGroup,
+        features: [auditLog()],
         options: { navigation: navEventSetup },
       },
 
       // --- Translations ---
       {
         resource: sequelize.models.TshirtTranslation,
+        features: [auditLog()],
         options: { navigation: navTranslations },
       },
       {
         resource: sequelize.models.TshirtGroupTranslation,
+        features: [auditLog()],
         options: { navigation: navTranslations },
       },
       {
         resource: sequelize.models.QuestionTranslation,
+        features: [auditLog()],
         options: { navigation: navTranslations },
       },
 
       // --- Registration ---
       {
         resource: sequelize.models.Question,
+        features: [auditLog()],
         options: { navigation: navRegistration },
       },
       {
         resource: sequelize.models.QuestionRegistration,
+        features: [auditLog()],
         options: { navigation: navRegistration },
       },
       {
         resource: sequelize.models.Registration,
-        features: [importExportFeature({ componentLoader })],
+        features: [importExportFeature({ componentLoader }), auditLog()],
         options: { navigation: navRegistration },
       },
       {
         resource: sequelize.models.Affiliation,
+        features: [auditLog()],
         options: {
           navigation: navRegistration,
           properties: {
@@ -358,7 +388,7 @@ const start = async () => {
       // --- Projects & participants ---
       {
         resource: sequelize.models.Project,
-        features: [importExportFeature({ componentLoader })],
+        features: [importExportFeature({ componentLoader }), auditLog()],
         options: {
           navigation: navProjects,
           listProperties: [
@@ -409,7 +439,7 @@ const start = async () => {
       },
       {
         resource: sequelize.models.Attachment,
-        features: [importExportFeature({ componentLoader })],
+        features: [importExportFeature({ componentLoader }), auditLog()],
         options: {
           navigation: navProjects,
           listProperties: [
@@ -456,22 +486,24 @@ const start = async () => {
       },
       {
         resource: sequelize.models.User,
-        features: [importExportFeature({ componentLoader })],
+        features: [importExportFeature({ componentLoader }), auditLog()],
         options: { navigation: navProjects },
       },
       {
         resource: sequelize.models.UserProject,
+        features: [auditLog()],
         options: { navigation: navProjects },
       },
       {
         resource: sequelize.models.QuestionUser,
+        features: [auditLog()],
         options: { navigation: navProjects },
       },
 
       // --- Venue & seating ---
       {
         resource: sequelize.models.EventTable,
-        features: [importExportFeature({ componentLoader })],
+        features: [importExportFeature({ componentLoader }), auditLog()],
         options: {
           navigation: navVenue,
         },
@@ -480,6 +512,7 @@ const start = async () => {
       // --- Voting & awards ---
       {
         resource: sequelize.models.Award,
+        features: [auditLog()],
         options: {
           actions: {
             list: {
@@ -502,10 +535,12 @@ const start = async () => {
       },
       {
         resource: sequelize.models.VoteCategory,
+        features: [auditLog()],
         options: { navigation: navVoting },
       },
       {
         resource: sequelize.models.Certificate,
+        features: [auditLog()],
         options: {
           navigation: navVoting,
           properties: {
@@ -524,6 +559,7 @@ const start = async () => {
       },
       {
         resource: sequelize.models.CertificateTemplate,
+        features: [auditLog()],
         options: {
           navigation: navVoting,
           properties: {
@@ -544,7 +580,7 @@ const start = async () => {
       // --- Communication ---
       {
         resource: sequelize.models.EmailTemplate,
-        features: [importExportFeature({ componentLoader })],
+        features: [importExportFeature({ componentLoader }), auditLog()],
         options: {
           navigation: navCommunication,
           actions: {
@@ -575,6 +611,7 @@ const start = async () => {
       // it's a plain filename on disk, no dedicated upload widget yet.
       {
         resource: sequelize.models.PresentationSlide,
+        features: [auditLog()],
         options: {
           navigation: navPresentation,
           properties: {
