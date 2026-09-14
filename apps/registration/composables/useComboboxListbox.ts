@@ -6,19 +6,30 @@ export interface ComboboxListboxOptions<T> {
   onDismiss: () => void
 }
 
+type Point = { x: number, y: number }
+
+const TAP_SLOP_PX = 12
+
+function eventPoint(event: PointerEvent | TouchEvent): Point | null {
+  if ('changedTouches' in event) {
+    const touch = event.changedTouches[0] ?? event.touches[0]
+    return touch ? { x: touch.clientX, y: touch.clientY } : null
+  }
+
+  return { x: event.clientX, y: event.clientY }
+}
+
 export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
   const items = computed(() => toValue(options.items))
   const isOpen = ref(false)
   const highlightedIndex = ref(-1)
   const rootRef = ref<HTMLElement | null>(null)
 
-  const TAP_SLOP_PX = 12
-
   let pointerInList = false
   let lastPointerType: string | null = null
   let selectedThisGesture = false
-  let gestureStartX = 0
-  let gestureStartY = 0
+  let pendingItem: T | null = null
+  let gestureStart: Point | null = null
   let gestureEndTimer: ReturnType<typeof setTimeout> | undefined
 
   function reveal() {
@@ -37,20 +48,36 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
     highlightedIndex.value = -1
   }
 
+  function resetGesture() {
+    pendingItem = null
+    gestureStart = null
+    pointerInList = false
+  }
+
   function selectItem(item: T) {
     options.onSelect(item)
     close()
-    pointerInList = false
+    resetGesture()
   }
 
   function dismiss() {
     close()
     options.onDismiss()
-    pointerInList = false
+    resetGesture()
   }
 
-  function onListPointerDown() {
-    pointerInList = true
+  function isMousePointer(pointerType: string | undefined) {
+    return pointerType === 'mouse'
+  }
+
+  function isTap(event: PointerEvent | TouchEvent): boolean {
+    const point = eventPoint(event)
+    if (!point || !gestureStart) {
+      return false
+    }
+
+    return Math.abs(point.x - gestureStart.x) <= TAP_SLOP_PX
+      && Math.abs(point.y - gestureStart.y) <= TAP_SLOP_PX
   }
 
   function capturePointer(event: PointerEvent) {
@@ -66,41 +93,67 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
     }
   }
 
-  function isTap(event: PointerEvent): boolean {
-    return Math.abs(event.clientX - gestureStartX) <= TAP_SLOP_PX
-      && Math.abs(event.clientY - gestureStartY) <= TAP_SLOP_PX
+  function beginTouchGesture(item: T, event: PointerEvent | TouchEvent) {
+    pointerInList = true
+    selectedThisGesture = false
+    lastPointerType = 'pointerType' in event ? (event.pointerType || 'touch') : 'touch'
+    pendingItem = item
+    gestureStart = eventPoint(event)
+  }
+
+  function commitTouchTap(item: T, event: PointerEvent | TouchEvent) {
+    if (isMousePointer(lastPointerType ?? undefined) || selectedThisGesture) {
+      return false
+    }
+
+    if (!isTap(event)) {
+      return false
+    }
+
+    if ('preventDefault' in event) {
+      event.preventDefault()
+    }
+    selectedThisGesture = true
+    selectItem(item)
+    return true
+  }
+
+  function onListPointerDown() {
+    pointerInList = true
   }
 
   function onOptionPointerDown(item: T, event: PointerEvent) {
-    pointerInList = true
-    selectedThisGesture = false
-    lastPointerType = event.pointerType || 'mouse'
-    gestureStartX = event.clientX
-    gestureStartY = event.clientY
-
-    if (lastPointerType === 'mouse') {
-      event.preventDefault()
+    if (isMousePointer(event.pointerType)) {
+      pointerInList = true
+      lastPointerType = 'mouse'
       selectedThisGesture = true
+      event.preventDefault()
       selectItem(item)
       return
     }
 
-    // Keep pointerup on this option even if the keyboard dismisses and the list moves.
+    beginTouchGesture(item, event)
     capturePointer(event)
   }
 
   function onOptionPointerUp(item: T, event: PointerEvent) {
-    if (lastPointerType === 'mouse' || selectedThisGesture) {
+    commitTouchTap(item, event)
+  }
+
+  function onOptionPointerCancel(item: T, event: PointerEvent) {
+    // Keyboard dismiss often turns a tap into pointercancel instead of pointerup.
+    commitTouchTap(item, event)
+  }
+
+  function onOptionTouchStart(item: T, event: TouchEvent) {
+    if (selectedThisGesture || lastPointerType === 'mouse') {
       return
     }
+    beginTouchGesture(item, event)
+  }
 
-    if (!isTap(event)) {
-      return
-    }
-
-    event.preventDefault()
-    selectedThisGesture = true
-    selectItem(item)
+  function onOptionTouchEnd(item: T, event: TouchEvent) {
+    commitTouchTap(item, event)
   }
 
   function onOptionClick(item: T) {
@@ -115,18 +168,14 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
   }
 
   function onInputBlur() {
-    window.setTimeout(() => {
-      if (pointerInList || selectedThisGesture) {
-        return
-      }
+    // iOS Safari blurs the input before the tap reaches the option. Closing the
+    // list here unmounts the target and drops the selection. Leave the list up
+    // until a pick, Escape, or a press outside.
+    if (isOpen.value) {
+      return
+    }
 
-      if (isOpen.value) {
-        dismiss()
-        return
-      }
-
-      options.onDismiss()
-    }, 0)
+    options.onDismiss()
   }
 
   function onInputKeydown(event: KeyboardEvent) {
@@ -168,12 +217,20 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
     dismiss()
   }
 
-  function onDocumentPointerUp() {
+  function onDocumentPointerUp(event: PointerEvent) {
+    if (pendingItem && commitTouchTap(pendingItem, event)) {
+      return
+    }
+
     if (gestureEndTimer) {
       clearTimeout(gestureEndTimer)
     }
     gestureEndTimer = setTimeout(() => {
       pointerInList = false
+      if (!selectedThisGesture) {
+        pendingItem = null
+        gestureStart = null
+      }
       gestureEndTimer = undefined
     }, 0)
   }
@@ -220,6 +277,9 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
     onListPointerDown,
     onOptionPointerDown,
     onOptionPointerUp,
+    onOptionPointerCancel,
+    onOptionTouchStart,
+    onOptionTouchEnd,
     onOptionClick,
     onInputBlur,
     onInputKeydown,

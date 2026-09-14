@@ -132,39 +132,54 @@ describe('useComboboxListbox', () => {
     expect(onSelect).toHaveBeenCalledOnce()
   })
 
-  it('dismisses on blur when the pointer is not in the list', async () => {
+  it('selects on touch pointercancel when the pointer barely moved', async () => {
+    const { reveal, onOptionPointerDown, onOptionPointerCancel, onSelect, isOpen } = await setup()
+    reveal()
+
+    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
+    onOptionPointerCancel('Balen', pointerEvent('pointercancel', { pointerType: 'touch', clientX: 11, clientY: 10 }))
+
+    expect(onSelect).toHaveBeenCalledOnce()
+    expect(onSelect).toHaveBeenCalledWith('Balen')
+    expect(isOpen.value).toBe(false)
+  })
+
+  it('selects on touchend when pointer events never fire', async () => {
+    const { reveal, onOptionTouchStart, onOptionTouchEnd, onSelect, isOpen } = await setup()
+    reveal()
+
+    const start = { changedTouches: [], touches: [{ clientX: 10, clientY: 10 }], preventDefault: vi.fn() } as unknown as TouchEvent
+    const end = { changedTouches: [{ clientX: 11, clientY: 10 }], touches: [], preventDefault: vi.fn() } as unknown as TouchEvent
+
+    onOptionTouchStart('Balen', start)
+    expect(onSelect).not.toHaveBeenCalled()
+
+    onOptionTouchEnd('Balen', end)
+
+    expect(onSelect).toHaveBeenCalledOnce()
+    expect(onSelect).toHaveBeenCalledWith('Balen')
+    expect(isOpen.value).toBe(false)
+  })
+
+  it('does not close the list on blur while it is open', async () => {
     const { reveal, onInputBlur, onDismiss, isOpen } = await setup()
     reveal()
 
     onInputBlur()
     await flushBlur()
 
-    expect(isOpen.value).toBe(false)
-    expect(onDismiss).toHaveBeenCalledOnce()
-  })
-
-  it('does not dismiss on blur after a touch select', async () => {
-    const { reveal, onOptionPointerDown, onOptionPointerUp, onInputBlur, onDismiss } = await setup()
-    reveal()
-
-    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
-    onOptionPointerUp('Balen', pointerEvent('pointerup', { pointerType: 'touch', clientX: 10, clientY: 10 }))
-    onInputBlur()
-    await flushBlur()
-
-    expect(onDismiss).not.toHaveBeenCalled()
-  })
-
-  it('does not dismiss on blur while the pointer is in the list', async () => {
-    const { reveal, onListPointerDown, onInputBlur, onDismiss, isOpen } = await setup()
-    reveal()
-    onListPointerDown()
-
-    onInputBlur()
-    await flushBlur()
-
     expect(isOpen.value).toBe(true)
     expect(onDismiss).not.toHaveBeenCalled()
+  })
+
+  it('still runs onDismiss on blur when the list is already closed', async () => {
+    const { onInputBlur, onDismiss, isOpen } = await setup()
+
+    expect(isOpen.value).toBe(false)
+    onInputBlur()
+    await flushBlur()
+
+    expect(onDismiss).toHaveBeenCalledOnce()
   })
 
   it('dismisses on pointerdown outside the combobox', async () => {

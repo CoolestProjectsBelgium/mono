@@ -31,7 +31,7 @@
           v-if="isOpen && results.length > 0"
           :id="listboxId"
           role="listbox"
-          class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+          class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg touch-pan-y"
           @pointerdown="onListPointerDown"
         >
           <li
@@ -49,6 +49,9 @@
               :class="index === highlightedIndex ? 'bg-primary/10 text-primary' : 'text-gray-900 hover:bg-gray-50'"
               @pointerdown="onOptionPointerDown(entry, $event)"
               @pointerup="onOptionPointerUp(entry, $event)"
+              @pointercancel="onOptionPointerCancel(entry, $event)"
+              @touchstart="onOptionTouchStart(entry, $event)"
+              @touchend="onOptionTouchEnd(entry, $event)"
               @click="onOptionClick(entry)"
             >
               {{ entry.name }}
@@ -110,6 +113,9 @@ const {
   onListPointerDown,
   onOptionPointerDown,
   onOptionPointerUp,
+  onOptionPointerCancel,
+  onOptionTouchStart,
+  onOptionTouchEnd,
   onOptionClick,
   onInputBlur,
   onInputKeydown,
