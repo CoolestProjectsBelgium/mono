@@ -23,7 +23,8 @@
     "apps/eventguide",
     "apps/presentation",
     "apps/registration",
-    "apps/voting"
+    "apps/voting",
+    "e2e"
   ],
   "allowScripts": {
     "@nestjs/core@11.1.24": true,

@@ -12,7 +12,7 @@ Do not duplicate architecture here — `docs/` is the source of truth.
 
 ## Commands
 
-npm workspaces monorepo — run from repo root, targeting a workspace with `--workspace=<path>` (`apps/api`, `apps/admin`, `apps/voting`, `apps/registration`, `apps/eventguide`, `apps/presentation`, `apps/cdj-web-int`, `packages/database`).
+npm workspaces monorepo — run from repo root, targeting a workspace with `--workspace=<path>` (`apps/api`, `apps/admin`, `apps/voting`, `apps/registration`, `apps/eventguide`, `apps/presentation`, `apps/cdj-web-int`, `packages/database`, `e2e`).
 
 ```bash
 npm install                          # install all workspaces
@@ -31,6 +31,7 @@ Test runners differ per workspace:
 | `apps/voting`, `apps/registration`, `apps/eventguide` | Vitest | `npm test --workspace=apps/voting -- path/to/file.spec.ts` |
 | `apps/admin` | `tsx --test` (explicit glob list in its `test` script) | `npx tsx --test apps/admin/src/api/foo.spec.ts` (run from repo root) |
 | `packages/database`, `apps/presentation`, `apps/cdj-web-int` | none | — |
+| `e2e` | Playwright, dev-environment only — target app's dev server must already be running in the Dev Container, see [docs/e2e/README.md](docs/e2e/README.md) | `npx playwright test tests/foo.spec.ts --project=<app>` (run from `e2e/`) |
 
 Root-level scripts: `npm run archive-cpbe`, `npm run archive-cpbe:test` (`scripts/archive-cpbe/`), `npm run deploy` (Level27 publish, see [docs/build-tools.md](docs/build-tools.md)).
 

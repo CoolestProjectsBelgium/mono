@@ -1,0 +1,8 @@
+# Without this, `easyrsa build-server-full <name> nopass` silently omits
+# subjectAltName — Chrome/Chromium (any version since 2017) then refuses the
+# cert with ERR_CERT_COMMON_NAME_INVALID even once the CA itself is trusted,
+# since it ignores the legacy CN field for hostname matching. Every cert
+# generated against this PKI going forward needs SAN, or it'll repeat the
+# same bug that admin/api/eventguide/presentation/registration/voting had
+# until 2026-09 (see git history for the fix).
+set_var EASYRSA_AUTO_SAN "yes"

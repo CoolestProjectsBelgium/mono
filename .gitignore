@@ -253,3 +253,9 @@ build_tools/.stage/
 
 # CPBE gallery participant photos (downloaded by archive-cpbe; deployed via rsync)
 apps/cdj-web-int/images/
+
+# Playwright output (e2e/)
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+e2e/playwright/.cache/

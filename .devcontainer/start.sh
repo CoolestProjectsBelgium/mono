@@ -25,11 +25,23 @@ export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--use-system-ca"
 # libraries" at launch time.
 apt-get update -qq
 apt-get install -y --no-install-recommends \
-	libnspr4 libnss3 libdrm2 libgbm1 libxkbcommon0 libxcomposite1 libxdamage1 \
+	libnspr4 libnss3 libnss3-tools libdrm2 libgbm1 libxkbcommon0 libxcomposite1 libxdamage1 \
 	libxfixes3 libxrandr2 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 \
 	libasound2t64 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libgtk-3-0t64 libglib2.0-0t64
 rm -rf /var/lib/apt/lists/*
 npx puppeteer browsers install chrome
+
+# update-ca-certificates above only covers OpenSSL-based tools (Node's https
+# module, curl). Chrome/Chromium — including the one Playwright drives for
+# e2e/ (see docs/e2e/README.md) — reads its trust roots from an NSS
+# certificate database instead and ignores /etc/ssl/certs entirely, so it
+# needs the CA imported separately or every test run fails with
+# net::ERR_CERT_AUTHORITY_INVALID. Needs libnss3-tools (certutil), just
+# installed above.
+mkdir -p "$HOME/.pki/nssdb"
+certutil -N -d "sql:$HOME/.pki/nssdb" --empty-password 2>/dev/null || true
+certutil -A -n coolestprojects-dev-ca -t "C,," \
+	-i .devcontainer/certs/pki/ca.crt -d "sql:$HOME/.pki/nssdb"
 
 npm i -g @nestjs/cli
 
