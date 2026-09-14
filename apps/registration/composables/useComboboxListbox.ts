@@ -12,8 +12,13 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
   const highlightedIndex = ref(-1)
   const rootRef = ref<HTMLElement | null>(null)
 
+  const TAP_SLOP_PX = 12
+
   let pointerInList = false
   let lastPointerType: string | null = null
+  let selectedThisGesture = false
+  let gestureStartX = 0
+  let gestureStartY = 0
   let gestureEndTimer: ReturnType<typeof setTimeout> | undefined
 
   function reveal() {
@@ -48,19 +53,60 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
     pointerInList = true
   }
 
-  function onOptionPointerDown(item: T, event: PointerEvent) {
-    pointerInList = true
-    lastPointerType = event.pointerType || 'mouse'
-
-    if (lastPointerType === 'mouse') {
-      event.preventDefault()
-      selectItem(item)
+  function capturePointer(event: PointerEvent) {
+    const target = event.currentTarget
+    if (!(target instanceof Element) || event.pointerId == null) {
+      return
+    }
+    try {
+      target.setPointerCapture(event.pointerId)
+    }
+    catch {
+      // iOS Safari can throw if the node is not an active pointer target.
     }
   }
 
-  function onOptionClick(item: T) {
+  function isTap(event: PointerEvent): boolean {
+    return Math.abs(event.clientX - gestureStartX) <= TAP_SLOP_PX
+      && Math.abs(event.clientY - gestureStartY) <= TAP_SLOP_PX
+  }
+
+  function onOptionPointerDown(item: T, event: PointerEvent) {
+    pointerInList = true
+    selectedThisGesture = false
+    lastPointerType = event.pointerType || 'mouse'
+    gestureStartX = event.clientX
+    gestureStartY = event.clientY
+
     if (lastPointerType === 'mouse') {
+      event.preventDefault()
+      selectedThisGesture = true
+      selectItem(item)
+      return
+    }
+
+    // Keep pointerup on this option even if the keyboard dismisses and the list moves.
+    capturePointer(event)
+  }
+
+  function onOptionPointerUp(item: T, event: PointerEvent) {
+    if (lastPointerType === 'mouse' || selectedThisGesture) {
+      return
+    }
+
+    if (!isTap(event)) {
+      return
+    }
+
+    event.preventDefault()
+    selectedThisGesture = true
+    selectItem(item)
+  }
+
+  function onOptionClick(item: T) {
+    if (lastPointerType === 'mouse' || selectedThisGesture) {
       lastPointerType = null
+      selectedThisGesture = false
       return
     }
 
@@ -70,7 +116,7 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
 
   function onInputBlur() {
     window.setTimeout(() => {
-      if (pointerInList) {
+      if (pointerInList || selectedThisGesture) {
         return
       }
 
@@ -173,6 +219,7 @@ export function useComboboxListbox<T>(options: ComboboxListboxOptions<T>) {
     close,
     onListPointerDown,
     onOptionPointerDown,
+    onOptionPointerUp,
     onOptionClick,
     onInputBlur,
     onInputKeydown,

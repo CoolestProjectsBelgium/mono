@@ -40,12 +40,19 @@
             :key="entry.name"
             role="option"
             :aria-selected="index === highlightedIndex"
-            class="cursor-pointer px-3 py-2 text-sm"
-            :class="index === highlightedIndex ? 'bg-primary/10 text-primary' : 'text-gray-900 hover:bg-gray-50'"
-            @pointerdown="onOptionPointerDown(entry, $event)"
-            @click="onOptionClick(entry)"
+            class="p-0"
           >
-            {{ entry.name }}
+            <button
+              type="button"
+              tabindex="-1"
+              class="w-full cursor-pointer px-3 py-2 text-left text-sm touch-manipulation"
+              :class="index === highlightedIndex ? 'bg-primary/10 text-primary' : 'text-gray-900 hover:bg-gray-50'"
+              @pointerdown="onOptionPointerDown(entry, $event)"
+              @pointerup="onOptionPointerUp(entry, $event)"
+              @click="onOptionClick(entry)"
+            >
+              {{ entry.name }}
+            </button>
           </li>
         </ul>
       </div>
@@ -102,6 +109,7 @@ const {
   reveal,
   onListPointerDown,
   onOptionPointerDown,
+  onOptionPointerUp,
   onOptionClick,
   onInputBlur,
   onInputKeydown,

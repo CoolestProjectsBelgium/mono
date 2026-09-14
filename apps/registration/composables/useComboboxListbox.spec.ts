@@ -74,6 +74,31 @@ describe('useComboboxListbox', () => {
     expect(isOpen.value).toBe(true)
   })
 
+  it('selects on touch pointerup when the pointer barely moved', async () => {
+    const { reveal, onOptionPointerDown, onOptionPointerUp, onSelect, isOpen } = await setup()
+    reveal()
+
+    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
+    expect(onSelect).not.toHaveBeenCalled()
+
+    onOptionPointerUp('Balen', pointerEvent('pointerup', { pointerType: 'touch', clientX: 12, clientY: 11 }))
+
+    expect(onSelect).toHaveBeenCalledOnce()
+    expect(onSelect).toHaveBeenCalledWith('Balen')
+    expect(isOpen.value).toBe(false)
+  })
+
+  it('does not select on touch pointerup after a scroll', async () => {
+    const { reveal, onOptionPointerDown, onOptionPointerUp, onSelect, isOpen } = await setup()
+    reveal()
+
+    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
+    onOptionPointerUp('Balen', pointerEvent('pointerup', { pointerType: 'touch', clientX: 10, clientY: 40 }))
+
+    expect(onSelect).not.toHaveBeenCalled()
+    expect(isOpen.value).toBe(true)
+  })
+
   it('selects on click after a touch press', async () => {
     const { reveal, onOptionPointerDown, onOptionClick, onSelect, isOpen } = await setup()
     reveal()
@@ -84,6 +109,17 @@ describe('useComboboxListbox', () => {
     expect(onSelect).toHaveBeenCalledOnce()
     expect(onSelect).toHaveBeenCalledWith('Balen')
     expect(isOpen.value).toBe(false)
+  })
+
+  it('does not select twice when click follows a touch pointerup', async () => {
+    const { reveal, onOptionPointerDown, onOptionPointerUp, onOptionClick, onSelect } = await setup()
+    reveal()
+
+    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
+    onOptionPointerUp('Balen', pointerEvent('pointerup', { pointerType: 'touch', clientX: 10, clientY: 10 }))
+    onOptionClick('Balen')
+
+    expect(onSelect).toHaveBeenCalledOnce()
   })
 
   it('does not select twice when mouse click follows pointerdown', async () => {
@@ -105,6 +141,18 @@ describe('useComboboxListbox', () => {
 
     expect(isOpen.value).toBe(false)
     expect(onDismiss).toHaveBeenCalledOnce()
+  })
+
+  it('does not dismiss on blur after a touch select', async () => {
+    const { reveal, onOptionPointerDown, onOptionPointerUp, onInputBlur, onDismiss } = await setup()
+    reveal()
+
+    onOptionPointerDown('Balen', pointerEvent('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 }))
+    onOptionPointerUp('Balen', pointerEvent('pointerup', { pointerType: 'touch', clientX: 10, clientY: 10 }))
+    onInputBlur()
+    await flushBlur()
+
+    expect(onDismiss).not.toHaveBeenCalled()
   })
 
   it('does not dismiss on blur while the pointer is in the list', async () => {

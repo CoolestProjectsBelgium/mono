@@ -142,15 +142,16 @@ export function buildWorkspace(input) {
  */
 export function stripCompiledAdminComponents(stageDir) {
   const files = [
-    ['login', 'Login'],
-    ['dashboard', 'Dashboard'],
-    ['pictures', 'PictureSelector'],
-    ['voting', 'Voting'],
-    ['tables', 'Tables'],
+    ['components', 'login', 'Login'],
+    ['components', 'dashboard', 'Dashboard'],
+    ['components', 'pictures', 'PictureSelector'],
+    ['components', 'voting', 'Voting'],
+    ['components', 'tables', 'Tables'],
+    ['features', 'restrict-properties-to-role', 'RoleRestrictedEditAction'],
   ];
-  for (const [dir, name] of files) {
+  for (const [base, dir, name] of files) {
     for (const ext of ['.js', '.d.ts', '.js.map']) {
-      fs.rmSync(path.join(stageDir, 'components', dir, `${name}${ext}`), { force: true });
+      fs.rmSync(path.join(stageDir, base, dir, `${name}${ext}`), { force: true });
     }
   }
 }
@@ -193,6 +194,10 @@ export function packApp(input) {
     const componentsSrc = path.join(workspaceDir, 'src', 'components');
     if (fs.existsSync(componentsSrc)) {
       extraDirs.push({ from: componentsSrc, to: 'components' });
+    }
+    const featuresSrc = path.join(workspaceDir, 'src', 'features');
+    if (fs.existsSync(featuresSrc)) {
+      extraDirs.push({ from: featuresSrc, to: 'features' });
     }
 
     stageNodeLayout({

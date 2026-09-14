@@ -58,14 +58,14 @@ describe('PostalCodeSearchField', () => {
 
     const option = wrapper.findAll('[role="option"]').find(item => item.text().includes('Mechelen'))
     expect(option).toBeDefined()
-    await option!.trigger('pointerdown', { pointerType: 'mouse' })
+    await option!.find('button').trigger('pointerdown', { pointerType: 'mouse' })
     await nextTick()
 
     expect(model.value.postalcode).toBe(2800)
     expect(model.value.municipality_name).toBe('Mechelen')
   })
 
-  it('updates the model on click after a touch press', async () => {
+  it('updates the model on touch pointerup', async () => {
     const model = ref({ postalcode: 0, municipality_name: '' })
 
     const wrapper = await mountSuspended(PostalCodeSearchField, {
@@ -86,11 +86,12 @@ describe('PostalCodeSearchField', () => {
 
     const option = wrapper.findAll('[role="option"]').find(item => item.text().includes('Mechelen'))
     expect(option).toBeDefined()
-    await option!.trigger('pointerdown', { pointerType: 'touch' })
+    const button = option!.find('button')
+    await button.trigger('pointerdown', { pointerType: 'touch' })
     await nextTick()
     expect(model.value.postalcode).toBe(0)
 
-    await option!.trigger('click')
+    await button.trigger('pointerup', { pointerType: 'touch' })
     await nextTick()
 
     expect(model.value.postalcode).toBe(2800)
