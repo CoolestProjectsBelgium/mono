@@ -29,6 +29,14 @@ const Components = {
     'Certificates',
     './certificates/Certificates.tsx',
   ),
+  TimezoneDateShow: componentLoader.add(
+    'TimezoneDateShow',
+    './timezone/TimezoneDateShow.tsx',
+  ),
+  TimezoneDateList: componentLoader.add(
+    'TimezoneDateList',
+    './timezone/TimezoneDateList.tsx',
+  ),
 };
 
 export { componentLoader, Components };

@@ -14,6 +14,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { parseTableNumber } from '../eventguide/parse-table-number';
+import { eventYear } from '../mailer/mail-context';
 import {
   getPresentationAssetsDir,
   getPresentationDir,
@@ -384,7 +385,7 @@ export class PresentationService {
 
   private buildCommonContext(event: Event): Record<string, unknown> {
     return {
-      year: new Date(event.officialStartDate).getFullYear(),
+      year: eventYear(event),
       website: process.env.WEBSITE_URL || 'https://coolestprojects.be',
       event: {
         eventTitle: event.eventTitle,

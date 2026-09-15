@@ -266,6 +266,64 @@ const start = async () => {
         features: [auditLog()],
         options: {
           navigation: navSystem,
+          properties: {
+            // Rendered in the DISPLAY_TIMEZONE env var's zone (same var
+            // apps/api's mail-context.ts reads — see
+            // components/timezone/display-timezone.ts) with the zone
+            // labeled, so this reads identically everywhere regardless of
+            // who's viewing or from where. The column itself stays UTC;
+            // edit forms are left as AdminJS's native datetime-local input
+            // (browser-local, no timezone parameter support), a deliberate
+            // trade-off.
+            eventBeginDate: {
+              components: {
+                show: Components.TimezoneDateShow,
+                list: Components.TimezoneDateList,
+              },
+            },
+            registrationOpenDate: {
+              components: {
+                show: Components.TimezoneDateShow,
+                list: Components.TimezoneDateList,
+              },
+            },
+            registrationClosedDate: {
+              components: {
+                show: Components.TimezoneDateShow,
+                list: Components.TimezoneDateList,
+              },
+            },
+            projectClosedDate: {
+              components: {
+                show: Components.TimezoneDateShow,
+                list: Components.TimezoneDateList,
+              },
+            },
+            officialStartDate: {
+              components: {
+                show: Components.TimezoneDateShow,
+                list: Components.TimezoneDateList,
+              },
+            },
+            eventEndDate: {
+              components: {
+                show: Components.TimezoneDateShow,
+                list: Components.TimezoneDateList,
+              },
+            },
+            votingStartDate: {
+              components: {
+                show: Components.TimezoneDateShow,
+                list: Components.TimezoneDateList,
+              },
+            },
+            votingEndDate: {
+              components: {
+                show: Components.TimezoneDateShow,
+                list: Components.TimezoneDateList,
+              },
+            },
+          },
           actions: {
             // A super_admin sees and manages every event; every other role only sees the
             // event tied to their session, and cannot create/edit/delete it (read-only).

@@ -24,8 +24,26 @@ export function buildRegistrationInviteUrl(
   return `${baseUrlWithLanguage(baseUrl, language)}/registration?token=${encodeURIComponent(token)}`;
 }
 
+// DISPLAY_TIMEZONE is the one env var apps/admin and apps/api both read
+// (same name, set the same in both apps' env — see build_tools/env/*.env.example)
+// so their date displays agree; not shared via @coolestprojects/database,
+// which is schema, not app config. Same fallback default as apps/admin's
+// reads of it, so an unset var still keeps both apps in agreement.
+export function displayTimezone(): string {
+  return process.env.DISPLAY_TIMEZONE || 'Europe/Brussels';
+}
+
+// Deterministic regardless of the server process's own OS timezone — near a
+// year boundary, .getFullYear() would silently disagree with what
+// DISPLAY_TIMEZONE considers the year.
 export function eventYear(event: Event): number {
-  return new Date(event.officialStartDate).getFullYear();
+  const yearPart = new Intl.DateTimeFormat('en', {
+    year: 'numeric',
+    timeZone: displayTimezone(),
+  })
+    .formatToParts(new Date(event.officialStartDate))
+    .find((part) => part.type === 'year');
+  return Number(yearPart?.value);
 }
 
 /**

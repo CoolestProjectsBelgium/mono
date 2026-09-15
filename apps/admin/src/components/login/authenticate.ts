@@ -1,6 +1,7 @@
 import { sequelize } from '../../database.js';
 import { Account } from '@coolestprojects/database';
 import { Op } from 'sequelize';
+import { displayTimezone } from '../timezone/display-timezone.js';
 
 export const Authenticate = async (
   email: string,
@@ -24,6 +25,10 @@ export const Authenticate = async (
         email: account.email,
         eventId,
         role: account.account_type,
+        // Env var, not per-account — resolved here (server-side) since
+        // browser-bundled components have no process.env access; cached at
+        // login like eventId/role above, not live-refreshed.
+        timezone: displayTimezone(),
       };
     }
   }

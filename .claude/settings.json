@@ -55,7 +55,10 @@
       "Bash(echo \"EXIT=$?\")",
       "Bash(npm run *)",
       "Bash(npx tsc *)",
-      "Bash(timeout 300 npm run build --workspace=apps/admin)"
+      "Bash(timeout 300 npm run build --workspace=apps/admin)",
+      "Bash(git checkout *)",
+      "Bash(npx eslint *)",
+      "Bash(grep -n \"| \\\\`Event\\\\`\\\\|| \\\\`Account\\\\`\" docs/apps/admin.md)"
     ]
   }
 }
