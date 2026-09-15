@@ -21,6 +21,7 @@ import { componentLoader, Components, Handlers } from './components/index.js';
 import { Authenticate } from './components/login/authenticate.js';
 import eventLoginRouter from './components/login/router.js';
 import { restrictPropertiesToRoleFeature } from './features/restrict-properties-to-role/index.js';
+import { exportOnlyFeature, exportOnlyActions } from './features/export-only/index.js';
 import importExportFeature from '@adminjs/import-export';
 import loggerFeature, { createLoggerResource } from '@adminjs/logger';
 import { sequelize } from './database.js';
@@ -635,7 +636,7 @@ const start = async () => {
       // --- Reporting ---
       {
         resource: exportAllResource,
-        features: [importExportFeature({ componentLoader })],
+        features: [exportOnlyFeature({ componentLoader })],
         options: {
           navigation: navReporting,
           label: 'Export full User, Project, Questions report',
@@ -683,12 +684,13 @@ const start = async () => {
             show: { isVisible: false, isAccessible: false },
             // Hide the bulk-delete option, which also removes the list's selection checkboxes.
             bulkDelete: { isVisible: false, isAccessible: false },
+            ...exportOnlyActions,
           },
         },
       },
       {
         resource: userProjectSummaryResource,
-        features: [importExportFeature({ componentLoader })],
+        features: [exportOnlyFeature({ componentLoader })],
         options: {
           navigation: navReporting,
           label: 'User Project Overzicht gebruikt voor export',
@@ -700,6 +702,7 @@ const start = async () => {
             show: { isVisible: false, isAccessible: false },
             // Hide the bulk-delete option, which also removes the list's selection checkboxes.
             bulkDelete: { isVisible: false, isAccessible: false },
+            ...exportOnlyActions,
           },
         },
       },
