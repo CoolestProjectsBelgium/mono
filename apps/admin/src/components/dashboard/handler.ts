@@ -56,6 +56,7 @@ export interface DashboardResponse {
   total_males: number;
   total_X: number;
   regions: DashboardTableItem[];
+  ageGroups: DashboardTableItem[];
   questions: DashboardTableItem[];
   tshirts: DashboardTableItem[];
   /** Raw milestone dates driving the dashboard's event timeline — status (done/active/upcoming) is derived client-side from these. */
@@ -163,6 +164,57 @@ async function getRegions(eventId: number): Promise<DashboardTableItem[]> {
     );
   }
   return regionsData;
+}
+
+// Age (whole years) at the event itself — TIMESTAMPDIFF(YEAR, birthmonth,
+// officialStartDate) — matching how RegistrationService.validate() checks
+// age eligibility against the same reference date, not "now". Three bands
+// keep this the same series-count as the other demographics pies (the
+// shared categorical palette only validates every-pair-distinct up to 3
+// slots — see Dashboard.tsx's PIE_COLORS comment); edge ages outside the
+// event's own min/max fold into the nearest band rather than adding a 4th.
+const AGE_GROUP_ORDER = ['7-10', '11-14', '15-18'];
+
+async function getAgeGroups(eventId: number): Promise<DashboardTableItem[]> {
+  const totals = new Map(AGE_GROUP_ORDER.map((group) => [group, 0]));
+  try {
+    const results = await sequelize.query(
+      `SELECT ageGroup, COUNT(*) AS total
+      FROM (
+        SELECT
+          CASE
+            WHEN age <= 10 THEN '7-10'
+            WHEN age <= 14 THEN '11-14'
+            ELSE '15-18'
+          END AS ageGroup
+        FROM (
+          SELECT TIMESTAMPDIFF(YEAR, u.birthmonth, e.officialStartDate) AS age
+          FROM Users u
+          INNER JOIN Events e ON e.id = u.eventId
+          WHERE u.eventId = :eventId AND u.birthmonth IS NOT NULL
+        ) ages
+      ) grouped
+      GROUP BY ageGroup`,
+      {
+        replacements: { eventId },
+        type: QueryTypes.SELECT,
+      },
+    );
+    for (const row of results as any[]) {
+      totals.set(row.ageGroup, Number(row.total));
+    }
+  } catch (err: any) {
+    console.error(
+      'SQL Fout bij het ophalen van leeftijd statistieken:',
+      err.message,
+    );
+  }
+  return AGE_GROUP_ORDER.map((group) => ({
+    id: group,
+    total: totals.get(group) ?? 0,
+    short: group,
+    description: '',
+  }));
 }
 
 /*
@@ -285,6 +337,7 @@ export const Handler = async (
   const questionsData = await getQuestions(eventId);
   const tshirtsData = await getTshirts(eventId);
   const regionsData = await getRegions(eventId);
+  const ageGroupsData = await getAgeGroups(eventId);
 
   return {
     event_title: currentEvent?.eventTitle || 'Coolest Projects',
@@ -316,6 +369,7 @@ export const Handler = async (
     total_males: totalMales,
     total_X: totalX,
     regions: regionsData,
+    ageGroups: ageGroupsData,
 
     questions: questionsData,
     tshirts: tshirtsData,

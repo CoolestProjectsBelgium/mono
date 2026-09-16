@@ -658,6 +658,15 @@ export const Dashboard: React.FC = () => {
               value: region.total,
             }))}
           />
+          <DemographicsPieCard
+            title="Age breakdown"
+            totalLabel="participants with a date of birth on file."
+            slices={data.ageGroups.map((group) => ({
+              key: String(group.id),
+              name: `${group.short} years`,
+              value: group.total,
+            }))}
+          />
         </Box>
 
         <SectionTitle>Consent answers</SectionTitle>
