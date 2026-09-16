@@ -6,6 +6,7 @@ export interface SeedMunicipalityEntry {
   municipality_name_nl: string;
   municipality_name_fr: string;
   municipality_name_de: string;
+  region: string;
 }
 
 export function loadSeedMunicipalities(): SeedMunicipalityEntry[] {
@@ -25,6 +26,7 @@ export function loadSeedMunicipalities(): SeedMunicipalityEntry[] {
     municipality_name_nl?: string;
     municipality_name_fr?: string;
     municipality_name_de?: string;
+    region?: string;
   }>;
 
   const seen = new Set<number>();
@@ -32,7 +34,8 @@ export function loadSeedMunicipalities(): SeedMunicipalityEntry[] {
   for (const entry of entries) {
     const postalcode = Number(entry.postalcode);
     const nl = (entry.municipality_name_nl ?? '').trim();
-    if (!Number.isInteger(postalcode) || !nl || seen.has(postalcode)) {
+    const region = (entry.region ?? '').trim();
+    if (!Number.isInteger(postalcode) || !nl || !region || seen.has(postalcode)) {
       continue;
     }
     seen.add(postalcode);
@@ -41,6 +44,7 @@ export function loadSeedMunicipalities(): SeedMunicipalityEntry[] {
       municipality_name_nl: nl,
       municipality_name_fr: (entry.municipality_name_fr ?? nl).trim(),
       municipality_name_de: (entry.municipality_name_de ?? nl).trim(),
+      region,
     });
   }
 

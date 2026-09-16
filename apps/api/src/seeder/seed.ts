@@ -156,6 +156,7 @@ export async function seedDatabase(
       municipality_name_nl: entry.municipality_name_nl,
       municipality_name_fr: entry.municipality_name_fr,
       municipality_name_de: entry.municipality_name_de,
+      region: entry.region,
     })),
   );
 

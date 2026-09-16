@@ -1,5 +1,5 @@
 import { sequelize } from '../../database.js';
-import { Op } from 'sequelize';
+import { Op, QueryTypes } from 'sequelize';
 import type {
   Attachment as AttachmentModel,
   Event as EventModel,
@@ -55,6 +55,7 @@ export interface DashboardResponse {
   total_females: number;
   total_males: number;
   total_X: number;
+  regions: DashboardTableItem[];
   questions: DashboardTableItem[];
   tshirts: DashboardTableItem[];
   /** Raw milestone dates driving the dashboard's event timeline — status (done/active/upcoming) is derived client-side from these. */
@@ -88,8 +89,6 @@ LOGICA:
 4. De `GROUP BY` zorgt ervoor dat de telling wordt toegepast op elke unieke combinatie 
    van het shirt-ID en de bijbehorende Nederlandse beschrijving.
 */
-// VOEG DEZE IMPORT TOE (meestal bovenaan je bestand)
-import { QueryTypes } from 'sequelize';
 async function getTshirts(
   eventId: number,
   language: string = 'nl',
@@ -129,8 +128,45 @@ async function getTshirts(
   return tshirtsData;
 }
 
+// Region per participant, derived from their address postal code via the
+// seeded Municipality table (packages/database/src/models/municipality.model.ts,
+// region computed at seed time — see apps/registration/scripts/seed-municipalities.mjs).
+// The subquery dedupes postalcode -> region first so a postal code shared by
+// more than one municipality name never double-counts a user.
+async function getRegions(eventId: number): Promise<DashboardTableItem[]> {
+  let regionsData: DashboardTableItem[] = [];
+  try {
+    const results = await sequelize.query(
+      `SELECT r.region AS region, COUNT(u.id) AS total
+      FROM Users u
+      INNER JOIN (
+        SELECT DISTINCT postalcode, region FROM Municipalities WHERE eventId = :eventId
+      ) r ON u.postalcode = r.postalcode
+      WHERE u.eventId = :eventId
+      GROUP BY r.region
+      ORDER BY total DESC`,
+      {
+        replacements: { eventId },
+        type: QueryTypes.SELECT,
+      },
+    );
+    regionsData = results.map((row: any) => ({
+      id: row.region,
+      total: Number(row.total),
+      short: row.region,
+      description: '',
+    }));
+  } catch (err: any) {
+    console.error(
+      'SQL Fout bij het ophalen van regio statistieken:',
+      err.message,
+    );
+  }
+  return regionsData;
+}
+
 /*
-SELECT 
+SELECT
     q.id AS question_id,
 	  q.name AS name,
     COUNT(uq.questionId) AS total_answers,
@@ -248,6 +284,7 @@ export const Handler = async (
 
   const questionsData = await getQuestions(eventId);
   const tshirtsData = await getTshirts(eventId);
+  const regionsData = await getRegions(eventId);
 
   return {
     event_title: currentEvent?.eventTitle || 'Coolest Projects',
@@ -278,6 +315,7 @@ export const Handler = async (
     total_females: totalFemales,
     total_males: totalMales,
     total_X: totalX,
+    regions: regionsData,
 
     questions: questionsData,
     tshirts: tshirtsData,

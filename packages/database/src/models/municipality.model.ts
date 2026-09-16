@@ -27,4 +27,7 @@ export class Municipality extends BaseEventModel {
 
     @Column(DataType.STRING(30))
     municipality_name_de!: string;
+
+    @Column(DataType.STRING(20))
+    region!: string;
 }

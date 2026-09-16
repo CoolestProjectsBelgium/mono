@@ -6,11 +6,13 @@ export const municipalityFixture: MunicipalityDto[] = [
     municipality_name_nl: 'Mechelen',
     municipality_name_fr: 'Malines',
     municipality_name_de: 'Mechelen',
+    region: 'Flanders',
   },
   {
     postalcode: 2800,
     municipality_name_nl: 'Walem',
     municipality_name_fr: 'Walem',
     municipality_name_de: 'Walem',
+    region: 'Flanders',
   },
 ]

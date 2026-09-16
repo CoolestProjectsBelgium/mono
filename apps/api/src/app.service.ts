@@ -85,6 +85,7 @@ export class AppService {
         'municipality_name_nl',
         'municipality_name_fr',
         'municipality_name_de',
+        'region',
       ],
       where: { eventId: info.currentEvent },
       order: [['postalcode', 'ASC']],
@@ -94,6 +95,7 @@ export class AppService {
       municipality_name_nl: municipality.municipality_name_nl,
       municipality_name_fr: municipality.municipality_name_fr,
       municipality_name_de: municipality.municipality_name_de,
+      region: municipality.region,
     }));
   }
 

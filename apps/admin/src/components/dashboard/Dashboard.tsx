@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { ApiClient } from 'adminjs';
+import { Cell } from 'recharts/es6/component/Cell.js';
+import { Legend } from 'recharts/es6/component/Legend.js';
+import { ResponsiveContainer } from 'recharts/es6/component/ResponsiveContainer.js';
+import { Tooltip } from 'recharts/es6/component/Tooltip.js';
+import { Pie } from 'recharts/es6/polar/Pie.js';
+import { PieChart } from 'recharts/es6/chart/PieChart.js';
 import {
   Box,
   Icon,
@@ -11,6 +17,13 @@ import {
   Text,
 } from '@adminjs/design-system';
 import type { DashboardResponse } from './handler.js';
+
+// Categorical slots 1-3 of the shared reference palette — the only three
+// that validate all-pairs (not just adjacent) under CVD simulation, so a pie
+// (where every slice sits next to every other) stays gate-safe. Fixed slot
+// order per chart; reused across the demographics pies below since each is
+// its own legend/dimension, not a shared identity across charts.
+const PIE_COLORS = ['#2a78d6', '#eb6834', '#1baf7a'];
 
 const api = new ApiClient();
 
@@ -393,6 +406,67 @@ const TileGrid: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </Box>
 );
 
+interface PieSlice {
+  key: string;
+  name: string;
+  value: number;
+}
+
+const DemographicsPieCard: React.FC<{
+  title: string;
+  slices: PieSlice[];
+  totalLabel: string;
+}> = ({ title, slices, totalLabel }) => {
+  const total = slices.reduce((sum, slice) => sum + slice.value, 0);
+
+  return (
+    <Box
+      bg="white"
+      p="xl"
+      boxShadow="card"
+      flex="1"
+      style={{ minWidth: '320px' }}
+    >
+      <Text fontSize="h3" fontWeight="bold" mb="xl">
+        {title}
+      </Text>
+      {total > 0 ? (
+        <>
+          <Box width="100%" height="280px">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={slices}
+                  dataKey="value"
+                  nameKey="name"
+                  label={({
+                    name,
+                    percent,
+                  }: {
+                    name: string;
+                    percent?: number;
+                  }) => `${name}: ${Math.round((percent ?? 0) * 100)}%`}
+                >
+                  {slices.map((slice, index) => (
+                    <Cell key={slice.key} fill={PIE_COLORS[index]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+          <Text color="grey60" mt="lg">
+            {total.toLocaleString()} {totalLabel}
+          </Text>
+        </>
+      ) : (
+        <Text color="grey60">No participant data yet.</Text>
+      )}
+    </Box>
+  );
+};
+
 export const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [now, setNow] = useState(0);
@@ -556,6 +630,35 @@ export const Dashboard: React.FC = () => {
           <StatTile label="Male" value={data.total_males} />
           <StatTile label="X" value={data.total_X} />
         </TileGrid>
+        <Box flex flexWrap="wrap" mt="xl" style={{ gap: '24px' }}>
+          <DemographicsPieCard
+            title="Gender breakdown"
+            totalLabel="participants with a sex on file."
+            slices={[
+              { key: 'f', name: 'Female', value: data.total_females },
+              { key: 'm', name: 'Male', value: data.total_males },
+              { key: 'X', name: 'X', value: data.total_X },
+            ]}
+          />
+          <DemographicsPieCard
+            title="Language breakdown"
+            totalLabel="participants with a language on file."
+            slices={[
+              { key: 'nl', name: 'Dutch', value: data.tlang_nl },
+              { key: 'fr', name: 'French', value: data.tlang_fr },
+              { key: 'en', name: 'English', value: data.tlang_en },
+            ]}
+          />
+          <DemographicsPieCard
+            title="Region breakdown"
+            totalLabel="participants with a known postal code."
+            slices={data.regions.map((region) => ({
+              key: String(region.id),
+              name: region.short,
+              value: region.total,
+            }))}
+          />
+        </Box>
 
         <SectionTitle>Consent answers</SectionTitle>
         <Box bg="white" boxShadow="card" p="lg">

@@ -29,6 +29,20 @@ const FR_NAME_BY_NL = {
   Gent: 'Gand',
 }
 
+/**
+ * Belgium's three regions, by postal-code range (contiguous, no gaps across
+ * 1000-9999): Brussels-Capital is 1000-1299; Flanders and Wallonia each hold
+ * two disjoint bands around it.
+ */
+function regionForPostalCode(postalcode) {
+  if (postalcode >= 1000 && postalcode <= 1299) return 'Brussels'
+  if (postalcode >= 1300 && postalcode <= 1499) return 'Wallonia'
+  if (postalcode >= 1500 && postalcode <= 3999) return 'Flanders'
+  if (postalcode >= 4000 && postalcode <= 7999) return 'Wallonia'
+  if (postalcode >= 8000 && postalcode <= 9999) return 'Flanders'
+  throw new Error(`Postal code ${postalcode} is outside the known Belgian region ranges`)
+}
+
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
 const outputPath = join(root, 'apps', 'api', 'src', 'seeder', 'be-municipalities.json')
 
@@ -61,6 +75,7 @@ const entries = source.map((row) => {
     // the same "no translation, reuse the primary source label" rule
     // already applied to French above.
     municipality_name_de: municipality_name_nl,
+    region: regionForPostalCode(postalcode),
   }
 })
 
