@@ -9,6 +9,7 @@ import {
   Account,
   AdminSession,
   Affiliation,
+  Municipality,
   User,
   EmailLog,
 } from '@coolestprojects/database';
@@ -53,6 +54,7 @@ export const AUTH_JWT = Symbol('AUTH_JWT');
       UserProject,
       EmailLog,
       Affiliation,
+      Municipality,
     ]),
   ],
   providers: [

@@ -1,4 +1,12 @@
+import {
+  Project as ProjectModel,
+  UserProject as UserProjectModel,
+} from '@coolestprojects/database';
 import { NestApiClient } from '../../api/nest-api-client.js';
+import { sequelize } from '../../database.js';
+
+const Project = sequelize.models.Project as typeof ProjectModel;
+const UserProject = sequelize.models.UserProject as typeof UserProjectModel;
 
 export interface RegisterUserFormOption {
   id: number;
@@ -6,11 +14,48 @@ export interface RegisterUserFormOption {
   description?: string;
 }
 
+export interface RegisterUserVoucherOption {
+  code: string;
+  projectName: string;
+}
+
+export interface RegisterUserMunicipalityOption {
+  postalcode: number;
+  name: string;
+}
+
+export interface RegisterUserDojoOption {
+  id: number;
+  name: string;
+}
+
 export interface RegisterUserFormData {
   guardianAge: number;
   questions: RegisterUserFormOption[];
   approvals: RegisterUserFormOption[];
   tshirts: RegisterUserFormOption[];
+  vouchers: RegisterUserVoucherOption[];
+  dojos: RegisterUserDojoOption[];
+  municipalities: RegisterUserMunicipalityOption[];
+}
+
+// Unredeemed vouchers (UserProject rows with no userId yet) for the admin's
+// own event, joined to their project name — see resolveVoucher/redeem in
+// registration.service.ts:312-338 for how a voucherGuid is later consumed.
+async function fetchAvailableVouchers(
+  eventId: number,
+): Promise<RegisterUserVoucherOption[]> {
+  const rows = await UserProject.findAll({
+    where: { eventId, userId: null, deletedAt: null },
+    include: [
+      { model: Project, attributes: ['name'], where: { deletedAt: null } },
+    ],
+    order: [[{ model: Project, as: 'project' }, 'name', 'ASC']],
+  });
+  return rows.map((row) => ({
+    code: row.voucherGuid,
+    projectName: row.project?.name ?? 'Unknown project',
+  }));
 }
 
 // Flat shape the RegisterUser.tsx form actually submits — reshaped into
@@ -102,7 +147,11 @@ function errorMessage(error: unknown): string {
   return apiMessage || axiosError?.message || 'Failed to register user.';
 }
 
-export const registerUserHandler = async (request: any) => {
+export const registerUserHandler = async (
+  request: any,
+  _response: any,
+  context: any,
+) => {
   const api = await NestApiClient.fromExpressRequest(request);
 
   if (request.method?.toLowerCase() === 'post') {
@@ -131,14 +180,33 @@ export const registerUserHandler = async (request: any) => {
   // GET — form data: mandatory questions/approvals and t-shirt options for
   // the currently-active event, plus the guardian-age threshold (from the
   // same public /settings the registration frontend uses) so the form can
-  // show/hide guardian fields the same way apps/registration does.
-  const [questions, approvals, tshirtGroups, settings] = await Promise.all([
+  // show/hide guardian fields the same way apps/registration does. Vouchers
+  // are queried directly from the DB (scoped to the admin's own event)
+  // rather than through apps/api, which has no listing endpoint for them.
+  const eventId = context.currentAdmin?.eventId;
+  const [
+    questions,
+    approvals,
+    tshirtGroups,
+    settings,
+    vouchers,
+    dojos,
+    municipalities,
+  ] = await Promise.all([
     api.get<RegisterUserFormOption[]>('/questions'),
     api.get<RegisterUserFormOption[]>('/approvals'),
     api.get<Array<{ group: string; items: RegisterUserFormOption[] }>>(
       '/tshirts',
     ),
     api.get<{ guardianAge: number }>('/settings'),
+    eventId ? fetchAvailableVouchers(eventId) : Promise.resolve([]),
+    api.get<Array<{ id: number; name: string }>>('/dojos'),
+    api.get<
+      Array<{
+        postalcode: number;
+        municipality_name_nl: string;
+      }>
+    >('/municipalities'),
   ]);
 
   const data: RegisterUserFormData = {
@@ -146,6 +214,12 @@ export const registerUserHandler = async (request: any) => {
     questions: questions.data,
     approvals: approvals.data,
     tshirts: tshirtGroups.data.flatMap((group) => group.items),
+    vouchers,
+    dojos: dojos.data,
+    municipalities: municipalities.data.map((entry) => ({
+      postalcode: entry.postalcode,
+      name: entry.municipality_name_nl,
+    })),
   };
 
   return data;

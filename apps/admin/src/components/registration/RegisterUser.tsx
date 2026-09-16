@@ -6,7 +6,6 @@ import {
   Button,
   CheckBox,
   FormGroup,
-  H2,
   H4,
   Input,
   Label,
@@ -54,8 +53,9 @@ const MONTH_OPTIONS: SelectOption[] = Array.from({ length: 12 }, (_, i) => ({
 // way, as the public registration flow — see
 // apps/api/src/registration/registration.controller.ts) — a separate
 // action alongside the default "Create new" button, not a replacement for
-// it. Plain inputs rather than the public form's live dojo/postal-code
-// search widgets — bad values are still caught server-side and shown below.
+// it. Dojo and municipality are picked from the same seeded lists the public
+// form validates against (dropdowns, not live search); other fields stay
+// plain inputs — bad values are still caught server-side and shown below.
 const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
   const [formData, setFormData] = useState<RegisterUserFormData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,11 +77,12 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
   const [street, setStreet] = useState('');
   const [houseNumber, setHouseNumber] = useState('');
   const [boxNumber, setBoxNumber] = useState('');
-  const [postalcode, setPostalcode] = useState('');
-  const [municipalityName, setMunicipalityName] = useState('');
+  const [municipalityOption, setMunicipalityOption] =
+    useState<SelectOption | null>(null);
   const [affiliationType, setAffiliationType] = useState<SelectOption>(
     AFFILIATION_OPTIONS[0],
   );
+  const [dojoOption, setDojoOption] = useState<SelectOption | null>(null);
   const [affiliationName, setAffiliationName] = useState('');
   const [emailGuardian, setEmailGuardian] = useState('');
   const [gsmGuardian, setGsmGuardian] = useState('');
@@ -101,7 +102,7 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
   const [projectLang, setProjectLang] = useState<SelectOption>(
     LANGUAGE_OPTIONS[0],
   );
-  const [projectCode, setProjectCode] = useState('');
+  const [voucherOption, setVoucherOption] = useState<SelectOption | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -140,6 +141,22 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
     setSet(next);
   };
 
+  const voucherOptions: SelectOption[] = (formData?.vouchers ?? []).map(
+    (voucher) => ({ value: voucher.code, label: voucher.projectName }),
+  );
+
+  const municipalityOptions: SelectOption[] = (
+    formData?.municipalities ?? []
+  ).map((municipality) => ({
+    value: `${municipality.postalcode}::${municipality.name}`,
+    label: `${municipality.postalcode} ${municipality.name}`,
+  }));
+
+  const dojoOptions: SelectOption[] = (formData?.dojos ?? []).map((dojo) => ({
+    value: dojo.name,
+    label: dojo.name,
+  }));
+
   const guardianRequired =
     formData != null &&
     birthYear !== '' &&
@@ -156,6 +173,9 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
     setSubmitting(true);
     setNotice(null);
     try {
+      const [municipalityPostalcode, municipalityLabel] = (
+        municipalityOption?.value ?? '::'
+      ).split('::');
       const response = await api.resourceAction({
         resourceId: resource.id,
         actionName: action.name,
@@ -173,10 +193,13 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
           street,
           house_number: houseNumber,
           box_number: boxNumber,
-          postalcode,
-          municipality_name: municipalityName,
+          postalcode: municipalityPostalcode,
+          municipality_name: municipalityLabel,
           via_type: affiliationType.value,
-          via: affiliationName,
+          via:
+            affiliationType.value === 'dojo'
+              ? (dojoOption?.value ?? '')
+              : affiliationName,
           email_guardian: emailGuardian,
           gsm_guardian: gsmGuardian,
           medical,
@@ -187,7 +210,7 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
           project_descr: projectDescr,
           project_type: projectType,
           project_lang: projectLang.value,
-          project_code: projectCode,
+          project_code: voucherOption?.value ?? '',
         },
       });
       const data = response.data as unknown as {
@@ -211,7 +234,6 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
 
   return (
     <Box variant="grey">
-      <H2>Register user</H2>
       <Text mb="lg">
         Creates a Registration and immediately activates it into a User — same
         validation as the public registration form, no activation email sent,
@@ -342,24 +364,13 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
         />
       </FormGroup>
       <FormGroup>
-        <Label htmlFor="postalcode">Postal code</Label>
-        <Input
-          id="postalcode"
-          type="number"
-          value={postalcode}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setPostalcode(e.target.value)
-          }
-        />
-      </FormGroup>
-      <FormGroup>
-        <Label htmlFor="municipalityName">Municipality</Label>
-        <Input
-          id="municipalityName"
-          value={municipalityName}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setMunicipalityName(e.target.value)
-          }
+        <Label htmlFor="municipality">Postal code / Municipality</Label>
+        <Select
+          id="municipality"
+          options={municipalityOptions}
+          value={municipalityOption}
+          onChange={setMunicipalityOption}
+          placeholder="Select a postal code / municipality…"
         />
       </FormGroup>
 
@@ -372,13 +383,21 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
           onChange={setAffiliationType}
         />
       </FormGroup>
-      {affiliationType.value !== '' && (
+      {affiliationType.value === 'dojo' && (
         <FormGroup>
-          <Label htmlFor="affiliationName">
-            {affiliationType.value === 'dojo'
-              ? 'Dojo name'
-              : 'Organisation name'}
-          </Label>
+          <Label htmlFor="dojoName">Dojo name</Label>
+          <Select
+            id="dojoName"
+            options={dojoOptions}
+            value={dojoOption}
+            onChange={setDojoOption}
+            placeholder="Select a dojo…"
+          />
+        </FormGroup>
+      )}
+      {affiliationType.value === 'other' && (
+        <FormGroup>
+          <Label htmlFor="affiliationName">Organisation name</Label>
           <Input
             id="affiliationName"
             value={affiliationName}
@@ -525,14 +544,20 @@ const RegisterUser: React.FC<ActionProps> = ({ resource, action }) => {
         </>
       ) : (
         <FormGroup>
-          <Label htmlFor="projectCode">Voucher / project code</Label>
-          <Input
-            id="projectCode"
-            value={projectCode}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setProjectCode(e.target.value)
-            }
-          />
+          <Label htmlFor="projectCode">Project</Label>
+          {voucherOptions.length > 0 ? (
+            <Select
+              id="projectCode"
+              options={voucherOptions}
+              value={voucherOption}
+              onChange={setVoucherOption}
+              placeholder="Select a project…"
+            />
+          ) : (
+            <Text color="grey60">
+              No unused vouchers available for this event.
+            </Text>
+          )}
         </FormGroup>
       )}
 
