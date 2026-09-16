@@ -407,6 +407,30 @@ const start = async () => {
           },
         },
       },
+      {
+        resource: sequelize.models.Municipality,
+        features: [auditLog()],
+        options: {
+          navigation: navRegistration,
+          properties: {
+            eventId: { isVisible: false },
+          },
+          actions: {
+            new: {
+              before: filterEventId('eventId'),
+            },
+            list: {
+              before: filterEventId('eventId'),
+            },
+            search: {
+              before: filterEventId('eventId'),
+            },
+            edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            show: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            delete: { isAccessible: canAccessResourceFieldFilter('eventId') },
+          },
+        },
+      },
 
       // --- Projects & participants ---
       {
