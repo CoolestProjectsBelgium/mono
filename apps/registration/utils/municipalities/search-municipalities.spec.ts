@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { municipalityFixture } from '~/fixtures/municipalities'
 import {
-  formatPostalCodeOption,
-  isValidPostalMunicipalityPair,
+  formatMunicipalityOption,
+  isKnownMunicipality,
   normalizeSearchText,
-  resolvePostalCodeLabel,
-  searchPostalCodes,
-} from '~/utils/postal-codes/search-postal-codes'
+  resolveMunicipalityLabel,
+  searchMunicipalities,
+} from '~/utils/municipalities/search-municipalities'
 
 describe('normalizeSearchText', () => {
   it('lowercases and strips diacritics', () => {
@@ -14,51 +15,51 @@ describe('normalizeSearchText', () => {
   })
 })
 
-describe('searchPostalCodes', () => {
+describe('searchMunicipalities', () => {
   it('finds municipalities by code prefix', () => {
-    const results = searchPostalCodes('2800', 'nl')
-    expect(results.some(entry => entry.postalcode === 2800 && entry.municipality_nl === 'Mechelen')).toBe(true)
+    const results = searchMunicipalities(municipalityFixture, '2800', 'nl')
+    expect(results.some(entry => entry.postalcode === 2800 && entry.municipality_name_nl === 'Mechelen')).toBe(true)
   })
 
   it('finds municipalities by name', () => {
-    const results = searchPostalCodes('meche', 'nl')
+    const results = searchMunicipalities(municipalityFixture, 'meche', 'nl')
     expect(results.some(entry => entry.postalcode === 2800)).toBe(true)
   })
 
   it('uses French labels in fr locale formatting', () => {
-    const results = searchPostalCodes('2800', 'fr')
-    const mechelen = results.find(entry => entry.postalcode === 2800 && entry.municipality_nl === 'Mechelen')
+    const results = searchMunicipalities(municipalityFixture, '2800', 'fr')
+    const mechelen = results.find(entry => entry.postalcode === 2800 && entry.municipality_name_nl === 'Mechelen')
     expect(mechelen).toBeDefined()
-    expect(formatPostalCodeOption(mechelen!, 'fr')).toContain('Malines')
+    expect(formatMunicipalityOption(mechelen!, 'fr')).toContain('Malines')
   })
 
   it('returns multiple municipalities for the same postcode', () => {
-    const results = searchPostalCodes('2800', 'nl')
+    const results = searchMunicipalities(municipalityFixture, '2800', 'nl')
     expect(results.filter(entry => entry.postalcode === 2800).length).toBeGreaterThan(1)
   })
 
   it('requires at least two characters for text search', () => {
-    expect(searchPostalCodes('m', 'nl')).toEqual([])
-    expect(searchPostalCodes('me', 'nl').length).toBeGreaterThan(0)
+    expect(searchMunicipalities(municipalityFixture, 'm', 'nl')).toEqual([])
+    expect(searchMunicipalities(municipalityFixture, 'me', 'nl').length).toBeGreaterThan(0)
   })
 })
 
-describe('isValidPostalMunicipalityPair', () => {
+describe('isKnownMunicipality', () => {
   it('accepts valid postal and municipality pairs', () => {
-    expect(isValidPostalMunicipalityPair(2800, 'Mechelen')).toBe(true)
-    expect(isValidPostalMunicipalityPair(2800, 'Malines')).toBe(true)
+    expect(isKnownMunicipality(municipalityFixture, 2800, 'Mechelen')).toBe(true)
+    expect(isKnownMunicipality(municipalityFixture, 2800, 'Malines')).toBe(true)
   })
 
   it('rejects invalid pairs', () => {
-    expect(isValidPostalMunicipalityPair(2800, 'Antwerpen')).toBe(false)
-    expect(isValidPostalMunicipalityPair(0, 'Mechelen')).toBe(false)
-    expect(isValidPostalMunicipalityPair(2800, '')).toBe(false)
+    expect(isKnownMunicipality(municipalityFixture, 2800, 'Antwerpen')).toBe(false)
+    expect(isKnownMunicipality(municipalityFixture, 0, 'Mechelen')).toBe(false)
+    expect(isKnownMunicipality(municipalityFixture, 2800, '')).toBe(false)
   })
 })
 
-describe('resolvePostalCodeLabel', () => {
+describe('resolveMunicipalityLabel', () => {
   it('resolves label from postal code when municipality is missing', () => {
-    expect(resolvePostalCodeLabel(2800, '', 'nl')).toBe('2800')
-    expect(resolvePostalCodeLabel(2800, 'Mechelen', 'nl')).toContain('Mechelen')
+    expect(resolveMunicipalityLabel(municipalityFixture, 2800, '', 'nl')).toBe('2800')
+    expect(resolveMunicipalityLabel(municipalityFixture, 2800, 'Mechelen', 'nl')).toContain('Mechelen')
   })
 })

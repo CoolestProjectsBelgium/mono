@@ -29,6 +29,10 @@ const Components = {
     'Certificates',
     './certificates/Certificates.tsx',
   ),
+  RegisterUser: componentLoader.add(
+    'RegisterUser',
+    './registration/RegisterUser.tsx',
+  ),
 };
 
 export { componentLoader, Components };

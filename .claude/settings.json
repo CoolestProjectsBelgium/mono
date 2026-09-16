@@ -55,7 +55,27 @@
       "Bash(echo \"EXIT=$?\")",
       "Bash(npm run *)",
       "Bash(npx tsc *)",
-      "Bash(timeout 300 npm run build --workspace=apps/admin)"
+      "Bash(timeout 300 npm run build --workspace=apps/admin)",
+      "Bash(node -e \"console.log\\(Object.keys\\(require\\('react-feather'\\)\\).includes\\('UserPlus'\\)\\)\")",
+      "Bash(npx eslint *)",
+      "Bash(node ./scripts/seed-postal-codes.mjs)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('apps/api/src/seeder/be-postal-codes.json'\\)\\); print\\(len\\(d\\)\\); print\\(d[0]\\); print\\([x for x in d if x['postalcode']==1000]\\)\")",
+      "Bash(git stash *)",
+      "Bash(git mv *)",
+      "Bash(sed -i -e 's/import { isValidPostalMunicipalityPair } from '\\\\''~\\\\/utils\\\\/postal-codes\\\\/search-postal-codes'\\\\''/import { isKnownMunicipality } from '\\\\''~\\\\/utils\\\\/municipalities\\\\/search-municipalities'\\\\''/' -e 's/import type { PostalCodeEntry } from '\\\\''~\\\\/utils\\\\/postal-codes\\\\/types'\\\\''/import type { MunicipalityEntry } from '\\\\''~\\\\/utils\\\\/municipalities\\\\/types'\\\\''/' -e s/PostalCodeEntry/MunicipalityEntry/g -e 's/isValidPostalMunicipalityPair\\(/isKnownMunicipality\\(/g' utils/validation/user.ts)",
+      "Bash(sed -i -e 's/import type { PostalCodeEntry } from '\\\\''~\\\\/utils\\\\/postal-codes\\\\/types'\\\\''/import type { MunicipalityEntry } from '\\\\''~\\\\/utils\\\\/municipalities\\\\/types'\\\\''/' -e s/PostalCodeEntry/MunicipalityEntry/g utils/validation/validate-registration.ts)",
+      "WebFetch(domain:www.bpost.be)",
+      "Bash(curl -sIL \"https://www.bpost.be/sites/default/files/zipcodes/zipcodes_num_nl_2025.xls\")",
+      "Bash(curl -s -o zipcodes_num_nl_2025.xls \"https://www.bpost.be/sites/default/files/zipcodes/zipcodes_num_nl_2025.xls\")",
+      "Bash(python3 -c \"import xlrd\")",
+      "Bash(python3 -c \"import pandas\")",
+      "Bash(npm ls *)",
+      "Bash(pip install *)",
+      "Bash(python3 -m pip install --quiet xlrd)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(npm audit *)",
+      "Bash(curl -s -o zipcodes_num_fr_2025.xls \"https://www.bpost.be/sites/default/files/zipcodes/zipcodes_num_fr_2025.xls\")"
     ]
   }
 }

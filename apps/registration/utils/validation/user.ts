@@ -5,7 +5,8 @@ import {
   getEligibleYears,
   isGuardianRequired,
 } from '~/utils/birth-date'
-import { isValidPostalMunicipalityPair } from '~/utils/postal-codes/search-postal-codes'
+import { isKnownMunicipality } from '~/utils/municipalities/search-municipalities'
+import type { MunicipalityEntry } from '~/utils/municipalities/types'
 import { isAffiliationComplete, normalizeViaType } from '~/utils/dojos/affiliation'
 import type { DojoEntry } from '~/utils/dojos/types'
 import { BELGIAN_GSM_REGEX, normalizeGsm } from '~/utils/validation/gsm'
@@ -15,21 +16,23 @@ const belgianGsmField = z
   .transform(normalizeGsm)
   .pipe(z.string().min(1).regex(BELGIAN_GSM_REGEX))
 
-const addressSchema = z.object({
-  postalcode: z.number().int().min(1000).max(9999),
-  municipality_name: z.string().min(1),
-  street: z.string().optional(),
-  house_number: z.string().optional(),
-  box_number: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (!isValidPostalMunicipalityPair(data.postalcode, data.municipality_name)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['postalcode'],
-      message: 'Invalid postal code and municipality',
-    })
-  }
-})
+function createAddressSchema(knownMunicipalities: MunicipalityEntry[] = []) {
+  return z.object({
+    postalcode: z.number().int().min(1000).max(9999),
+    municipality_name: z.string().min(1),
+    street: z.string().optional(),
+    house_number: z.string().optional(),
+    box_number: z.string().optional(),
+  }).superRefine((data, ctx) => {
+    if (!isKnownMunicipality(knownMunicipalities, data.postalcode, data.municipality_name)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['postalcode'],
+        message: 'Invalid postal code and municipality',
+      })
+    }
+  })
+}
 
 export function createPersonalFieldsSchema(
   settings: {
@@ -39,6 +42,7 @@ export function createPersonalFieldsSchema(
     officialStartDate: string
   },
   knownDojos: DojoEntry[] = [],
+  knownMunicipalities: MunicipalityEntry[] = [],
 ) {
   const bounds = getAgeBounds(settings)
 
@@ -55,7 +59,7 @@ export function createPersonalFieldsSchema(
       value === undefined ? value : normalizeGsm(value)
     )),
     t_size: z.number().min(1),
-    address: addressSchema,
+    address: createAddressSchema(knownMunicipalities),
     via_type: z.enum(['', 'dojo', 'other']).optional(),
     via: z.string().optional(),
   }).superRefine((data, ctx) => {
@@ -97,8 +101,9 @@ export function createUserSchema(
     officialStartDate: string
   },
   knownDojos: DojoEntry[] = [],
+  knownMunicipalities: MunicipalityEntry[] = [],
 ) {
-  return createPersonalFieldsSchema(settings, knownDojos).and(
+  return createPersonalFieldsSchema(settings, knownDojos, knownMunicipalities).and(
     z.object({
       mandatory_approvals: z.array(z.string()).min(1),
     }),
@@ -113,8 +118,9 @@ export function createUserProfileSchema(
     officialStartDate: string
   },
   knownDojos: DojoEntry[] = [],
+  knownMunicipalities: MunicipalityEntry[] = [],
 ) {
-  return createPersonalFieldsSchema(settings, knownDojos)
+  return createPersonalFieldsSchema(settings, knownDojos, knownMunicipalities)
 }
 
 export function createOwnProjectSchema() {

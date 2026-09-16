@@ -11,6 +11,7 @@ import {
   Event,
   EventTable,
   Message,
+  Municipality,
   PresentationRender,
   PresentationSlide,
   Project,
@@ -127,6 +128,7 @@ import configuration from './config/configuration.js';
             PresentationRender,
             CertificateTemplate,
             CertificateRender,
+            Municipality,
           ],
         };
       },
@@ -160,6 +162,7 @@ import configuration from './config/configuration.js';
       Certificate,
       CertificateTemplate,
       CertificateRender,
+      Municipality,
     ]),
   ],
   controllers: [

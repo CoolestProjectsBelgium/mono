@@ -1,11 +1,17 @@
 /**
- * Regenerates data/be-postal-codes.json from the public zipcode-belgium dataset.
+ * Regenerates apps/api/src/seeder/be-municipalities.json from the public
+ * zipcode-belgium dataset.
  *
  * Source: https://github.com/jief/zipcode-belgium
  * French municipality names are applied via FR_NAME_BY_NL for common bilingual cities;
- * all other localities keep the same label in both languages (as in the upstream data).
+ * all other localities keep the same label in nl/fr/de (as in the upstream data,
+ * which has no German names at all).
+ * The API seeder loads this file into the Municipality table (event-scoped,
+ * one row per postal code) — see apps/api/src/registration/registration.service.ts's
+ * validate() for how it's used (postal code must match a known municipality),
+ * mirroring how be-dojos.json/seed-dojos.mjs feeds the Affiliation table.
  *
- * Usage: npm run seed:postal-codes -w @coolestprojects/registration
+ * Usage: npm run seed:municipalities -w @coolestprojects/registration
  */
 import { writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -23,8 +29,8 @@ const FR_NAME_BY_NL = {
   Gent: 'Gand',
 }
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const outputPath = join(root, 'data', 'be-postal-codes.json')
+const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
+const outputPath = join(root, 'apps', 'api', 'src', 'seeder', 'be-municipalities.json')
 
 const response = await fetch(SOURCE_URL)
 if (!response.ok) {
@@ -38,20 +44,25 @@ if (!Array.isArray(source) || source.length === 0) {
 
 const entries = source.map((row) => {
   const postalcode = Number(row.zip)
-  const municipality_nl = String(row.city ?? '').trim()
+  const municipality_name_nl = String(row.city ?? '').trim()
   if (!Number.isInteger(postalcode) || postalcode < 1000 || postalcode > 9999) {
     throw new Error(`Invalid postal code in source: ${JSON.stringify(row)}`)
   }
-  if (!municipality_nl) {
+  if (!municipality_name_nl) {
     throw new Error(`Missing city name for postal code ${postalcode}`)
   }
 
+  const municipality_name_fr = FR_NAME_BY_NL[municipality_name_nl] ?? municipality_name_nl
   return {
     postalcode,
-    municipality_nl,
-    municipality_fr: FR_NAME_BY_NL[municipality_nl] ?? municipality_nl,
+    municipality_name_nl,
+    municipality_name_fr,
+    // Upstream has no German names at all — fall back to the Dutch label,
+    // the same "no translation, reuse the primary source label" rule
+    // already applied to French above.
+    municipality_name_de: municipality_name_nl,
   }
 })
 
 await writeFile(outputPath, `${JSON.stringify(entries)}\n`, 'utf8')
-console.log(`Wrote ${entries.length} postal codes to ${outputPath}`)
+console.log(`Wrote ${entries.length} municipalities to ${outputPath}`)

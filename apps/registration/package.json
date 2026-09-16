@@ -11,7 +11,7 @@
     "postinstall": "nuxt prepare && node ./scripts/patch-vitest-environment.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed:postal-codes": "node ./scripts/seed-postal-codes.mjs",
+    "seed:municipalities": "node ./scripts/seed-municipalities.mjs",
     "seed:dojos": "node ./scripts/seed-dojos.mjs"
   },
   "dependencies": {

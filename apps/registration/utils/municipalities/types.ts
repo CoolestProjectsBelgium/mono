@@ -1,7 +1,5 @@
-export interface PostalCodeEntry {
-  postalcode: number
-  municipality_nl: string
-  municipality_fr: string
-}
+import type { MunicipalityDto } from '~/types/api'
 
-export type PostalCodeLocale = 'nl' | 'fr' | 'en'
+export type MunicipalityEntry = MunicipalityDto
+
+export type MunicipalityLocale = 'nl' | 'fr' | 'en'

@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   Affiliation,
   Event,
+  Municipality,
   Project,
   Question,
   Registration,
@@ -32,6 +33,7 @@ describe('AppService', () => {
           provide: getModelToken(Affiliation),
           useValue: { findAll: affiliationFindAll },
         },
+        { provide: getModelToken(Municipality), useValue: {} },
       ],
     }).compile();
 

@@ -1,7 +1,9 @@
 import {
   Controller,
   Body,
+  ConflictException,
   Post,
+  Req,
   HttpException,
   HttpStatus,
   BadRequestException,
@@ -20,6 +22,10 @@ import { Info } from '../info.decorator';
 import { InfoDto } from '../dto/info.dto';
 import { OptionalAdminCookieGuard } from '../auth/optional-admin-cookie.guard';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+
+interface OptionalAdminRequest {
+  user?: { isAdmin?: boolean };
+}
 
 @Controller('registration')
 @ApiTags('registration')
@@ -46,10 +52,44 @@ export class RegistrationController {
   async create(
     @Info() info: InfoDto,
     @Body() createRegistrationDto: RegistrationDto,
+    @Req() request: OptionalAdminRequest,
   ) {
+    // OptionalAdminCookieGuard populates request.user (from the same
+    // AdminAuthenticationService.validate() the mandatory admin guard uses)
+    // whenever a valid AdminJS session cookie is present; it's null/undefined
+    // for anonymous public registration. Recognizing that here — rather than
+    // a separate admin-only endpoint — is what lets an admin-driven
+    // registration reuse this same validated path and just skip straight to
+    // activation once it succeeds.
+    const isAdmin = request.user?.isAdmin === true;
     try {
-      await this.registrationService.create(info, createRegistrationDto);
+      const registration = await this.registrationService.create(
+        info,
+        createRegistrationDto,
+        { isAdminCreated: isAdmin },
+      );
+
+      if (!isAdmin) {
+        return;
+      }
+
+      if (!registration) {
+        // create() silently no-ops (emails the existing account, returns
+        // undefined) on a duplicate email — that's an anti-enumeration
+        // measure for anonymous callers, but an authenticated admin should
+        // just be told plainly instead of seeing a false "success".
+        throw new ConflictException(
+          'An account or pending registration already exists for this email in this event.',
+        );
+      }
+
+      return await this.registrationService.activateRegistration(
+        registration.id,
+      );
     } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
       console.error('Error during registration:', error);
       const message =
         error instanceof Error ? error.message : 'Internal server error.';

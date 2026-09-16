@@ -21,7 +21,11 @@ import { componentLoader, Components, Handlers } from './components/index.js';
 import { Authenticate } from './components/login/authenticate.js';
 import eventLoginRouter from './components/login/router.js';
 import { restrictPropertiesToRoleFeature } from './features/restrict-properties-to-role/index.js';
-import { exportOnlyFeature, exportOnlyActions } from './features/export-only/index.js';
+import {
+  exportOnlyFeature,
+  exportOnlyActions,
+} from './features/export-only/index.js';
+import { registerUserHandler } from './components/registration/handler.js';
 import importExportFeature from '@adminjs/import-export';
 import loggerFeature, { createLoggerResource } from '@adminjs/logger';
 import { sequelize } from './database.js';
@@ -359,7 +363,25 @@ const start = async () => {
       {
         resource: sequelize.models.Registration,
         features: [importExportFeature({ componentLoader }), auditLog()],
-        options: { navigation: navRegistration },
+        options: {
+          navigation: navRegistration,
+          actions: {
+            // Separate, additional action — the default "new" stays exactly
+            // as-is (still AdminJS's raw auto-generated form against this
+            // resource's own columns). This one instead proxies to the real
+            // POST /registration (apps/api/src/registration/registration.controller.ts),
+            // so it gets the same validation and — recognized via the
+            // AdminJS session cookie already forwarded by NestApiClient —
+            // immediate activation into a User instead of the normal
+            // email/token flow.
+            registerUser: {
+              actionType: 'resource',
+              icon: 'UserPlus',
+              component: Components.RegisterUser,
+              handler: registerUserHandler,
+            },
+          },
+        },
       },
       {
         resource: sequelize.models.Affiliation,

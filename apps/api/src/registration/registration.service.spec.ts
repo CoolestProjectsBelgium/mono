@@ -11,6 +11,7 @@ import {
   User,
   UserProject,
   Affiliation,
+  Municipality,
 } from '@coolestprojects/database';
 import { MailerService } from '../mailer/mailer.service';
 import { TokensService } from '../tokens/tokens.service';
@@ -135,6 +136,7 @@ describe('RegistrationService', () => {
           },
         },
         { provide: getModelToken(Affiliation), useValue: {} },
+        { provide: getModelToken(Municipality), useValue: {} },
       ],
     }).compile();
 

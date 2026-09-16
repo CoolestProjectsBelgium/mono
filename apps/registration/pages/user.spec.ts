@@ -6,11 +6,12 @@ import { userFixture } from '~/fixtures/user'
 import { activeSettingsFixture } from '~/fixtures/settings'
 import UserPage from './user.vue'
 
-const { fetchUserMock, fetchSettingsMock, fetchTshirtsMock, fetchDojosMock, updateUserMock } = vi.hoisted(() => ({
+const { fetchUserMock, fetchSettingsMock, fetchTshirtsMock, fetchDojosMock, fetchMunicipalitiesMock, updateUserMock } = vi.hoisted(() => ({
   fetchUserMock: vi.fn(),
   fetchSettingsMock: vi.fn(),
   fetchTshirtsMock: vi.fn(),
   fetchDojosMock: vi.fn(),
+  fetchMunicipalitiesMock: vi.fn(),
   updateUserMock: vi.fn(),
 }))
 
@@ -33,6 +34,7 @@ vi.mock('~/composables/useRegistration', () => ({
   useRegistration: () => ({
     fetchTshirts: fetchTshirtsMock,
     fetchDojos: fetchDojosMock,
+    fetchMunicipalities: fetchMunicipalitiesMock,
   }),
 }))
 
@@ -76,11 +78,15 @@ describe('user page profile load', () => {
     fetchSettingsMock.mockReset()
     fetchTshirtsMock.mockReset()
     fetchDojosMock.mockReset()
+    fetchMunicipalitiesMock.mockReset()
     fetchSettingsMock.mockResolvedValue(activeSettingsFixture)
     fetchTshirtsMock.mockResolvedValue([
       { group: 'kids', items: [{ id: 1, name: 'kid_3-4' }, { id: 2, name: 'kid_5-6' }] },
     ])
     fetchDojosMock.mockResolvedValue([{ id: 1, name: 'Balen' }])
+    fetchMunicipalitiesMock.mockResolvedValue([
+      { postalcode: 2800, municipality_name_nl: 'Mechelen', municipality_name_fr: 'Malines', municipality_name_de: 'Mechelen' },
+    ])
   })
 
   it('shows personal info from API in form fields', async () => {

@@ -36,7 +36,7 @@
           <li
             v-for="(entry, index) in results"
             :id="`${inputId}-option-${index}`"
-            :key="`${entry.postalcode}-${entry.municipality_nl}`"
+            :key="`${entry.postalcode}-${entry.municipality_name_nl}`"
             role="option"
             :aria-selected="index === highlightedIndex"
             class="p-0"
@@ -49,7 +49,7 @@
               @mousedown="onOptionMouseDown(entry, $event)"
               @click="onOptionClick(entry)"
             >
-              {{ formatPostalCodeOption(entry, locale) }}
+              {{ formatMunicipalityOption(entry, locale) }}
             </button>
           </li>
         </ul>
@@ -60,12 +60,12 @@
 
 <script setup lang="ts">
 import type { AddressDto } from '~/types/api'
-import type { PostalCodeEntry } from '~/utils/postal-codes/types'
+import type { MunicipalityEntry } from '~/utils/municipalities/types'
 import {
-  formatPostalCodeOption,
-  resolvePostalCodeLabel,
-  searchPostalCodes,
-} from '~/utils/postal-codes/search-postal-codes'
+  formatMunicipalityOption,
+  resolveMunicipalityLabel,
+  searchMunicipalities,
+} from '~/utils/municipalities/search-municipalities'
 
 const model = defineModel<AddressDto>({ required: true })
 
@@ -75,6 +75,7 @@ const props = defineProps<{
   placeholder?: string
   disabled?: boolean
   error?: string
+  entries?: MunicipalityEntry[]
 }>()
 
 const emit = defineEmits<{
@@ -87,11 +88,12 @@ const fieldId = computed(() => props.fieldId ?? 'postalcode')
 const listboxId = computed(() => `${fieldId.value}-listbox`)
 const inputRef = ref<HTMLInputElement | null>(null)
 const inputText = ref('')
-const results = ref<PostalCodeEntry[]>([])
+const results = ref<MunicipalityEntry[]>([])
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 
 function selectedOptionLabel(): string {
-  return resolvePostalCodeLabel(
+  return resolveMunicipalityLabel(
+    props.entries ?? [],
     model.value.postalcode,
     model.value.municipality_name,
     locale.value as 'nl' | 'fr' | 'en',
@@ -109,17 +111,17 @@ function clearSelection() {
   }
 }
 
-function selectEntry(entry: PostalCodeEntry) {
+function selectEntry(entry: MunicipalityEntry) {
   const municipalityName = locale.value === 'fr'
-    ? entry.municipality_fr
-    : entry.municipality_nl
+    ? entry.municipality_name_fr
+    : entry.municipality_name_nl
 
   model.value = {
     ...model.value,
     postalcode: entry.postalcode,
     municipality_name: municipalityName,
   }
-  inputText.value = formatPostalCodeOption(entry, locale.value as 'nl' | 'fr' | 'en')
+  inputText.value = formatMunicipalityOption(entry, locale.value as 'nl' | 'fr' | 'en')
   emit('clear-error')
 }
 
@@ -142,7 +144,7 @@ const {
   onOptionClick,
   onInputBlur,
   onInputKeydown,
-} = useComboboxListbox<PostalCodeEntry>({
+} = useComboboxListbox<MunicipalityEntry>({
   items: results,
   onSelect: selectEntry,
   onDismiss,
@@ -168,7 +170,7 @@ function syncInputFromModel() {
 }
 
 function runSearch(query: string) {
-  results.value = searchPostalCodes(query, locale.value as 'nl' | 'fr' | 'en')
+  results.value = searchMunicipalities(props.entries ?? [], query, locale.value as 'nl' | 'fr' | 'en')
   reveal()
 }
 
