@@ -1,0 +1,10 @@
+
+    <article class="card">
+      {{#if imageDataUri}}<img class="card-img" src="{{imageDataUri}}" alt="{{name}}" loading="lazy">{{/if}}
+      <div class="card-body">
+        <h2>{{name}}</h2>
+        <p class="meta">{{place}} &middot; {{languageLabel}}</p>
+        <p class="participants">{{participantsLabel}}</p>
+        <p class="description">{{nl2br description}}</p>
+      </div>
+    </article>

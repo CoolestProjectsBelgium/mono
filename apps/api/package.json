@@ -8,7 +8,7 @@
   "scripts": {
     "test": "vitest run",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
-    "build": "npx tsc -p ./tsconfig.build.json && node -e \"const fs=require('node:fs');fs.cpSync('src/seeder/fixtures','dist/seeder/fixtures',{recursive:true});fs.cpSync('src/seeder/be-dojos.json','dist/seeder/be-dojos.json');fs.cpSync('src/seeder/be-municipalities.json','dist/seeder/be-municipalities.json')\"",
+    "build": "npx tsc -p ./tsconfig.build.json && node -e \"const fs=require('node:fs');fs.cpSync('src/seeder/fixtures','dist/seeder/fixtures',{recursive:true});fs.cpSync('src/seeder/be-dojos.json','dist/seeder/be-dojos.json');fs.cpSync('src/seeder/be-municipalities.json','dist/seeder/be-municipalities.json');fs.cpSync('src/eventguide/templates','dist/eventguide/templates',{recursive:true})\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "lint": "eslint \"{src,test}/**/*.ts\"",

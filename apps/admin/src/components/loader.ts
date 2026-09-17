@@ -29,6 +29,7 @@ const Components = {
     'Certificates',
     './certificates/Certificates.tsx',
   ),
+  Archiving: componentLoader.add('Archiving', './archiving/Archiving.tsx'),
   TwoFactorSetup: componentLoader.add(
     'TwoFactorSetup',
     './two-factor/TwoFactorSetup.tsx',

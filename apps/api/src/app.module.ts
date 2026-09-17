@@ -37,6 +37,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ArchivingController } from './archiving/archiving.controller';
 import { AuthModule } from './auth/auth.module';
 import { BackgroundService } from './background/background.service';
 import { CertificateController } from './certificate/certificate.controller';
@@ -180,6 +181,7 @@ import configuration from './config/configuration.js';
     PresentationController,
     AdminController,
     CertificateController,
+    ArchivingController,
   ],
   providers: [
     { provide: 'APP_INTERCEPTOR', useClass: InfoInterceptor },

@@ -202,6 +202,13 @@ const start = async () => {
         // @ts-expect-error AdminJS supports label on pages at runtime
         label: 'Certificates',
       },
+      Archiving: {
+        component: Components.Archiving,
+        handler: Handlers.Archiving,
+        icon: 'Download',
+        // @ts-expect-error AdminJS supports label on pages at runtime
+        label: 'Archiving',
+      },
     },
     resources: [
       // --- System: global, not event-scoped, super_admin-only writes ---

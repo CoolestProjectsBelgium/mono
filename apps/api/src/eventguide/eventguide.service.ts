@@ -19,7 +19,8 @@ import {
 } from '../dto/eventguide-project.dto';
 import { parseTableNumber } from './parse-table-number';
 import { resolveFloorplanFilePath, toFloorplanApiPath } from './floorplan-path';
-import { access, stat } from 'node:fs/promises';
+import { buildEventArchiveHtml } from './eventguide-archive-page';
+import { access, readFile, stat } from 'node:fs/promises';
 
 const PHOTO_QUESTION_NAME = 'Agree to Photo';
 
@@ -53,6 +54,71 @@ export class EventguideService {
       throw new NotFoundException('Event not found');
     }
 
+    const { projects: mappedProjects } = await this.loadMappedProjects(eventId);
+
+    const tableAssignedProjects = mappedProjects.filter(
+      (project) => project.tableNumber != null,
+    );
+
+    tableAssignedProjects.sort((left, right) => {
+      const leftTable = left.tableNumber!;
+      const rightTable = right.tableNumber!;
+      if (leftTable !== rightTable) {
+        return leftTable - rightTable;
+      }
+      return left.name.localeCompare(right.name);
+    });
+
+    return {
+      event: await this.mapEvent(event),
+      projects: tableAssignedProjects,
+    };
+  }
+
+  /**
+   * Single self-contained HTML file for an admin to keep after the event —
+   * reuses `getProjects` directly, so the archive always matches the
+   * eventguide exactly (same table-assigned-only filter, same sort). Each
+   * photo is additionally read straight off disk and inlined as a base64
+   * data URI (like the certificate/presentation render pipelines do for
+   * their own assets), so the page needs no backend to view afterward.
+   */
+  async getProjectsArchiveHtml(eventId: number): Promise<Buffer> {
+    const { event, projects } = await this.getProjects(eventId);
+    const { attachmentByProjectId } = await this.loadMappedProjects(eventId);
+
+    const images = new Map<number, string | null>();
+    for (const project of projects) {
+      const attachment = attachmentByProjectId.get(project.id);
+      if (!attachment) {
+        continue;
+      }
+      try {
+        const imagePath = await this.resolveAttachmentImagePath(attachment);
+        const buffer = await readFile(imagePath);
+        images.set(
+          project.id,
+          `data:${attachment.mimetype};base64,${buffer.toString('base64')}`,
+        );
+      } catch {
+        // no readable file for this attachment — leave the card without an image
+      }
+    }
+
+    const html = buildEventArchiveHtml({
+      eventLabel: event.title,
+      generatedAt: new Date().toISOString(),
+      projects,
+      images,
+    });
+
+    return Buffer.from(html, 'utf8');
+  }
+
+  private async loadMappedProjects(eventId: number): Promise<{
+    projects: EventguideProjectDto[];
+    attachmentByProjectId: Map<number, Attachment>;
+  }> {
     const photoQuestion = await this.questionModel.findOne({
       where: { eventId, name: PHOTO_QUESTION_NAME },
       attributes: ['id'],
@@ -122,7 +188,9 @@ export class EventguideService {
       membershipsByProject.set(membership.projectId, list);
     }
 
-    const mappedProjects: EventguideProjectDto[] = projects.map((project) => {
+    const attachmentByProjectId = new Map<number, Attachment>();
+
+    const mappedProjects = projects.map((project) => {
       const table = project.table;
       const tableName = table?.name ?? null;
       const tableNumber = parseTableNumber(tableName);
@@ -153,6 +221,9 @@ export class EventguideService {
         );
 
       const confirmedAttachment = project.attachments?.[0];
+      if (confirmedAttachment) {
+        attachmentByProjectId.set(project.id, confirmedAttachment);
+      }
       const thumbnailUrl = confirmedAttachment
         ? this.getThumbnailUrl(confirmedAttachment.id)
         : null;
@@ -170,23 +241,7 @@ export class EventguideService {
       };
     });
 
-    const tableAssignedProjects = mappedProjects.filter(
-      (project) => project.tableNumber != null,
-    );
-
-    tableAssignedProjects.sort((left, right) => {
-      const leftTable = left.tableNumber!;
-      const rightTable = right.tableNumber!;
-      if (leftTable !== rightTable) {
-        return leftTable - rightTable;
-      }
-      return left.name.localeCompare(right.name);
-    });
-
-    return {
-      event: await this.mapEvent(event),
-      projects: tableAssignedProjects,
-    };
+    return { projects: mappedProjects, attachmentByProjectId };
   }
 
   async getFloorplanFilePath(filename: string): Promise<string> {

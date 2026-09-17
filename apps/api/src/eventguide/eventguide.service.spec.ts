@@ -13,12 +13,13 @@ import {
   UserProject,
 } from '@coolestprojects/database';
 import { createReadStream } from 'node:fs';
-import { access } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import { EventguideService } from './eventguide.service';
 
 vi.mock('node:fs/promises', async () => ({
   ...(await vi.importActual('node:fs/promises')),
   access: vi.fn(),
+  readFile: vi.fn(),
   stat: vi.fn(),
 }));
 
@@ -247,6 +248,120 @@ describe('EventguideService', () => {
     expect(result).toBeDefined();
     expect(createReadStream).toHaveBeenCalledWith('/uploads/project_5/thumb.jpg');
     expect(questionUserModel.count).not.toHaveBeenCalled();
+  });
+
+  it('builds a self-contained archive with the photo inlined as a data URI', async () => {
+    eventModel.findByPk.mockResolvedValue({
+      id: 1,
+      eventTitle: 'Coolest Projects',
+      officialStartDate: new Date('2026-05-01T10:00:00.000Z'),
+      floorplanPath: 'floorplan_active.svg',
+    });
+    questionModel.findOne.mockResolvedValue(null);
+    projectModel.findAll.mockResolvedValue([
+      {
+        id: 5,
+        name: 'Robot Dog',
+        description: 'A walking robot',
+        language: 'nl',
+        table: { name: 'Tafel_03' },
+        attachments: [
+          {
+            id: 42,
+            mimetype: 'image/jpeg',
+            thumbnailPath: '/uploads/project_5/thumb.jpg',
+            filepath: '/uploads/project_5/photo.jpg',
+          },
+        ],
+      },
+    ]);
+    userProjectModel.findAll.mockResolvedValue([]);
+    userModel.findAll.mockResolvedValue([]);
+    (access as Mock).mockResolvedValue(undefined);
+    (readFile as Mock).mockResolvedValue(Buffer.from('fake-image'));
+
+    const html = await service.getProjectsArchiveHtml(1);
+
+    expect(readFile).toHaveBeenCalledWith('/uploads/project_5/thumb.jpg');
+    const output = html.toString('utf8');
+    expect(output).toContain('Coolest Projects');
+    expect(output).toContain('Robot Dog');
+    // Handlebars HTML-escapes the base64 `=` padding as `&#x3D;`, which
+    // browsers decode back to `=` inside an attribute value — so we assert
+    // on the unpadded payload rather than the raw base64 string.
+    const base64Payload = Buffer.from('fake-image')
+      .toString('base64')
+      .replace(/=+$/, '');
+    expect(output).toContain(`data:image/jpeg;base64,${base64Payload}`);
+  });
+
+  it('excludes projects without a table assignment, matching getProjects', async () => {
+    eventModel.findByPk.mockResolvedValue({
+      id: 1,
+      eventTitle: 'Coolest Projects',
+      officialStartDate: new Date('2026-05-01T10:00:00.000Z'),
+      floorplanPath: 'floorplan_active.svg',
+    });
+    questionModel.findOne.mockResolvedValue(null);
+    projectModel.findAll.mockResolvedValue([
+      {
+        id: 5,
+        name: 'On map',
+        description: 'Has table',
+        language: 'nl',
+        table: { name: 'Tafel_01' },
+        attachments: [],
+      },
+      {
+        id: 6,
+        name: 'No table',
+        description: 'Unassigned',
+        language: 'nl',
+        table: null,
+        attachments: [],
+      },
+    ]);
+    userProjectModel.findAll.mockResolvedValue([]);
+    userModel.findAll.mockResolvedValue([]);
+
+    const output = (await service.getProjectsArchiveHtml(1)).toString('utf8');
+
+    expect(output).toContain('On map');
+    expect(output).not.toContain('No table');
+  });
+
+  it('omits the image when the attachment file cannot be read', async () => {
+    eventModel.findByPk.mockResolvedValue({
+      id: 1,
+      eventTitle: 'Event',
+      officialStartDate: new Date('2026-05-01T10:00:00.000Z'),
+      floorplanPath: 'floorplan_active.svg',
+    });
+    questionModel.findOne.mockResolvedValue(null);
+    projectModel.findAll.mockResolvedValue([
+      {
+        id: 5,
+        name: 'Robot Dog',
+        description: 'A walking robot',
+        language: 'nl',
+        table: { name: 'Tafel_03' },
+        attachments: [
+          {
+            id: 42,
+            mimetype: 'image/jpeg',
+            thumbnailPath: '/uploads/project_5/thumb.jpg',
+            filepath: '/uploads/project_5/photo.jpg',
+          },
+        ],
+      },
+    ]);
+    userProjectModel.findAll.mockResolvedValue([]);
+    userModel.findAll.mockResolvedValue([]);
+    (access as Mock).mockRejectedValue(new Error('missing'));
+
+    const html = await service.getProjectsArchiveHtml(1);
+
+    expect(html.toString('utf8')).not.toContain('<img');
   });
 
   it('falls back to the original filepath when the thumbnail file is missing', async () => {
