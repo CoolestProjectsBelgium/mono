@@ -25,6 +25,13 @@
 #   PRESENTATION_API_URL       required — e.g. https://api.coolestprojects.example/presentation
 #   PRESENTATION_USER          required — HTTP Basic auth (the 'presentation'-type Account)
 #   PRESENTATION_PASSWORD      required
+#   PRESENTATION_RESOLUTION    optional — WIDTHxHEIGHT, e.g. 1920x1080 (default: server picks 1920x1080).
+#                              Must be one of the API's allowed resolutions — GET /presentation/resolutions
+#                              lists them. Only checked here for shape (WIDTHxHEIGHT); an unsupported value
+#                              is rejected by the server (HTTP 400) on every request, which shows up as a
+#                              repeating "Could not reach" log line — this script deliberately never makes
+#                              a startup network call just to validate it, so it still starts looping even
+#                              if the API happens to be unreachable at boot.
 #   OUTPUT_DIR                 optional — where slide images + manifest.json land (default: ./deck next to this script)
 #   POLL_INTERVAL_SECONDS      optional — seconds between passes in loop mode (default: 60)
 #
@@ -63,6 +70,7 @@ TMP_DIR="${OUTPUT_DIR}/.tmp"
 SLIDE_LIST_FILE="${SLIDE_LIST_FILE:-}"
 SLIDE_TICK_SECONDS="${SLIDE_TICK_SECONDS:-1}"
 ON_DECK_CHANGED_CMD="${ON_DECK_CHANGED_CMD:-}"
+PRESENTATION_RESOLUTION="${PRESENTATION_RESOLUTION:-}"
 
 # curl retry flags cover a single request's transient failures (dropped
 # connection, timeout, 5xx); the outer loop (run_loop) is what carries the
@@ -93,6 +101,14 @@ require_env() {
     log "SLIDE_TICK_SECONDS must be a positive integer (got '${SLIDE_TICK_SECONDS}')"
     exit 1
   fi
+
+  # Shape-only check — the API is the source of truth for which resolutions
+  # are actually allowed (GET /presentation/resolutions); see the header
+  # comment for why this doesn't call that endpoint at startup.
+  if [[ -n "$PRESENTATION_RESOLUTION" ]] && ! [[ "$PRESENTATION_RESOLUTION" =~ ^[0-9]+x[0-9]+$ ]]; then
+    log "PRESENTATION_RESOLUTION must look like WIDTHxHEIGHT, e.g. 1920x1080 (got '${PRESENTATION_RESOLUTION}')"
+    exit 1
+  fi
 }
 
 require_tools() {
@@ -107,10 +123,13 @@ require_tools() {
 
 api_get() {
   # $1 = path relative to PRESENTATION_API_URL (may be empty for the list
-  # endpoint itself), written to stdout
+  # endpoint itself), written to stdout. Covers both the list call and the
+  # per-slide image download, so PRESENTATION_RESOLUTION only needs wiring
+  # in this one place.
   local path="$1"
   local url="${PRESENTATION_API_URL%/}"
   [[ -n "$path" ]] && url="${url}/${path}"
+  [[ -n "$PRESENTATION_RESOLUTION" ]] && url="${url}?resolution=${PRESENTATION_RESOLUTION}"
   curl "${CURL_OPTS[@]}" --user "${PRESENTATION_USER}:${PRESENTATION_PASSWORD}" "$url"
 }
 

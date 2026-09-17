@@ -19,6 +19,7 @@ describe('PresentationController', () => {
     getSlideImage: jest.fn(),
     getSlideMeta: jest.fn(),
     recordCheckin: jest.fn(),
+    getAllowedResolutions: jest.fn(),
   };
 
   function fakeResponse() {
@@ -41,8 +42,35 @@ describe('PresentationController', () => {
 
     const result = await controller.listSlides({ currentEvent: 1 } as never);
 
-    expect(presentationService.listSlides).toHaveBeenCalledWith(1);
+    expect(presentationService.listSlides).toHaveBeenCalledWith(1, undefined);
     expect(result).toBe(list);
+  });
+
+  it('passes a requested resolution through to the service', async () => {
+    presentationService.listSlides.mockResolvedValue({ slides: [], hash: 'abc' });
+
+    await controller.listSlides({ currentEvent: 1 } as never, '1280x720');
+
+    expect(presentationService.listSlides).toHaveBeenCalledWith(1, '1280x720');
+  });
+
+  describe('getAllowedResolutions', () => {
+    it('returns the service list plus the default key', () => {
+      presentationService.getAllowedResolutions.mockReturnValue([
+        { key: '1280x720', width: 1280, height: 720 },
+        { key: '1920x1080', width: 1920, height: 1080 },
+      ]);
+
+      const result = controller.getAllowedResolutions();
+
+      expect(result).toEqual({
+        resolutions: [
+          { key: '1280x720', width: 1280, height: 720 },
+          { key: '1920x1080', width: 1920, height: 1080 },
+        ],
+        default: '1920x1080',
+      });
+    });
   });
 
   describe('heartbeat', () => {
@@ -84,9 +112,15 @@ describe('PresentationController', () => {
         'slide-1',
         { headers: {} } as never,
         res,
+        '1280x720',
       );
 
       expect(result).toBe(file);
+      expect(presentationService.getSlideImage).toHaveBeenCalledWith(
+        1,
+        'slide-1',
+        '1280x720',
+      );
       expect(res.setHeader).toHaveBeenCalledWith('ETag', '"abc123"');
       expect(res.setHeader).toHaveBeenCalledWith(
         'Last-Modified',
@@ -130,8 +164,14 @@ describe('PresentationController', () => {
         { currentEvent: 1 } as never,
         'slide-1',
         res,
+        '1280x720',
       );
 
+      expect(presentationService.getSlideMeta).toHaveBeenCalledWith(
+        1,
+        'slide-1',
+        '1280x720',
+      );
       expect(presentationService.getSlideImage).not.toHaveBeenCalled();
       expect(res.setHeader).toHaveBeenCalledWith('ETag', '"abc123"');
       expect(res.setHeader).toHaveBeenCalledWith(

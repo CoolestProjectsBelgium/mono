@@ -4,6 +4,7 @@ import {
   Head,
   Param,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -14,7 +15,11 @@ import { PresentationService } from './presentation.service';
 import { PresentationAuthGuard } from '../auth/presentation-auth.guard';
 import { Info } from '../info.decorator';
 import { InfoDto } from '../dto/info.dto';
-import { SlideListResponseDto } from '../dto/slide.dto';
+import {
+  PresentationResolutionsResponseDto,
+  SlideListResponseDto,
+} from '../dto/slide.dto';
+import { DEFAULT_PRESENTATION_RESOLUTION_KEY } from './presentation-resolutions';
 
 @Controller('presentation')
 @ApiTags('presentation')
@@ -23,8 +28,11 @@ export class PresentationController {
   constructor(private presentationService: PresentationService) {}
 
   @Get()
-  async listSlides(@Info() info: InfoDto): Promise<SlideListResponseDto> {
-    return this.presentationService.listSlides(info.currentEvent);
+  async listSlides(
+    @Info() info: InfoDto,
+    @Query('resolution') resolution?: string,
+  ): Promise<SlideListResponseDto> {
+    return this.presentationService.listSlides(info.currentEvent, resolution);
   }
 
   // Called by sync-deck.sh once per poll pass so staff can see which Pis are
@@ -36,15 +44,33 @@ export class PresentationController {
     await this.presentationService.recordCheckin(account.id, req.ip ?? '');
   }
 
+  // Declared before `@Get(':key')`: Nest matches routes in declaration order
+  // per HTTP method, so `resolutions` would otherwise be swallowed as
+  // `key = 'resolutions'` by the dynamic route below.
+  @Get('resolutions')
+  getAllowedResolutions(): PresentationResolutionsResponseDto {
+    return {
+      resolutions: this.presentationService.getAllowedResolutions().map(
+        (resolution) => ({ ...resolution }),
+      ),
+      default: DEFAULT_PRESENTATION_RESOLUTION_KEY,
+    };
+  }
+
   @Get(':key')
   async getSlideImage(
     @Info() info: InfoDto,
     @Param('key') key: string,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+    @Query('resolution') resolution?: string,
   ) {
     const { file, hash, generatedAt } =
-      await this.presentationService.getSlideImage(info.currentEvent, key);
+      await this.presentationService.getSlideImage(
+        info.currentEvent,
+        key,
+        resolution,
+      );
 
     const etag = `"${hash}"`;
     if (req.headers['if-none-match'] === etag) {
@@ -66,10 +92,12 @@ export class PresentationController {
     @Info() info: InfoDto,
     @Param('key') key: string,
     @Res({ passthrough: true }) res: Response,
+    @Query('resolution') resolution?: string,
   ) {
     const { hash, generatedAt } = await this.presentationService.getSlideMeta(
       info.currentEvent,
       key,
+      resolution,
     );
 
     res.setHeader('ETag', `"${hash}"`);

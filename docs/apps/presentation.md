@@ -22,7 +22,7 @@ Not proxied by the Dev Container and has no local URL — there is nothing here 
 
 ## Talks to
 
-- `apps/api` — `PresentationController`/`PresentationService` (`GET /presentation`, `GET`/`HEAD /presentation/:key`, `POST /presentation/heartbeat`), guarded by HTTP Basic auth (`presentation`-type `Account`) — see [api.md](api.md#presentation-slide-deck)
+- `apps/api` — `PresentationController`/`PresentationService` (`GET /presentation`, `GET /presentation/resolutions`, `GET`/`HEAD /presentation/:key`, `POST /presentation/heartbeat`), guarded by HTTP Basic auth (`presentation`-type `Account`) — see [api.md](api.md#presentation-slide-deck)
 - Does not import `packages/database` directly
 
 ## Deck sync script
@@ -32,6 +32,8 @@ Not proxied by the Dev Container and has no local URL — there is nothing here 
 Each pass also posts a best-effort heartbeat (`POST /presentation/heartbeat`) before syncing — a failure there is logged but never fails the pass or triggers the outer backoff, since the deck sync itself is what matters. This is how staff know which venue devices are actually online: see [api.md](api.md#presentation-slide-deck) for what the API does with it (upserts a `PresentationCheckin` row by account + IP, visible read-only in AdminJS under **Presentation → Presentation check-ins**).
 
 `systemd/presentation-sync.service` + `presentation-sync.env.example` run it as a boot-enabled service (`systemctl enable`) so it survives a power outage without anyone touching the device — install steps are in the unit file's header comment.
+
+**Render resolution is per-device config, picked from a fixed API list.** Set `PRESENTATION_RESOLUTION=WIDTHxHEIGHT` (e.g. `1280x720`) in a Pi's env file to match its physical screen — omit it to get the server's default (`1920x1080`). The value must be one of the API's allowed resolutions (`GET /presentation/resolutions`, see [api.md](api.md#presentation-slide-deck)); the script only checks the *shape* (`WIDTHxHEIGHT`) at startup, not that it's actually allowed — it deliberately never makes a network call just to validate this, so it still starts looping even if the API happens to be unreachable at boot. An unsupported value gets rejected by the server (`400`) on every request instead, which shows up as a repeating "Could not reach" log line until the env var is fixed.
 
 ### Display client: feh or imv
 
@@ -50,7 +52,7 @@ The venue fleet is mixed-generation Pis — newer ones (4/5) default to Wayland 
 
 - ~~Presentation data format and update mechanism~~ — resolved, see [api.md](api.md#presentation-slide-deck)
 - ~~Whether a real, dedicated Raspberry Pi display client lives here or is a separate, out-of-monorepo project~~ — resolved: it lives here, as this shell-script fleet (`sync-deck.sh` + `slideshow.sh`/`feh-slideshow.sh`/`imv-slideshow.sh`), not a web app
-- Screen/display mode requirements (resolution/orientation of the venue screens the Pis drive)
+- ~~Screen resolution~~ — resolved: `PRESENTATION_RESOLUTION` picks from a fixed, all-16:9 API allowlist per device, see **Deck sync script** above. Orientation (portrait vs. landscape screens) is still unhandled — the allowed-resolutions list and the render pipeline both assume landscape.
 - Production hosting (how/where the fleet's Pis are provisioned and managed — imaging, remote access, fleet inventory)
 
 ## Status

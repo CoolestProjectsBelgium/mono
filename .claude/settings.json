@@ -75,7 +75,8 @@
       "Bash(npm init *)",
       "Bash(npm install *)",
       "Bash(npm audit *)",
-      "Bash(curl -s -o zipcodes_num_fr_2025.xls \"https://www.bpost.be/sites/default/files/zipcodes/zipcodes_num_fr_2025.xls\")"
+      "Bash(curl -s -o zipcodes_num_fr_2025.xls \"https://www.bpost.be/sites/default/files/zipcodes/zipcodes_num_fr_2025.xls\")",
+      "Bash(bash -n /workspace/apps/presentation/sync-deck.sh)"
     ]
   }
 }

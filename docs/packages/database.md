@@ -56,7 +56,7 @@ Most domain models extend `BaseEventModel` (adds `eventId` FK to `Event`). `Even
 | `Affiliation` | `BaseEventModel` | CoderDojo catalog (`name` without the `Dojo` prefix); served as `GET /dojos` |
 | `Log` | `Model` | AdminJS audit trail (`@adminjs/logger`): action, resource, account, record, JSON `difference` |
 | `PresentationSlide` | `BaseEventModel` | Admin-authored slide config (Handlebars `body`, `dataSource`/`cardinality`, `order`, `time`) |
-| `PresentationRender` | `BaseEventModel` | Render-cache index for the slide deck: one row per rendered slide key (`contentHash`, `imagePath`, `generatedAt`) |
+| `PresentationRender` | `BaseEventModel` | Render-cache index for the slide deck: one row per rendered `(slideKey, resolution)` pair (`contentHash`, `imagePath`, `generatedAt`) |
 | `PresentationCheckin` | — | Last-seen heartbeat per presentation device, keyed by `(accountId, ipAddress)`; upserted by `POST /presentation/heartbeat` |
 
 Exports are listed in `packages/database/src/index.ts`.

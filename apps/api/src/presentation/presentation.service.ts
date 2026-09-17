@@ -20,6 +20,12 @@ import {
   getPresentationDir,
   sanitizePresentationAssetFilename,
 } from './presentation-path';
+import {
+  CANONICAL_RESOLUTION,
+  PRESENTATION_RESOLUTIONS,
+  PresentationResolution,
+  resolvePresentationResolution,
+} from './presentation-resolutions';
 
 /** A visible project's raw, DB-only data — cheap to fetch, safe to hash directly (no file reads). */
 interface ProjectRecord {
@@ -70,8 +76,6 @@ export interface SlideImageResult {
   generatedAt: Date;
 }
 
-const SLIDE_VIEWPORT = { width: 1920, height: 1080, deviceScaleFactor: 1 };
-
 @Injectable()
 export class PresentationService {
   constructor(
@@ -101,10 +105,23 @@ export class PresentationService {
     });
   }
 
-  async listSlides(eventId: number): Promise<SlideListResult> {
+  /** The fixed list of resolutions a Pi may request a rendered slide at. */
+  getAllowedResolutions(): readonly PresentationResolution[] {
+    return PRESENTATION_RESOLUTIONS;
+  }
+
+  async listSlides(
+    eventId: number,
+    resolutionKey?: string,
+  ): Promise<SlideListResult> {
+    const resolution = resolvePresentationResolution(resolutionKey);
     const { specs, assetsFingerprint } = await this.loadDeckContext(eventId);
     const renders = await this.presentationRenderModel.findAll({
-      where: { eventId, slideKey: specs.map((spec) => spec.key) },
+      where: {
+        eventId,
+        resolution: resolution.key,
+        slideKey: specs.map((spec) => spec.key),
+      },
     });
     const renderByKey = new Map(
       renders.map((render) => [render.slideKey, render]),
@@ -131,31 +148,46 @@ export class PresentationService {
   }
 
   /** Hash/last-generated lookup only — never renders. Backs the `HEAD` route. */
-  async getSlideMeta(eventId: number, key: string): Promise<SlideMeta> {
+  async getSlideMeta(
+    eventId: number,
+    key: string,
+    resolutionKey?: string,
+  ): Promise<SlideMeta> {
+    const resolution = resolvePresentationResolution(resolutionKey);
     const { specs, assetsFingerprint } = await this.loadDeckContext(eventId);
     const spec = this.findSpec(specs, key);
     const hash = this.hashSlide(spec, assetsFingerprint);
 
     const render = await this.presentationRenderModel.findOne({
-      where: { eventId, slideKey: key },
+      where: { eventId, slideKey: key, resolution: resolution.key },
     });
     const upToDate = render && render.contentHash === hash;
 
     return { hash, generatedAt: upToDate ? render.generatedAt : null };
   }
 
-  async getSlideImage(eventId: number, key: string): Promise<SlideImageResult> {
+  async getSlideImage(
+    eventId: number,
+    key: string,
+    resolutionKey?: string,
+  ): Promise<SlideImageResult> {
+    const resolution = resolvePresentationResolution(resolutionKey);
     const { common, specs, assetsFingerprint } =
       await this.loadDeckContext(eventId);
     const spec = this.findSpec(specs, key);
     const hash = this.hashSlide(spec, assetsFingerprint);
 
     let render = await this.presentationRenderModel.findOne({
-      where: { eventId, slideKey: key },
+      where: { eventId, slideKey: key, resolution: resolution.key },
     });
 
     if (!render || render.contentHash !== hash) {
-      const imagePath = await this.renderSlide(eventId, common, spec);
+      const imagePath = await this.renderSlide(
+        eventId,
+        common,
+        spec,
+        resolution,
+      );
       const generatedAt = new Date();
       if (render) {
         await render.update({ contentHash: hash, imagePath, generatedAt });
@@ -163,6 +195,7 @@ export class PresentationService {
         render = await this.presentationRenderModel.create({
           eventId,
           slideKey: key,
+          resolution: resolution.key,
           contentHash: hash,
           imagePath,
           generatedAt,
@@ -250,12 +283,14 @@ export class PresentationService {
         )
       : null;
 
+    const canonical = resolvePresentationResolution();
     const html = this.compileSlideHtml(
       input.body,
       backgroundDataUri,
       templateContext,
+      canonical,
     );
-    return this.screenshotHtml(html);
+    return this.screenshotHtml(html, canonical);
   }
 
   /** Visible-project options for the admin's perRecord preview picker. */
@@ -421,6 +456,7 @@ export class PresentationService {
     eventId: number,
     common: Record<string, unknown>,
     spec: SlideSpec,
+    resolution: PresentationResolution,
   ): Promise<string> {
     const assets = await this.loadAssetsContext(eventId);
     const templateContext = await this.buildTemplateContext(
@@ -437,12 +473,13 @@ export class PresentationService {
       spec.body,
       backgroundDataUri,
       templateContext,
+      resolution,
     );
-    const png = await this.screenshotHtml(html);
+    const png = await this.screenshotHtml(html, resolution);
 
     const dir = getPresentationDir(eventId);
     await mkdir(dir, { recursive: true });
-    const filename = `${spec.key}.png`;
+    const filename = `${spec.key}-${resolution.key}.png`;
     await writeFile(path.join(dir, filename), png);
     return filename;
   }
@@ -565,16 +602,29 @@ export class PresentationService {
     }
   }
 
+  /**
+   * Slide `body` is always authored (and every already-saved slide in the DB
+   * was written) against the `CANONICAL_RESOLUTION` (1920x1080) coordinate
+   * space — see `presentation-resolutions.ts`. Rendering at a different
+   * `resolution` never touches that content: it wraps it in a container
+   * fixed at the canonical size and uniformly `transform: scale()`s that
+   * container to fit the real (target-sized) `<body>`/viewport, so admins
+   * never need to author per-resolution content. The background image stays
+   * on the outer, target-sized `<body>` — `background-size: cover` already
+   * scales it correctly per resolution without the transform.
+   */
   private compileSlideHtml(
     body: string,
     backgroundDataUri: string | null,
     context: Record<string, unknown>,
+    resolution: PresentationResolution,
   ): string {
     const template = Handlebars.compile(body, { noEscape: true });
     const contentHtml = template(context);
     const backgroundStyle = backgroundDataUri
       ? `background-image: url('${backgroundDataUri}'); background-size: cover; background-position: center;`
       : '';
+    const scale = resolution.width / CANONICAL_RESOLUTION.width;
 
     return `<!DOCTYPE html>
 <html>
@@ -582,18 +632,28 @@ export class PresentationService {
 <style>
   body {
     margin: 0;
-    width: ${SLIDE_VIEWPORT.width}px;
-    height: ${SLIDE_VIEWPORT.height}px;
+    width: ${resolution.width}px;
+    height: ${resolution.height}px;
+    overflow: hidden;
     font-family: Arial, sans-serif;
     ${backgroundStyle}
   }
+  .presentation-canonical-canvas {
+    width: ${CANONICAL_RESOLUTION.width}px;
+    height: ${CANONICAL_RESOLUTION.height}px;
+    transform-origin: top left;
+    transform: scale(${scale});
+  }
 </style>
 </head>
-<body>${contentHtml}</body>
+<body><div class="presentation-canonical-canvas">${contentHtml}</div></body>
 </html>`;
   }
 
-  private async screenshotHtml(html: string): Promise<Buffer> {
+  private async screenshotHtml(
+    html: string,
+    resolution: PresentationResolution,
+  ): Promise<Buffer> {
     // Containers (dev and deploy) run this as root with no user-namespace sandboxing
     // available, which Chrome's zygote refuses to start under unless sandboxing is
     // disabled explicitly (see https://crbug.com/638180).
@@ -604,7 +664,11 @@ export class PresentationService {
 
     try {
       const page = await browser.newPage();
-      await page.setViewport(SLIDE_VIEWPORT);
+      await page.setViewport({
+        width: resolution.width,
+        height: resolution.height,
+        deviceScaleFactor: 1,
+      });
       await page.setContent(html);
       const image = await page.screenshot({ type: 'png' });
       return Buffer.from(image);

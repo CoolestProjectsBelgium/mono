@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import {
@@ -400,6 +400,96 @@ describe('PresentationService', () => {
       await service.getSlideImage(1, 'slide-12');
 
       expect(launch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('resolutions', () => {
+    it('lists the fixed allowed resolutions', () => {
+      expect(service.getAllowedResolutions()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ key: '1920x1080', width: 1920, height: 1080 }),
+          expect.objectContaining({ key: '1280x720', width: 1280, height: 720 }),
+        ]),
+      );
+    });
+
+    it('rejects an unsupported resolution on getSlideImage', async () => {
+      presentationSlideFindAll.mockResolvedValue([
+        {
+          id: 12,
+          order: 0,
+          time: 10,
+          dataSource: 'none',
+          cardinality: 'single',
+          body: '<h1>hi</h1>',
+          imagePath: null,
+        },
+      ]);
+
+      await expect(
+        service.getSlideImage(1, 'slide-12', '999x999'),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('caches getSlideImage separately per resolution', async () => {
+      presentationSlideFindAll.mockResolvedValue([
+        {
+          id: 12,
+          order: 0,
+          time: 10,
+          dataSource: 'none',
+          cardinality: 'single',
+          body: '<h1>hi</h1>',
+          imagePath: null,
+        },
+      ]);
+
+      await service.getSlideImage(1, 'slide-12', '1280x720');
+
+      expect(presentationRenderFindOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ resolution: '1280x720' }),
+        }),
+      );
+      expect(presentationRenderCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ slideKey: 'slide-12', resolution: '1280x720' }),
+      );
+
+      // A cached render for one resolution must not be treated as a hit for another.
+      presentationRenderFindOne.mockImplementation(({ where }) =>
+        where.resolution === '1280x720'
+          ? Promise.resolve({
+              contentHash: 'irrelevant',
+              generatedAt: new Date(),
+              imagePath: 'slide-12-1280x720.png',
+            })
+          : Promise.resolve(null),
+      );
+      launch.mockClear();
+
+      await service.getSlideImage(1, 'slide-12', '1920x1080');
+
+      expect(launch).toHaveBeenCalledTimes(1);
+    });
+
+    it('defaults to 1920x1080 when no resolution is given', async () => {
+      presentationSlideFindAll.mockResolvedValue([
+        {
+          id: 12,
+          order: 0,
+          time: 10,
+          dataSource: 'none',
+          cardinality: 'single',
+          body: '<h1>hi</h1>',
+          imagePath: null,
+        },
+      ]);
+
+      await service.getSlideImage(1, 'slide-12');
+
+      expect(presentationRenderCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ resolution: '1920x1080' }),
+      );
     });
   });
 
