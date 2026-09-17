@@ -28,6 +28,10 @@ import {
 import { registerUserHandler } from './components/registration/handler.js';
 import importExportFeature from '@adminjs/import-export';
 import loggerFeature, { createLoggerResource } from '@adminjs/logger';
+import {
+  twoFactorSetupHandler,
+  twoFactorDisableHandler,
+} from './components/two-factor/actions.js';
 import { sequelize } from './database.js';
 import {
   exportAllResource,
@@ -210,6 +214,15 @@ const start = async () => {
             // may change account_type — prevents an admin from escalating their own
             // privileges. Enforced by restrictPropertiesToRoleFeature (see features below).
             account_type: { custom: { role: 'super_admin' } },
+            twoFactorSecret: { isVisible: false },
+            // Status only — set exclusively by the twoFactorSetup/twoFactorDisable
+            // actions below, never hand-edited via the form.
+            twoFactorEnabled: {
+              isVisible: { list: true, filter: true, show: true, edit: false },
+            },
+            // Same restrictPropertiesToRoleFeature pattern as account_type — only a
+            // super_admin can mandate 2FA on an account.
+            twoFactorRequired: { custom: { role: 'super_admin' } },
           },
           navigation: navSystem,
           actions: {
@@ -242,6 +255,28 @@ const start = async () => {
             new: { isAccessible: canAccessResourceRoleFilter('super_admin') },
             delete: {
               isAccessible: canAccessResourceRoleFilter('super_admin'),
+            },
+            // Scanning a QR code only makes sense for your own device — a super_admin
+            // can't set up 2FA on someone else's behalf.
+            twoFactorSetup: {
+              actionType: 'record',
+              icon: 'Lock',
+              component: Components.TwoFactorSetup,
+              handler: twoFactorSetupHandler,
+              isAccessible: canAccessResourceFieldMatch('id', 'id'),
+            },
+            // Recovery path for a lost device: a super_admin can also turn this off
+            // for someone else, same override used for show/edit above.
+            twoFactorDisable: {
+              actionType: 'record',
+              icon: 'Unlock',
+              component: false,
+              guard: 'Are you sure you want to disable two-factor authentication for this account?',
+              handler: twoFactorDisableHandler,
+              isAccessible: orAccess(
+                canAccessResourceRoleFilter('super_admin'),
+                canAccessResourceFieldMatch('id', 'id'),
+              ),
             },
           },
         },
@@ -786,6 +821,10 @@ const start = async () => {
       cookiePassword: ADMINJS_COOKIE_SECRET,
       cookieName: 'adminjs',
       authenticate: Authenticate,
+      // Per-IP retry limiter built into @adminjs/express, previously unset
+      // (unlimited retries) — throttles brute-forcing both the password and,
+      // now, the TOTP code.
+      maxRetries: { count: 5, duration: 60 },
     },
     null,
     {

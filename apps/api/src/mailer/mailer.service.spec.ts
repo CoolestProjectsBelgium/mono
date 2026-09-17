@@ -60,6 +60,7 @@ describe('MailerService', () => {
 
   const emailLogModel = {
     create: jest.fn().mockResolvedValue(undefined),
+    build: jest.fn().mockReturnValue({ save: jest.fn().mockResolvedValue(undefined) }),
   };
 
   beforeEach(async () => {

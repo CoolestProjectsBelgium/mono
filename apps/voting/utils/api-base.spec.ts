@@ -21,12 +21,12 @@ describe('resolveApiBase', () => {
       .toBe('https://voting.coolestprojects.localhost:8443')
   })
 
-  it('uses localhost:3001 when the app is opened via port-forward', () => {
+  it('returns configured base for other hostnames', () => {
     vi.stubGlobal('window', {
       location: { hostname: 'localhost', protocol: 'http:' },
     })
 
     expect(resolveApiBase('https://api.coolestprojects.localhost:8443'))
-      .toBe('http://localhost:3001')
+      .toBe('https://api.coolestprojects.localhost:8443')
   })
 })

@@ -1,28 +1,14 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { resolveApiBase } from './api-base'
 
 describe('resolveApiBase', () => {
-  beforeEach(() => {
-    vi.stubGlobal('window', {
-      location: { hostname: 'registration.coolestprojects.localhost', protocol: 'https:' },
-    })
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
-  it('returns configured base for proxy hostnames', () => {
+  it('returns the configured API base', () => {
     expect(resolveApiBase('https://api.coolestprojects.localhost:8443'))
       .toBe('https://api.coolestprojects.localhost:8443')
   })
 
-  it('uses localhost:3001 when the app is opened via port-forward', () => {
-    vi.stubGlobal('window', {
-      location: { hostname: 'localhost', protocol: 'http:' },
-    })
-
-    expect(resolveApiBase('https://api.coolestprojects.localhost:8443'))
-      .toBe('http://localhost:3001')
+  it('strips a trailing slash', () => {
+    expect(resolveApiBase('https://api.coolestprojects.localhost:8443/'))
+      .toBe('https://api.coolestprojects.localhost:8443')
   })
 })

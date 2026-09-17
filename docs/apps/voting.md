@@ -41,7 +41,7 @@ Local URL (via proxy): `https://voting.coolestprojects.localhost:8443`
   - `POST /projects/:projectId` — body `[{ id, value }]`
   - `GET /sse` — Server-Sent Events stream (Bearer JWT); see [SSE](#sse) below
 - CSRF: `GET /csrf-token` + `x-csrf-token` on mutating requests; `credentials: 'include'`
-- API base: `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`). On `https://voting.coolestprojects.localhost:8443` dev, the app calls the API same-origin (TLS proxy + Nitro server routes forward `/csrf-token`, `/auth`, `/languages`, `/projects`, `/sse` → port 3001). Port-forward `localhost:3005` resolves API to `localhost:3001`.
+- API base: `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`). On `https://voting.coolestprojects.localhost:8443` dev, the app calls the API same-origin (TLS proxy + Nitro server routes forward `/csrf-token`, `/auth`, `/languages`, `/projects`, `/sse` → port 3001). **Never hardcode `localhost`/`127.0.0.1` as the API origin in browser code** — `resolveApiBase()` (`utils/api-base.ts`) always resolves to the full `NUXT_PUBLIC_API_BASE_URL` domain, or same-origin on the app's own proxy host; it must not special-case a bare `localhost` hostname.
 - Does not import `packages/database` directly
 
 ## Key flows

@@ -1,11 +1,18 @@
 import { NotFoundException, StreamableFile } from '@nestjs/common';
 import { access } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
 import * as path from 'node:path';
 import { EventguideService } from './eventguide.service';
 import { getFloorplanDir } from './floorplan-path';
 
 jest.mock('node:fs/promises', () => ({
+  ...jest.requireActual('node:fs/promises'),
   access: jest.fn(),
+}));
+
+jest.mock('node:fs', () => ({
+  ...jest.requireActual('node:fs'),
+  createReadStream: jest.fn(),
 }));
 
 jest.mock('./floorplan-path', () => ({
@@ -29,6 +36,7 @@ describe('EventguideService floorplan serving', () => {
     jest.clearAllMocks();
     process.env.UPLOAD_ROOT = '/tmp/uploads';
     (getFloorplanDir as jest.Mock).mockReturnValue('/tmp/uploads/floorplans');
+    (createReadStream as jest.Mock).mockReturnValue('stream');
   });
 
   it('returns a streamable floor plan file', async () => {

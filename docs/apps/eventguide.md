@@ -34,7 +34,7 @@ Local URL (via proxy): `https://eventguide.coolestprojects.localhost:8443`
   - `GET /eventguide/events/:eventId/projects` — explicit event (including past events)
   - `GET /eventguide/floorplans/:filename` — processed floor plan SVG from `UPLOAD_ROOT/floorplans/`
   - `GET /eventguide/attachments/:attachmentId/thumbnail` — confirmed project photo (served when the attachment is confirmed; falls back to the original file if the thumbnail is missing on disk)
-- API base: `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`). On `https://eventguide.coolestprojects.localhost:8443` dev, Nitro proxies `/eventguide/**` → port 3001.
+- API base: `NUXT_PUBLIC_API_BASE_URL` (default `https://api.coolestprojects.localhost:8443`). On `https://eventguide.coolestprojects.localhost:8443` dev, Nitro proxies `/eventguide/**` → port 3001. **Never hardcode `localhost`/`127.0.0.1` as the API origin in browser code** — `resolveApiBase()` (`utils/api-base.ts`) always resolves to the full `NUXT_PUBLIC_API_BASE_URL` domain, or same-origin on the app's own proxy host; it must not special-case a bare `localhost` hostname.
 - Does not import `@coolestprojects/database` directly
 
 ## Key flows

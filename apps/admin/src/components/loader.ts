@@ -29,6 +29,10 @@ const Components = {
     'Certificates',
     './certificates/Certificates.tsx',
   ),
+  TwoFactorSetup: componentLoader.add(
+    'TwoFactorSetup',
+    './two-factor/TwoFactorSetup.tsx',
+  ),
   RegisterUser: componentLoader.add(
     'RegisterUser',
     './registration/RegisterUser.tsx',

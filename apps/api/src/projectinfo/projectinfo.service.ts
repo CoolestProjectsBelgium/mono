@@ -1,4 +1,9 @@
-import { Injectable, Logger, StreamableFile } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  StreamableFile,
+} from '@nestjs/common';
 import { InjectModel, InjectConnection } from '@nestjs/sequelize';
 import { Project, User, Event } from '@coolestprojects/database';
 import { Op } from 'sequelize';
@@ -8,6 +13,7 @@ import { AttachmentDto } from '../dto/attachment.dto';
 import { ParticipantDto } from '../dto/participant.dto';
 import { VoucherCreatedDto } from '../dto/voucher-created.dto';
 import { createReadStream } from 'node:fs';
+import { access } from 'node:fs/promises';
 import { Attachment } from '@coolestprojects/database';
 import { Sequelize } from 'sequelize-typescript';
 import { randomUUID } from 'crypto';
@@ -85,11 +91,20 @@ export class ProjectinfoService {
     });
 
     if (!attachment) {
-      throw new Error('Attachment not found');
+      throw new NotFoundException('Attachment not found');
     }
 
+    await this.assertFileExists(attachment.filepath);
     const file = createReadStream(attachment.filepath);
     return new StreamableFile(file, { type: attachment.mimetype });
+  }
+
+  private async assertFileExists(filePath: string): Promise<void> {
+    try {
+      await access(filePath);
+    } catch {
+      throw new NotFoundException('Attachment file not found');
+    }
   }
 
   private getThumbnailUrl(attachmentId: number): string {
