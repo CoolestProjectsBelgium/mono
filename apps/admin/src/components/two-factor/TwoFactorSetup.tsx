@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { ApiClient } from 'adminjs';
 import type { ActionProps } from 'adminjs';
-import { Box, Button, H2, Input, Label, Text } from '@adminjs/design-system';
+import {
+  Box,
+  Button,
+  FormGroup,
+  Input,
+  Label,
+  Text,
+} from '@adminjs/design-system';
 
 const api = new ApiClient();
 
@@ -87,7 +94,6 @@ const TwoFactorSetup: React.FC<ActionProps> = ({ record, resource }) => {
   if (enabled) {
     return (
       <Box variant="grey">
-        <H2>Two-factor authentication</H2>
         <Text>Two-factor authentication is enabled for this account.</Text>
       </Box>
     );
@@ -95,7 +101,6 @@ const TwoFactorSetup: React.FC<ActionProps> = ({ record, resource }) => {
 
   return (
     <Box variant="grey">
-      <H2>Set up two-factor authentication</H2>
       <Text mb="lg">
         Scan this QR code with an authenticator app (e.g. Google Authenticator),
         then enter the 6-digit code it shows to confirm.
@@ -116,24 +121,26 @@ const TwoFactorSetup: React.FC<ActionProps> = ({ record, resource }) => {
           Can&apos;t scan it? Enter this key manually: <code>{secret}</code>
         </Text>
       )}
-      <Label htmlFor="code">Authenticator code</Label>
-      <Input
-        id="code"
-        name="code"
-        value={code}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-          setCode(event.target.value)
-        }
-      />
+      <FormGroup>
+        <Label htmlFor="code">Authenticator code</Label>
+        <Input
+          id="code"
+          name="code"
+          value={code}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            setCode(event.target.value)
+          }
+        />
+      </FormGroup>
       {message && (
         <Text
           color={message.type === 'error' ? 'danger' : 'success'}
-          mt="default"
+          mb="lg"
         >
           {message.text}
         </Text>
       )}
-      <Button mt="lg" variant="primary" onClick={confirmCode}>
+      <Button variant="primary" onClick={confirmCode}>
         Confirm
       </Button>
     </Box>
