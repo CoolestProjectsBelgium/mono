@@ -61,6 +61,7 @@ services:
     volumes:
       - ..:/workspace:cached
       - files-data:/tmp/files
+      - puppeteer-cache:/root/.cache/puppeteer
 
     working_dir: /workspace
 
@@ -142,3 +143,4 @@ services:
 volumes:
   db-data:
   files-data:
+  puppeteer-cache:

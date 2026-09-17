@@ -16,6 +16,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@adminjs/design-system": "^4.1.0",
     "@adminjs/express": "^6.1.1",
     "@adminjs/import-export": "^3.0.0",
     "@adminjs/logger": "^5.0.1",

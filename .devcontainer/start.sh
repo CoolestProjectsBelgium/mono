@@ -18,17 +18,11 @@ update-ca-certificates
 # script backgrounds, regardless of how this script itself was invoked.
 export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--use-system-ca"
 
-# Puppeteer (used by apps/api for presentation PDF export) needs both the Chrome
-# binary itself and, since the base image ships no browser runtime deps, the
-# shared libraries Chrome links against at launch (e.g. libnspr4/libnss3) —
-# without these it downloads fine but fails with "error while loading shared
-# libraries" at launch time.
-apt-get update -qq
-apt-get install -y --no-install-recommends \
-	libnspr4 libnss3 libdrm2 libgbm1 libxkbcommon0 libxcomposite1 libxdamage1 \
-	libxfixes3 libxrandr2 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 \
-	libasound2t64 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libgtk-3-0t64 libglib2.0-0t64
-rm -rf /var/lib/apt/lists/*
+# Puppeteer (used by apps/api for presentation PDF export) needs the Chrome
+# binary itself — its shared library runtime deps are baked into the image
+# (see dockerfile_workspace/Dockerfile) so they don't need reinstalling here.
+# The browser binary itself lands in the puppeteer-cache volume, so this is a
+# no-op after the first container start.
 npx puppeteer browsers install chrome
 
 npm i -g @nestjs/cli
