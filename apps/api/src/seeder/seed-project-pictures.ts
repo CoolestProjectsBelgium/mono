@@ -1,5 +1,6 @@
 import { copyFile, mkdir, stat } from 'node:fs/promises';
 import * as path from 'node:path';
+import { randomUUID } from 'crypto';
 import type {
   Attachment,
   Event,
@@ -14,6 +15,12 @@ import { findActiveEvent } from './seed-voting-fixtures';
 const FIXTURE_COUNT = 6;
 const PHOTO_QUESTION_NAME = 'Agree to Photo';
 
+// FileUploadService.saveFile() only ever gives the first few projects a
+// second, unconfirmed photo in real events (most participants never bother
+// re-uploading once their cover photo is approved) — mirrored here so
+// admin's PictureSelector has a realistic pending-review case in dev.
+const PENDING_REVIEW_PROJECT_COUNT = 3;
+
 export interface SeedProjectAttachment {
   eventId: number;
   projectId: number;
@@ -21,26 +28,35 @@ export interface SeedProjectAttachment {
   thumbnailPath: string;
   name: string;
   mimetype: string;
+  size: number;
   confirmed: boolean;
+  internal: boolean;
 }
 
 function fixtureBasename(index: number): string {
   return String((index % FIXTURE_COUNT) + 1).padStart(2, '0');
 }
 
-export async function seedProjectPicture(
+/**
+ * Copies one fixture image/thumbnail pair into a project's upload folder,
+ * naming the files the way FileUploadService.saveFile() names a real
+ * upload (random UUID + extension, thumbnail_-prefixed) so seeded
+ * attachments are structurally indistinguishable from production ones.
+ */
+async function copyFixtureAttachment(
   uploadRoot: string,
   eventFolderName: string,
   eventId: number,
   project: Project,
-  fixtureIndex: number,
+  basename: string,
+  confirmed: boolean,
 ): Promise<SeedProjectAttachment> {
-  const basename = fixtureBasename(fixtureIndex);
+  const originalName = `project-${basename}.png`;
   const fixtureDir = path.join(__dirname, 'fixtures', 'project-images');
-  const fixtureImage = path.join(fixtureDir, `project-${basename}.png`);
+  const fixtureImage = path.join(fixtureDir, originalName);
   const fixtureThumbnail = path.join(fixtureDir, `thumbnail-${basename}.png`);
 
-  await stat(fixtureImage);
+  const imageStat = await stat(fixtureImage);
   await stat(fixtureThumbnail);
 
   const projectDir = path.join(
@@ -50,8 +66,9 @@ export async function seedProjectPicture(
   );
   await mkdir(projectDir, { recursive: true });
 
-  const filepath = path.join(projectDir, 'project-photo.png');
-  const thumbnailPath = path.join(projectDir, 'project-photo-thumbnail.png');
+  const filename = `${randomUUID()}.png`;
+  const filepath = path.join(projectDir, filename);
+  const thumbnailPath = path.join(projectDir, `thumbnail_${filename}`);
   await copyFile(fixtureImage, filepath);
   await copyFile(fixtureThumbnail, thumbnailPath);
 
@@ -60,10 +77,50 @@ export async function seedProjectPicture(
     projectId: project.id,
     filepath,
     thumbnailPath,
-    name: `${project.name} photo`,
+    // Production stores the participant's original filename here; the
+    // fixture's own filename plays that role for seeded data.
+    name: originalName,
     mimetype: 'image/png',
-    confirmed: true,
+    size: imageStat.size,
+    confirmed,
+    internal: false,
   };
+}
+
+export async function seedProjectPicture(
+  uploadRoot: string,
+  eventFolderName: string,
+  eventId: number,
+  project: Project,
+  fixtureIndex: number,
+): Promise<SeedProjectAttachment> {
+  return copyFixtureAttachment(
+    uploadRoot,
+    eventFolderName,
+    eventId,
+    project,
+    fixtureBasename(fixtureIndex),
+    true,
+  );
+}
+
+export async function seedPendingProjectPicture(
+  uploadRoot: string,
+  eventFolderName: string,
+  eventId: number,
+  project: Project,
+  fixtureIndex: number,
+): Promise<SeedProjectAttachment> {
+  // Offset by one fixture so the pending photo is visibly different from
+  // the already-confirmed one sitting next to it.
+  return copyFixtureAttachment(
+    uploadRoot,
+    eventFolderName,
+    eventId,
+    project,
+    fixtureBasename(fixtureIndex + 1),
+    false,
+  );
 }
 
 export async function seedProjectPictures(
@@ -85,6 +142,17 @@ export async function seedProjectPictures(
         i,
       ),
     );
+    if (i < PENDING_REVIEW_PROJECT_COUNT) {
+      attachments.push(
+        await seedPendingProjectPicture(
+          uploadRoot,
+          eventFolderName,
+          eventId,
+          activeProjects[i],
+          i,
+        ),
+      );
+    }
   }
 
   return attachments;
@@ -115,10 +183,10 @@ export async function ensureSeedProjectPictures(
   const attachmentsToCreate: SeedProjectAttachment[] = [];
   for (let i = 0; i < projects.length && i < FIXTURE_COUNT; i++) {
     const project = projects[i];
-    const existingCount = await attachmentModel.count({
+    const confirmedCount = await attachmentModel.count({
       where: { projectId: project.id, confirmed: true },
     });
-    if (existingCount === 0) {
+    if (confirmedCount === 0) {
       attachmentsToCreate.push(
         await seedProjectPicture(
           process.env.UPLOAD_ROOT,
@@ -128,6 +196,23 @@ export async function ensureSeedProjectPictures(
           i,
         ),
       );
+    }
+
+    if (i < PENDING_REVIEW_PROJECT_COUNT) {
+      const pendingCount = await attachmentModel.count({
+        where: { projectId: project.id, confirmed: false },
+      });
+      if (pendingCount === 0) {
+        attachmentsToCreate.push(
+          await seedPendingProjectPicture(
+            process.env.UPLOAD_ROOT,
+            event.folderName,
+            event.id,
+            project,
+            i,
+          ),
+        );
+      }
     }
   }
 

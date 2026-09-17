@@ -33,13 +33,11 @@ npm run build --workspace=packages/database
 # build the api cli
 npm run build --workspace=apps/api
 
-# copy demo images to project 1 folder
-if [[ -n "${UPLOAD_ROOT:-}" ]]; then
-	mkdir -p "$UPLOAD_ROOT/coolestprojects/project_1"
-	cp -R .devcontainer/images/. "$UPLOAD_ROOT/coolestprojects/project_1/"
-fi
-
-# load test db
+# Reset + reseed the dev db (npm run seed-db -> event:init -> seedDatabase).
+# This also copies each demo project's photo(s) into its own upload folder
+# (event 1, project_1, project_2, ... — real project IDs, not a hardcoded
+# project_1) via seed-project-pictures.ts, so no separate copy step is
+# needed here.
 npm run seed-db --workspace=apps/api
 
 # Start Admin app
