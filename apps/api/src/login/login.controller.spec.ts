@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -11,33 +12,33 @@ import { MailerService } from '../mailer/mailer.service';
 import { User, Registration } from '@coolestprojects/database';
 import { UserCookieInterceptor } from '../user-cookie.interceptor';
 
-jest.mock('jsonwebtoken', () => ({
-  verify: jest.fn(),
+vi.mock('jsonwebtoken', () => ({
+  verify: vi.fn(),
 }));
 
 describe('LoginController', () => {
   let controller: LoginController;
   const registrationService = {
-    activateRegistration: jest.fn(),
+    activateRegistration: vi.fn(),
   };
   const tokensService = {
-    generateLoginToken: jest.fn().mockReturnValue('login-jwt'),
-    generateRegistrationToken: jest.fn().mockReturnValue('registration-jwt'),
+    generateLoginToken: vi.fn().mockReturnValue('login-jwt'),
+    generateRegistrationToken: vi.fn().mockReturnValue('registration-jwt'),
   };
   const mailerService = {
-    loginMail: jest.fn(),
-    registrationMail: jest.fn(),
+    loginMail: vi.fn(),
+    registrationMail: vi.fn(),
   };
   const userModel = {
-    findByPk: jest.fn(),
-    findOne: jest.fn(),
+    findByPk: vi.fn(),
+    findOne: vi.fn(),
   };
   const registrationModel = {
-    findOne: jest.fn(),
+    findOne: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       imports: [ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }])],
       controllers: [LoginController],
@@ -50,8 +51,8 @@ describe('LoginController', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn(),
-            getOrThrow: jest.fn().mockReturnValue('test-jwt-secret'),
+            get: vi.fn(),
+            getOrThrow: vi.fn().mockReturnValue('test-jwt-secret'),
           },
         },
         UserCookieInterceptor,
@@ -63,7 +64,7 @@ describe('LoginController', () => {
 
   it('activates login for returning users', async () => {
     const user = { id: 7, language: 'nl' };
-    (verify as jest.Mock).mockReturnValue({ userID: 7 });
+    (verify as Mock).mockReturnValue({ userID: 7 });
     userModel.findByPk.mockResolvedValue(user);
 
     const req: { user?: User } = {};
@@ -74,7 +75,7 @@ describe('LoginController', () => {
   });
 
   it('rejects invalid login tokens', async () => {
-    (verify as jest.Mock).mockImplementation(() => {
+    (verify as Mock).mockImplementation(() => {
       throw new Error('invalid');
     });
 
@@ -84,7 +85,7 @@ describe('LoginController', () => {
   });
 
   it('does not set session when registration token was already consumed', async () => {
-    (verify as jest.Mock).mockReturnValue({ registrationID: 13 });
+    (verify as Mock).mockReturnValue({ registrationID: 13 });
     registrationService.activateRegistration.mockRejectedValue(
       new ConflictException('Registration already activated'),
     );

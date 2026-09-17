@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import { UserinfoService } from './userinfo.service';
@@ -8,8 +9,8 @@ import { MailerService } from '../mailer/mailer.service';
 
 describe('UserinfoService', () => {
   let service: UserinfoService;
-  let findByPk: jest.Mock;
-  let accountDeletedMail: jest.Mock;
+  let findByPk: Mock;
+  let accountDeletedMail: Mock;
 
   const mockUser = {
     id: 1,
@@ -28,8 +29,8 @@ describe('UserinfoService', () => {
     postalcode: 1000,
     municipality_name: 'Brussel',
     birthmonth: new Date(2010, 5, 1),
-    save: jest.fn().mockResolvedValue(undefined),
-    destroy: jest.fn().mockResolvedValue(undefined),
+    save: vi.fn().mockResolvedValue(undefined),
+    destroy: vi.fn().mockResolvedValue(undefined),
   } as unknown as User;
 
   const updatePayload: UserDto = {
@@ -67,8 +68,8 @@ describe('UserinfoService', () => {
       email_guardian: '',
       email: 'test@example.com',
     });
-    findByPk = jest.fn().mockResolvedValue(mockUser);
-    accountDeletedMail = jest.fn().mockResolvedValue(undefined);
+    findByPk = vi.fn().mockResolvedValue(mockUser);
+    accountDeletedMail = vi.fn().mockResolvedValue(undefined);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserinfoService,
@@ -76,13 +77,13 @@ describe('UserinfoService', () => {
           provide: getModelToken(User),
           useValue: {
             findByPk,
-            findOne: jest.fn(),
+            findOne: vi.fn(),
           },
         },
         {
           provide: getModelToken(Affiliation),
           useValue: {
-            findOne: jest.fn(),
+            findOne: vi.fn(),
           },
         },
         {
@@ -150,7 +151,7 @@ describe('UserinfoService', () => {
       accountDeletedMail.mockImplementation(async () => {
         calls.push('mail');
       });
-      (mockUser.destroy as jest.Mock).mockImplementation(async () => {
+      (mockUser.destroy as Mock).mockImplementation(async () => {
         calls.push('destroy');
       });
 

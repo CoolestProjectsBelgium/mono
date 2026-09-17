@@ -21,7 +21,7 @@ describe('syncEventCopy', () => {
 
   function makeQuestionModel(findResults: Record<string, Question | null>) {
     return {
-      findOne: jest.fn(async ({ where }: { where: { name: string } }) => {
+      findOne: vi.fn(async ({ where }: { where: { name: string } }) => {
         if (Object.prototype.hasOwnProperty.call(findResults, where.name)) {
           return findResults[where.name];
         }
@@ -44,7 +44,7 @@ describe('syncEventCopy', () => {
   ) {
     const rows = [...existing];
     return {
-      findOne: jest.fn(
+      findOne: vi.fn(
         async ({
           where,
         }: {
@@ -61,13 +61,13 @@ describe('syncEventCopy', () => {
           }
           return {
             ...row,
-            update: jest.fn(async (values: Partial<typeof row>) => {
+            update: vi.fn(async (values: Partial<typeof row>) => {
               Object.assign(row, values);
             }),
           };
         },
       ),
-      create: jest.fn(async (values: typeof rows[number]) => {
+      create: vi.fn(async (values: typeof rows[number]) => {
         const row = { ...values, id: rows.length + 1 };
         rows.push(row);
         return row;
@@ -89,7 +89,7 @@ describe('syncEventCopy', () => {
   ) {
     const rows = [...existing];
     return {
-      findOne: jest.fn(
+      findOne: vi.fn(
         async ({
           where,
         }: {
@@ -106,13 +106,13 @@ describe('syncEventCopy', () => {
           }
           return {
             ...row,
-            update: jest.fn(async (values: Partial<typeof row>) => {
+            update: vi.fn(async (values: Partial<typeof row>) => {
               Object.assign(row, values);
             }),
           };
         },
       ),
-      create: jest.fn(async (values: typeof rows[number]) => {
+      create: vi.fn(async (values: typeof rows[number]) => {
         const row = { ...values, id: rows.length + 1 };
         rows.push(row);
         return row;

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import { ConfigService } from '@nestjs/config';
@@ -15,14 +16,14 @@ import { AppService } from './app.service';
 
 describe('AppService', () => {
   let service: AppService;
-  let affiliationFindAll: jest.Mock;
+  let affiliationFindAll: Mock;
 
   beforeEach(async () => {
-    affiliationFindAll = jest.fn();
+    affiliationFindAll = vi.fn();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AppService,
-        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: ConfigService, useValue: { get: vi.fn() } },
         { provide: getModelToken(TshirtGroup), useValue: {} },
         { provide: getModelToken(Question), useValue: {} },
         { provide: getModelToken(Event), useValue: {} },

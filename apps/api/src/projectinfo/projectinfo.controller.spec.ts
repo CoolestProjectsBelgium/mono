@@ -19,7 +19,7 @@ describe('ProjectinfoController', () => {
         { provide: ProjectinfoService, useValue: {} },
         { provide: FileUploadService, useValue: {} },
         { provide: TokensService, useValue: {} },
-        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: ConfigService, useValue: { get: vi.fn() } },
         { provide: getModelToken(User), useValue: {} },
         UserCookieInterceptor,
         FileValidationInterceptor,

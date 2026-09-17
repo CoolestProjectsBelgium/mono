@@ -14,7 +14,7 @@ describe('UserinfoController', () => {
       providers: [
         { provide: UserinfoService, useValue: {} },
         { provide: TokensService, useValue: {} },
-        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: ConfigService, useValue: { get: vi.fn() } },
         UserCookieInterceptor,
       ],
     }).compile();

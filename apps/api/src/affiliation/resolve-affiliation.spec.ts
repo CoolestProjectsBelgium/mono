@@ -2,7 +2,7 @@ import { Affiliation } from '@coolestprojects/database';
 import { resolveAffiliation } from './resolve-affiliation';
 
 describe('resolveAffiliation', () => {
-  const findOne = jest.fn();
+  const findOne = vi.fn();
   const affiliationModel = { findOne } as unknown as typeof Affiliation;
 
   beforeEach(() => {

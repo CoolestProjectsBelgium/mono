@@ -4,24 +4,24 @@ import { AuthGuard } from '@nestjs/passport';
 import { CertificateController } from './certificate.controller';
 import { CertificateService } from './certificate.service';
 
-jest.mock('puppeteer', () => ({
+vi.mock('puppeteer', () => ({
   __esModule: true,
-  default: { launch: jest.fn() },
+  default: { launch: vi.fn() },
 }));
 
 describe('CertificateController', () => {
   let controller: CertificateController;
   const certificateService = {
-    listParticipantStatus: jest.fn(),
-    previewCertificateDraft: jest.fn(),
-    getCertificatePdf: jest.fn(),
-    listCertificateAssets: jest.fn(),
-    uploadCertificateAsset: jest.fn(),
-    deleteCertificateAsset: jest.fn(),
+    listParticipantStatus: vi.fn(),
+    previewCertificateDraft: vi.fn(),
+    getCertificatePdf: vi.fn(),
+    listCertificateAssets: vi.fn(),
+    uploadCertificateAsset: vi.fn(),
+    deleteCertificateAsset: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CertificateController],
@@ -79,7 +79,7 @@ describe('CertificateController', () => {
       hash: 'abc123',
       generatedAt,
     });
-    const res = { setHeader: jest.fn() };
+    const res = { setHeader: vi.fn() };
 
     const result = await controller.getPdf(
       { user: { adminUser: { eventId: 6 } } },

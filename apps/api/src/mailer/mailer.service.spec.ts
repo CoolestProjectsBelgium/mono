@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import * as nodemailer from 'nodemailer';
@@ -22,14 +23,14 @@ function fakePerson<T extends object>(
   event: Event,
 ): T {
   return Object.assign(Object.create(Ctor.prototype), {
-    getEvent: jest.fn().mockResolvedValue(event),
+    getEvent: vi.fn().mockResolvedValue(event),
     ...fields,
   });
 }
 
-jest.mock('nodemailer');
-const sendMailMock = jest.fn().mockResolvedValue({});
-(nodemailer.createTransport as jest.Mock).mockReturnValue({
+vi.mock('nodemailer');
+const sendMailMock = vi.fn().mockResolvedValue({});
+(nodemailer.createTransport as Mock).mockReturnValue({
   sendMail: sendMailMock,
 });
 
@@ -50,21 +51,21 @@ describe('MailerService', () => {
   };
 
   const emailTemplateModel = {
-    findOne: jest.fn().mockResolvedValue(registrationTemplate),
+    findOne: vi.fn().mockResolvedValue(registrationTemplate),
   };
 
   const projectModel = {
-    findOne: jest.fn(),
-    findByPk: jest.fn(),
+    findOne: vi.fn(),
+    findByPk: vi.fn(),
   };
 
   const emailLogModel = {
-    create: jest.fn().mockResolvedValue(undefined),
-    build: jest.fn().mockReturnValue({ save: jest.fn().mockResolvedValue(undefined) }),
+    create: vi.fn().mockResolvedValue(undefined),
+    build: vi.fn().mockReturnValue({ save: vi.fn().mockResolvedValue(undefined) }),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.SMTP_HOST = 'mailhog';
     process.env.REGISTRATION_URL =
       'https://registration.coolestprojects.localhost:8443';

@@ -7,13 +7,13 @@ describe('EventguideController', () => {
   let controller: EventguideController;
 
   const eventguideService = {
-    getProjects: jest.fn(),
-    getThumbnailByAttachmentId: jest.fn(),
-    getFloorplanFilePath: jest.fn(),
+    getProjects: vi.fn(),
+    getThumbnailByAttachmentId: vi.fn(),
+    getFloorplanFilePath: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventguideController],

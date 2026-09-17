@@ -19,7 +19,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { JwtVotingAuthGuard } from '../auth/jwt-voting-auth.guard';
 import { VotingLoginAuthGuard } from '../auth/local-voting-auth.guard';
 import { VOTING_JWT } from '../auth/auth.module';

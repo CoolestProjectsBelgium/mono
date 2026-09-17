@@ -4,31 +4,31 @@ import { AuthGuard } from '@nestjs/passport';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
-jest.mock('puppeteer', () => ({
+vi.mock('puppeteer', () => ({
   __esModule: true,
-  default: { launch: jest.fn() },
+  default: { launch: vi.fn() },
 }));
 
 describe('AdminController', () => {
   let controller: AdminController;
   const adminService = {
-    listFloorplans: jest.fn(),
-    uploadFloorplan: jest.fn(),
-    activateFloorplan: jest.fn(),
-    deleteFloorplan: jest.fn(),
-    getMailTemplateContext: jest.fn(),
-    uploadPresentationSlideImage: jest.fn(),
-    listPresentationAssets: jest.fn(),
-    uploadPresentationAsset: jest.fn(),
-    deletePresentationAsset: jest.fn(),
-    listPresentationSlides: jest.fn(),
-    listPresentationPreviewProjects: jest.fn(),
-    getPresentationSlideImage: jest.fn(),
-    previewPresentationSlideDraft: jest.fn(),
+    listFloorplans: vi.fn(),
+    uploadFloorplan: vi.fn(),
+    activateFloorplan: vi.fn(),
+    deleteFloorplan: vi.fn(),
+    getMailTemplateContext: vi.fn(),
+    uploadPresentationSlideImage: vi.fn(),
+    listPresentationAssets: vi.fn(),
+    uploadPresentationAsset: vi.fn(),
+    deletePresentationAsset: vi.fn(),
+    listPresentationSlides: vi.fn(),
+    listPresentationPreviewProjects: vi.fn(),
+    getPresentationSlideImage: vi.fn(),
+    previewPresentationSlideDraft: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminController],
@@ -243,7 +243,7 @@ describe('AdminController', () => {
       hash: 'abc123',
       generatedAt,
     });
-    const res = { setHeader: jest.fn() };
+    const res = { setHeader: vi.fn() };
 
     const result = await controller.getPresentationSlideImage(
       { user: { adminUser: { eventId: 6 } } },

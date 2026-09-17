@@ -29,10 +29,10 @@ describe('BackgroundService', () => {
         { provide: getModelToken(Attachment), useValue: {} },
         { provide: getModelToken(EmailLog), useValue: {} },
         { provide: MailerService, useValue: {} },
-        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: ConfigService, useValue: { get: vi.fn() } },
         {
           provide: SchedulerRegistry,
-          useValue: { addCronJob: jest.fn(), deleteCronJob: jest.fn() },
+          useValue: { addCronJob: vi.fn(), deleteCronJob: vi.fn() },
         },
         { provide: TokensService, useValue: {} },
         { provide: RegistrationService, useValue: {} },

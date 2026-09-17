@@ -4,9 +4,9 @@ import { StreamableFile } from '@nestjs/common';
 // CJS transform here even though this spec never renders anything — only
 // `presentation.service.ts` (imported transitively via the controller)
 // touches it.
-jest.mock('puppeteer', () => ({
+vi.mock('puppeteer', () => ({
   __esModule: true,
-  default: { launch: jest.fn() },
+  default: { launch: vi.fn() },
 }));
 
 import { PresentationController } from './presentation.controller';
@@ -15,22 +15,22 @@ import { PresentationService } from './presentation.service';
 describe('PresentationController', () => {
   let controller: PresentationController;
   const presentationService = {
-    listSlides: jest.fn(),
-    getSlideImage: jest.fn(),
-    getSlideMeta: jest.fn(),
-    recordCheckin: jest.fn(),
-    getAllowedResolutions: jest.fn(),
+    listSlides: vi.fn(),
+    getSlideImage: vi.fn(),
+    getSlideMeta: vi.fn(),
+    recordCheckin: vi.fn(),
+    getAllowedResolutions: vi.fn(),
   };
 
   function fakeResponse() {
     return {
-      status: jest.fn(),
-      setHeader: jest.fn(),
+      status: vi.fn(),
+      setHeader: vi.fn(),
     } as unknown as import('express').Response;
   }
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     controller = new PresentationController(
       presentationService as unknown as PresentationService,
     );

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { NotFoundException, StreamableFile } from '@nestjs/common';
 import { access } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
@@ -5,19 +6,19 @@ import * as path from 'node:path';
 import { EventguideService } from './eventguide.service';
 import { getFloorplanDir } from './floorplan-path';
 
-jest.mock('node:fs/promises', () => ({
-  ...jest.requireActual('node:fs/promises'),
-  access: jest.fn(),
+vi.mock('node:fs/promises', async () => ({
+  ...(await vi.importActual('node:fs/promises')),
+  access: vi.fn(),
 }));
 
-jest.mock('node:fs', () => ({
-  ...jest.requireActual('node:fs'),
-  createReadStream: jest.fn(),
+vi.mock('node:fs', async () => ({
+  ...(await vi.importActual('node:fs')),
+  createReadStream: vi.fn(),
 }));
 
-jest.mock('./floorplan-path', () => ({
-  ...jest.requireActual('./floorplan-path'),
-  getFloorplanDir: jest.fn(),
+vi.mock('./floorplan-path', async () => ({
+  ...(await vi.importActual('./floorplan-path')),
+  getFloorplanDir: vi.fn(),
 }));
 
 describe('EventguideService floorplan serving', () => {
@@ -33,14 +34,14 @@ describe('EventguideService floorplan serving', () => {
   );
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.UPLOAD_ROOT = '/tmp/uploads';
-    (getFloorplanDir as jest.Mock).mockReturnValue('/tmp/uploads/floorplans');
-    (createReadStream as jest.Mock).mockReturnValue('stream');
+    (getFloorplanDir as Mock).mockReturnValue('/tmp/uploads/floorplans');
+    (createReadStream as Mock).mockReturnValue('stream');
   });
 
   it('returns a streamable floor plan file', async () => {
-    (access as jest.Mock).mockResolvedValue(undefined);
+    (access as Mock).mockResolvedValue(undefined);
 
     const result = await service.getFloorplan('cp2025_zaal.svg');
 
@@ -48,7 +49,7 @@ describe('EventguideService floorplan serving', () => {
   });
 
   it('returns the resolved path for a valid filename', async () => {
-    (access as jest.Mock).mockResolvedValue(undefined);
+    (access as Mock).mockResolvedValue(undefined);
 
     const result = await service.getFloorplanFilePath('cp2025_zaal.svg');
 
@@ -64,7 +65,7 @@ describe('EventguideService floorplan serving', () => {
   });
 
   it('throws when the file does not exist', async () => {
-    (access as jest.Mock).mockRejectedValue(new Error('ENOENT'));
+    (access as Mock).mockRejectedValue(new Error('ENOENT'));
 
     await expect(
       service.getFloorplanFilePath('missing.svg'),

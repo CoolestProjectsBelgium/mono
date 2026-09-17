@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
@@ -13,39 +14,39 @@ import {
 } from '@coolestprojects/database';
 import { CertificateService } from './certificate.service';
 
-const pdf = jest.fn().mockResolvedValue(Buffer.from('fake-pdf'));
-const newPage = jest.fn().mockResolvedValue({
-  setContent: jest.fn().mockResolvedValue(undefined),
+const pdf = vi.fn().mockResolvedValue(Buffer.from('fake-pdf'));
+const newPage = vi.fn().mockResolvedValue({
+  setContent: vi.fn().mockResolvedValue(undefined),
   pdf,
 });
-const closeBrowser = jest.fn().mockResolvedValue(undefined);
-const launch = jest.fn().mockResolvedValue({ newPage, close: closeBrowser });
+const closeBrowser = vi.fn().mockResolvedValue(undefined);
+const launch = vi.fn().mockResolvedValue({ newPage, close: closeBrowser });
 
-jest.mock('puppeteer', () => ({
+vi.mock('puppeteer', () => ({
   __esModule: true,
   default: { launch: (...args: unknown[]) => launch(...args) },
 }));
 
-jest.mock('node:fs/promises', () => ({
-  mkdir: jest.fn().mockResolvedValue(undefined),
-  writeFile: jest.fn().mockResolvedValue(undefined),
-  readFile: jest.fn().mockResolvedValue(Buffer.from('cached-pdf')),
-  readdir: jest.fn().mockRejectedValue(new Error('ENOENT')),
-  stat: jest.fn(),
-  unlink: jest.fn().mockResolvedValue(undefined),
+vi.mock('node:fs/promises', () => ({
+  mkdir: vi.fn().mockResolvedValue(undefined),
+  writeFile: vi.fn().mockResolvedValue(undefined),
+  readFile: vi.fn().mockResolvedValue(Buffer.from('cached-pdf')),
+  readdir: vi.fn().mockRejectedValue(new Error('ENOENT')),
+  stat: vi.fn(),
+  unlink: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe('CertificateService', () => {
   let service: CertificateService;
-  let eventFindByPk: jest.Mock;
-  let userProjectFindAll: jest.Mock;
-  let certificateFindAll: jest.Mock;
-  let certificateTemplateFindAll: jest.Mock;
-  let certificateTemplateFindOne: jest.Mock;
-  let certificateRenderFindAll: jest.Mock;
-  let certificateRenderFindOne: jest.Mock;
-  let certificateRenderCreate: jest.Mock;
-  let awardFindAll: jest.Mock;
+  let eventFindByPk: Mock;
+  let userProjectFindAll: Mock;
+  let certificateFindAll: Mock;
+  let certificateTemplateFindAll: Mock;
+  let certificateTemplateFindOne: Mock;
+  let certificateRenderFindAll: Mock;
+  let certificateRenderFindOne: Mock;
+  let certificateRenderCreate: Mock;
+  let awardFindAll: Mock;
 
   const event = { id: 1, eventTitle: 'Coolest Projects' };
 
@@ -59,27 +60,27 @@ describe('CertificateService', () => {
   });
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.UPLOAD_ROOT = '/tmp/uploads';
 
-    eventFindByPk = jest.fn().mockResolvedValue(event);
-    userProjectFindAll = jest.fn().mockResolvedValue([membership()]);
-    certificateFindAll = jest.fn().mockResolvedValue([]);
-    certificateTemplateFindAll = jest.fn().mockResolvedValue([
+    eventFindByPk = vi.fn().mockResolvedValue(event);
+    userProjectFindAll = vi.fn().mockResolvedValue([membership()]);
+    certificateFindAll = vi.fn().mockResolvedValue([]);
+    certificateTemplateFindAll = vi.fn().mockResolvedValue([
       { language: 'en', bodyHtml: '<p>{{participant.firstname}}</p>' },
     ]);
-    certificateTemplateFindOne = jest
+    certificateTemplateFindOne = vi
       .fn()
       .mockResolvedValue({ language: 'en', bodyHtml: '<p>{{participant.firstname}}</p>' });
-    certificateRenderFindAll = jest.fn().mockResolvedValue([]);
-    certificateRenderFindOne = jest.fn().mockResolvedValue(null);
-    certificateRenderCreate = jest.fn().mockImplementation((data) =>
+    certificateRenderFindAll = vi.fn().mockResolvedValue([]);
+    certificateRenderFindOne = vi.fn().mockResolvedValue(null);
+    certificateRenderCreate = vi.fn().mockImplementation((data) =>
       Promise.resolve({
         ...data,
-        update: jest.fn().mockResolvedValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined),
       }),
     );
-    awardFindAll = jest.fn().mockResolvedValue([]);
+    awardFindAll = vi.fn().mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -183,7 +184,7 @@ describe('CertificateService', () => {
         contentHash: first.hash,
         generatedAt: first.generatedAt,
         filePath: 'certificate-1-1.pdf',
-        update: jest.fn().mockResolvedValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined),
       });
       certificateFindAll.mockResolvedValue([
         { projectId: 1, text: 'Updated text' },
@@ -213,8 +214,8 @@ describe('CertificateService', () => {
 
   describe('previewCertificateDraft', () => {
     it('renders the caller-supplied text without writing to the render cache or disk', async () => {
-      const { writeFile } = jest.requireMock('node:fs/promises') as {
-        writeFile: jest.Mock;
+      const { writeFile } = (await vi.importMock('node:fs/promises')) as {
+        writeFile: Mock;
       };
       writeFile.mockClear();
 

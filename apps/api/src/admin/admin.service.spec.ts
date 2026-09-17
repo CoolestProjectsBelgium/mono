@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { mkdir, readdir, stat, unlink, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
@@ -18,39 +19,39 @@ function makeFile(overrides: Partial<MulterFile> = {}): MulterFile {
   };
 }
 
-jest.mock('puppeteer', () => ({
+vi.mock('puppeteer', () => ({
   __esModule: true,
-  default: { launch: jest.fn() },
+  default: { launch: vi.fn() },
 }));
 
-jest.mock('node:fs/promises', () => ({
-  mkdir: jest.fn(),
-  readdir: jest.fn(),
-  stat: jest.fn(),
-  writeFile: jest.fn(),
-  unlink: jest.fn(),
+vi.mock('node:fs/promises', () => ({
+  mkdir: vi.fn(),
+  readdir: vi.fn(),
+  stat: vi.fn(),
+  writeFile: vi.fn(),
+  unlink: vi.fn(),
 }));
 
-jest.mock('../eventguide/floorplan-path', () => ({
-  ...jest.requireActual('../eventguide/floorplan-path'),
-  getFloorplanDir: jest.fn(),
+vi.mock('../eventguide/floorplan-path', async () => ({
+  ...(await vi.importActual('../eventguide/floorplan-path')),
+  getFloorplanDir: vi.fn(),
 }));
 
 describe('AdminService floorplans', () => {
   const eventModel = {
-    findByPk: jest.fn(),
-    update: jest.fn(),
-    count: jest.fn(),
+    findByPk: vi.fn(),
+    update: vi.fn(),
+    count: vi.fn(),
   };
-  const registrationModel = { findOne: jest.fn() };
-  const userModel = { findOne: jest.fn() };
-  const userProjectModel = { findOne: jest.fn() };
-  const presentationSlideModel = { findOne: jest.fn() };
+  const registrationModel = { findOne: vi.fn() };
+  const userModel = { findOne: vi.fn() };
+  const userProjectModel = { findOne: vi.fn() };
+  const presentationSlideModel = { findOne: vi.fn() };
   const presentationService = {
-    listSlides: jest.fn(),
-    getSlideImage: jest.fn(),
-    listVisibleProjectOptions: jest.fn(),
-    previewSlideDraft: jest.fn(),
+    listSlides: vi.fn(),
+    getSlideImage: vi.fn(),
+    listVisibleProjectOptions: vi.fn(),
+    previewSlideDraft: vi.fn(),
   };
   const service = new AdminService(
     eventModel as never,
@@ -62,19 +63,19 @@ describe('AdminService floorplans', () => {
   );
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.UPLOAD_ROOT = '/tmp/uploads';
-    (getFloorplanDir as jest.Mock).mockReturnValue('/tmp/uploads/floorplans');
+    (getFloorplanDir as Mock).mockReturnValue('/tmp/uploads/floorplans');
   });
 
   it('lists floorplans and marks the active event file', async () => {
     eventModel.findByPk.mockResolvedValue({ floorplanPath: 'cp2025_zaal.svg' });
-    (readdir as jest.Mock).mockResolvedValue([
+    (readdir as Mock).mockResolvedValue([
       { isFile: () => true, name: 'cp2025_zaal.svg' },
       { isFile: () => true, name: '../secret.svg' },
       { isFile: () => true, name: 'other.svg' },
     ]);
-    (stat as jest.Mock).mockImplementation(async (filePath: string) => ({
+    (stat as Mock).mockImplementation(async (filePath: string) => ({
       mtime: filePath.endsWith('other.svg')
         ? new Date('2026-01-02T00:00:00.000Z')
         : new Date('2026-01-01T00:00:00.000Z'),
@@ -105,10 +106,10 @@ describe('AdminService floorplans', () => {
     eventModel.findByPk.mockResolvedValue({
       floorplanPath: 'grondplan-cp-2026.svg',
     });
-    (readdir as jest.Mock).mockResolvedValue([
+    (readdir as Mock).mockResolvedValue([
       { isFile: () => true, name: 'map.svg' },
     ]);
-    (stat as jest.Mock).mockResolvedValue({
+    (stat as Mock).mockResolvedValue({
       mtime: new Date('2026-01-01T00:00:00.000Z'),
     });
 
@@ -148,10 +149,10 @@ describe('AdminService floorplans', () => {
 
   it('activates an existing floorplan file', async () => {
     eventModel.findByPk.mockResolvedValue({ floorplanPath: 'cp2025_zaal.svg' });
-    (readdir as jest.Mock).mockResolvedValue([
+    (readdir as Mock).mockResolvedValue([
       { isFile: () => true, name: 'cp2025_zaal.svg' },
     ]);
-    (stat as jest.Mock).mockResolvedValue({
+    (stat as Mock).mockResolvedValue({
       mtime: new Date('2026-01-01T00:00:00.000Z'),
     });
 
@@ -165,7 +166,7 @@ describe('AdminService floorplans', () => {
   });
 
   it('rejects activating a missing floorplan file', async () => {
-    (stat as jest.Mock).mockRejectedValue(new Error('ENOENT'));
+    (stat as Mock).mockRejectedValue(new Error('ENOENT'));
 
     await expect(
       service.activateFloorplan(1, 'missing.svg'),
@@ -175,10 +176,10 @@ describe('AdminService floorplans', () => {
   it('deletes a floorplan not active for any event and tolerates it already being gone', async () => {
     eventModel.count.mockResolvedValue(0);
     eventModel.findByPk.mockResolvedValue({ floorplanPath: 'cp2025_zaal.svg' });
-    (readdir as jest.Mock).mockResolvedValue([
+    (readdir as Mock).mockResolvedValue([
       { isFile: () => true, name: 'cp2025_zaal.svg' },
     ]);
-    (stat as jest.Mock).mockResolvedValue({
+    (stat as Mock).mockResolvedValue({
       mtime: new Date('2026-01-01T00:00:00.000Z'),
     });
 
@@ -224,7 +225,7 @@ describe('AdminService floorplans', () => {
       resolvedEvent: unknown = event,
     ): T {
       return Object.assign(Object.create(Ctor.prototype), {
-        getEvent: jest.fn().mockResolvedValue(resolvedEvent),
+        getEvent: vi.fn().mockResolvedValue(resolvedEvent),
         ...fields,
       });
     }
@@ -386,7 +387,7 @@ describe('AdminService floorplans', () => {
 
   describe('uploadPresentationSlideImage', () => {
     it('writes the uploaded image under UPLOAD_ROOT/presentations/<eventId>/ and stores the filename', async () => {
-      const update = jest.fn().mockResolvedValue(undefined);
+      const update = vi.fn().mockResolvedValue(undefined);
       presentationSlideModel.findOne.mockResolvedValue({ id: 5, update });
 
       await service.uploadPresentationSlideImage(
@@ -427,7 +428,7 @@ describe('AdminService floorplans', () => {
     it('rejects a mimetype Chromium cannot render as an image', async () => {
       presentationSlideModel.findOne.mockResolvedValue({
         id: 5,
-        update: jest.fn(),
+        update: vi.fn(),
       });
 
       await expect(
@@ -446,7 +447,7 @@ describe('AdminService floorplans', () => {
     it('rejects empty image content', async () => {
       presentationSlideModel.findOne.mockResolvedValue({
         id: 5,
-        update: jest.fn(),
+        update: vi.fn(),
       });
 
       await expect(
@@ -461,11 +462,11 @@ describe('AdminService floorplans', () => {
 
   describe('presentation assets', () => {
     it('lists assets under UPLOAD_ROOT/presentations/<eventId>/assets/', async () => {
-      (readdir as jest.Mock).mockResolvedValue([
+      (readdir as Mock).mockResolvedValue([
         { isFile: () => true, name: 'logo.png' },
         { isFile: () => true, name: '../secret.png' },
       ]);
-      (stat as jest.Mock).mockResolvedValue({
+      (stat as Mock).mockResolvedValue({
         mtime: new Date('2026-01-01T00:00:00.000Z'),
       });
 
@@ -481,10 +482,10 @@ describe('AdminService floorplans', () => {
     });
 
     it('writes an uploaded asset and returns the refreshed list', async () => {
-      (readdir as jest.Mock).mockResolvedValue([
+      (readdir as Mock).mockResolvedValue([
         { isFile: () => true, name: 'logo.png' },
       ]);
-      (stat as jest.Mock).mockResolvedValue({
+      (stat as Mock).mockResolvedValue({
         mtime: new Date('2026-01-01T00:00:00.000Z'),
       });
 
@@ -526,7 +527,7 @@ describe('AdminService floorplans', () => {
     });
 
     it('deletes an asset and tolerates it already being gone', async () => {
-      (readdir as jest.Mock).mockResolvedValue([]);
+      (readdir as Mock).mockResolvedValue([]);
 
       const result = await service.deletePresentationAsset(1, 'logo.png');
 

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
 import { getModelToken } from '@nestjs/sequelize';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -15,49 +16,49 @@ import { createReadStream } from 'node:fs';
 import { access } from 'node:fs/promises';
 import { EventguideService } from './eventguide.service';
 
-jest.mock('node:fs/promises', () => ({
-  ...jest.requireActual('node:fs/promises'),
-  access: jest.fn(),
-  stat: jest.fn(),
+vi.mock('node:fs/promises', async () => ({
+  ...(await vi.importActual('node:fs/promises')),
+  access: vi.fn(),
+  stat: vi.fn(),
 }));
 
-jest.mock('node:fs', () => ({
-  ...jest.requireActual('node:fs'),
-  createReadStream: jest.fn(),
+vi.mock('node:fs', async () => ({
+  ...(await vi.importActual('node:fs')),
+  createReadStream: vi.fn(),
 }));
 
 describe('EventguideService', () => {
   let service: EventguideService;
 
   const eventModel = {
-    findByPk: jest.fn(),
+    findByPk: vi.fn(),
   };
   const projectModel = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
+    findAll: vi.fn(),
+    findOne: vi.fn(),
   };
   const eventTableModel = {};
   const userProjectModel = {
-    findAll: jest.fn(),
+    findAll: vi.fn(),
   };
   const userModel = {
-    findAll: jest.fn(),
+    findAll: vi.fn(),
   };
   const questionModel = {
-    findOne: jest.fn(),
+    findOne: vi.fn(),
   };
   const questionUserModel = {
-    findAll: jest.fn(),
-    count: jest.fn(),
+    findAll: vi.fn(),
+    count: vi.fn(),
   };
   const attachmentModel = {
-    findOne: jest.fn(),
+    findOne: vi.fn(),
   };
 
   const originalApiBaseUrl = process.env.API_BASE_URL;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     delete process.env.API_BASE_URL;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -238,8 +239,8 @@ describe('EventguideService', () => {
       eventId: 1,
       deletedAt: null,
     });
-    (access as jest.Mock).mockResolvedValue(undefined);
-    (createReadStream as jest.Mock).mockReturnValue('stream');
+    (access as Mock).mockResolvedValue(undefined);
+    (createReadStream as Mock).mockReturnValue('stream');
 
     const result = await service.getThumbnailByAttachmentId(42);
 
@@ -263,10 +264,10 @@ describe('EventguideService', () => {
       eventId: 1,
       deletedAt: null,
     });
-    (access as jest.Mock)
+    (access as Mock)
       .mockRejectedValueOnce(new Error('missing thumb'))
       .mockResolvedValueOnce(undefined);
-    (createReadStream as jest.Mock).mockReturnValue('stream');
+    (createReadStream as Mock).mockReturnValue('stream');
 
     await service.getThumbnail(1, 42);
 

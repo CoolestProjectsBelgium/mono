@@ -1,18 +1,19 @@
+import * as fs from 'fs';
 import { FileUploadService } from './file-upload.service';
 
 describe('FileUploadService', () => {
   const userProjectModel = {
-    findOne: jest.fn(),
+    findOne: vi.fn(),
   };
   const attachmentModel = {
-    findByPk: jest.fn(),
-    create: jest.fn(),
+    findByPk: vi.fn(),
+    create: vi.fn(),
   };
 
   let service: FileUploadService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     service = new FileUploadService(
       userProjectModel as never,
       attachmentModel as never,
@@ -25,7 +26,7 @@ describe('FileUploadService', () => {
       projectId: 9,
       filepath: '/tmp/uploads/project_9/file.jpg',
       thumbnailPath: '/tmp/uploads/project_9/thumbnail_file.jpg',
-      destroy: jest.fn(),
+      destroy: vi.fn(),
     });
     userProjectModel.findOne.mockResolvedValue(null);
 
@@ -33,7 +34,7 @@ describe('FileUploadService', () => {
   });
 
   it('deleteFile removes attachments whose confirmed flag is unset', async () => {
-    const destroy = jest.fn().mockResolvedValue(undefined);
+    const destroy = vi.fn().mockResolvedValue(undefined);
     attachmentModel.findByPk.mockResolvedValue({
       id: 1,
       projectId: 9,
@@ -49,8 +50,8 @@ describe('FileUploadService', () => {
       isOwner: true,
     });
 
-    const unlinkSpy = jest
-      .spyOn(require('fs').promises, 'unlink')
+    const unlinkSpy = vi
+      .spyOn(fs.promises, 'unlink')
       .mockResolvedValue(undefined);
 
     await service.deleteFile(1, 1);
@@ -65,7 +66,7 @@ describe('FileUploadService', () => {
       projectId: 9,
       confirmed: true,
       internal: null,
-      destroy: jest.fn(),
+      destroy: vi.fn(),
     });
 
     await expect(service.deleteFile(1, 2)).rejects.toThrow(
@@ -75,7 +76,7 @@ describe('FileUploadService', () => {
   });
 
   it('deleteFile removes the attachment for the project owner', async () => {
-    const destroy = jest.fn().mockResolvedValue(undefined);
+    const destroy = vi.fn().mockResolvedValue(undefined);
     attachmentModel.findByPk.mockResolvedValue({
       id: 1,
       projectId: 9,
@@ -89,8 +90,8 @@ describe('FileUploadService', () => {
       isOwner: true,
     });
 
-    const unlinkSpy = jest
-      .spyOn(require('fs').promises, 'unlink')
+    const unlinkSpy = vi
+      .spyOn(fs.promises, 'unlink')
       .mockResolvedValue(undefined);
 
     await service.deleteFile(1, 1);

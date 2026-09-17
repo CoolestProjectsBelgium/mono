@@ -2,8 +2,11 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "target": "ES2021",
-    "module": "commonjs",
-    "strict": true
+    "target": "ES2023",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "strict": true,
+    "skipLibCheck": true
   }
 }

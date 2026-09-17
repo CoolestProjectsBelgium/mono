@@ -16,7 +16,7 @@ function mockConfig(
 }
 
 function createContext(user: unknown) {
-  const response = { cookie: jest.fn(), clearCookie: jest.fn() };
+  const response = { cookie: vi.fn(), clearCookie: vi.fn() };
   const request = { user, secure: true, headers: {} };
   const context = {
     switchToHttp: () => ({
@@ -48,7 +48,7 @@ describe('resolveParticipantUserId', () => {
 
 describe('UserCookieInterceptor', () => {
   const tokensService = {
-    generateLoginToken: jest.fn(() => 'signed-token'),
+    generateLoginToken: vi.fn(() => 'signed-token'),
   } as unknown as TokensService;
   const config = mockConfig({
     enviroment: 'production',
@@ -56,7 +56,7 @@ describe('UserCookieInterceptor', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('refreshes the jwt cookie once for participants', async () => {

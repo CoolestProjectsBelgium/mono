@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import type { Mock } from 'vitest';
 import { AppModule } from '../src/app.module';
 //import { RegistrationService } from '../src/registration/registration.service';
 //import { ParticipantService } from '../src/participant/participant.service';
@@ -10,9 +11,9 @@ import { MockInfoInterceptor } from './mock-info.interceptor'; // Import your mo
 import * as nodemailer from 'nodemailer';
 
 // Mock nodemailer
-jest.mock('nodemailer');
-const sendMailMock = jest.fn().mockResolvedValue({});
-(nodemailer.createTransport as jest.Mock).mockReturnValue({
+vi.mock('nodemailer');
+const sendMailMock = vi.fn().mockResolvedValue({});
+(nodemailer.createTransport as Mock).mockReturnValue({
   sendMail: sendMailMock,
 });
 

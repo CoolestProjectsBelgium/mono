@@ -2,7 +2,7 @@
 title: Use Testing Module for Unit Tests
 impact: HIGH
 impactDescription: Enables proper isolated testing with mocked dependencies
-tags: testing, unit-tests, mocking, jest
+tags: testing, unit-tests, mocking, vitest
 ---
 
 ## Use Testing Module for Unit Tests
@@ -27,7 +27,7 @@ describe('UsersService', () => {
 // Test implementation details
 describe('UsersController', () => {
   it('should call service', async () => {
-    const service = { create: jest.fn() };
+    const service = { create: vi.fn() };
     const controller = new UsersController(service as any);
 
     await controller.create({ name: 'Test' });
@@ -42,10 +42,11 @@ describe('UsersController', () => {
 ```typescript
 // Use Test.createTestingModule for proper DI
 import { Test, TestingModule } from '@nestjs/testing';
+import type { Mocked } from 'vitest';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let repo: jest.Mocked<UserRepository>;
+  let repo: Mocked<UserRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -54,9 +55,9 @@ describe('UsersService', () => {
         {
           provide: UserRepository,
           useValue: {
-            save: jest.fn(),
-            findOne: jest.fn(),
-            find: jest.fn(),
+            save: vi.fn(),
+            findOne: vi.fn(),
+            find: vi.fn(),
           },
         },
       ],
@@ -67,7 +68,7 @@ describe('UsersService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('create', () => {
@@ -126,14 +127,14 @@ describe('RolesGuard', () => {
 
   it('should allow when no roles required', () => {
     const context = createMockExecutionContext({ user: { roles: [] } });
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
 
     expect(guard.canActivate(context)).toBe(true);
   });
 
   it('should allow admin for admin-only route', () => {
     const context = createMockExecutionContext({ user: { roles: ['admin'] } });
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
 
     expect(guard.canActivate(context)).toBe(true);
   });
@@ -144,8 +145,8 @@ function createMockExecutionContext(request: Partial<Request>): ExecutionContext
     switchToHttp: () => ({
       getRequest: () => request,
     }),
-    getHandler: () => jest.fn(),
-    getClass: () => jest.fn(),
+    getHandler: () => vi.fn(),
+    getClass: () => vi.fn(),
   } as ExecutionContext;
 }
 ```

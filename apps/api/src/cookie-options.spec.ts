@@ -102,7 +102,7 @@ describe('buildAppCookieOptions', () => {
 
 describe('clearLegacyJwtCookies', () => {
   it('does not expire the live shared-domain jwt in the same response', () => {
-    const clearCookie = jest.fn();
+    const clearCookie = vi.fn();
     clearLegacyJwtCookies(
       mockConfig({
         enviroment: 'production',
@@ -115,7 +115,7 @@ describe('clearLegacyJwtCookies', () => {
   });
 
   it('skips localhost cookie domains', () => {
-    const clearCookie = jest.fn();
+    const clearCookie = vi.fn();
     clearLegacyJwtCookies(
       mockConfig({ 'cookies.domain': 'coolestprojects.localhost' }),
       { clearCookie },

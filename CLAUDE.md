@@ -27,8 +27,7 @@ Test runners differ per workspace:
 
 | Workspace | Runner | Run a single test |
 |-----------|--------|--------------------|
-| `apps/api` | Jest (`*.spec.ts` under `src/`) | `npm test --workspace=apps/api -- path/to/file.spec.ts` |
-| `apps/voting`, `apps/registration`, `apps/eventguide` | Vitest | `npm test --workspace=apps/voting -- path/to/file.spec.ts` |
+| `apps/api`, `apps/voting`, `apps/registration`, `apps/eventguide` | Vitest (`apps/api`'s `*.spec.ts` live under `src/`) | `npm test --workspace=apps/api -- path/to/file.spec.ts` |
 | `apps/admin` | `tsx --test` (explicit glob list in its `test` script) | `npx tsx --test apps/admin/src/api/foo.spec.ts` (run from repo root) |
 | `packages/database`, `apps/presentation`, `apps/cdj-web-int` | none | — |
 

@@ -3,16 +3,16 @@ import { JwtVotingStrategy } from './jwt-voting.strategy';
 
 describe('JwtVotingStrategy', () => {
   const configService = {
-    getOrThrow: jest.fn().mockReturnValue('voting-secret'),
+    getOrThrow: vi.fn().mockReturnValue('voting-secret'),
   };
-  const accountModel = { findOne: jest.fn() };
+  const accountModel = { findOne: vi.fn() };
   const strategy = new JwtVotingStrategy(
     configService as never,
     accountModel as never,
   );
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('re-validates the account against the DB and returns the payload on success', async () => {

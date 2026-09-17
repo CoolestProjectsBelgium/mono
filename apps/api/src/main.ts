@@ -3,7 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { randomUUID } from 'crypto';
 import { doubleCsrf } from 'csrf-csrf';
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { env } from 'process';
 import { AppModule } from './app.module';
 import { configureSecurity } from './bootstrap-security';

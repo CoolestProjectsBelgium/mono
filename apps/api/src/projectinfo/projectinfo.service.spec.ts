@@ -12,30 +12,30 @@ import {
 describe('ProjectinfoService vouchers', () => {
   let service: ProjectinfoService;
   const userProjectModel = {
-    findOne: jest.fn(),
-    findAll: jest.fn(),
-    count: jest.fn(),
-    create: jest.fn(),
+    findOne: vi.fn(),
+    findAll: vi.fn(),
+    count: vi.fn(),
+    create: vi.fn(),
   };
   const projectModel = {
-    create: jest.fn(),
+    create: vi.fn(),
   };
   const userModel = {
-    findByPk: jest.fn(),
+    findByPk: vi.fn(),
   };
   const eventModel = {
-    findByPk: jest.fn(),
+    findByPk: vi.fn(),
   };
   const attachmentModel = {};
   const sequelize = {
-    transaction: jest.fn().mockResolvedValue({
-      commit: jest.fn(),
-      rollback: jest.fn(),
+    transaction: vi.fn().mockResolvedValue({
+      commit: vi.fn(),
+      rollback: vi.fn(),
     }),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProjectinfoService,
@@ -54,7 +54,7 @@ describe('ProjectinfoService vouchers', () => {
   it('returns project_code when generating a voucher', async () => {
     userProjectModel.findOne.mockResolvedValue({
       projectId: 10,
-      getProject: jest
+      getProject: vi
         .fn()
         .mockResolvedValue({ id: 10, eventId: 1, maxVoucher: 3 }),
     });
@@ -76,7 +76,7 @@ describe('ProjectinfoService vouchers', () => {
   it('throws when voucher limit is reached', async () => {
     userProjectModel.findOne.mockResolvedValue({
       projectId: 10,
-      getProject: jest
+      getProject: vi
         .fn()
         .mockResolvedValue({ id: 10, eventId: 1, maxVoucher: 2 }),
     });
@@ -88,12 +88,12 @@ describe('ProjectinfoService vouchers', () => {
   });
 
   it('soft-deletes unused voucher when removing pending invite', async () => {
-    const save = jest.fn();
+    const save = vi.fn();
     const voucher = { userId: null, deletedAt: null as Date | null, save };
     userProjectModel.findOne
       .mockResolvedValueOnce({
         projectId: 10,
-        getProject: jest.fn().mockResolvedValue({ id: 10, deletedAt: null }),
+        getProject: vi.fn().mockResolvedValue({ id: 10, deletedAt: null }),
       })
       .mockResolvedValueOnce(voucher);
 
@@ -104,12 +104,12 @@ describe('ProjectinfoService vouchers', () => {
   });
 
   it('soft-deletes assigned participant voucher when owner removes registered co-participant', async () => {
-    const save = jest.fn();
+    const save = vi.fn();
     const voucher = { userId: 42, deletedAt: null as Date | null, save };
     userProjectModel.findOne
       .mockResolvedValueOnce({
         projectId: 10,
-        getProject: jest.fn().mockResolvedValue({ id: 10, deletedAt: null }),
+        getProject: vi.fn().mockResolvedValue({ id: 10, deletedAt: null }),
       })
       .mockResolvedValueOnce(voucher);
 
@@ -123,33 +123,33 @@ describe('ProjectinfoService vouchers', () => {
 describe('ProjectinfoService deleteProject', () => {
   let service: ProjectinfoService;
   const userProjectModel = {
-    findOne: jest.fn(),
-    findAll: jest.fn(),
-    count: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
+    findOne: vi.fn(),
+    findAll: vi.fn(),
+    count: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
   };
   const projectModel = {
-    create: jest.fn(),
-    update: jest.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
   };
   const userModel = {
-    findByPk: jest.fn(),
+    findByPk: vi.fn(),
   };
   const eventModel = {
-    findByPk: jest.fn(),
+    findByPk: vi.fn(),
   };
   const attachmentModel = {};
   const transaction = {
-    commit: jest.fn(),
-    rollback: jest.fn(),
+    commit: vi.fn(),
+    rollback: vi.fn(),
   };
   const sequelize = {
-    transaction: jest.fn().mockResolvedValue(transaction),
+    transaction: vi.fn().mockResolvedValue(transaction),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     sequelize.transaction.mockResolvedValue(transaction);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -170,11 +170,11 @@ describe('ProjectinfoService deleteProject', () => {
     const project = {
       id: 10,
       deletedAt: null as Date | null,
-      save: jest.fn(),
+      save: vi.fn(),
     };
     userProjectModel.findOne.mockResolvedValue({
       projectId: 10,
-      getProject: jest.fn().mockResolvedValue(project),
+      getProject: vi.fn().mockResolvedValue(project),
     });
     userProjectModel.count.mockResolvedValue(0);
     userProjectModel.update.mockResolvedValue([2]);
@@ -202,7 +202,7 @@ describe('ProjectinfoService deleteProject', () => {
   it('rejects delete when registered co-participants exist', async () => {
     userProjectModel.findOne.mockResolvedValue({
       projectId: 10,
-      getProject: jest.fn().mockResolvedValue({ id: 10, deletedAt: null }),
+      getProject: vi.fn().mockResolvedValue({ id: 10, deletedAt: null }),
     });
     userProjectModel.count.mockResolvedValue(1);
 

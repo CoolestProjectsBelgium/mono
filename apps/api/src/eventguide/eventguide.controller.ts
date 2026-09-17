@@ -7,7 +7,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { EventguideProjectsResponseDto } from '../dto/eventguide-project.dto';
 import { EventguideService } from './eventguide.service';
 

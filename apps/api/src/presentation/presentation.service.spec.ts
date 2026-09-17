@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
@@ -11,36 +12,36 @@ import {
 } from '@coolestprojects/database';
 import { PresentationService } from './presentation.service';
 
-const screenshot = jest.fn().mockResolvedValue(Buffer.from('fake-png'));
-const newPage = jest.fn().mockResolvedValue({
-  setViewport: jest.fn().mockResolvedValue(undefined),
-  setContent: jest.fn().mockResolvedValue(undefined),
+const screenshot = vi.fn().mockResolvedValue(Buffer.from('fake-png'));
+const newPage = vi.fn().mockResolvedValue({
+  setViewport: vi.fn().mockResolvedValue(undefined),
+  setContent: vi.fn().mockResolvedValue(undefined),
   screenshot,
 });
-const closeBrowser = jest.fn().mockResolvedValue(undefined);
-const launch = jest.fn().mockResolvedValue({ newPage, close: closeBrowser });
+const closeBrowser = vi.fn().mockResolvedValue(undefined);
+const launch = vi.fn().mockResolvedValue({ newPage, close: closeBrowser });
 
-jest.mock('puppeteer', () => ({
+vi.mock('puppeteer', () => ({
   __esModule: true,
   default: { launch: (...args: unknown[]) => launch(...args) },
 }));
 
-jest.mock('node:fs/promises', () => ({
-  mkdir: jest.fn().mockResolvedValue(undefined),
-  writeFile: jest.fn().mockResolvedValue(undefined),
-  readFile: jest.fn().mockResolvedValue(Buffer.from('cached-png')),
+vi.mock('node:fs/promises', () => ({
+  mkdir: vi.fn().mockResolvedValue(undefined),
+  writeFile: vi.fn().mockResolvedValue(undefined),
+  readFile: vi.fn().mockResolvedValue(Buffer.from('cached-png')),
 }));
 
 describe('PresentationService', () => {
   let service: PresentationService;
-  let eventFindByPk: jest.Mock;
-  let projectFindAll: jest.Mock;
-  let presentationSlideFindAll: jest.Mock;
-  let presentationSlideFindOne: jest.Mock;
-  let presentationRenderFindAll: jest.Mock;
-  let presentationRenderFindOne: jest.Mock;
-  let presentationRenderCreate: jest.Mock;
-  let presentationCheckinUpsert: jest.Mock;
+  let eventFindByPk: Mock;
+  let projectFindAll: Mock;
+  let presentationSlideFindAll: Mock;
+  let presentationSlideFindOne: Mock;
+  let presentationRenderFindAll: Mock;
+  let presentationRenderFindOne: Mock;
+  let presentationRenderCreate: Mock;
+  let presentationCheckinUpsert: Mock;
 
   const event = {
     id: 1,
@@ -55,22 +56,22 @@ describe('PresentationService', () => {
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     process.env.UPLOAD_ROOT = '/tmp/uploads';
 
-    eventFindByPk = jest.fn().mockResolvedValue(event);
-    projectFindAll = jest.fn().mockResolvedValue([]);
-    presentationSlideFindAll = jest.fn().mockResolvedValue([]);
-    presentationSlideFindOne = jest.fn().mockResolvedValue(null);
-    presentationRenderFindAll = jest.fn().mockResolvedValue([]);
-    presentationRenderFindOne = jest.fn().mockResolvedValue(null);
-    presentationRenderCreate = jest.fn().mockImplementation((data) =>
+    eventFindByPk = vi.fn().mockResolvedValue(event);
+    projectFindAll = vi.fn().mockResolvedValue([]);
+    presentationSlideFindAll = vi.fn().mockResolvedValue([]);
+    presentationSlideFindOne = vi.fn().mockResolvedValue(null);
+    presentationRenderFindAll = vi.fn().mockResolvedValue([]);
+    presentationRenderFindOne = vi.fn().mockResolvedValue(null);
+    presentationRenderCreate = vi.fn().mockImplementation((data) =>
       Promise.resolve({
         ...data,
-        update: jest.fn().mockResolvedValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined),
       }),
     );
-    presentationCheckinUpsert = jest.fn().mockResolvedValue(undefined);
+    presentationCheckinUpsert = vi.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -390,7 +391,7 @@ describe('PresentationService', () => {
         contentHash: first.hash,
         generatedAt: first.generatedAt,
         imagePath: 'slide-12.png',
-        update: jest.fn().mockResolvedValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined),
       });
       presentationSlideFindAll.mockResolvedValue([
         { ...config, body: '<h1>v2</h1>' },
@@ -510,8 +511,8 @@ describe('PresentationService', () => {
         imagePath: null,
       });
 
-      const { writeFile } = jest.requireMock('node:fs/promises') as {
-        writeFile: jest.Mock;
+      const { writeFile } = (await vi.importMock('node:fs/promises')) as {
+        writeFile: Mock;
       };
       writeFile.mockClear();
 

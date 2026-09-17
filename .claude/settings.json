@@ -76,7 +76,29 @@
       "Bash(npm install *)",
       "Bash(npm audit *)",
       "Bash(curl -s -o zipcodes_num_fr_2025.xls \"https://www.bpost.be/sites/default/files/zipcodes/zipcodes_num_fr_2025.xls\")",
-      "Bash(bash -n /workspace/apps/presentation/sync-deck.sh)"
+      "Bash(bash -n /workspace/apps/presentation/sync-deck.sh)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(npm update *)",
+      "Bash(npm info *)",
+      "Bash(npm view *)",
+      "Bash(python3 -c \"import json,sys; v=json.load\\(sys.stdin\\); print\\([x for x in v if x.startswith\\('2.'\\)]\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('overrides'\\)\\)\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(python3 -c \"import json,sys; print\\(json.load\\(sys.stdin\\)[-5:]\\)\")",
+      "Bash(git checkout *)",
+      "Bash(git clean *)",
+      "Bash(python3 -c \"import json,sys; v=json.load\\(sys.stdin\\); print\\(v[-8:]\\)\")",
+      "Bash(xargs -I{} basename {})",
+      "Bash(python3 -c \"import json,sys; print\\(json.load\\(sys.stdin\\)[-3:]\\)\")",
+      "Bash(node -e \"const m = require\\('@nestjs/platform-express'\\); console.log\\(Object.keys\\(m\\).filter\\(k => k.toLowerCase\\(\\).includes\\('file'\\) || k.toLowerCase\\(\\).includes\\('multer'\\)\\)\\)\")",
+      "Bash(node -e \"const m = require\\('@nestjs/platform-express'\\); console.log\\(Object.keys\\(m\\).filter\\(k => /file|multer/i.test\\(k\\)\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\({k:d.get\\(k\\) for k in \\('name','version','type','main','module','exports'\\)}\\)\")",
+      "Bash(python3)",
+      "Bash(sed -i -e 's|from '\\\\''./load-seed-dojos'\\\\''|from '\\\\''./load-seed-dojos.cjs'\\\\''|' -e 's|from '\\\\''./load-seed-municipalities'\\\\''|from '\\\\''./load-seed-municipalities.cjs'\\\\''|' -e 's|from '\\\\''./seed-floorplan'\\\\''|from '\\\\''./seed-floorplan.cjs'\\\\''|' -e 's|from '\\\\''./seed-project-pictures'\\\\''|from '\\\\''./seed-project-pictures.cjs'\\\\''|' apps/api/src/seeder/seed.ts)",
+      "Bash(sed -i \"s|from '../seeder/seed-project-pictures'|from '../seeder/seed-project-pictures.cjs'|\" apps/api/src/cli/event.command.ts)",
+      "Bash(python3 -c \"import json,sys; print\\(json.load\\(sys.stdin\\)['dependencies']\\)\")",
+      "Bash(npm ci *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('dependencies'\\)\\)\")"
     ]
   }
 }

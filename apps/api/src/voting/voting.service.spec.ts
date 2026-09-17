@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/sequelize';
 import {
@@ -14,18 +15,18 @@ import { VotingService } from './voting.service';
 
 describe('VotingService', () => {
   let service: VotingService;
-  let eventFindOne: jest.Mock;
-  let eventFindByPk: jest.Mock;
-  let query: jest.Mock;
-  let voteDestroy: jest.Mock;
-  let awardDestroy: jest.Mock;
+  let eventFindOne: Mock;
+  let eventFindByPk: Mock;
+  let query: Mock;
+  let voteDestroy: Mock;
+  let awardDestroy: Mock;
 
   beforeEach(async () => {
-    eventFindOne = jest.fn();
-    eventFindByPk = jest.fn();
-    query = jest.fn().mockResolvedValue([]);
-    voteDestroy = jest.fn().mockResolvedValue(2);
-    awardDestroy = jest.fn().mockResolvedValue(1);
+    eventFindOne = vi.fn();
+    eventFindByPk = vi.fn();
+    query = vi.fn().mockResolvedValue([]);
+    voteDestroy = vi.fn().mockResolvedValue(2);
+    awardDestroy = vi.fn().mockResolvedValue(1);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -54,7 +55,7 @@ describe('VotingService', () => {
       const votingStartDate = new Date('2026-09-01T10:00:00.000Z');
       const votingEndDate = new Date('2026-09-03T18:00:00.000Z');
 
-      jest.spyOn(Account, 'findByPk').mockResolvedValue({
+      vi.spyOn(Account, 'findByPk').mockResolvedValue({
         id: 3,
         email: 'jury',
       } as Account);
@@ -87,7 +88,7 @@ describe('VotingService', () => {
     });
 
     it('clears previous votes and awards only when requested', async () => {
-      const event: any = { votingOpen: false, save: jest.fn() };
+      const event: any = { votingOpen: false, save: vi.fn() };
       eventFindByPk.mockResolvedValue(event);
 
       await service.openVotingWithDuration(1, 30, false);
@@ -102,7 +103,7 @@ describe('VotingService', () => {
     it('publishes a timer event when voting starts', async () => {
       const event: any = {
         votingOpen: false,
-        save: jest.fn(),
+        save: vi.fn(),
       };
       eventFindByPk.mockResolvedValue(event);
 
@@ -123,7 +124,7 @@ describe('VotingService', () => {
         votingOpen: false,
         votingStartDate: new Date('2026-09-01T10:00:00.000Z'),
         votingEndDate: new Date('2026-09-01T11:00:00.000Z'),
-        save: jest.fn(),
+        save: vi.fn(),
       };
       eventFindByPk.mockResolvedValue(event);
 

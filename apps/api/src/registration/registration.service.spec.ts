@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getConnectionToken, getModelToken } from '@nestjs/sequelize';
@@ -19,48 +20,48 @@ import { RegistrationService } from './registration.service';
 
 describe('RegistrationService', () => {
   let service: RegistrationService;
-  let userProjectFindOne: jest.Mock;
-  let registrationFindOne: jest.Mock;
-  let transactionCommit: jest.Mock;
-  let transactionRollback: jest.Mock;
-  let projectFindByPk: jest.Mock;
-  let projectCreate: jest.Mock;
-  let projectCount: jest.Mock;
-  let eventFindByPk: jest.Mock;
-  let eventFindAll: jest.Mock;
-  let userCreate: jest.Mock;
-  let userFindByPk: jest.Mock;
-  let registrationFindAll: jest.Mock;
-  let registrationCount: jest.Mock;
-  let welcomeMailOwner: jest.Mock;
-  let welcomeMailCoWorker: jest.Mock;
-  let notifyProjectOwner: jest.Mock;
-  let notifyProjectOwnerParticipantLeft: jest.Mock;
-  let registrationMail: jest.Mock;
-  let generateLoginToken: jest.Mock;
-  let generateRegistrationToken: jest.Mock;
+  let userProjectFindOne: Mock;
+  let registrationFindOne: Mock;
+  let transactionCommit: Mock;
+  let transactionRollback: Mock;
+  let projectFindByPk: Mock;
+  let projectCreate: Mock;
+  let projectCount: Mock;
+  let eventFindByPk: Mock;
+  let eventFindAll: Mock;
+  let userCreate: Mock;
+  let userFindByPk: Mock;
+  let registrationFindAll: Mock;
+  let registrationCount: Mock;
+  let welcomeMailOwner: Mock;
+  let welcomeMailCoWorker: Mock;
+  let notifyProjectOwner: Mock;
+  let notifyProjectOwnerParticipantLeft: Mock;
+  let registrationMail: Mock;
+  let generateLoginToken: Mock;
+  let generateRegistrationToken: Mock;
 
   beforeEach(async () => {
-    userProjectFindOne = jest.fn();
-    registrationFindOne = jest.fn();
-    transactionCommit = jest.fn().mockResolvedValue(undefined);
-    transactionRollback = jest.fn().mockResolvedValue(undefined);
-    projectFindByPk = jest.fn();
-    projectCreate = jest.fn();
-    projectCount = jest.fn().mockResolvedValue(0);
-    eventFindByPk = jest.fn();
-    eventFindAll = jest.fn().mockResolvedValue([]);
-    userCreate = jest.fn();
-    userFindByPk = jest.fn();
-    registrationFindAll = jest.fn().mockResolvedValue([]);
-    registrationCount = jest.fn().mockResolvedValue(0);
-    welcomeMailOwner = jest.fn().mockResolvedValue(undefined);
-    welcomeMailCoWorker = jest.fn().mockResolvedValue(undefined);
-    notifyProjectOwner = jest.fn().mockResolvedValue(undefined);
-    notifyProjectOwnerParticipantLeft = jest.fn().mockResolvedValue(undefined);
-    registrationMail = jest.fn().mockResolvedValue(undefined);
-    generateLoginToken = jest.fn().mockReturnValue('login-jwt');
-    generateRegistrationToken = jest.fn().mockReturnValue('registration-jwt');
+    userProjectFindOne = vi.fn();
+    registrationFindOne = vi.fn();
+    transactionCommit = vi.fn().mockResolvedValue(undefined);
+    transactionRollback = vi.fn().mockResolvedValue(undefined);
+    projectFindByPk = vi.fn();
+    projectCreate = vi.fn();
+    projectCount = vi.fn().mockResolvedValue(0);
+    eventFindByPk = vi.fn();
+    eventFindAll = vi.fn().mockResolvedValue([]);
+    userCreate = vi.fn();
+    userFindByPk = vi.fn();
+    registrationFindAll = vi.fn().mockResolvedValue([]);
+    registrationCount = vi.fn().mockResolvedValue(0);
+    welcomeMailOwner = vi.fn().mockResolvedValue(undefined);
+    welcomeMailCoWorker = vi.fn().mockResolvedValue(undefined);
+    notifyProjectOwner = vi.fn().mockResolvedValue(undefined);
+    notifyProjectOwnerParticipantLeft = vi.fn().mockResolvedValue(undefined);
+    registrationMail = vi.fn().mockResolvedValue(undefined);
+    generateLoginToken = vi.fn().mockReturnValue('login-jwt');
+    generateRegistrationToken = vi.fn().mockReturnValue('registration-jwt');
 
     const transaction = {
       commit: transactionCommit,
@@ -88,7 +89,7 @@ describe('RegistrationService', () => {
         {
           provide: getConnectionToken(),
           useValue: {
-            transaction: jest.fn().mockResolvedValue(transaction),
+            transaction: vi.fn().mockResolvedValue(transaction),
           },
         },
         {
@@ -109,7 +110,7 @@ describe('RegistrationService', () => {
             findOne: registrationFindOne,
             findAll: registrationFindAll,
             count: registrationCount,
-            destroy: jest.fn().mockResolvedValue(undefined),
+            destroy: vi.fn().mockResolvedValue(undefined),
           },
         },
         {
@@ -119,20 +120,20 @@ describe('RegistrationService', () => {
         { provide: getModelToken(Question), useValue: {} },
         {
           provide: getModelToken(QuestionUser),
-          useValue: { bulkCreate: jest.fn() },
+          useValue: { bulkCreate: vi.fn() },
         },
         {
           provide: getModelToken(QuestionRegistration),
           useValue: {
-            findAll: jest.fn().mockResolvedValue([]),
-            destroy: jest.fn().mockResolvedValue(undefined),
+            findAll: vi.fn().mockResolvedValue([]),
+            destroy: vi.fn().mockResolvedValue(undefined),
           },
         },
         {
           provide: getModelToken(UserProject),
           useValue: {
             findOne: userProjectFindOne,
-            create: jest.fn().mockResolvedValue(undefined),
+            create: vi.fn().mockResolvedValue(undefined),
           },
         },
         { provide: getModelToken(Affiliation), useValue: {} },
@@ -255,10 +256,10 @@ describe('RegistrationService', () => {
       const project = {
         id: 55,
         deletedAt: null,
-        getOwner: jest.fn().mockResolvedValue(owner),
+        getOwner: vi.fn().mockResolvedValue(owner),
       };
       const coworker = { id: 12, eventId: 1 };
-      const voucherUpdate = jest.fn().mockResolvedValue(undefined);
+      const voucherUpdate = vi.fn().mockResolvedValue(undefined);
 
       registrationFindOne.mockResolvedValue({
         id: 20,
@@ -311,7 +312,7 @@ describe('RegistrationService', () => {
       const project = {
         id: 55,
         deletedAt: null,
-        getOwner: jest.fn().mockResolvedValue(undefined),
+        getOwner: vi.fn().mockResolvedValue(undefined),
       };
       const coworker = { id: 12, eventId: 1 };
 
@@ -340,7 +341,7 @@ describe('RegistrationService', () => {
       userCreate.mockResolvedValue(coworker);
       userProjectFindOne.mockResolvedValue({
         projectId: 55,
-        update: jest.fn().mockResolvedValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined),
       });
       projectFindByPk.mockResolvedValue(project);
 
@@ -353,9 +354,9 @@ describe('RegistrationService', () => {
   describe('unassignParticipant', () => {
     it('notifies the project owner when a participant leaves', async () => {
       const owner = { id: 99 };
-      const project = { id: 55, getOwner: jest.fn().mockResolvedValue(owner) };
+      const project = { id: 55, getOwner: vi.fn().mockResolvedValue(owner) };
       const leavingUser = { id: 12, firstname: 'Co', lastname: 'Worker' };
-      const participationUpdate = jest.fn().mockResolvedValue(undefined);
+      const participationUpdate = vi.fn().mockResolvedValue(undefined);
 
       userProjectFindOne.mockResolvedValue({
         projectId: 55,
@@ -380,9 +381,9 @@ describe('RegistrationService', () => {
 
     it('still unassigns the participant when notifying the owner fails', async () => {
       const owner = { id: 99 };
-      const project = { id: 55, getOwner: jest.fn().mockResolvedValue(owner) };
+      const project = { id: 55, getOwner: vi.fn().mockResolvedValue(owner) };
       const leavingUser = { id: 12, firstname: 'Co', lastname: 'Worker' };
-      const participationUpdate = jest.fn().mockResolvedValue(undefined);
+      const participationUpdate = vi.fn().mockResolvedValue(undefined);
 
       userProjectFindOne.mockResolvedValue({
         projectId: 55,
@@ -415,7 +416,7 @@ describe('RegistrationService', () => {
       eventFindByPk.mockResolvedValue({ id: 1, maxRegistration: 5 });
       projectCount.mockResolvedValue(3);
       registrationCount.mockResolvedValue(1); // confirmed (non-waitlisted) pending
-      const update = jest.fn().mockResolvedValue(undefined);
+      const update = vi.fn().mockResolvedValue(undefined);
       const candidate = { id: 30, update };
       registrationFindAll.mockResolvedValue([candidate]);
 
@@ -459,7 +460,7 @@ describe('RegistrationService', () => {
       eventFindByPk.mockResolvedValue({ id: 1, maxRegistration: 5 });
       projectCount.mockResolvedValue(3);
       registrationCount.mockResolvedValue(1);
-      const update = jest.fn().mockResolvedValue(undefined);
+      const update = vi.fn().mockResolvedValue(undefined);
       registrationFindAll.mockResolvedValue([{ id: 31, update }]);
       registrationMail.mockRejectedValueOnce(new Error('SMTP down'));
 
@@ -502,7 +503,7 @@ describe('RegistrationService', () => {
     });
 
     it('assigns user to unused voucher', async () => {
-      const update = jest.fn().mockResolvedValue(undefined);
+      const update = vi.fn().mockResolvedValue(undefined);
       userProjectFindOne
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: 7, projectId: 9, update });

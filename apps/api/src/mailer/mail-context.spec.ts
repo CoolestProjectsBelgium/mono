@@ -47,7 +47,7 @@ describe('mail-context', () => {
       fields: Record<string, unknown>,
     ): T {
       return Object.assign(Object.create(Ctor.prototype), {
-        getEvent: jest.fn().mockResolvedValue(event),
+        getEvent: vi.fn().mockResolvedValue(event),
         ...fields,
       });
     }
@@ -133,7 +133,7 @@ describe('mail-context', () => {
         id: 5,
         officialStartDate: new Date('2024-06-01'),
       } as Event;
-      const person = { getEvent: jest.fn().mockResolvedValue(pastEvent) };
+      const person = { getEvent: vi.fn().mockResolvedValue(pastEvent) };
 
       const event = await resolveMailEvent(person);
 
@@ -142,7 +142,7 @@ describe('mail-context', () => {
     });
 
     it('throws when the associated event no longer exists', async () => {
-      const person = { getEvent: jest.fn().mockResolvedValue(null) };
+      const person = { getEvent: vi.fn().mockResolvedValue(null) };
 
       await expect(resolveMailEvent(person)).rejects.toThrow('Event not found');
     });

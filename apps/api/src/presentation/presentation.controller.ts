@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { PresentationService } from './presentation.service';
 import { PresentationAuthGuard } from '../auth/presentation-auth.guard';
 import { Info } from '../info.decorator';

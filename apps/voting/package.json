@@ -14,16 +14,16 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@pinia-plugin-persistedstate/nuxt": "^1.2.1",
-    "@pinia/nuxt": "^0.5.5",
-    "pinia": "^2.1.7",
+    "@pinia/nuxt": "^0.11.0",
+    "pinia": "^3.0.2",
+    "pinia-plugin-persistedstate": "^4.7.1",
     "vue": "^3.4.31"
   },
   "devDependencies": {
     "@nuxt/test-utils": "^3.17.2",
     "@nuxtjs/tailwindcss": "^6.13.2",
     "@vue/test-utils": "^2.4.6",
-    "happy-dom": "^17.4.4",
+    "happy-dom": "^20.14.5",
     "nuxt": "^3.12.3",
     "typescript": "^5.5.3",
     "vitest": "^3.1.1",

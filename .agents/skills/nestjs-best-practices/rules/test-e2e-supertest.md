@@ -15,7 +15,7 @@ End-to-end tests use Supertest to make real HTTP requests against your NestJS ap
 // Only unit test controllers
 describe('UsersController', () => {
   it('should return users', async () => {
-    const service = { findAll: jest.fn().mockResolvedValue([]) };
+    const service = { findAll: vi.fn().mockResolvedValue([]) };
     const controller = new UsersController(service as any);
 
     const result = await controller.findAll();
@@ -42,7 +42,7 @@ describe('Users API', () => {
 // Proper E2E test setup
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 
 describe('UsersController (e2e)', () => {

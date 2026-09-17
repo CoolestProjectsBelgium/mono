@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express/multer';
 import { ApiCookieAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 import { MulterFile } from '../file-upload/multer-file.type';
 import {

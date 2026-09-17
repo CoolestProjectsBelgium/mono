@@ -2,7 +2,7 @@
 title: Mock External Services in Tests
 impact: HIGH
 impactDescription: Ensures fast, reliable, deterministic tests
-tags: testing, mocking, external-services, jest
+tags: testing, mocking, external-services, vitest
 ---
 
 ## Mock External Services in Tests
@@ -36,7 +36,7 @@ describe('UsersService', () => {
 
 // Incomplete mocks
 const mockHttpService = {
-  get: jest.fn().mockResolvedValue({ data: {} }),
+  get: vi.fn().mockResolvedValue({ data: {} }),
   // Missing error scenarios, missing other methods
 };
 ```
@@ -44,10 +44,12 @@ const mockHttpService = {
 **Correct (mock all external dependencies):**
 
 ```typescript
+import type { Mocked } from 'vitest';
+
 // Mock HTTP service properly
 describe('WeatherService', () => {
   let service: WeatherService;
-  let httpService: jest.Mocked<HttpService>;
+  let httpService: Mocked<HttpService>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -56,8 +58,8 @@ describe('WeatherService', () => {
         {
           provide: HttpService,
           useValue: {
-            get: jest.fn(),
-            post: jest.fn(),
+            get: vi.fn(),
+            post: vi.fn(),
           },
         },
       ],
@@ -105,15 +107,15 @@ describe('WeatherService', () => {
 // Mock repository instead of database
 describe('UsersService', () => {
   let service: UsersService;
-  let repo: jest.Mocked<Repository<User>>;
+  let repo: Mocked<Repository<User>>;
 
   beforeEach(async () => {
     const mockRepo = {
-      find: jest.fn(),
-      findOne: jest.fn(),
-      save: jest.fn(),
-      delete: jest.fn(),
-      createQueryBuilder: jest.fn(),
+      find: vi.fn(),
+      findOne: vi.fn(),
+      save: vi.fn(),
+      delete: vi.fn(),
+      createQueryBuilder: vi.fn(),
     };
 
     const module = await Test.createTestingModule({
@@ -139,17 +141,17 @@ describe('UsersService', () => {
 });
 
 // Create mock factory for complex SDKs
-function createMockStripe(): jest.Mocked<Stripe> {
+function createMockStripe(): Mocked<Stripe> {
   return {
     paymentIntents: {
-      create: jest.fn(),
-      retrieve: jest.fn(),
-      confirm: jest.fn(),
-      cancel: jest.fn(),
+      create: vi.fn(),
+      retrieve: vi.fn(),
+      confirm: vi.fn(),
+      cancel: vi.fn(),
     },
     customers: {
-      create: jest.fn(),
-      retrieve: jest.fn(),
+      create: vi.fn(),
+      retrieve: vi.fn(),
     },
   } as any;
 }
@@ -157,23 +159,23 @@ function createMockStripe(): jest.Mocked<Stripe> {
 // Mock time for time-dependent tests
 describe('TokenService', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-15'));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-15'));
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('should expire token after 1 hour', async () => {
     const token = await service.createToken();
 
     // Fast-forward time
-    jest.advanceTimersByTime(61 * 60 * 1000);
+    vi.advanceTimersByTime(61 * 60 * 1000);
 
     expect(await service.isValid(token)).toBe(false);
   });
 });
 ```
 
-Reference: [Jest Mocking](https://jestjs.io/docs/mock-functions)
+Reference: [Vitest Mocking](https://vitest.dev/api/vi.html)

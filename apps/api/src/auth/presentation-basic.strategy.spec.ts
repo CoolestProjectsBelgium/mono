@@ -2,15 +2,15 @@ import { UnauthorizedException } from '@nestjs/common';
 import { PresentationBasicStrategy } from './presentation-basic.strategy';
 
 describe('PresentationBasicStrategy', () => {
-  const accountModel = { findOne: jest.fn() };
+  const accountModel = { findOne: vi.fn() };
   const strategy = new PresentationBasicStrategy(accountModel as never);
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('scopes the lookup to presentation accounts and returns a minimal principal on success', async () => {
-    const verifyPassword = jest.fn().mockReturnValue(true);
+    const verifyPassword = vi.fn().mockReturnValue(true);
     accountModel.findOne.mockResolvedValue({
       id: 5,
       email: 'pi@example.be',
@@ -38,7 +38,7 @@ describe('PresentationBasicStrategy', () => {
     accountModel.findOne.mockResolvedValue({
       id: 5,
       email: 'pi@example.be',
-      verifyPassword: jest.fn().mockReturnValue(false),
+      verifyPassword: vi.fn().mockReturnValue(false),
     });
 
     await expect(

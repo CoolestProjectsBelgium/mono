@@ -42,14 +42,14 @@ export class OrdersService {
 
 // Testing is painful - must mock unused methods
 const mockNotificationService = {
-  sendEmail: jest.fn(),
-  sendSms: jest.fn(),           // Never used, but required
-  sendPush: jest.fn(),          // Never used, but required
-  sendSlack: jest.fn(),         // Never used, but required
-  logNotification: jest.fn(),   // Never used, but required
-  getDeliveryStatus: jest.fn(), // Never used, but required
-  retryFailed: jest.fn(),       // Never used, but required
-  scheduleNotification: jest.fn(), // Never used, but required
+  sendEmail: vi.fn(),
+  sendSms: vi.fn(),           // Never used, but required
+  sendPush: vi.fn(),          // Never used, but required
+  sendSlack: vi.fn(),         // Never used, but required
+  logNotification: vi.fn(),   // Never used, but required
+  getDeliveryStatus: vi.fn(), // Never used, but required
+  retryFailed: vi.fn(),       // Never used, but required
+  scheduleNotification: vi.fn(), // Never used, but required
 };
 ```
 
@@ -119,7 +119,7 @@ export class OrdersService {
 
 // Testing is simple - only mock what's used
 const mockEmailSender: EmailSender = {
-  sendEmail: jest.fn(),
+  sendEmail: vi.fn(),
 };
 
 // Module registration with tokens
