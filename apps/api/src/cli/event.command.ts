@@ -2,12 +2,19 @@ import {
   Affiliation,
   Attachment,
   Account,
+  Award,
   Certificate,
+  CertificateRender,
   CertificateTemplate,
+  EmailLog,
   EmailTemplate,
   Event,
   EventTable,
+  Log,
+  Message,
   Municipality,
+  PresentationCheckin,
+  PresentationRender,
   PresentationSlide,
   Project,
   Question,
@@ -86,6 +93,20 @@ export class EventCommand {
     private readonly certificateModel: typeof Certificate,
     @InjectModel(CertificateTemplate)
     private readonly certificateTemplateModel: typeof CertificateTemplate,
+    @InjectModel(CertificateRender)
+    private readonly certificateRenderModel: typeof CertificateRender,
+    @InjectModel(PresentationRender)
+    private readonly presentationRenderModel: typeof PresentationRender,
+    @InjectModel(PresentationCheckin)
+    private readonly presentationCheckinModel: typeof PresentationCheckin,
+    @InjectModel(Award)
+    private readonly awardModel: typeof Award,
+    @InjectModel(Message)
+    private readonly messageModel: typeof Message,
+    @InjectModel(EmailLog)
+    private readonly emailLogModel: typeof EmailLog,
+    @InjectModel(Log)
+    private readonly logModel: typeof Log,
   ) {}
 
   @Command({
@@ -118,6 +139,13 @@ export class EventCommand {
       this.presentationSlideModel,
       this.certificateModel,
       this.certificateTemplateModel,
+      this.certificateRenderModel,
+      this.presentationRenderModel,
+      this.presentationCheckinModel,
+      this.awardModel,
+      this.messageModel,
+      this.emailLogModel,
+      this.logModel,
     );
   }
 

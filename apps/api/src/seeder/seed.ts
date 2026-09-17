@@ -2,12 +2,19 @@ import {
   Affiliation,
   Attachment,
   Account,
+  Award,
   Certificate,
+  CertificateRender,
   CertificateTemplate,
+  EmailLog,
   EmailTemplate,
   Event,
   EventTable,
+  Log,
+  Message,
   Municipality,
+  PresentationCheckin,
+  PresentationRender,
   PresentationSlide,
   Project,
   Question,
@@ -44,6 +51,29 @@ import { SEED_FLOORPLAN_FILENAME, seedFloorplan } from './seed-floorplan';
 import { seedProjectPictures } from './seed-project-pictures';
 import { randomUUID } from 'crypto';
 
+/**
+ * Wipes every table this seeder populates before reseeding. Runs on every
+ * container start (via start.sh -> npm run seed-db), so without this, each
+ * restart added another duplicate Event on top of the last instead of
+ * replacing it — see the mismatched email-uniqueness failures that produced.
+ * Truncation order is irrelevant: FK checks are off for the duration.
+ */
+async function resetSeedTables(
+  models: Array<{
+    destroy: (options: Record<string, unknown>) => Promise<unknown>;
+  }>,
+  sequelize: NonNullable<typeof Event.sequelize>,
+) {
+  await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
+  try {
+    for (const model of models) {
+      await model.destroy({ truncate: true, force: true });
+    }
+  } finally {
+    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
+  }
+}
+
 export async function seedDatabase(
   eventModel: typeof Event,
   tshirtGroupModel: typeof TshirtGroup,
@@ -69,7 +99,51 @@ export async function seedDatabase(
   presentationSlideModel: typeof PresentationSlide,
   certificateModel: typeof Certificate,
   certificateTemplateModel: typeof CertificateTemplate,
+  certificateRenderModel: typeof CertificateRender,
+  presentationRenderModel: typeof PresentationRender,
+  presentationCheckinModel: typeof PresentationCheckin,
+  awardModel: typeof Award,
+  messageModel: typeof Message,
+  emailLogModel: typeof EmailLog,
+  logModel: typeof Log,
 ) {
+  await resetSeedTables(
+    [
+      attachmentModel,
+      questionUserModel,
+      questionRegistrationModel,
+      userProjectModel,
+      voteModel,
+      voteCategoryModel,
+      registrationModel,
+      userModel,
+      projectModel,
+      certificateRenderModel,
+      certificateModel,
+      certificateTemplateModel,
+      presentationRenderModel,
+      presentationCheckinModel,
+      presentationSlideModel,
+      awardModel,
+      eventTableModel,
+      emailTemplateModel,
+      emailLogModel,
+      messageModel,
+      logModel,
+      accountModel,
+      tshirtTranslationModel,
+      tshirtGroupTranslationModel,
+      tshirtModel,
+      questionTranslationModel,
+      questionModel,
+      tshirtGroupModel,
+      affiliationModel,
+      municipalityModel,
+      eventModel,
+    ],
+    eventModel.sequelize!,
+  );
+
   const eventBeginDate = new Date();
   eventBeginDate.setDate(new Date().getDate() - 100);
 

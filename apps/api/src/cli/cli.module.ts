@@ -20,6 +20,7 @@ import { Event } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { Message } from '@coolestprojects/database';
 import { Municipality } from '@coolestprojects/database';
+import { PresentationCheckin } from '@coolestprojects/database';
 import { PresentationRender } from '@coolestprojects/database';
 import { PresentationSlide } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
@@ -94,6 +95,7 @@ import configuration from '../config/configuration.js';
             Municipality,
             PresentationSlide,
             PresentationRender,
+            PresentationCheckin,
             CertificateTemplate,
             CertificateRender,
           ],
@@ -125,8 +127,14 @@ import configuration from '../config/configuration.js';
       Affiliation,
       Municipality,
       PresentationSlide,
+      PresentationRender,
+      PresentationCheckin,
       Certificate,
       CertificateTemplate,
+      CertificateRender,
+      Award,
+      Message,
+      Log,
     ]),
   ],
   providers: [
