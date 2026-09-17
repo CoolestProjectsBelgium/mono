@@ -54,6 +54,7 @@ Most domain models extend `BaseEventModel` (adds `eventId` FK to `Event`). `Even
 | `EmailTemplate` | `BaseEventModel` | Email templates |
 | `EventTable` | `BaseEventModel` | Event table/seating |
 | `Affiliation` | `BaseEventModel` | CoderDojo catalog (`name` without the `Dojo` prefix); served as `GET /dojos` |
+| `Log` | `Model` | AdminJS audit trail (`@adminjs/logger`): action, resource, account, record, JSON `difference` |
 
 Exports are listed in `packages/database/src/index.ts`.
 

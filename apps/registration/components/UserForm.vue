@@ -57,12 +57,13 @@
           />
         </template>
       </FormField>
-      <PostalCodeSearchField
+      <MunicipalitySearchField
         v-model="model.address"
         :label="$t('label_postalcode')"
         :placeholder="$t('placeholder_postalcode')"
         :disabled="disabled"
         :error="errors?.postalcode"
+        :entries="municipalityOptions"
         @clear-error="emit('clear-error', 'postalcode')"
       />
       <div class="md:col-span-2">
@@ -258,6 +259,7 @@
 
 <script setup lang="ts">
 import type { DojoEntry } from '~/utils/dojos/types'
+import type { MunicipalityEntry } from '~/utils/municipalities/types'
 import type { SettingDto, TshirtGroupDto, UserDto } from '~/types/api'
 import { createEmptyAddress } from '~/utils/registration-payload'
 import type { ViaType } from '~/utils/dojos/types'
@@ -283,6 +285,7 @@ if (model.value.via_type !== 'dojo' && model.value.via_type !== 'other') {
 const props = defineProps<{
   tshirtGroups?: TshirtGroupDto[]
   dojos?: DojoEntry[]
+  municipalities?: MunicipalityEntry[]
   disabled?: boolean
   showGuardian?: boolean
   settings?: SettingDto | null
@@ -314,6 +317,7 @@ const showGuardianFields = computed(() => props.showGuardian ?? guardianRequired
 
 const tshirtGroupOptions = computed(() => props.tshirtGroups ?? [])
 const dojoOptions = computed(() => props.dojos ?? [])
+const municipalityOptions = computed(() => props.municipalities ?? [])
 
 function formatTshirtLabel(name: string): string {
   return te(name) ? t(name) : name

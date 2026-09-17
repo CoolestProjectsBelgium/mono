@@ -1,7 +1,4 @@
-import postalCodesData from '~/data/be-postal-codes.json'
-import type { PostalCodeEntry, PostalCodeLocale } from '~/utils/postal-codes/types'
-
-const postalCodes = postalCodesData as PostalCodeEntry[]
+import type { MunicipalityEntry, MunicipalityLocale } from '~/utils/municipalities/types'
 
 export function normalizeSearchText(value: string): string {
   return value
@@ -12,27 +9,28 @@ export function normalizeSearchText(value: string): string {
 }
 
 export function getMunicipalityLabel(
-  entry: PostalCodeEntry,
-  locale: PostalCodeLocale,
+  entry: MunicipalityEntry,
+  locale: MunicipalityLocale,
 ): string {
   if (locale === 'fr') {
-    return entry.municipality_fr
+    return entry.municipality_name_fr
   }
-  return entry.municipality_nl
+  return entry.municipality_name_nl
 }
 
-export function formatPostalCodeOption(
-  entry: PostalCodeEntry,
-  locale: PostalCodeLocale,
+export function formatMunicipalityOption(
+  entry: MunicipalityEntry,
+  locale: MunicipalityLocale,
 ): string {
   return `${entry.postalcode} ${getMunicipalityLabel(entry, locale)}`
 }
 
-export function searchPostalCodes(
+export function searchMunicipalities(
+  entries: MunicipalityEntry[],
   query: string,
-  locale: PostalCodeLocale = 'nl',
+  locale: MunicipalityLocale = 'nl',
   limit = 10,
-): PostalCodeEntry[] {
+): MunicipalityEntry[] {
   const normalizedQuery = normalizeSearchText(query)
   if (!normalizedQuery) {
     return []
@@ -44,11 +42,11 @@ export function searchPostalCodes(
     return []
   }
 
-  const matches: PostalCodeEntry[] = []
-  for (const entry of postalCodes) {
+  const matches: MunicipalityEntry[] = []
+  for (const entry of entries) {
     const code = String(entry.postalcode)
-    const nl = normalizeSearchText(entry.municipality_nl)
-    const fr = normalizeSearchText(entry.municipality_fr)
+    const nl = normalizeSearchText(entry.municipality_name_nl)
+    const fr = normalizeSearchText(entry.municipality_name_fr)
     const label = normalizeSearchText(getMunicipalityLabel(entry, locale))
 
     const codeMatch = code.startsWith(normalizedQuery)
@@ -67,7 +65,8 @@ export function searchPostalCodes(
   return matches
 }
 
-export function isValidPostalMunicipalityPair(
+export function isKnownMunicipality(
+  entries: MunicipalityEntry[],
   postalcode: number,
   municipalityName: string,
 ): boolean {
@@ -76,57 +75,58 @@ export function isValidPostalMunicipalityPair(
   }
 
   const normalizedName = normalizeSearchText(municipalityName)
-  return postalCodes.some((entry) => {
+  return entries.some((entry) => {
     if (entry.postalcode !== postalcode) {
       return false
     }
-    return normalizeSearchText(entry.municipality_nl) === normalizedName
-      || normalizeSearchText(entry.municipality_fr) === normalizedName
+    return normalizeSearchText(entry.municipality_name_nl) === normalizedName
+      || normalizeSearchText(entry.municipality_name_fr) === normalizedName
   })
 }
 
-export function findPostalCodeEntry(
+export function findMunicipality(
+  entries: MunicipalityEntry[],
   postalcode: number,
   municipalityName: string,
-): PostalCodeEntry | undefined {
+): MunicipalityEntry | undefined {
   const normalizedName = normalizeSearchText(municipalityName)
-  return postalCodes.find((entry) => {
+  return entries.find((entry) => {
     if (entry.postalcode !== postalcode) {
       return false
     }
-    return normalizeSearchText(entry.municipality_nl) === normalizedName
-      || normalizeSearchText(entry.municipality_fr) === normalizedName
+    return normalizeSearchText(entry.municipality_name_nl) === normalizedName
+      || normalizeSearchText(entry.municipality_name_fr) === normalizedName
   })
 }
 
-export function findPostalCodeEntriesByCode(postalcode: number): PostalCodeEntry[] {
+export function findMunicipalitiesByPostalcode(
+  entries: MunicipalityEntry[],
+  postalcode: number,
+): MunicipalityEntry[] {
   if (!postalcode || postalcode < 1000 || postalcode > 9999) {
     return []
   }
-  return postalCodes.filter(entry => entry.postalcode === postalcode)
+  return entries.filter(entry => entry.postalcode === postalcode)
 }
 
-export function resolvePostalCodeLabel(
+export function resolveMunicipalityLabel(
+  entries: MunicipalityEntry[],
   postalcode: number,
   municipalityName: string,
-  locale: PostalCodeLocale,
+  locale: MunicipalityLocale,
 ): string {
   if (postalcode <= 0) {
     return ''
   }
   if (municipalityName) {
-    const entry = findPostalCodeEntry(postalcode, municipalityName)
+    const entry = findMunicipality(entries, postalcode, municipalityName)
     return entry
-      ? formatPostalCodeOption(entry, locale)
+      ? formatMunicipalityOption(entry, locale)
       : `${postalcode} ${municipalityName}`
   }
-  const matches = findPostalCodeEntriesByCode(postalcode)
+  const matches = findMunicipalitiesByPostalcode(entries, postalcode)
   if (matches.length === 1) {
-    return formatPostalCodeOption(matches[0], locale)
+    return formatMunicipalityOption(matches[0], locale)
   }
   return String(postalcode)
-}
-
-export function getAllPostalCodes(): PostalCodeEntry[] {
-  return postalCodes
 }

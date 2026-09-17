@@ -1,5 +1,6 @@
 import type { ApprovalDto, QuestionDto, SettingDto } from '~/types/api'
 import type { DojoEntry } from '~/utils/dojos/types'
+import type { MunicipalityEntry } from '~/utils/municipalities/types'
 import type { RegistrationFormState } from '~/utils/registration-payload'
 import { mapZodIssuesToFieldErrors } from '~/utils/validation/map-field-errors'
 import {
@@ -20,6 +21,7 @@ export function validateRegistrationForm(
   questionIds: string[],
   translate: (key: string) => string,
   knownDojos: DojoEntry[] = [],
+  knownMunicipalities: MunicipalityEntry[] = [],
 ): Record<string, string> | null {
   const fieldErrors: Record<string, string> = {}
 
@@ -28,7 +30,7 @@ export function validateRegistrationForm(
     maxAge: settings.maxAge,
     guardianAge: settings.guardianAge,
     officialStartDate: settings.officialStartDate,
-  }, knownDojos).safeParse({
+  }, knownDojos, knownMunicipalities).safeParse({
     ...form.user,
     mandatory_approvals: form.mandatoryApprovals,
   })

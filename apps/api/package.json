@@ -7,7 +7,7 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "npx tsc -p ./tsconfig.build.json && node -e \"require('node:fs').cpSync('src/seeder/fixtures','dist/seeder/fixtures',{recursive:true})\"",
+    "build": "npx tsc -p ./tsconfig.build.json && node -e \"const fs=require('node:fs');fs.cpSync('src/seeder/fixtures','dist/seeder/fixtures',{recursive:true});fs.cpSync('src/seeder/be-dojos.json','dist/seeder/be-dojos.json');fs.cpSync('src/seeder/be-municipalities.json','dist/seeder/be-municipalities.json')\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "lint": "eslint \"{src,test}/**/*.ts\"",

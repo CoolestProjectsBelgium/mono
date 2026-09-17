@@ -76,6 +76,11 @@ describe('registration page submit', () => {
       if (url === '/questions') return Promise.resolve([])
       if (url === '/approvals') return Promise.resolve([{ id: 1, name: 'Rules', description: 'Agree' }])
       if (url === '/dojos') return Promise.resolve([{ id: 1, name: 'Balen' }])
+      if (url === '/municipalities') {
+        return Promise.resolve([
+          { postalcode: 2800, municipality_name_nl: 'Mechelen', municipality_name_fr: 'Malines', municipality_name_de: 'Mechelen' },
+        ])
+      }
       if (url === '/registration') return Promise.resolve({})
       return Promise.resolve(null)
     })

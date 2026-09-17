@@ -20,8 +20,17 @@ import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { QuestionUser } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
 import { Affiliation } from '@coolestprojects/database';
+import { Municipality } from '@coolestprojects/database';
 import { resolveAffiliation } from '../affiliation/resolve-affiliation';
+import { resolveMunicipality } from '../municipality/resolve-municipality';
 import { normalizeGsm } from '../userinfo/normalize-gsm';
+
+// Ported from apps/registration/utils/validation/gsm.ts's BELGIAN_GSM_REGEX —
+// previously frontend-only, so a direct API caller (admin-created
+// registrations included) could submit an invalid number. registration.gsm
+// is already run through the equivalent normalizeGsm() by the time it
+// reaches validate(), so this matches directly against it.
+const BELGIAN_GSM_REGEX = /^((\+|00)32\s?|0)([1-9][0-9]\d{6})\d?$/;
 
 @Injectable()
 export class RegistrationService {
@@ -50,12 +59,16 @@ export class RegistrationService {
     private readonly userProjectModel: typeof UserProject,
     @InjectModel(Affiliation)
     private readonly affiliationModel: typeof Affiliation,
+    @InjectModel(Municipality)
+    private readonly municipalityModel: typeof Municipality,
   ) {}
 
   async create(
     info: InfoDto,
     createRegistrationDto: RegistrationDto,
+    options?: { isAdminCreated?: boolean },
   ): Promise<Registration | undefined> {
+    const isAdminCreated = options?.isAdminCreated ?? false;
     if (!info.registrationOpen) {
       throw new Error('Registration is not open for this event.');
     }
@@ -178,8 +191,11 @@ export class RegistrationService {
         transaction,
       });
 
-      // check waiting list if project code is not filled, participant can always register
+      // check waiting list if project code is not filled, participant can always register.
+      // Admin-created registrations bypass this — a deliberate admin action shouldn't get
+      // silently queued (see RegistrationController.create()).
       if (
+        !isAdminCreated &&
         !registration.project_code &&
         projectCount + registrationProjectCount >= event.maxRegistration
       ) {
@@ -210,12 +226,17 @@ export class RegistrationService {
 
       await transaction.commit();
 
-      // send mails
-      if (registration.waiting_list) {
-        await this.mailerService.waitingListMail(r);
-      } else {
-        const token = this.tokenService.generateRegistrationToken(r.id);
-        await this.mailerService.registrationMail(r, token);
+      // send mails — skipped for admin-created registrations: the link would point at a
+      // Registration about to be deleted by an immediate activateRegistration() call
+      // (see RegistrationController.create()), so it'd just be a broken email to the
+      // real participant. The eventual welcome mail (activateRegistration()) still sends.
+      if (!isAdminCreated) {
+        if (registration.waiting_list) {
+          await this.mailerService.waitingListMail(r);
+        } else {
+          const token = this.tokenService.generateRegistrationToken(r.id);
+          await this.mailerService.registrationMail(r, token);
+        }
       }
 
       return r;
@@ -580,6 +601,31 @@ export class RegistrationService {
     if (missingMandatory.length > 0) {
       throw new Error('Not all mandatory questions have been answered.');
     }
+
+    // check gsm format (previously only enforced by the Vue frontend's Zod
+    // schema — see BELGIAN_GSM_REGEX above). "Validation:" prefix matches
+    // resolveAffiliation's convention — registration.controller.ts's error
+    // routing already treats it as a 400, not a 500.
+    if (!BELGIAN_GSM_REGEX.test(registration.gsm)) {
+      throw new Error(
+        'Validation: phone number is not a valid Belgian phone number.',
+      );
+    }
+    if (
+      registration.gsm_guardian &&
+      !BELGIAN_GSM_REGEX.test(registration.gsm_guardian)
+    ) {
+      throw new Error(
+        'Validation: guardian phone number is not a valid Belgian phone number.',
+      );
+    }
+
+    // check postal code matches a known municipality for this event
+    await resolveMunicipality(
+      this.municipalityModel,
+      event.id,
+      registration.postalcode,
+    );
 
     // check date of birth
     const minBirthDate = new Date(event.officialStartDate);

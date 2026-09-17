@@ -21,6 +21,11 @@ import { componentLoader, Components, Handlers } from './components/index.js';
 import { Authenticate } from './components/login/authenticate.js';
 import eventLoginRouter from './components/login/router.js';
 import { restrictPropertiesToRoleFeature } from './features/restrict-properties-to-role/index.js';
+import {
+  exportOnlyFeature,
+  exportOnlyActions,
+} from './features/export-only/index.js';
+import { registerUserHandler } from './components/registration/handler.js';
 import importExportFeature from '@adminjs/import-export';
 import loggerFeature, { createLoggerResource } from '@adminjs/logger';
 import {
@@ -393,10 +398,52 @@ const start = async () => {
       {
         resource: sequelize.models.Registration,
         features: [importExportFeature({ componentLoader }), auditLog()],
-        options: { navigation: navRegistration },
+        options: {
+          navigation: navRegistration,
+          actions: {
+            // Separate, additional action — the default "new" stays exactly
+            // as-is (still AdminJS's raw auto-generated form against this
+            // resource's own columns). This one instead proxies to the real
+            // POST /registration (apps/api/src/registration/registration.controller.ts),
+            // so it gets the same validation and — recognized via the
+            // AdminJS session cookie already forwarded by NestApiClient —
+            // immediate activation into a User instead of the normal
+            // email/token flow.
+            registerUser: {
+              actionType: 'resource',
+              icon: 'UserPlus',
+              component: Components.RegisterUser,
+              handler: registerUserHandler,
+            },
+          },
+        },
       },
       {
         resource: sequelize.models.Affiliation,
+        features: [auditLog()],
+        options: {
+          navigation: navRegistration,
+          properties: {
+            eventId: { isVisible: false },
+          },
+          actions: {
+            new: {
+              before: filterEventId('eventId'),
+            },
+            list: {
+              before: filterEventId('eventId'),
+            },
+            search: {
+              before: filterEventId('eventId'),
+            },
+            edit: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            show: { isAccessible: canAccessResourceFieldFilter('eventId') },
+            delete: { isAccessible: canAccessResourceFieldFilter('eventId') },
+          },
+        },
+      },
+      {
+        resource: sequelize.models.Municipality,
         features: [auditLog()],
         options: {
           navigation: navRegistration,
@@ -670,7 +717,7 @@ const start = async () => {
       // --- Reporting ---
       {
         resource: exportAllResource,
-        features: [importExportFeature({ componentLoader })],
+        features: [exportOnlyFeature({ componentLoader })],
         options: {
           navigation: navReporting,
           label: 'Export full User, Project, Questions report',
@@ -718,12 +765,13 @@ const start = async () => {
             show: { isVisible: false, isAccessible: false },
             // Hide the bulk-delete option, which also removes the list's selection checkboxes.
             bulkDelete: { isVisible: false, isAccessible: false },
+            ...exportOnlyActions,
           },
         },
       },
       {
         resource: userProjectSummaryResource,
-        features: [importExportFeature({ componentLoader })],
+        features: [exportOnlyFeature({ componentLoader })],
         options: {
           navigation: navReporting,
           label: 'User Project Overzicht gebruikt voor export',
@@ -735,6 +783,7 @@ const start = async () => {
             show: { isVisible: false, isAccessible: false },
             // Hide the bulk-delete option, which also removes the list's selection checkboxes.
             bulkDelete: { isVisible: false, isAccessible: false },
+            ...exportOnlyActions,
           },
         },
       },

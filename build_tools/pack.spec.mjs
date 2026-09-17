@@ -45,6 +45,22 @@ function makeRepo() {
     path.join(root, 'apps', 'admin', 'src', 'components', 'login', 'Login.tsx'),
     'export default function Login() { return null }',
   );
+  fs.mkdirSync(
+    path.join(root, 'apps', 'admin', 'dist', 'features', 'restrict-properties-to-role'),
+    { recursive: true },
+  );
+  fs.mkdirSync(
+    path.join(root, 'apps', 'admin', 'src', 'features', 'restrict-properties-to-role'),
+    { recursive: true },
+  );
+  fs.writeFileSync(
+    path.join(root, 'apps', 'admin', 'dist', 'features', 'restrict-properties-to-role', 'RoleRestrictedEditAction.js'),
+    'export default {}',
+  );
+  fs.writeFileSync(
+    path.join(root, 'apps', 'admin', 'src', 'features', 'restrict-properties-to-role', 'RoleRestrictedEditAction.tsx'),
+    'export default function RoleRestrictedEditAction() { return null }',
+  );
 
   fs.mkdirSync(path.join(root, 'apps', 'eventguide'), { recursive: true });
   fs.writeFileSync(path.join(root, 'apps', 'eventguide', 'index.html'), '<h1>guide</h1>');
@@ -113,6 +129,14 @@ test('admin stage writes ESM main.js wrapper and keeps component sources', () =>
   assert.equal(fs.existsSync(path.join(stageDir, 'components', 'index.js')), true);
   assert.equal(fs.existsSync(path.join(stageDir, 'components', 'login', 'Login.tsx')), true);
   assert.equal(fs.existsSync(path.join(stageDir, 'components', 'login', 'Login.js')), false);
+  assert.equal(
+    fs.existsSync(path.join(stageDir, 'features', 'restrict-properties-to-role', 'RoleRestrictedEditAction.tsx')),
+    true,
+  );
+  assert.equal(
+    fs.existsSync(path.join(stageDir, 'features', 'restrict-properties-to-role', 'RoleRestrictedEditAction.js')),
+    false,
+  );
   fs.rmSync(root, { recursive: true, force: true });
 });
 

@@ -7,6 +7,7 @@ import {
   EmailTemplate,
   Event,
   EventTable,
+  Municipality,
   PresentationSlide,
   Project,
   Question,
@@ -27,6 +28,7 @@ import type { CreationAttributes } from 'sequelize';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import { buildSeedCertificateTemplates } from './seed-certificate-template';
 import { loadSeedDojoNames } from './load-seed-dojos';
+import { loadSeedMunicipalities } from './load-seed-municipalities';
 import { buildSeedPresentationSlides } from './seed-presentation-slides';
 import {
   APPROVAL_QUESTION_NAME,
@@ -63,6 +65,7 @@ export async function seedDatabase(
   voteCategoryModel: typeof VoteCategory,
   voteModel: typeof Vote,
   affiliationModel: typeof Affiliation,
+  municipalityModel: typeof Municipality,
   presentationSlideModel: typeof PresentationSlide,
   certificateModel: typeof Certificate,
   certificateTemplateModel: typeof CertificateTemplate,
@@ -144,6 +147,16 @@ export async function seedDatabase(
     loadSeedDojoNames().map((name) => ({
       eventId: event.id,
       name,
+    })),
+  );
+  await municipalityModel.bulkCreate(
+    loadSeedMunicipalities().map((entry) => ({
+      eventId: event.id,
+      postalcode: entry.postalcode,
+      municipality_name_nl: entry.municipality_name_nl,
+      municipality_name_fr: entry.municipality_name_fr,
+      municipality_name_de: entry.municipality_name_de,
+      region: entry.region,
     })),
   );
 

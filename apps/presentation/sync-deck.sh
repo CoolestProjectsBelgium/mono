@@ -24,20 +24,26 @@
 #   POLL_INTERVAL_SECONDS      optional — seconds between passes in loop mode (default: 60)
 #
 # Display-client hand-off (all optional — skip these entirely if nothing
-# reads FEH_LIST_FILE or ON_DECK_CHANGED_CMD):
-#   FEH_LIST_FILE              optional — path to write an ordered feh(1) `-f` filelist after each
-#                              pass that actually changed something. Plain directory listing/sort
-#                              can't reproduce the deck's real order (slide keys don't sort that
-#                              way), so this is written explicitly in the API's own order.
-#   FEH_TICK_SECONDS           optional — the feh `-D` delay you'll pair with FEH_LIST_FILE
-#                              (default: 1). feh only supports one global slideshow delay, so each
-#                              slide's own `time` is approximated by repeating its path
-#                              round(time / tick) times in the filelist — feh redisplaying the same
-#                              file back-to-back is an effectively invisible "reload".
+# reads SLIDE_LIST_FILE or ON_DECK_CHANGED_CMD). Consumed by slideshow.sh,
+# which dispatches to either feh-slideshow.sh or imv-slideshow.sh — see
+# those scripts, not feh/imv specifically, for what reads these:
+#   SLIDE_LIST_FILE            optional — path to write an ordered, one-path-per-line filelist
+#                              after each pass that actually changed something. Plain directory
+#                              listing/sort can't reproduce the deck's real order (slide keys
+#                              don't sort that way), so this is written explicitly in the API's
+#                              own order. Format matches feh(1)'s `-f`/`--filelist`; imv has no
+#                              equivalent flag, so imv-slideshow.sh reads this file itself instead.
+#   SLIDE_TICK_SECONDS         optional — the fixed slideshow delay (seconds) you'll pair with
+#                              SLIDE_LIST_FILE (default: 1) — feh's `-D` / imv's `-t`, both only
+#                              support one global delay, so each slide's own `time` is approximated
+#                              by repeating its path round(time / tick) times in the filelist —
+#                              redisplaying the same file back-to-back is an effectively invisible
+#                              "reload".
 #   ON_DECK_CHANGED_CMD        optional — shell command run after a pass that changed the deck
 #                              (new/updated/removed slides, or just reordering) and finished
-#                              writing FEH_LIST_FILE — e.g. a command that (re)launches feh, since
-#                              feh won't notice a changed filelist on its own. See feh-slideshow.sh.
+#                              writing SLIDE_LIST_FILE — e.g. a command that (re)launches the
+#                              display client, since neither feh nor imv notices a changed
+#                              filelist on its own. See slideshow.sh.
 #
 # Requires: curl, jq
 
@@ -49,8 +55,8 @@ POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-60}"
 MANIFEST_FILE="${OUTPUT_DIR}/manifest.json"
 TMP_DIR="${OUTPUT_DIR}/.tmp"
 
-FEH_LIST_FILE="${FEH_LIST_FILE:-}"
-FEH_TICK_SECONDS="${FEH_TICK_SECONDS:-1}"
+SLIDE_LIST_FILE="${SLIDE_LIST_FILE:-}"
+SLIDE_TICK_SECONDS="${SLIDE_TICK_SECONDS:-1}"
 ON_DECK_CHANGED_CMD="${ON_DECK_CHANGED_CMD:-}"
 
 # curl retry flags cover a single request's transient failures (dropped
@@ -78,8 +84,8 @@ require_env() {
     exit 1
   fi
 
-  if [[ -n "$FEH_LIST_FILE" ]] && ! [[ "$FEH_TICK_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
-    log "FEH_TICK_SECONDS must be a positive integer (got '${FEH_TICK_SECONDS}')"
+  if [[ -n "$SLIDE_LIST_FILE" ]] && ! [[ "$SLIDE_TICK_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
+    log "SLIDE_TICK_SECONDS must be a positive integer (got '${SLIDE_TICK_SECONDS}')"
     exit 1
   fi
 }
@@ -110,29 +116,31 @@ safe_filename() {
   printf '%s' "$1" | tr -cd 'A-Za-z0-9_-'
 }
 
-# Writes an ordered feh(1) `-f` filelist: one absolute image path per
-# line, in the deck's real order (taken straight from the API's own
-# array order — `PresentationService.listSlides` already sorts by each
-# slide's `order` column, so no re-sorting needed here). Each path is
-# repeated round(time / FEH_TICK_SECONDS) times so a fixed `-D
-# FEH_TICK_SECONDS` slideshow delay approximates that slide's own
-# `time` — feh has no per-image duration, so this is the least invasive
-# way to get one back without a separate controller process.
-write_feh_list() {
+# Writes an ordered filelist (one absolute image path per line, format
+# matches feh(1)'s `-f`/`--filelist` — imv-slideshow.sh reads the same file
+# itself instead, since imv has no equivalent flag), in the deck's real
+# order (taken straight from the API's own array order —
+# `PresentationService.listSlides` already sorts by each slide's `order`
+# column, so no re-sorting needed here). Each path is repeated
+# round(time / SLIDE_TICK_SECONDS) times so a fixed slideshow delay
+# (feh's `-D`, imv's `-t`) approximates that slide's own `time` — neither
+# tool has a per-image duration, so this is the least invasive way to get
+# one back without a separate controller process.
+write_slide_list() {
   local list_json="$1"
-  local tmp_list="${TMP_DIR}/feh-list.txt.tmp"
+  local tmp_list="${TMP_DIR}/slide-list.txt.tmp"
   : > "$tmp_list"
 
   while IFS=$'\t' read -r key slide_time; do
     local file="${OUTPUT_DIR}/$(safe_filename "$key").png"
-    local reps=$(( (slide_time + FEH_TICK_SECONDS / 2) / FEH_TICK_SECONDS ))
+    local reps=$(( (slide_time + SLIDE_TICK_SECONDS / 2) / SLIDE_TICK_SECONDS ))
     (( reps < 1 )) && reps=1
     for ((i = 0; i < reps; i++)); do
       printf '%s\n' "$file" >> "$tmp_list"
     done
   done < <(jq -r '.slides[] | [.key, .time] | @tsv' <<<"$list_json")
 
-  mv -f "$tmp_list" "$FEH_LIST_FILE"
+  mv -f "$tmp_list" "$SLIDE_LIST_FILE"
 }
 
 sync_once() {
@@ -219,9 +227,9 @@ sync_once() {
 
   # Reaching here means the rollup hash differed from last time (the
   # early-return above caught the truly-unchanged case) — so even a pass
-  # with 0 downloads (e.g. just a reorder) still needs a fresh feh list.
-  if [[ -n "$FEH_LIST_FILE" ]]; then
-    write_feh_list "$list_json"
+  # with 0 downloads (e.g. just a reorder) still needs a fresh slide list.
+  if [[ -n "$SLIDE_LIST_FILE" ]]; then
+    write_slide_list "$list_json"
   fi
 
   if [[ -n "$ON_DECK_CHANGED_CMD" ]]; then

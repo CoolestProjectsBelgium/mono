@@ -14,6 +14,10 @@ passwordsFeature({
   hash: async (value) => value,
 })
 importExportFeature({ componentLoader })
+componentLoader.add(
+  'RoleRestrictedEditAction',
+  './features/restrict-properties-to-role/RoleRestrictedEditAction.tsx',
+)
 
 const admin = new AdminJS({ componentLoader })
 await admin.initialize()

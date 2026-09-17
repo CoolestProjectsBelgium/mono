@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import PostalCodeSearchField from './PostalCodeSearchField.vue'
+import { municipalityFixture } from '~/fixtures/municipalities'
+import MunicipalitySearchField from './MunicipalitySearchField.vue'
 
 const formFieldStub = {
   template: '<div><slot :input-id="\'postalcode\'" :input-class="\'form-input\'" :aria-invalid="undefined" :aria-describedby="undefined" /></div>',
@@ -12,14 +13,15 @@ async function waitForSearch() {
   await nextTick()
 }
 
-describe('PostalCodeSearchField', () => {
+describe('MunicipalitySearchField', () => {
   it('shows search results when typing a municipality name', async () => {
     const model = ref({ postalcode: 0, municipality_name: '' })
 
-    const wrapper = await mountSuspended(PostalCodeSearchField, {
+    const wrapper = await mountSuspended(MunicipalitySearchField, {
       props: {
         modelValue: model.value,
         label: 'Postcode / gemeente',
+        entries: municipalityFixture,
         'onUpdate:modelValue': (value: typeof model.value) => {
           model.value = value
         },
@@ -40,10 +42,11 @@ describe('PostalCodeSearchField', () => {
   it('updates the model when a result is selected', async () => {
     const model = ref({ postalcode: 0, municipality_name: '' })
 
-    const wrapper = await mountSuspended(PostalCodeSearchField, {
+    const wrapper = await mountSuspended(MunicipalitySearchField, {
       props: {
         modelValue: model.value,
         label: 'Postcode / gemeente',
+        entries: municipalityFixture,
         'onUpdate:modelValue': (value: typeof model.value) => {
           model.value = value
         },
@@ -58,11 +61,39 @@ describe('PostalCodeSearchField', () => {
 
     const option = wrapper.findAll('[role="option"]').find(item => item.text().includes('Mechelen'))
     expect(option).toBeDefined()
-    await option!.trigger('mousedown')
+    await option!.find('button').trigger('mousedown', { button: 0 })
     await nextTick()
 
     expect(model.value.postalcode).toBe(2800)
     expect(model.value.municipality_name).toBe('Mechelen')
+  })
+
+  it('shows search results while the keyboard holds an open composition', async () => {
+    const model = ref({ postalcode: 0, municipality_name: '' })
+
+    const wrapper = await mountSuspended(MunicipalitySearchField, {
+      props: {
+        modelValue: model.value,
+        label: 'Postcode / gemeente',
+        entries: municipalityFixture,
+        'onUpdate:modelValue': (value: typeof model.value) => {
+          model.value = value
+        },
+      },
+      global: {
+        stubs: { FormField: formFieldStub },
+      },
+    })
+
+    // Android keyboards compose the whole word, which stops v-model from syncing.
+    const input = wrapper.find('#postalcode')
+    await input.trigger('compositionstart')
+    ;(input.element as HTMLInputElement).value = 'meche'
+    await input.trigger('input')
+    await waitForSearch()
+
+    expect(wrapper.find('[role="listbox"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Mechelen')
   })
 
   it('displays the selected value from the model', async () => {
@@ -74,10 +105,11 @@ describe('PostalCodeSearchField', () => {
       box_number: '',
     })
 
-    const wrapper = await mountSuspended(PostalCodeSearchField, {
+    const wrapper = await mountSuspended(MunicipalitySearchField, {
       props: {
         modelValue: model.value,
         label: 'Postcode / gemeente',
+        entries: municipalityFixture,
         'onUpdate:modelValue': (value: typeof model.value) => {
           model.value = value
         },
@@ -96,10 +128,11 @@ describe('PostalCodeSearchField', () => {
   it('selects highlighted result on Enter when listbox is open', async () => {
     const model = ref({ postalcode: 0, municipality_name: '' })
 
-    const wrapper = await mountSuspended(PostalCodeSearchField, {
+    const wrapper = await mountSuspended(MunicipalitySearchField, {
       props: {
         modelValue: model.value,
         label: 'Postcode / gemeente',
+        entries: municipalityFixture,
         'onUpdate:modelValue': (value: typeof model.value) => {
           model.value = value
         },
@@ -122,10 +155,11 @@ describe('PostalCodeSearchField', () => {
   it('keeps typed text while searching', async () => {
     const model = ref({ postalcode: 0, municipality_name: '', street: '', house_number: '', box_number: '' })
 
-    const wrapper = await mountSuspended(PostalCodeSearchField, {
+    const wrapper = await mountSuspended(MunicipalitySearchField, {
       props: {
         modelValue: model.value,
         label: 'Postcode / gemeente',
+        entries: municipalityFixture,
         'onUpdate:modelValue': (value: typeof model.value) => {
           model.value = value
         },

@@ -33,6 +33,10 @@ const Components = {
     'TwoFactorSetup',
     './two-factor/TwoFactorSetup.tsx',
   ),
+  RegisterUser: componentLoader.add(
+    'RegisterUser',
+    './registration/RegisterUser.tsx',
+  ),
 };
 
 export { componentLoader, Components };

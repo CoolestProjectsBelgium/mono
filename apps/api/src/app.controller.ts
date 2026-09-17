@@ -6,6 +6,7 @@ import { QuestionDto } from './dto/question.dto';
 import { ApprovalDto } from './dto/approval.dto';
 import { SettingDto } from './dto/setting.dto';
 import { DojoDto } from './dto/dojo.dto';
+import { MunicipalityDto } from './dto/municipality.dto';
 import { Info } from './info.decorator';
 import { InfoDto } from './dto/info.dto';
 
@@ -30,6 +31,12 @@ export class AppController {
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   findAllDojos(@Info() info: InfoDto): Promise<DojoDto[]> {
     return this.appService.findAllDojos(info);
+  }
+
+  @Get('municipalities')
+  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  findAllMunicipalities(@Info() info: InfoDto): Promise<MunicipalityDto[]> {
+    return this.appService.findAllMunicipalities(info);
   }
 
   @Get('approvals')

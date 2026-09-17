@@ -23,6 +23,7 @@
           v-model="draft.form.user"
           :tshirt-groups="tshirtGroups ?? []"
           :dojos="dojos ?? []"
+          :municipalities="municipalities ?? []"
           :settings="settings"
           :show-guardian="showGuardian"
           :errors="fieldErrors"
@@ -80,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ApprovalDto, DojoDto, QuestionDto, SettingDto, TshirtGroupDto } from '~/types/api'
+import type { ApprovalDto, DojoDto, MunicipalityDto, QuestionDto, SettingDto, TshirtGroupDto } from '~/types/api'
 import { isGuardianRequired } from '~/utils/birth-date'
 import { setRegistrationSuccess } from '~/utils/registration-success'
 import { clearFieldError, scrollToFirstFieldError } from '~/utils/validation/map-field-errors'
@@ -96,7 +97,7 @@ const localePath = useLocalePath()
 const { t } = useI18n()
 const authStore = useAuthStore()
 const draft = useRegistrationDraftStore()
-const { fetchTshirts, fetchQuestions, fetchApprovals, fetchDojos, submitRegistration } = useRegistration()
+const { fetchTshirts, fetchQuestions, fetchApprovals, fetchDojos, fetchMunicipalities, submitRegistration } = useRegistration()
 const { fetchSettings } = useSettings()
 const { joinProject } = useParticipant()
 const { notify } = useNotification()
@@ -110,6 +111,7 @@ const tshirtGroups = ref<TshirtGroupDto[] | null>(null)
 const approvals = ref<ApprovalDto[] | null>(null)
 const questions = ref<QuestionDto[] | null>(null)
 const dojos = ref<DojoDto[] | null>(null)
+const municipalities = ref<MunicipalityDto[] | null>(null)
 const settings = ref<SettingDto | null>(null)
 
 const isLoggedInJoin = computed(() =>
@@ -138,12 +140,13 @@ onMounted(async () => {
 })
 
 async function loadCatalogs() {
-  const [tshirtsResult, questionsResult, approvalsResult, settingsResult, dojosResult] = await Promise.allSettled([
+  const [tshirtsResult, questionsResult, approvalsResult, settingsResult, dojosResult, municipalitiesResult] = await Promise.allSettled([
     fetchTshirts(),
     fetchQuestions(),
     fetchApprovals(),
     fetchSettings(),
     fetchDojos(),
+    fetchMunicipalities(),
   ])
   if (tshirtsResult.status === 'fulfilled') {
     tshirtGroups.value = tshirtsResult.value
@@ -159,6 +162,9 @@ async function loadCatalogs() {
   }
   if (dojosResult.status === 'fulfilled') {
     dojos.value = dojosResult.value
+  }
+  if (municipalitiesResult.status === 'fulfilled') {
+    municipalities.value = municipalitiesResult.value
   }
 }
 
@@ -237,6 +243,7 @@ async function onSubmit() {
     questionIds,
     t,
     dojos.value ?? [],
+    municipalities.value ?? [],
   )
 
   if (errors) {

@@ -19,6 +19,7 @@ import { CertificateTemplate } from '@coolestprojects/database';
 import { Event } from '@coolestprojects/database';
 import { EventTable } from '@coolestprojects/database';
 import { Message } from '@coolestprojects/database';
+import { Municipality } from '@coolestprojects/database';
 import { PresentationRender } from '@coolestprojects/database';
 import { PresentationSlide } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
@@ -37,6 +38,7 @@ import { VoteCategory } from '@coolestprojects/database';
 import { EmailTemplate } from '@coolestprojects/database';
 import { UserProject } from '@coolestprojects/database';
 import { EmailLog } from '@coolestprojects/database';
+import { Log } from '@coolestprojects/database';
 import { AdminSession } from '@coolestprojects/database';
 import configuration from '../config/configuration.js';
 
@@ -86,8 +88,10 @@ import configuration from '../config/configuration.js';
             Award,
             EmailTemplate,
             EmailLog,
+            Log,
             AdminSession,
             Affiliation,
+            Municipality,
             PresentationSlide,
             PresentationRender,
             CertificateTemplate,
@@ -119,6 +123,7 @@ import configuration from '../config/configuration.js';
       Vote,
       VoteCategory,
       Affiliation,
+      Municipality,
       PresentationSlide,
       Certificate,
       CertificateTemplate,

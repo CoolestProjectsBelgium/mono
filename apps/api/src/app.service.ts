@@ -14,10 +14,12 @@ import { Op } from 'sequelize';
 import { ApprovalDto } from './dto/approval.dto';
 import { SettingDto } from './dto/setting.dto';
 import { DojoDto } from './dto/dojo.dto';
+import { MunicipalityDto } from './dto/municipality.dto';
 import { Registration } from '@coolestprojects/database';
 import { User } from '@coolestprojects/database';
 import { Project } from '@coolestprojects/database';
 import { Affiliation } from '@coolestprojects/database';
+import { Municipality } from '@coolestprojects/database';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -37,6 +39,8 @@ export class AppService {
     private readonly projectModel: typeof Project,
     @InjectModel(Affiliation)
     private readonly affiliationModel: typeof Affiliation,
+    @InjectModel(Municipality)
+    private readonly municipalityModel: typeof Municipality,
     private configService: ConfigService,
   ) {}
   async findAllQuestions(info: InfoDto): Promise<QuestionDto[]> {
@@ -71,6 +75,27 @@ export class AppService {
     return dojos.map((dojo) => ({
       id: dojo.id,
       name: dojo.name,
+    }));
+  }
+
+  async findAllMunicipalities(info: InfoDto): Promise<MunicipalityDto[]> {
+    const municipalities = await this.municipalityModel.findAll({
+      attributes: [
+        'postalcode',
+        'municipality_name_nl',
+        'municipality_name_fr',
+        'municipality_name_de',
+        'region',
+      ],
+      where: { eventId: info.currentEvent },
+      order: [['postalcode', 'ASC']],
+    });
+    return municipalities.map((municipality) => ({
+      postalcode: municipality.postalcode,
+      municipality_name_nl: municipality.municipality_name_nl,
+      municipality_name_fr: municipality.municipality_name_fr,
+      municipality_name_de: municipality.municipality_name_de,
+      region: municipality.region,
     }));
   }
 

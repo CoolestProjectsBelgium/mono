@@ -1,6 +1,6 @@
 import type { DojoEntry } from '~/utils/dojos/types'
 import { stripDojoPrefix } from '~/utils/dojos/parse-dojo-html'
-import { normalizeSearchText } from '~/utils/postal-codes/search-postal-codes'
+import { normalizeSearchText } from '~/utils/municipalities/search-municipalities'
 
 export function isKnownDojoName(dojos: DojoEntry[], name: string): boolean {
   const needle = stripDojoPrefix(name)

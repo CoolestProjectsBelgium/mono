@@ -11,6 +11,7 @@ import {
   Event,
   EventTable,
   Message,
+  Municipality,
   PresentationRender,
   PresentationSlide,
   Project,
@@ -60,7 +61,7 @@ import { UserinfoService } from './userinfo/userinfo.service';
 import { UserCookieInterceptor } from './user-cookie.interceptor';
 import { VotingController } from './voting/voting.controller';
 import { VotingService } from './voting/voting.service';
-import { EmailLog } from '@coolestprojects/database';
+import { EmailLog, Log } from '@coolestprojects/database';
 import { AdminAuthenticationService } from './auth/adminauth.service';
 import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
@@ -121,11 +122,13 @@ import configuration from './config/configuration.js';
             EmailTemplate,
             UserProject,
             EmailLog,
+            Log,
             Affiliation,
             PresentationSlide,
             PresentationRender,
             CertificateTemplate,
             CertificateRender,
+            Municipality,
           ],
         };
       },
@@ -159,6 +162,7 @@ import configuration from './config/configuration.js';
       Certificate,
       CertificateTemplate,
       CertificateRender,
+      Municipality,
     ]),
   ],
   controllers: [

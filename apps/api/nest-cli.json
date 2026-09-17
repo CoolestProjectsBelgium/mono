@@ -16,6 +16,11 @@
         "include": "seeder/be-dojos.json",
         "outDir": "dist",
         "watchAssets": true
+      },
+      {
+        "include": "seeder/be-municipalities.json",
+        "outDir": "dist",
+        "watchAssets": true
       }
     ]
   }

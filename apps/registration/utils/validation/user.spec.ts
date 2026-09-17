@@ -7,6 +7,7 @@ import {
   createUserSchema,
 } from '~/utils/validation/user'
 import { dojoFixture } from '~/fixtures/dojos'
+import { municipalityFixture } from '~/fixtures/municipalities'
 
 const settings = {
   minAge: activeSettingsFixture.minAge,
@@ -47,7 +48,7 @@ describe('createUserSchema', () => {
   })
 
   it('accepts guardian mobile numbers with spaces', () => {
-    const schema = createUserSchema(settings)
+    const schema = createUserSchema(settings, [], municipalityFixture)
     const result = schema.safeParse({
       email: 'child@example.com',
       firstname: 'Kid',
@@ -70,7 +71,7 @@ describe('createUserSchema', () => {
   })
 
   it('passes for adult participant', () => {
-    const schema = createUserSchema(settings)
+    const schema = createUserSchema(settings, [], municipalityFixture)
     const result = schema.safeParse(validAdultUser)
     expect(result.success).toBe(true)
   })
@@ -102,7 +103,7 @@ describe('createUserSchema', () => {
   })
 
   it('allows skipping affiliation', () => {
-    const schema = createUserSchema(settings)
+    const schema = createUserSchema(settings, [], municipalityFixture)
     const result = schema.safeParse({
       ...validAdultUser,
       via_type: '',
@@ -112,7 +113,7 @@ describe('createUserSchema', () => {
   })
 
   it('requires a known dojo when type is dojo', () => {
-    const schema = createUserSchema(settings, dojoFixture)
+    const schema = createUserSchema(settings, dojoFixture, municipalityFixture)
     const result = schema.safeParse({
       ...validAdultUser,
       via_type: 'dojo',
@@ -132,7 +133,7 @@ describe('createUserSchema', () => {
   })
 
   it('accepts a known dojo name', () => {
-    const schema = createUserSchema(settings, dojoFixture)
+    const schema = createUserSchema(settings, dojoFixture, municipalityFixture)
     const result = schema.safeParse({
       ...validAdultUser,
       via_type: 'dojo',
@@ -142,7 +143,7 @@ describe('createUserSchema', () => {
   })
 
   it('accepts Belgian mobile numbers with spaces and stores them compact', () => {
-    const schema = createUserSchema(settings)
+    const schema = createUserSchema(settings, [], municipalityFixture)
     const result = schema.safeParse({
       ...validAdultUser,
       gsm: '0470 12 34 56',
@@ -154,7 +155,7 @@ describe('createUserSchema', () => {
   })
 
   it('accepts +32 mobile numbers with spaces', () => {
-    const schema = createUserSchema(settings)
+    const schema = createUserSchema(settings, [], municipalityFixture)
     const result = schema.safeParse({
       ...validAdultUser,
       gsm: '+32 470 12 34 56',

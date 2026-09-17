@@ -7,6 +7,7 @@ import {
   EmailTemplate,
   Event,
   EventTable,
+  Municipality,
   PresentationSlide,
   Project,
   Question,
@@ -77,6 +78,8 @@ export class EventCommand {
     private readonly voteModel: typeof Vote,
     @InjectModel(Affiliation)
     private readonly affiliationModel: typeof Affiliation,
+    @InjectModel(Municipality)
+    private readonly municipalityModel: typeof Municipality,
     @InjectModel(PresentationSlide)
     private readonly presentationSlideModel: typeof PresentationSlide,
     @InjectModel(Certificate)
@@ -111,6 +114,7 @@ export class EventCommand {
       this.voteCategoryModel,
       this.voteModel,
       this.affiliationModel,
+      this.municipalityModel,
       this.presentationSlideModel,
       this.certificateModel,
       this.certificateTemplateModel,
