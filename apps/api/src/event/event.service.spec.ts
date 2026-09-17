@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getModelToken } from '@nestjs/sequelize';
+import { Event } from '@coolestprojects/database';
 import { EventService } from './event.service';
 
 describe('EventService', () => {
@@ -6,7 +8,10 @@ describe('EventService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EventService],
+      providers: [
+        EventService,
+        { provide: getModelToken(Event), useValue: {} },
+      ],
     }).compile();
 
     service = module.get<EventService>(EventService);

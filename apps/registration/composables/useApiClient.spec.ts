@@ -61,7 +61,7 @@ describe('useApiClient', () => {
     await apiFetch('/registration', { method: 'POST', body: { user: {} } })
 
     expect(mockFetch).toHaveBeenNthCalledWith(1, '/csrf-token', expect.objectContaining({
-      baseURL: 'http://localhost:3001',
+      baseURL: 'https://api.coolestprojects.localhost:8443',
       credentials: 'include',
     }))
     expect(mockFetch).toHaveBeenNthCalledWith(2, '/registration', expect.objectContaining({

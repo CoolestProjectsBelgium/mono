@@ -16,11 +16,13 @@ import { access } from 'node:fs/promises';
 import { EventguideService } from './eventguide.service';
 
 jest.mock('node:fs/promises', () => ({
+  ...jest.requireActual('node:fs/promises'),
   access: jest.fn(),
   stat: jest.fn(),
 }));
 
 jest.mock('node:fs', () => ({
+  ...jest.requireActual('node:fs'),
   createReadStream: jest.fn(),
 }));
 
@@ -52,8 +54,11 @@ describe('EventguideService', () => {
     findOne: jest.fn(),
   };
 
+  const originalApiBaseUrl = process.env.API_BASE_URL;
+
   beforeEach(async () => {
     jest.clearAllMocks();
+    delete process.env.API_BASE_URL;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -70,6 +75,14 @@ describe('EventguideService', () => {
     }).compile();
 
     service = module.get<EventguideService>(EventguideService);
+  });
+
+  afterEach(() => {
+    if (originalApiBaseUrl === undefined) {
+      delete process.env.API_BASE_URL;
+    } else {
+      process.env.API_BASE_URL = originalApiBaseUrl;
+    }
   });
 
   it('maps projects with table numbers and photo consent', async () => {

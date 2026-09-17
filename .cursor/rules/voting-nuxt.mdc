@@ -29,6 +29,7 @@ Read [docs/apps/voting.md](../../docs/apps/voting.md) first.
 
 - SPA mode (`ssr: false` in `nuxt.config.ts`)
 - API base URL: `runtimeConfig.public.apiBaseURL` from `NUXT_PUBLIC_API_BASE_URL`
+- Never hardcode `localhost`/`127.0.0.1` as the API origin in browser code (`resolveApiBase()` in `utils/api-base.ts`) — always the full API domain, or same-origin on the app's own proxy host
 - Voting endpoints on API root (`/auth/login`, `/projects`, etc.) — see `VotingController`
 - Jury auth: username/password → JWT Bearer in Pinia (not cookie session like registration)
 - Do **not** import `@coolestprojects/database`
