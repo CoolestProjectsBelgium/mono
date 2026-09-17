@@ -192,6 +192,7 @@ Dev seed data (`apps/api/src/seeder/seed-presentation-slides.ts`, applied by `se
 - `GET /presentation` → `{ slides: [{key, order, time, hash, generatedAt}], hash }` (deck-level rollup hash for a single cheap "did anything change" check).
 - `GET /presentation/:key` → the PNG; `ETag`/`Last-Modified` set; honors `If-None-Match` with a `304` before doing any work.
 - `HEAD /presentation/:key` → same headers, no body, never renders.
+- `POST /presentation/heartbeat` → no body/response; upserts a `PresentationCheckin` row (`accountId` from the Basic-auth principal + `req.ip`, `lastSeenAt: now`) so staff can tell which venue devices are actively checking in. `sync-deck.sh` calls this once per poll pass — see [presentation.md](presentation.md#deck-sync-script). Keyed on `(accountId, ipAddress)`, not appended as a growing log: the fleet commonly shares one `Account`, so IP is what actually distinguishes individual Pis, and only the *last* check-in per device matters. Read in the AdminJS **Presentation → Presentation check-ins** list (read-only, sorted newest-first); a device that's gone quiet just stops updating its row — there's no separate "offline" flag, staff read that from how stale `lastSeenAt` is.
 
 Slide keys are stable strings (`slide-<configId>` or `slide-<configId>-<projectId>`), not array indices — indices would silently point at the wrong slide once a project is added/removed.
 

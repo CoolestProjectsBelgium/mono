@@ -14,7 +14,7 @@ npm workspaces monorepo (`package.json`):
 | `apps/registration` | `@coolestprojects/registration` | Registration static site |
 | `apps/eventguide` | `@coolestprojects/eventguide` | Event guide Nuxt SPA |
 | `apps/cdj-web-int` | `@coolestprojects/cdj-web-int` | Archived CPBE project galleries (Level27 `cdj-web-int`) |
-| `apps/presentation` | `@coolestprojects/presentation` | Presentation static site |
+| `apps/presentation` | `@coolestprojects/presentation` | Shell-script fleet (`sync-deck.sh`/`slideshow.sh`) run on venue Raspberry Pis — no web app |
 | `packages/database` | `@coolestprojects/database` | Shared Sequelize models |
 
 ## Documentation hub

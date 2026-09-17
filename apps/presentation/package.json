@@ -1,12 +1,11 @@
 {
   "name": "@coolestprojects/presentation",
   "version": "1.0.0",
-  "description": "",
+  "description": "Shell-script fleet (sync-deck.sh + slideshow.sh) deployed directly on the Raspberry Pi venue displays — no web app, see README.md",
   "main": "index.js",
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "npx http-server -o /"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",

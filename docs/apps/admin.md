@@ -57,7 +57,7 @@ global, not event-scoped, see below), **Event setup** (`Tshirt`, `TshirtGroup`),
 `TshirtGroupTranslation`, `QuestionTranslation`), **Registration** (`Registration`, `Affiliation`, `Question`,
 `QuestionRegistration`), **Projects & participants** (`Project`, `Attachment`, `User`, `UserProject`, `QuestionUser`),
 **Venue & seating** (`EventTable`), **Voting & awards** (`Award`, `VoteCategory`, `Certificate`, `CertificateTemplate` — CRUD escape hatches for the **Certificates** page below), **Communication** (`EmailTemplate`),
-**Presentation** (`PresentationSlide`), and **Reporting** (the two raw-SQL export resources, `view_Export_all` and
+**Presentation** (`PresentationSlide`, `PresentationCheckin`), and **Reporting** (the two raw-SQL export resources, `view_Export_all` and
 `view_user_project_summary` — see **How to extend** below).
 Two `navigation` groups must never share the same `name` string —
 AdminJS merges groups by name, not by the JS variable holding them.
@@ -70,6 +70,7 @@ AdminJS merges groups by name, not by the JS variable holding them.
 | `Event` | Not event-scoped by a foreign key — it's the event itself. `super_admin` sees and can create/edit/delete every event; every other role only sees the event tied to their session (`id` match against `currentAdmin.eventId`) and gets read-only access (`show` only, no `new`/`edit`/`delete`). Lives in the **System** navigation group. |
 | `Log` | AdminJS `@adminjs/logger` audit trail (`createLoggerResource` in `index.ts`); lives in **System** |
 | `Affiliation` | Event-scoped CoderDojo catalog (`name`); same list as `GET /dojos` |
+| `PresentationCheckin` | Not event-scoped: the device fleet shares one `Account` across events. Read-only (`new`/`edit`/`delete`/`bulkDelete` all hidden) — rows are upserted by `POST /presentation/heartbeat`, never edited by hand. Sorted newest-first by `lastSeenAt` — see [api.md](api.md#presentation-slide-deck) |
 | `EmailTemplate` | Event-scoped CRUD + import/export; prefer **EmailTemplates** page for editing copy |
 
 The dashboard handler in [`apps/admin/src/components/dashboard/handler.ts`](../../apps/admin/src/components/dashboard/handler.ts)

@@ -4,6 +4,7 @@ import { getModelToken } from '@nestjs/sequelize';
 import {
   Attachment,
   Event,
+  PresentationCheckin,
   PresentationRender,
   PresentationSlide,
   Project,
@@ -39,6 +40,7 @@ describe('PresentationService', () => {
   let presentationRenderFindAll: jest.Mock;
   let presentationRenderFindOne: jest.Mock;
   let presentationRenderCreate: jest.Mock;
+  let presentationCheckinUpsert: jest.Mock;
 
   const event = {
     id: 1,
@@ -68,6 +70,7 @@ describe('PresentationService', () => {
         update: jest.fn().mockResolvedValue(undefined),
       }),
     );
+    presentationCheckinUpsert = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -95,6 +98,10 @@ describe('PresentationService', () => {
             findOne: presentationRenderFindOne,
             create: presentationRenderCreate,
           },
+        },
+        {
+          provide: getModelToken(PresentationCheckin),
+          useValue: { upsert: presentationCheckinUpsert },
         },
       ],
     }).compile();
@@ -515,6 +522,16 @@ describe('PresentationService', () => {
           { id: 1, name: 'A project' },
           { id: 2, name: 'B project' },
         ]),
+      );
+    });
+  });
+
+  describe('recordCheckin', () => {
+    it('upserts a check-in keyed by account and IP', async () => {
+      await service.recordCheckin(7, '203.0.113.5');
+
+      expect(presentationCheckinUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({ accountId: 7, ipAddress: '203.0.113.5' }),
       );
     });
   });

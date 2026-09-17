@@ -4,6 +4,7 @@ import {
   Attachment,
   Event,
   EventTable,
+  PresentationCheckin,
   PresentationRender,
   PresentationSlide,
   Project,
@@ -82,7 +83,23 @@ export class PresentationService {
     private readonly presentationSlideModel: typeof PresentationSlide,
     @InjectModel(PresentationRender)
     private readonly presentationRenderModel: typeof PresentationRender,
+    @InjectModel(PresentationCheckin)
+    private readonly presentationCheckinModel: typeof PresentationCheckin,
   ) {}
+
+  /**
+   * Called on every heartbeat from a Pi's `sync-deck.sh`. Upserted by
+   * (accountId, ipAddress) rather than appended as a log: the fleet commonly
+   * shares one Account, so IP is what actually distinguishes devices, and
+   * staff only care about each device's *last* check-in, not history.
+   */
+  async recordCheckin(accountId: number, ipAddress: string): Promise<void> {
+    await this.presentationCheckinModel.upsert({
+      accountId,
+      ipAddress,
+      lastSeenAt: new Date(),
+    });
+  }
 
   async listSlides(eventId: number): Promise<SlideListResult> {
     const { specs, assetsFingerprint } = await this.loadDeckContext(eventId);

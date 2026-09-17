@@ -25,7 +25,6 @@ done
 
 nohup npm run start:dev --workspace=apps/admin > /tmp/admin.log 2>&1 &
 nohup npm run start:dev --workspace=apps/eventguide -- -p 3002 > /tmp/eventguide.log 2>&1 &
-nohup npm run start:dev --workspace=apps/presentation -- -p 3003 > /tmp/presentation.log 2>&1 &
 nohup npm run start:dev --workspace=apps/registration > /tmp/registration.log 2>&1 &
 nohup npm run start:dev --workspace=apps/voting -- -p 3005 > /tmp/voting.log 2>&1 &
 

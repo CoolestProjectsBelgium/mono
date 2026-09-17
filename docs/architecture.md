@@ -11,23 +11,25 @@ flowchart TB
     voting[voting Nuxt :3005]
     registration[registration static :3004]
     eventguide[eventguide Nuxt :3002]
-    presentation[presentation static :3003]
   end
 
   api[api NestJS :3001]
   dbPkg[packages/database Sequelize models]
   mysql[(MySQL db)]
+  pis[Raspberry Pi venue displays sync-deck.sh]
 
   admin --> dbPkg
   api --> dbPkg
   voting --> api
   registration --> api
   eventguide --> api
-  presentation --> api
+  pis --> api
   dbPkg --> mysql
   api --> mysql
   admin --> mysql
 ```
+
+`apps/presentation` isn't a web frontend and isn't part of the Dev Container topology above — it's a shell-script fleet (`sync-deck.sh`) deployed directly on the venue Raspberry Pis, talking to `api` over the internet/venue network. See [presentation.md](apps/presentation.md).
 
 ## Workspace roles
 
@@ -39,7 +41,7 @@ flowchart TB
 | `apps/voting` | Nuxt SPA | `api` |
 | `apps/registration` | Static (`http-server`) | `api` (expected) |
 | `apps/eventguide` | Nuxt 3 SPA | `api` (`EventguideController`) |
-| `apps/presentation` | Static (`http-server`) | `api` (expected) |
+| `apps/presentation` | Shell-script fleet (bash), deployed on Raspberry Pi devices, not run in this repo's Dev Container | `api` (`PresentationController`) |
 
 ## Key flows
 

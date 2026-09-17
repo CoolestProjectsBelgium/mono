@@ -678,6 +678,26 @@ const start = async () => {
           },
         },
       },
+      // Not event-scoped: the fleet's presentation devices share one Account
+      // across events, so this list isn't filtered by eventId like the rest
+      // of the Presentation nav group. Read-only — rows are upserted by the
+      // API on every heartbeat from sync-deck.sh (POST /presentation/heartbeat),
+      // never edited by hand. Sorted newest-first so devices that have gone
+      // quiet sink to the bottom.
+      {
+        resource: sequelize.models.PresentationCheckin,
+        options: {
+          navigation: navPresentation,
+          label: 'Presentation check-ins',
+          sort: { sortBy: 'lastSeenAt', direction: 'desc' },
+          actions: {
+            new: { isVisible: false, isAccessible: false },
+            edit: { isVisible: false, isAccessible: false },
+            delete: { isVisible: false, isAccessible: false },
+            bulkDelete: { isVisible: false, isAccessible: false },
+          },
+        },
+      },
 
       // --- Reporting ---
       {

@@ -40,7 +40,6 @@ HTTPS (recommended — matches cert setup):
 | Admin | https://admin.coolestprojects.localhost:8443 |
 | API | https://api.coolestprojects.localhost:8443 |
 | Event guide | https://eventguide.coolestprojects.localhost:8443 |
-| Presentation | https://presentation.coolestprojects.localhost:8443 |
 | Registration | https://registration.coolestprojects.localhost:8443 |
 | Voting | https://voting.coolestprojects.localhost:8443 |
 | MailHog | http://localhost:18025 (captured emails; host port 18025 on Windows) |
@@ -56,7 +55,6 @@ Direct ports (inside/on workspace container):
 | 3000 | Admin |
 | 3001 | API |
 | 3002 | Event guide |
-| 3003 | Presentation |
 | 3004 | Registration |
 | 3005 | Voting |
 

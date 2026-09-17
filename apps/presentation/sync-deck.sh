@@ -8,6 +8,11 @@
 # backoff, and a failed sync pass just waits for the next poll instead
 # of crashing the service.
 #
+# Each pass also posts a best-effort heartbeat (POST /presentation/heartbeat)
+# so staff can see which devices are actively checking in and from which IP
+# (see PresentationCheckin in docs/apps/api.md) — this never blocks or fails
+# the deck sync itself.
+#
 # Usage:
 #   PRESENTATION_API_URL=https://api.example.com/presentation \
 #   PRESENTATION_USER=presentation \
@@ -109,6 +114,24 @@ api_get() {
   curl "${CURL_OPTS[@]}" --user "${PRESENTATION_USER}:${PRESENTATION_PASSWORD}" "$url"
 }
 
+api_post() {
+  # $1 = path relative to PRESENTATION_API_URL
+  local path="$1"
+  local url="${PRESENTATION_API_URL%/}/${path}"
+  curl "${CURL_OPTS[@]}" --user "${PRESENTATION_USER}:${PRESENTATION_PASSWORD}" -X POST "$url"
+}
+
+# Tells the API "this device is alive" so staff can see which Pis are
+# actively checking in (and from which IP) — see docs/apps/api.md
+# (presentation slide deck) for what the API does with it. Deliberately
+# best-effort: a heartbeat failure is logged but never fails the sync pass
+# or triggers the outer backoff — the deck sync itself is what matters.
+send_heartbeat() {
+  if ! api_post "heartbeat" >/dev/null; then
+    log "Heartbeat call failed (non-fatal) — will retry next pass"
+  fi
+}
+
 # Slide keys are already filesystem-safe (`slide-<id>` / `slide-<id>-<id>`)
 # but the manifest comes from the network, so sanitize defensively before
 # ever using a key as part of a filesystem path.
@@ -145,6 +168,8 @@ write_slide_list() {
 
 sync_once() {
   mkdir -p "$OUTPUT_DIR" "$TMP_DIR"
+
+  send_heartbeat
 
   local list_json
   if ! list_json=$(api_get ""); then

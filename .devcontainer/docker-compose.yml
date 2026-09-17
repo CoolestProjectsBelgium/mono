@@ -74,7 +74,6 @@ services:
       - "3000:3000"
       - "3001:3001"
       - "3002:3002"
-      - "3003:3003"
       - "3004:3004"
       - "3005:3005"
 
@@ -88,7 +87,6 @@ services:
       - "admin.coolestprojects.localhost:host-gateway"
       - "api.coolestprojects.localhost:host-gateway"
       - "eventguide.coolestprojects.localhost:host-gateway"
-      - "presentation.coolestprojects.localhost:host-gateway"
       - "registration.coolestprojects.localhost:host-gateway"
       - "voting.coolestprojects.localhost:host-gateway"
 

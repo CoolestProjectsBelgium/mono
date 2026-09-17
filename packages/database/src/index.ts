@@ -26,6 +26,7 @@ export * from './models/affiliation.model';
 export * from './models/municipality.model'
 export * from './models/presentation_slide.model';
 export * from './models/presentation_render.model';
+export * from './models/presentation_checkin.model';
 export * from './models/certificate_template.model';
 export * from './models/certificate_render.model';
 export * from './models/log.model';

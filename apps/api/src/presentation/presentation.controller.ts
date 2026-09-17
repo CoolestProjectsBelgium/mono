@@ -3,6 +3,7 @@ import {
   Get,
   Head,
   Param,
+  Post,
   Req,
   Res,
   UseGuards,
@@ -24,6 +25,15 @@ export class PresentationController {
   @Get()
   async listSlides(@Info() info: InfoDto): Promise<SlideListResponseDto> {
     return this.presentationService.listSlides(info.currentEvent);
+  }
+
+  // Called by sync-deck.sh once per poll pass so staff can see which Pis are
+  // actively checking in (and their last IP) — separate from listSlides so a
+  // heartbeat never depends on/blocks on deck-generation logic.
+  @Post('heartbeat')
+  async heartbeat(@Req() req: Request): Promise<void> {
+    const account = req.user as { id: number };
+    await this.presentationService.recordCheckin(account.id, req.ip ?? '');
   }
 
   @Get(':key')

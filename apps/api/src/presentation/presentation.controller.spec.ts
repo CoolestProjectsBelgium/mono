@@ -18,6 +18,7 @@ describe('PresentationController', () => {
     listSlides: jest.fn(),
     getSlideImage: jest.fn(),
     getSlideMeta: jest.fn(),
+    recordCheckin: jest.fn(),
   };
 
   function fakeResponse() {
@@ -42,6 +43,29 @@ describe('PresentationController', () => {
 
     expect(presentationService.listSlides).toHaveBeenCalledWith(1);
     expect(result).toBe(list);
+  });
+
+  describe('heartbeat', () => {
+    it('records a check-in for the authenticated account and its IP', async () => {
+      await controller.heartbeat({
+        user: { id: 7 },
+        ip: '203.0.113.5',
+      } as never);
+
+      expect(presentationService.recordCheckin).toHaveBeenCalledWith(
+        7,
+        '203.0.113.5',
+      );
+    });
+
+    it('falls back to an empty string when the request has no IP', async () => {
+      await controller.heartbeat({
+        user: { id: 7 },
+        ip: undefined,
+      } as never);
+
+      expect(presentationService.recordCheckin).toHaveBeenCalledWith(7, '');
+    });
   });
 
   describe('getSlideImage', () => {

@@ -18,7 +18,7 @@ Monorepo for the reworked Coolest Projects applications and shared packages.
 | `apps/voting` | Nuxt voting UI | https://voting.coolestprojects.localhost:8443 |
 | `apps/registration` | Registration site | https://registration.coolestprojects.localhost:8443 |
 | `apps/eventguide` | Event guide site | https://eventguide.coolestprojects.localhost:8443 |
-| `apps/presentation` | Presentation site | https://presentation.coolestprojects.localhost:8443 |
+| `apps/presentation` | Shell-script fleet run on venue Raspberry Pis (no web app) | — |
 | `packages/database` | Shared Sequelize models | — |
 
 ## Admin login (local seed)

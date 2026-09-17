@@ -45,4 +45,4 @@ docker exec coolestproject-dev-workspace bash -lc "
 "
 ```
 
-Ports: `api` 3001, `admin` 3000, `eventguide` 3002, `presentation` 3003, `registration` 3004, `voting` 3005. Skip restart for test-only, doc-only, or comment-only edits.
+Ports: `api` 3001, `admin` 3000, `eventguide` 3002, `registration` 3004, `voting` 3005. `apps/presentation` has no dev server — it's a shell-script fleet deployed on Raspberry Pi devices, not run in the Dev Container; see [docs/apps/presentation.md](docs/apps/presentation.md). Skip restart for test-only, doc-only, or comment-only edits.
