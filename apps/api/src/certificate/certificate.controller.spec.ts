@@ -25,7 +25,9 @@ describe('CertificateController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CertificateController],
-      providers: [{ provide: CertificateService, useValue: certificateService }],
+      providers: [
+        { provide: CertificateService, useValue: certificateService },
+      ],
     })
       .overrideGuard(AuthGuard('mandatory-admin-cookie'))
       .useValue({ canActivate: () => true })
@@ -68,7 +70,9 @@ describe('CertificateController', () => {
       bodyHtml: '<p>x</p>',
       text: 'x',
     });
-    expect(result).toEqual({ pdfBase64: Buffer.from('fake-pdf').toString('base64') });
+    expect(result).toEqual({
+      pdfBase64: Buffer.from('fake-pdf').toString('base64'),
+    });
   });
 
   it('streams a certificate PDF with cache headers', async () => {
@@ -98,7 +102,9 @@ describe('CertificateController', () => {
   });
 
   it('lists certificate assets for the logged-in event', async () => {
-    const overview = { assets: [{ filename: 'logo.png', uploadedAt: '2026-01-01' }] };
+    const overview = {
+      assets: [{ filename: 'logo.png', uploadedAt: '2026-01-01' }],
+    };
     certificateService.listCertificateAssets.mockResolvedValue(overview);
 
     const result = await controller.listAssets({

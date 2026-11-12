@@ -1,5 +1,5 @@
 import { AppService } from './app.service';
-import { Controller, Get, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { TshirtGroupDto } from './dto/tshirt-group.dto';
 import { QuestionDto } from './dto/question.dto';

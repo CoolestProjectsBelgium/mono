@@ -278,7 +278,8 @@ const start = async () => {
               actionType: 'record',
               icon: 'Unlock',
               component: false,
-              guard: 'Are you sure you want to disable two-factor authentication for this account?',
+              guard:
+                'Are you sure you want to disable two-factor authentication for this account?',
               handler: twoFactorDisableHandler,
               isAccessible: orAccess(
                 canAccessResourceRoleFilter('super_admin'),
@@ -290,7 +291,7 @@ const start = async () => {
         features: [
           passwordsFeature({
             componentLoader,
-            hash: Account.hashPassword,
+            hash: (password: string) => Account.hashPassword(password),
           }),
           restrictPropertiesToRoleFeature,
           auditLog(),

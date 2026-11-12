@@ -9,12 +9,15 @@ import { AppModule } from './app.module';
 import { configureSecurity } from './bootstrap-security';
 import { buildAppCookieOptions } from './cookie-options';
 import { ConfigService } from '@nestjs/config';
+import { createValidationPipe } from './validation';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'fatal', 'error', 'warn', 'debug', 'verbose'],
   });
   const config = app.get(ConfigService);
+
+  app.useGlobalPipes(createValidationPipe());
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
   configureSecurity(app);
@@ -63,6 +66,9 @@ async function bootstrap() {
     },
 
     getSessionIdentifier: (req) => {
+      // The cast is needed by the build (passport types req.user as an empty
+      // Express.User); the lint program resolves it differently.
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const user = req.user as { id?: number } | undefined;
       if (user?.id) {
         return String(user.id);

@@ -66,12 +66,15 @@ describe('CertificateService', () => {
     eventFindByPk = vi.fn().mockResolvedValue(event);
     userProjectFindAll = vi.fn().mockResolvedValue([membership()]);
     certificateFindAll = vi.fn().mockResolvedValue([]);
-    certificateTemplateFindAll = vi.fn().mockResolvedValue([
-      { language: 'en', bodyHtml: '<p>{{participant.firstname}}</p>' },
-    ]);
-    certificateTemplateFindOne = vi
+    certificateTemplateFindAll = vi
       .fn()
-      .mockResolvedValue({ language: 'en', bodyHtml: '<p>{{participant.firstname}}</p>' });
+      .mockResolvedValue([
+        { language: 'en', bodyHtml: '<p>{{participant.firstname}}</p>' },
+      ]);
+    certificateTemplateFindOne = vi.fn().mockResolvedValue({
+      language: 'en',
+      bodyHtml: '<p>{{participant.firstname}}</p>',
+    });
     certificateRenderFindAll = vi.fn().mockResolvedValue([]);
     certificateRenderFindOne = vi.fn().mockResolvedValue(null);
     certificateRenderCreate = vi.fn().mockImplementation((data) =>
@@ -85,7 +88,10 @@ describe('CertificateService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CertificateService,
-        { provide: getModelToken(Event), useValue: { findByPk: eventFindByPk } },
+        {
+          provide: getModelToken(Event),
+          useValue: { findByPk: eventFindByPk },
+        },
         { provide: getModelToken(Project), useValue: {} },
         { provide: getModelToken(User), useValue: {} },
         {

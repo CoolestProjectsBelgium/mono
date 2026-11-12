@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  # Lets the deploy workflows run the same checks as a required first job.
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Only supersede runs for pull requests; never cancel checks a deploy waits on.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check docs index
+        run: npm run check-docs
+
+      # The shared models must be built first: api and admin import its dist/.
+      - name: Build database package
+        run: npm run build --workspace=packages/database
+
+      - name: Lint
+        run: |
+          npm run lint --workspace=apps/api
+          npm run lint --workspace=apps/admin
+
+      - name: Build apps
+        run: |
+          npm run build --workspace=apps/api
+          npm run build --workspace=apps/admin
+          npm run build --workspace=apps/voting
+          npm run build --workspace=apps/registration
+          npm run build --workspace=apps/eventguide
+
+      - name: Test
+        run: |
+          npm test --workspace=packages/database
+          npm test --workspace=apps/api
+          npm test --workspace=apps/admin
+          npm test --workspace=apps/voting
+          npm test --workspace=apps/registration
+          npm test --workspace=apps/eventguide
+          npm run archive-cpbe:test
+          npm run test:build-tools
+
+      # Fails only on critical advisories for now; tighten to `high` once the
+      # remaining framework majors (see docs/security-assessment-2026-09.md H7)
+      # are upgraded.
+      - name: Audit dependencies
+        run: npm audit --audit-level=critical

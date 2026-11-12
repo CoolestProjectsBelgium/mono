@@ -63,7 +63,7 @@ export const addEventFilter = async (
       ...request.query,
       filters: {
         ...request.query?.filters,
-        filterName: eventId,
+        [filterName]: eventId,
       },
     },
     payload: request.payload

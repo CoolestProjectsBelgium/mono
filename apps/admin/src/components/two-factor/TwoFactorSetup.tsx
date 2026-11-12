@@ -133,10 +133,7 @@ const TwoFactorSetup: React.FC<ActionProps> = ({ record, resource }) => {
         />
       </FormGroup>
       {message && (
-        <Text
-          color={message.type === 'error' ? 'danger' : 'success'}
-          mb="lg"
-        >
+        <Text color={message.type === 'error' ? 'danger' : 'success'} mb="lg">
           {message.text}
         </Text>
       )}

@@ -209,7 +209,11 @@ function buildTimeline(data: DashboardResponse, now: number): TimelineStep[] {
         label: 'Voting',
         start: data.votingStartDate,
         end: data.votingEndDate,
-        isOpen: isSubActivityOpen(now, data.votingStartDate, data.votingEndDate),
+        isOpen: isSubActivityOpen(
+          now,
+          data.votingStartDate,
+          data.votingEndDate,
+        ),
       },
       links: [
         { label: 'Floor plans', href: pageUrl('Floorplans') },

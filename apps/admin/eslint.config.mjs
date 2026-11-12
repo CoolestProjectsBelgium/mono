@@ -36,7 +36,23 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
+      // Ratchet: AdminJS hands handlers untyped request/context/record objects,
+      // so the no-unsafe-* family stays visible as warnings while `npm run lint`
+      // gates CI on everything else; promote back to errors as code gets typed.
       '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      // AdminJS hooks/actions must be async by contract even without awaiting.
+      '@typescript-eslint/require-await': 'off',
+      // Async event handlers on JSX props are fine; other misuse still errors.
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        { checksVoidReturn: { attributes: false } },
+      ],
+      // Existing fetch-on-mount effects; refactor before promoting to error.
+      'react-hooks/set-state-in-effect': 'warn',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
       'prettier/prettier': ['error', { endOfLine: 'auto' }],

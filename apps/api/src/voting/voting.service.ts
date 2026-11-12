@@ -80,7 +80,7 @@ export class VotingService {
 
   async getProjects(
     eventId: number,
-    skipProjectId: number,
+    skipProjectId: number | null,
     languages: string[],
     accountId: number,
   ): Promise<ProjectVoteDto | VoteMessage> {
@@ -96,7 +96,7 @@ export class VotingService {
         id: {
           [Op.and]: {
             [Op.notIn]: Sequelize.literal(
-              `(SELECT DISTINCT vote.projectId FROM Votes AS vote WHERE vote.accountId = ${accountId})`,
+              `(SELECT DISTINCT vote.projectId FROM Votes AS vote WHERE vote.accountId = ${this.sequelize.escape(accountId)})`,
             ),
             [Op.ne]: skipProjectId,
           },

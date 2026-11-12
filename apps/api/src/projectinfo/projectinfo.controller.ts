@@ -1,4 +1,4 @@
-import { Project, Event } from '@coolestprojects/database';
+import { Event } from '@coolestprojects/database';
 import {
   Body,
   Controller,
@@ -12,7 +12,6 @@ import {
   UseInterceptors,
   Param,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
 import {
   ApiCookieAuth,
   ApiResponse,

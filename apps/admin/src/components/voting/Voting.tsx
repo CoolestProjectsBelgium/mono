@@ -98,8 +98,11 @@ export const Voting: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = window.setInterval(fetchData, refreshInterval);
+    void fetchData();
+    const interval = window.setInterval(
+      () => void fetchData(),
+      refreshInterval,
+    );
     return () => window.clearInterval(interval);
   }, []);
 

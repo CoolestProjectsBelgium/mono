@@ -32,6 +32,8 @@
     "@nestjs/sequelize": "^11.0.1",
     "@nestjs/swagger": "^11.4.7",
     "@nestjs/throttler": "^6.7.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "csrf-csrf": "^4.0.3",
     "handlebars": "^4.7.9",
@@ -41,7 +43,7 @@
     "mailparser": "^3.9.17",
     "mysql2": "^3.22.5",
     "nestjs-command": "^3.1.5",
-    "nodemailer": "^9.0.1",
+    "nodemailer": "^10.5.0",
     "passport": "^0.7.0",
     "passport-cookie": "^1.0.9",
     "passport-http": "^0.3.0",
@@ -68,6 +70,6 @@
     "expect-type": "^1.4.0",
     "supertest": "^7.2.2",
     "unplugin-swc": "^1.6.0",
-    "vitest": "^3.2.7"
+    "vitest": "^5.1.0"
   }
 }

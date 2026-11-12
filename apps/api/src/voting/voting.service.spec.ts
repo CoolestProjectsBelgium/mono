@@ -58,7 +58,7 @@ describe('VotingService', () => {
       vi.spyOn(Account, 'findByPk').mockResolvedValue({
         id: 3,
         email: 'jury',
-      } as Account);
+      });
 
       eventFindOne.mockResolvedValue({
         id: 1,

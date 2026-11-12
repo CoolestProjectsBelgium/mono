@@ -47,7 +47,10 @@ describe('PresentationController', () => {
   });
 
   it('passes a requested resolution through to the service', async () => {
-    presentationService.listSlides.mockResolvedValue({ slides: [], hash: 'abc' });
+    presentationService.listSlides.mockResolvedValue({
+      slides: [],
+      hash: 'abc',
+    });
 
     await controller.listSlides({ currentEvent: 1 } as never, '1280x720');
 

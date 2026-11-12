@@ -20,7 +20,14 @@ import { Op } from 'sequelize';
 import * as Handlebars from 'handlebars';
 import puppeteer from 'puppeteer';
 import { createHash } from 'node:crypto';
-import { mkdir, readdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  stat,
+  unlink,
+  writeFile,
+} from 'node:fs/promises';
 import * as path from 'node:path';
 import { MulterFile } from '../file-upload/multer-file.type';
 import {
@@ -366,7 +373,11 @@ export class CertificateService {
     const memberships = await this.userProjectModel.findAll({
       where: { eventId, deletedAt: null, userId: { [Op.ne]: null } },
       include: [
-        { model: this.projectModel, where: { deletedAt: null }, required: true },
+        {
+          model: this.projectModel,
+          where: { deletedAt: null },
+          required: true,
+        },
         { model: this.userModel, required: true },
       ],
     });

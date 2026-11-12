@@ -61,7 +61,9 @@ describe('MailerService', () => {
 
   const emailLogModel = {
     create: vi.fn().mockResolvedValue(undefined),
-    build: vi.fn().mockReturnValue({ save: vi.fn().mockResolvedValue(undefined) }),
+    build: vi
+      .fn()
+      .mockReturnValue({ save: vi.fn().mockResolvedValue(undefined) }),
   };
 
   beforeEach(async () => {

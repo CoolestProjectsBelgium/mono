@@ -7,12 +7,12 @@ import {
 
 describe('QUESTION_TRANSLATION_COPY', () => {
   it('uses recognizable wording for EN photo consent', () => {
-    expect(QUESTION_TRANSLATION_COPY[PHOTO_QUESTION_NAME].en.description).toContain(
-      'recognizable',
-    );
-    expect(QUESTION_TRANSLATION_COPY[PHOTO_QUESTION_NAME].en.negative).toContain(
-      'recognizable',
-    );
+    expect(
+      QUESTION_TRANSLATION_COPY[PHOTO_QUESTION_NAME].en.description,
+    ).toContain('recognizable');
+    expect(
+      QUESTION_TRANSLATION_COPY[PHOTO_QUESTION_NAME].en.negative,
+    ).toContain('recognizable');
   });
 
   it('uses Oui for FR contact positive answer', () => {
@@ -22,14 +22,14 @@ describe('QUESTION_TRANSLATION_COPY', () => {
   });
 
   it('includes rules wording in approval descriptions', () => {
-    expect(QUESTION_TRANSLATION_COPY[APPROVAL_QUESTION_NAME].en.description).toContain(
-      'rules',
-    );
-    expect(QUESTION_TRANSLATION_COPY[APPROVAL_QUESTION_NAME].nl.description).toContain(
-      'regels',
-    );
-    expect(QUESTION_TRANSLATION_COPY[APPROVAL_QUESTION_NAME].fr.description).toContain(
-      'règles',
-    );
+    expect(
+      QUESTION_TRANSLATION_COPY[APPROVAL_QUESTION_NAME].en.description,
+    ).toContain('rules');
+    expect(
+      QUESTION_TRANSLATION_COPY[APPROVAL_QUESTION_NAME].nl.description,
+    ).toContain('regels');
+    expect(
+      QUESTION_TRANSLATION_COPY[APPROVAL_QUESTION_NAME].fr.description,
+    ).toContain('règles');
   });
 });

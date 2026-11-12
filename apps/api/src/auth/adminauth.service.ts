@@ -14,7 +14,6 @@ export class AdminAuthenticationService {
   ) {}
 
   async validate(token: string) {
-    console.log('Validating token:', token); // Log the token for debugging
     if (!token) {
       throw new UnauthorizedException();
     }
@@ -25,17 +24,22 @@ export class AdminAuthenticationService {
       throw new UnauthorizedException();
     }
 
-    const sessionData = JSON.parse(session.data) as {
+    type SessionData = {
       adminUser?: {
         email?: string;
         eventId?: number;
         role?: string;
       };
     };
+    let sessionData: SessionData;
+    try {
+      sessionData = JSON.parse(session.data) as SessionData;
+    } catch {
+      // A corrupt session row is an invalid session, not a server error.
+      throw new UnauthorizedException();
+    }
 
-    console.log('Session Data:', sessionData); // Log the session data for debugging
-
-    const email = sessionData.adminUser?.email;
+    const email = sessionData?.adminUser?.email;
 
     if (!email) {
       throw new UnauthorizedException();

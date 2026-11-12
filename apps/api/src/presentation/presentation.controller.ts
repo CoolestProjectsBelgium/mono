@@ -50,9 +50,9 @@ export class PresentationController {
   @Get('resolutions')
   getAllowedResolutions(): PresentationResolutionsResponseDto {
     return {
-      resolutions: this.presentationService.getAllowedResolutions().map(
-        (resolution) => ({ ...resolution }),
-      ),
+      resolutions: this.presentationService
+        .getAllowedResolutions()
+        .map((resolution) => ({ ...resolution })),
       default: DEFAULT_PRESENTATION_RESOLUTION_KEY,
     };
   }

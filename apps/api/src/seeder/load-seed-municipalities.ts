@@ -35,7 +35,12 @@ export function loadSeedMunicipalities(): SeedMunicipalityEntry[] {
     const postalcode = Number(entry.postalcode);
     const nl = (entry.municipality_name_nl ?? '').trim();
     const region = (entry.region ?? '').trim();
-    if (!Number.isInteger(postalcode) || !nl || !region || seen.has(postalcode)) {
+    if (
+      !Number.isInteger(postalcode) ||
+      !nl ||
+      !region ||
+      seen.has(postalcode)
+    ) {
       continue;
     }
     seen.add(postalcode);

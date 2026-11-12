@@ -94,6 +94,10 @@ Deploy does not overwrite remote `.env`. Add `DB_SYNC_ALTER=true` to existing ap
 
 `packages/database/tsconfig.json` sets `useDefineForClassFields: false` (ES2022 would otherwise default to `true`). Emitting real instance fields shadows sequelize-typescript getters — association access like `question.translations[0]` then returns `undefined` and catalog endpoints 500. Prefer `declare` on model properties when adding fields.
 
+### Tests
+
+`npm test --workspace=packages/database` builds the package and runs `test/*.test.cjs` with Node's built-in test runner against `dist/` (what `api` and `admin` actually import). No database is needed: the tests register every exported model on an unconnected Sequelize instance to catch broken decorators/associations, and cover `Account` password hashing, `User` field validation and `Registration.overdue`.
+
 ## Out of scope / unknowns
 
 - Hand-written Umzug migration files for routine column adds (use `DB_SYNC_ALTER` instead)

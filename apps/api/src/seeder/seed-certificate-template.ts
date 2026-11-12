@@ -64,8 +64,7 @@ const BODY_EN = certificateBody({
   presentedTo: 'This certificate is proudly presented to',
   participatedIn: 'for taking part with the project',
   winnerPrefix: 'Winner —',
-  footerNote:
-    'Thank you for sharing your creativity and hard work with us.',
+  footerNote: 'Thank you for sharing your creativity and hard work with us.',
 });
 
 const BODY_NL = certificateBody({

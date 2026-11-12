@@ -21,6 +21,8 @@ npm run build --workspace=apps/api   # build one workspace (also: admin, voting,
 npm test --workspace=apps/api        # test one workspace (see runners below)
 ```
 
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs docs check, lint, every build and every test suite on pull requests and before each deploy. Node version is pinned in `.nvmrc`.
+
 `apps/api` and `apps/admin` define ESLint (flat config, shared root-level Prettier config) as `lint`/`lint:fix`, e.g. `npm run lint --workspace=apps/api`. No other workspace defines a `lint` script.
 
 Test runners differ per workspace:
@@ -29,7 +31,8 @@ Test runners differ per workspace:
 |-----------|--------|--------------------|
 | `apps/api`, `apps/voting`, `apps/registration`, `apps/eventguide` | Vitest (`apps/api`'s `*.spec.ts` live under `src/`) | `npm test --workspace=apps/api -- path/to/file.spec.ts` |
 | `apps/admin` | `tsx --test` (explicit glob list in its `test` script) | `npx tsx --test apps/admin/src/api/foo.spec.ts` (run from repo root) |
-| `packages/database`, `apps/presentation`, `apps/cdj-web-int` | none | — |
+| `packages/database` | `node --test` on `test/*.test.cjs` against the built `dist/` (the `test` script builds first) | `node --test packages/database/test/models.test.cjs` (after a build) |
+| `apps/presentation`, `apps/cdj-web-int` | none | — |
 
 Root-level scripts: `npm run archive-cpbe`, `npm run archive-cpbe:test` (`scripts/archive-cpbe/`), `npm run deploy` (Level27 publish, see [docs/build-tools.md](docs/build-tools.md)).
 

@@ -140,12 +140,22 @@ export class RegistrationService {
       box_number: createRegistrationDto.user.address.box_number,
       // map to questions
       questions: [
-        ...createRegistrationDto.user.general_questions.map((questionId) => {
-          return { questionId: Number(questionId), eventId: info.currentEvent };
-        }),
-        ...createRegistrationDto.user.mandatory_approvals.map((questionId) => {
-          return { questionId: Number(questionId), eventId: info.currentEvent };
-        }),
+        ...(createRegistrationDto.user.general_questions ?? []).map(
+          (questionId) => {
+            return {
+              questionId: Number(questionId),
+              eventId: info.currentEvent,
+            };
+          },
+        ),
+        ...(createRegistrationDto.user.mandatory_approvals ?? []).map(
+          (questionId) => {
+            return {
+              questionId: Number(questionId),
+              eventId: info.currentEvent,
+            };
+          },
+        ),
       ],
       waiting_list: false,
       internalinfo: null,
@@ -390,7 +400,11 @@ export class RegistrationService {
       if (error instanceof HttpException) {
         throw error;
       }
-      throw new Error('Transaction commit failed: ' + error);
+      throw new Error(
+        'Transaction commit failed: ' +
+          (error instanceof Error ? error.message : String(error)),
+        { cause: error },
+      );
     }
 
     // send confirmation mail (outside transaction; must not fail activation)

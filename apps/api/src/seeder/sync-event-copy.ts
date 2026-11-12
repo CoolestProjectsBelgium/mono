@@ -12,7 +12,6 @@ import {
   QUESTION_TRANSLATION_COPY,
   SEED_QUESTION_NAMES,
   type SeedLanguage,
-  type SeedQuestionName,
 } from './seed-question-translations';
 
 export const CORE_EMAIL_TEMPLATE_KEYS = [

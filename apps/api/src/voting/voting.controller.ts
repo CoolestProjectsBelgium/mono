@@ -32,6 +32,39 @@ import { Observable, map } from 'rxjs';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
+const VOTING_LANGUAGES = ['nl', 'fr', 'en'];
+
+/** `languages` is a JSON array in the query string; anything unusable falls back to all languages. */
+export function parseLanguagesQuery(raw: unknown): string[] {
+  try {
+    const parsed: unknown = JSON.parse(String(raw));
+    if (Array.isArray(parsed)) {
+      const known = parsed.filter(
+        (language): language is string =>
+          typeof language === 'string' && VOTING_LANGUAGES.includes(language),
+      );
+      if (known.length > 0) {
+        return known;
+      }
+    }
+  } catch {
+    // not JSON — use the default below
+  }
+  return [...VOTING_LANGUAGES];
+}
+
+/** `skipProject` is a JSON number in the query string; anything else means "skip nothing". */
+export function parseSkipProjectQuery(raw: unknown): number | null {
+  try {
+    const parsed: unknown = JSON.parse(String(raw));
+    return typeof parsed === 'number' && Number.isInteger(parsed)
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 @Controller()
 @ApiTags('voting')
 export class VotingController {
@@ -70,7 +103,6 @@ export class VotingController {
   @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   async stopVoting(@Req() req: any) {
-    console.log(req.user);
     await this.votingService.closeVotingNow(req.user.adminUser.eventId);
     const awards = await this.votingService.generateAwards(
       req.user.adminUser.eventId,
@@ -169,8 +201,6 @@ export class VotingController {
   // security-assessment-2026-09.md H1, endpoint inventory "jury brute force").
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   async login(@Req() req: any, @Res() res: Response) {
-    console.log('user:', req.user);
-
     const account = await this.votingService.getAccount(req.user.id);
     if (!account) return res.status(403).send();
 
@@ -216,15 +246,8 @@ export class VotingController {
     @Req() req: any,
     @Query() query: any,
   ): Promise<ProjectVoteDto | VoteMessage> {
-    let languages = ['nl', 'fr', 'en'];
-    try {
-      languages = JSON.parse(query.languages);
-    } catch {}
-
-    let skipProjectId = null;
-    try {
-      skipProjectId = JSON.parse(query.skipProject);
-    } catch {}
+    const languages = parseLanguagesQuery(query.languages);
+    const skipProjectId = parseSkipProjectQuery(query.skipProject);
 
     return await this.votingService.getProjects(
       req.user.eventId,

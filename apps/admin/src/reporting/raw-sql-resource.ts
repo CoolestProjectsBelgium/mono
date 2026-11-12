@@ -1,6 +1,7 @@
 import { BaseProperty, BaseRecord, BaseResource } from 'adminjs';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '../database.js';
+import { buildWhere } from './raw-sql-where.js';
 
 export interface RawSqlColumn {
   path: string;
@@ -35,49 +36,6 @@ export interface RawSqlResourceConfig {
   /** Column used to identify a single row (findOne/findMany/sorting fallback) */
   primaryKey: string;
 }
-
-interface FilterElement {
-  path: string;
-  value: string | { from?: string; to?: string };
-}
-
-const buildWhere = (
-  filter: unknown,
-  baseReplacements: Record<string, unknown>,
-) => {
-  const clauses: string[] = [];
-  const replacements: Record<string, unknown> = { ...baseReplacements };
-  const elements = Object.values(
-    (filter as { filters?: Record<string, FilterElement> })?.filters ?? {},
-  );
-
-  elements.forEach((element, index) => {
-    const column = `\`${element.path}\``;
-    const { value } = element;
-
-    if (value && typeof value === 'object') {
-      if (value.from) {
-        const key = `f${index}_from`;
-        clauses.push(`${column} >= :${key}`);
-        replacements[key] = value.from;
-      }
-      if (value.to) {
-        const key = `f${index}_to`;
-        clauses.push(`${column} <= :${key}`);
-        replacements[key] = value.to;
-      }
-    } else if (value !== undefined && value !== '') {
-      const key = `f${index}`;
-      clauses.push(`${column} = :${key}`);
-      replacements[key] = value;
-    }
-  });
-
-  return {
-    where: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '',
-    replacements,
-  };
-};
 
 /**
  * Wraps an arbitrary read-only SQL SELECT (run via the shared `sequelize` connection from
@@ -129,6 +87,10 @@ export class RawSqlResource extends BaseResource {
     );
   }
 
+  private columnPaths(): Set<string> {
+    return new Set(this.cfg.columns.map((column) => column.path));
+  }
+
   private derivedTable() {
     return `(${this.cfg.sql}) AS report_data`;
   }
@@ -137,11 +99,12 @@ export class RawSqlResource extends BaseResource {
     const { where, replacements } = buildWhere(
       filter,
       this.cfg.replacements ?? {},
+      this.columnPaths(),
     );
-    const rows = (await sequelize.query(
+    const rows = await sequelize.query<{ total: number }>(
       `SELECT COUNT(*) AS total FROM ${this.derivedTable()} ${where}`,
       { type: QueryTypes.SELECT, replacements },
-    )) as Array<{ total: number }>;
+    );
 
     return Number(rows[0]?.total ?? 0);
   }
@@ -157,8 +120,9 @@ export class RawSqlResource extends BaseResource {
     const { where, replacements } = buildWhere(
       filter,
       this.cfg.replacements ?? {},
+      this.columnPaths(),
     );
-    const knownColumns = new Set(this.cfg.columns.map((column) => column.path));
+    const knownColumns = this.columnPaths();
     const sortBy =
       options.sort?.sortBy && knownColumns.has(options.sort.sortBy)
         ? options.sort.sortBy

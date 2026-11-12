@@ -1,14 +1,16 @@
-import { Event, EmailTemplate, Question, QuestionTranslation } from '@coolestprojects/database';
+import {
+  Event,
+  EmailTemplate,
+  Question,
+  QuestionTranslation,
+} from '@coolestprojects/database';
 import { buildSeedEmailTemplates } from '../mailer/seed-email-templates';
 import {
   APPROVAL_QUESTION_NAME,
   CONTACT_QUESTION_NAME,
   PHOTO_QUESTION_NAME,
 } from './seed-question-translations';
-import {
-  CORE_EMAIL_TEMPLATE_KEYS,
-  syncEventCopy,
-} from './sync-event-copy';
+import { CORE_EMAIL_TEMPLATE_KEYS, syncEventCopy } from './sync-event-copy';
 
 describe('syncEventCopy', () => {
   const event = { id: 9 } as Event;
@@ -67,7 +69,7 @@ describe('syncEventCopy', () => {
           };
         },
       ),
-      create: vi.fn(async (values: typeof rows[number]) => {
+      create: vi.fn(async (values: (typeof rows)[number]) => {
         const row = { ...values, id: rows.length + 1 };
         rows.push(row);
         return row;
@@ -112,7 +114,7 @@ describe('syncEventCopy', () => {
           };
         },
       ),
-      create: vi.fn(async (values: typeof rows[number]) => {
+      create: vi.fn(async (values: (typeof rows)[number]) => {
         const row = { ...values, id: rows.length + 1 };
         rows.push(row);
         return row;
@@ -148,10 +150,14 @@ describe('syncEventCopy', () => {
       syncEventCopy(
         event,
         questionModel,
-        makeQuestionTranslationModel([]) as unknown as typeof QuestionTranslation,
+        makeQuestionTranslationModel(
+          [],
+        ) as unknown as typeof QuestionTranslation,
         makeEmailTemplateModel([]) as unknown as typeof EmailTemplate,
       ),
-    ).rejects.toThrow(`Question "${PHOTO_QUESTION_NAME}" not found for event 9`);
+    ).rejects.toThrow(
+      `Question "${PHOTO_QUESTION_NAME}" not found for event 9`,
+    );
   });
 
   it('only writes the six core email template keys', async () => {
@@ -165,14 +171,19 @@ describe('syncEventCopy', () => {
       emailModel as unknown as typeof EmailTemplate,
     );
 
-    const writtenTemplates = (emailModel as { _rows: Array<{ template: string }> })
-      ._rows.map((row) => row.template);
+    const writtenTemplates = (
+      emailModel as { _rows: Array<{ template: string }> }
+    )._rows.map((row) => row.template);
     const uniqueTemplates = [...new Set(writtenTemplates)];
 
-    expect(uniqueTemplates.sort()).toEqual([...CORE_EMAIL_TEMPLATE_KEYS].sort());
+    expect(uniqueTemplates.sort()).toEqual(
+      [...CORE_EMAIL_TEMPLATE_KEYS].sort(),
+    );
     expect(writtenTemplates).toHaveLength(CORE_EMAIL_TEMPLATE_KEYS.length * 3);
 
-    const allSeedTemplates = buildSeedEmailTemplates(9).map((row) => row.template);
+    const allSeedTemplates = buildSeedEmailTemplates(9).map(
+      (row) => row.template,
+    );
     expect(allSeedTemplates).toContain('dailyReminder');
     expect(writtenTemplates).not.toContain('dailyReminder');
   });

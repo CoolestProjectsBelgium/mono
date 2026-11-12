@@ -183,9 +183,7 @@ export const Handler = async (
     if (action === 'delete-asset') {
       const api = await NestApiClient.fromExpressRequest(request);
       const filename = encodeURIComponent(String(payload.filename ?? ''));
-      return (
-        await api.delete(`/admin/certificates/assets/${filename}`)
-      ).data;
+      return (await api.delete(`/admin/certificates/assets/${filename}`)).data;
     }
 
     if (action === 'upload-asset') {
@@ -206,9 +204,7 @@ export const Handler = async (
       });
 
       const api = await NestApiClient.fromExpressRequest(request);
-      return (
-        await api.postForm('/admin/certificates/assets', form)
-      ).data;
+      return (await api.postForm('/admin/certificates/assets', form)).data;
     }
 
     throw new Error(`Unknown action: ${action}`);

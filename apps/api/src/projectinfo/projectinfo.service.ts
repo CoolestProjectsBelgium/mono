@@ -398,7 +398,7 @@ export class ProjectinfoService {
       }
 
       await transaction.commit();
-    } catch (error) {
+    } catch {
       await transaction.rollback();
       throw new Error('Project delete failed');
     }
@@ -512,7 +512,7 @@ export class ProjectinfoService {
       await newOwnerProject.save({ transaction });
 
       await transaction.commit();
-    } catch (error) {
+    } catch {
       await transaction.rollback();
       throw new Error('Owner change failed');
     }

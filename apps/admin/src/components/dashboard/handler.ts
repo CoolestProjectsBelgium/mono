@@ -4,12 +4,7 @@ import type {
   Attachment as AttachmentModel,
   Event as EventModel,
   Project as ProjectModel,
-  Question as QuestionModel,
-  QuestionTranslation as QuestionTranslationModel,
-  QuestionUser as QuestionUserModel,
   Registration as RegistrationModel,
-  Tshirt as TshirtModel,
-  TshirtTranslation as TshirtTranslationModel,
   User as UserModel,
   UserProject as UserProjectModel,
 } from '@coolestprojects/database';
@@ -17,14 +12,7 @@ import type {
 const Attachment = sequelize.models.Attachment as typeof AttachmentModel;
 const Event = sequelize.models.Event as typeof EventModel;
 const Project = sequelize.models.Project as typeof ProjectModel;
-const Question = sequelize.models.Question as typeof QuestionModel;
-const QuestionTranslation = sequelize.models
-  .QuestionTranslation as typeof QuestionTranslationModel;
-const QuestionUser = sequelize.models.QuestionUser as typeof QuestionUserModel;
 const Registration = sequelize.models.Registration as typeof RegistrationModel;
-const Tshirt = sequelize.models.Tshirt as typeof TshirtModel;
-const TshirtTranslation = sequelize.models
-  .TshirtTranslation as typeof TshirtTranslationModel;
 const User = sequelize.models.User as typeof UserModel;
 const UserProject = sequelize.models.UserProject as typeof UserProjectModel;
 

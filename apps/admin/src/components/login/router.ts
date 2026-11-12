@@ -1,8 +1,4 @@
-import express, {
-  type Request,
-  type Response,
-  type NextFunction,
-} from 'express';
+import express from 'express';
 import { sequelize } from '../../database.js';
 import { Event as EventModel } from '@coolestprojects/database';
 
@@ -30,7 +26,7 @@ router.get('/events', async (_req, res) => {
     }));
 
     res.json(eventList);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch events' });
   }
 });

@@ -246,7 +246,9 @@ describe('EventguideService', () => {
     const result = await service.getThumbnailByAttachmentId(42);
 
     expect(result).toBeDefined();
-    expect(createReadStream).toHaveBeenCalledWith('/uploads/project_5/thumb.jpg');
+    expect(createReadStream).toHaveBeenCalledWith(
+      '/uploads/project_5/thumb.jpg',
+    );
     expect(questionUserModel.count).not.toHaveBeenCalled();
   });
 
@@ -386,6 +388,8 @@ describe('EventguideService', () => {
 
     await service.getThumbnail(1, 42);
 
-    expect(createReadStream).toHaveBeenCalledWith('/uploads/project_5/photo.jpg');
+    expect(createReadStream).toHaveBeenCalledWith(
+      '/uploads/project_5/photo.jpg',
+    );
   });
 });

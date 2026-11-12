@@ -43,9 +43,7 @@ export class CertificateController {
   listStatus(
     @Req() req: { user?: AdminRequestUser },
   ): Promise<ParticipantCertificateStatusDto[]> {
-    return this.certificateService.listParticipantStatus(
-      this.getEventId(req),
-    );
+    return this.certificateService.listParticipantStatus(this.getEventId(req));
   }
 
   @Post('admin/certificates/preview')
@@ -89,9 +87,7 @@ export class CertificateController {
   listAssets(
     @Req() req: { user?: AdminRequestUser },
   ): Promise<CertificateAssetsOverviewDto> {
-    return this.certificateService.listCertificateAssets(
-      this.getEventId(req),
-    );
+    return this.certificateService.listCertificateAssets(this.getEventId(req));
   }
 
   @Post('admin/certificates/assets')

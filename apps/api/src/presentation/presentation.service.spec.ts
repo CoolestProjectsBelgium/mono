@@ -408,8 +408,16 @@ describe('PresentationService', () => {
     it('lists the fixed allowed resolutions', () => {
       expect(service.getAllowedResolutions()).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ key: '1920x1080', width: 1920, height: 1080 }),
-          expect.objectContaining({ key: '1280x720', width: 1280, height: 720 }),
+          expect.objectContaining({
+            key: '1920x1080',
+            width: 1920,
+            height: 1080,
+          }),
+          expect.objectContaining({
+            key: '1280x720',
+            width: 1280,
+            height: 720,
+          }),
         ]),
       );
     });
@@ -453,7 +461,10 @@ describe('PresentationService', () => {
         }),
       );
       expect(presentationRenderCreate).toHaveBeenCalledWith(
-        expect.objectContaining({ slideKey: 'slide-12', resolution: '1280x720' }),
+        expect.objectContaining({
+          slideKey: 'slide-12',
+          resolution: '1280x720',
+        }),
       );
 
       // A cached render for one resolution must not be treated as a hit for another.

@@ -18,6 +18,7 @@ Pack monorepo apps into the layout Level27 components already expect, rsync them
 | `node build_tools/bin/deploy.mjs --app api --env dev` | Pack and publish one app |
 | `node build_tools/bin/deploy-all.mjs --env dev` | Publish all five test apps (continues on failure) |
 | `node build_tools/bin/deploy-all.mjs --env prod` | Publish all five production apps |
+| `.github/workflows/ci.yml` | Pull requests and pushes to `main`: docs check, lint (api, admin), build and test every workspace, `npm audit --audit-level=critical`. Also runs as the required first job (`needs: ci`) of both deploy workflows, so a red check blocks the deploy |
 | `.github/workflows/deploy-test.yml` | Push to `test-env` or **Run workflow** → `deploy-all --env dev` |
 | `.github/workflows/deploy-prod.yml` | Push to `production` or **Run workflow** → `deploy-all --env prod` |
 | `node build_tools/bin/deploy.mjs --app api --env prod --dry-run` | Print prod targets; no SSH |
@@ -51,7 +52,7 @@ If remote `app/.env` already exists, deploy leaves it unchanged. If it is missin
 
 ### GitHub Actions (test estate)
 
-Workflow: [`.github/workflows/deploy-test.yml`](../.github/workflows/deploy-test.yml). Triggers on push to `test-env` and `workflow_dispatch`. One job on `ubuntu-latest` (Node 24, `npm ci`, `rsync`). Deploys api → admin → registration → voting → eventguide via `deploy-all.mjs --env dev`. If one app fails, the rest still deploy; the job is red if any failed. Concurrency group `deploy-test` never cancels an in-flight rsync.
+Workflow: [`.github/workflows/deploy-test.yml`](../.github/workflows/deploy-test.yml). Triggers on push to `test-env` and `workflow_dispatch`. Runs the `ci.yml` checks first, then one deploy job on `ubuntu-latest` (Node version from `.nvmrc`, `npm ci`, `rsync`). Deploys api → admin → registration → voting → eventguide via `deploy-all.mjs --env dev`. If one app fails, the rest still deploy; the job is red if any failed. Concurrency group `deploy-test` never cancels an in-flight rsync.
 
 **One-time CI setup** (outside git):
 
@@ -65,7 +66,7 @@ CI does not need `build_tools/secrets/*.env` when remote `.env` files already ex
 
 ### GitHub Actions (production)
 
-Workflow: [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod.yml). Triggers on push to `production` and `workflow_dispatch`. Same shape as the test workflow: one job on `ubuntu-latest` (Node 24, `npm ci`, `rsync`). Deploys api → admin → registration → voting → eventguide via `deploy-all.mjs --env prod`. Concurrency group `deploy-prod` never cancels an in-flight rsync.
+Workflow: [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod.yml). Triggers on push to `production` and `workflow_dispatch`. Same shape as the test workflow: the `ci.yml` checks, then one deploy job on `ubuntu-latest` (Node version from `.nvmrc`, `npm ci`, `rsync`). Deploys api → admin → registration → voting → eventguide via `deploy-all.mjs --env prod`. Concurrency group `deploy-prod` never cancels an in-flight rsync.
 
 **One-time prod CI setup:**
 

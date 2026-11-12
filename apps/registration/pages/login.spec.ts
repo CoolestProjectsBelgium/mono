@@ -38,7 +38,16 @@ vi.mock('~/components/CtaButton.vue', () => ({
 }))
 
 mockNuxtImport('useRoute', () => () => ({ query: routeQuery.value }))
-mockNuxtImport('useRouter', () => () => ({ replace: replaceMock }))
+// Nuxt's own router plugins register hooks on useRouter() while the test app
+// boots, so the stub needs the hook methods next to the `replace` under test.
+mockNuxtImport('useRouter', () => () => ({
+  replace: replaceMock,
+  beforeEach: () => () => {},
+  beforeResolve: () => () => {},
+  afterEach: () => () => {},
+  onError: () => () => {},
+  isReady: () => Promise.resolve(),
+}))
 mockNuxtImport('useLocalePath', () => () => (path: string) => path)
 mockNuxtImport('useI18n', () => () => ({
   t: (key: string) => key,

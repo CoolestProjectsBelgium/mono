@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { UserDto } from '../dto/user.dto';
 import { Template } from 'handlebars';
 import * as Handlebars from 'handlebars';
 import { EmailTemplate, MailTemplates } from '@coolestprojects/database';
@@ -66,7 +65,7 @@ export class MailerService {
     if (!env.SMTP_HOST) {
       console.warn(
         `[mailer] SMTP_HOST unset — skipping send. to=${to} subject=${contentSubject}` +
-          (context?.url ? ` url=${context.url}` : ''),
+          (typeof context?.url === 'string' ? ` url=${context.url}` : ''),
       );
       return;
     }

@@ -26,7 +26,8 @@ export function resolvePresentationResolution(
   key?: string,
 ): PresentationResolution {
   const target = PRESENTATION_RESOLUTIONS.find(
-    (resolution) => resolution.key === (key ?? DEFAULT_PRESENTATION_RESOLUTION_KEY),
+    (resolution) =>
+      resolution.key === (key ?? DEFAULT_PRESENTATION_RESOLUTION_KEY),
   );
   if (!target) {
     throw new BadRequestException(`Unsupported resolution "${key}"`);

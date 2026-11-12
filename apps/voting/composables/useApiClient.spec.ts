@@ -11,7 +11,10 @@ const { navigateToMock } = vi.hoisted(() => ({
 }))
 
 mockNuxtImport('navigateTo', () => navigateToMock)
+// Nuxt itself reads `app.*` from the runtime config while booting the test
+// app, so the mock has to keep those keys next to the public ones.
 mockNuxtImport('useRuntimeConfig', () => () => ({
+  app: { baseURL: '/', buildAssetsDir: '/_nuxt/', cdnURL: '' },
   public: { apiBaseURL: 'https://api.coolestprojects.localhost:8443' },
 }))
 

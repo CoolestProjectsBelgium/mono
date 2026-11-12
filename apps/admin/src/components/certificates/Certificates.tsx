@@ -96,7 +96,9 @@ export const Certificates: React.FC = () => {
         method: 'post',
         data: { action: 'list-assets' },
       });
-      setAssets((response.data as { assets: CertificateAssetListItem[] }).assets);
+      setAssets(
+        (response.data as { assets: CertificateAssetListItem[] }).assets,
+      );
     } catch (err) {
       console.error('Failed to load certificate assets:', err);
     }
@@ -133,7 +135,9 @@ export const Certificates: React.FC = () => {
   }, [selectedLanguage, data]);
 
   const currentTemplate: CertificateTemplateRecord | undefined =
-    data?.templates.find((candidate) => candidate.language === selectedLanguage);
+    data?.templates.find(
+      (candidate) => candidate.language === selectedLanguage,
+    );
 
   const handleSyncFromAwards = async () => {
     setLoading(true);
@@ -197,7 +201,9 @@ export const Certificates: React.FC = () => {
         method: 'post',
         data: formData,
       });
-      setAssets((response.data as { assets: CertificateAssetListItem[] }).assets);
+      setAssets(
+        (response.data as { assets: CertificateAssetListItem[] }).assets,
+      );
     } catch (err) {
       console.error('Failed to upload certificate asset:', err);
       setError('Unable to upload the asset.');
@@ -220,7 +226,9 @@ export const Certificates: React.FC = () => {
         method: 'post',
         data: { action: 'delete-asset', filename },
       });
-      setAssets((response.data as { assets: CertificateAssetListItem[] }).assets);
+      setAssets(
+        (response.data as { assets: CertificateAssetListItem[] }).assets,
+      );
     } catch (err) {
       console.error('Failed to delete certificate asset:', err);
       setError('Unable to delete the asset.');
@@ -331,9 +339,11 @@ export const Certificates: React.FC = () => {
         <H3>Template</H3>
         <Text color="grey60" mb="lg">
           One shared HTML layout per language, rendered as a PDF for every
-          participant. Available merge fields: <code>{'{{participant.firstname}}'}</code>,{' '}
+          participant. Available merge fields:{' '}
+          <code>{'{{participant.firstname}}'}</code>,{' '}
           <code>{'{{participant.lastname}}'}</code>,{' '}
-          <code>{'{{project.name}}'}</code>, <code>{'{{event.eventTitle}}'}</code>,{' '}
+          <code>{'{{project.name}}'}</code>,{' '}
+          <code>{'{{event.eventTitle}}'}</code>,{' '}
           <code>{'{{certificate.text}}'}</code>,{' '}
           <code>{'{{#if award.won}}...{{award.categoryName}}...{{/if}}'}</code>,
           and an uploaded asset via{' '}
@@ -343,7 +353,10 @@ export const Certificates: React.FC = () => {
         <Box mb="default" style={{ maxWidth: '200px' }}>
           <Label>Language</Label>
           <Select
-            value={{ value: selectedLanguage, label: selectedLanguage.toUpperCase() }}
+            value={{
+              value: selectedLanguage,
+              label: selectedLanguage.toUpperCase(),
+            }}
             options={data.languages.map((language) => ({
               value: language,
               label: language.toUpperCase(),
@@ -379,8 +392,8 @@ export const Certificates: React.FC = () => {
       <Box bg="white" boxShadow="card" p="lg" mb="xxl">
         <H3>Assets</H3>
         <Text color="grey60" mb="lg">
-          Upload a logo, seal, or signature image for use in the template
-          body via <code>{"{{lookup assets 'logo.png'}}"}</code>.
+          Upload a logo, seal, or signature image for use in the template body
+          via <code>{"{{lookup assets 'logo.png'}}"}</code>.
         </Text>
 
         <Box mb="lg">
@@ -596,7 +609,12 @@ export const Certificates: React.FC = () => {
 
       {previewKey && (
         <Box bg="white" boxShadow="card" p="lg" mb="xl">
-          <Box flex alignItems="center" justifyContent="space-between" mb="default">
+          <Box
+            flex
+            alignItems="center"
+            justifyContent="space-between"
+            mb="default"
+          >
             <H3 mb={0}>Preview</H3>
             <Button
               size="sm"

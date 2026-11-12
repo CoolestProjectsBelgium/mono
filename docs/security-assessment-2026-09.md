@@ -299,6 +299,20 @@ Baseline was 72 (51 moderate, 19 high, 2 critical) — findings increased across
 
 ---
 
+## Addendum — 2026-11-12 (best-practices pass)
+
+Not a full re-verification; only the items below were touched, on branch `best-practices-hardening`.
+
+| ID | Change |
+|----|--------|
+| H7 | **Partly addressed.** `.github/workflows/ci.yml` now runs lint, builds, all test suites and `npm audit --audit-level=critical` on pull requests, and both deploy workflows require it. `.github/dependabot.yml` added (npm + GitHub Actions, weekly). `npm audit` is at 79 findings (0 critical, 9 high, 67 moderate, 3 low) after in-range updates plus Vitest 5, happy-dom 21, nodemailer 10 and zod 4. Still open: the NestJS 12, Nuxt 4 and AdminJS-chain advisories, so the gate is at `critical`, not `high`. |
+| M1 | **Partly addressed.** Global validation pipe added (`apps/api/src/validation.ts`); registration and login DTOs carry `class-validator` decorators. Other DTOs (project update, voting, admin) are still undecorated. |
+| — | Debug `console.log` of the admin session id and session data (`adminauth.service.ts`) and of `req.user` (`voting.controller.ts`) removed. A corrupt admin session row now yields 401 instead of 500. |
+| — | Voting `GET /projects`: `languages`/`skipProject` query values are parsed to known language codes / an integer before reaching the query, and the `accountId` in the `Sequelize.literal` subquery is escaped. |
+| — | Admin reporting (`raw-sql-where.ts`): filter column names are now restricted to the report's declared columns; previously only sort columns were checked and a filter key was interpolated into the SQL as an identifier. |
+
+---
+
 ## Suggested follow-up
 
 P0 is fully closed, and H1 (rate limiting) is now done. Next recommended PR: Dependabot/npm audit CI gate (H7) — the current top real risk. SVG sanitization (M2) and Multer limits (M3/M4) are small, isolated fixes that could ride along in the same PR or immediately after. C2's git-hygiene cleanup (gitignore the private keys, add a generation script per `docs/local-setup.md`) and the H8/H9 dev-secret/seed-credential cleanup are worth doing but are no longer time-critical.
