@@ -10,7 +10,9 @@ test('deploy-prod workflow contract', () => {
   const yaml = fs.readFileSync(workflowPath, 'utf8');
   assert.match(yaml, /branches:\s*\n\s*-\s*production/);
   assert.doesNotMatch(yaml, /^\s*environment:/m);
-  assert.match(yaml, /node-version:\s*['"]24['"]/);
+  // Node version comes from .nvmrc (shared with ci.yml); keep it on 24.
+  assert.match(yaml, /node-version-file:\s*\.nvmrc/);
+  assert.match(fs.readFileSync(path.join(REPO_ROOT, '.nvmrc'), 'utf8').trim(), /^v?24(\.|$)/);
   assert.match(yaml, /deploy-all\.mjs --env prod/);
   assert.doesNotMatch(yaml, /--env dev/);
   assert.match(yaml, /workflow_dispatch/);
