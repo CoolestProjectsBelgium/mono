@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Observable } from 'rxjs';
+import type { MulterFile } from './multer-file.type';
 
 @Injectable()
 export class FileValidationInterceptor implements NestInterceptor {
@@ -17,7 +18,9 @@ export class FileValidationInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
-    const req = context.switchToHttp().getRequest();
+    const req = context
+      .switchToHttp()
+      .getRequest<{ file?: MulterFile; user?: { id?: number } }>();
 
     const file = req.file;
     const userId = req.user?.id;

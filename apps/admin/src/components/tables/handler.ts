@@ -4,6 +4,7 @@ import {
   User as UserModel,
 } from '@coolestprojects/database';
 import { sequelize } from '../../database.js';
+import type { AdminPageContext, AdminPageRequest } from '../../admin-types.js';
 
 const EventTable = sequelize.models.EventTable as typeof EventTableModel;
 const Project = sequelize.models.Project as typeof ProjectModel;
@@ -85,11 +86,14 @@ const getOverview = async (eventId: number): Promise<TableOverview> => {
 };
 
 export const Handler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<TableOverview> => {
   const eventId = context.currentAdmin?.eventId;
+  if (!eventId) {
+    throw new Error('No event selected');
+  }
   const payload = request.payload ?? {};
 
   if (request.method?.toLowerCase() === 'post') {

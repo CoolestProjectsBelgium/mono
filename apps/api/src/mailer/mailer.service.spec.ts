@@ -22,7 +22,7 @@ function fakePerson<T extends object>(
   fields: Record<string, unknown>,
   event: Event,
 ): T {
-  return Object.assign(Object.create(Ctor.prototype), {
+  return Object.assign(Object.create(Ctor.prototype) as T, {
     getEvent: vi.fn().mockResolvedValue(event),
     ...fields,
   });

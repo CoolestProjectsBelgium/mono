@@ -23,6 +23,11 @@ import type { Response } from 'express';
 import { JwtVotingAuthGuard } from '../auth/jwt-voting-auth.guard';
 import { VotingLoginAuthGuard } from '../auth/local-voting-auth.guard';
 import { VOTING_JWT } from '../auth/auth.module';
+import {
+  requireAdminEventId,
+  type AdminRequest,
+  type JuryRequest,
+} from '../auth/request-user';
 import { ProjectVoteDto } from '../dto/projectvote.dto';
 import { AccountDto } from '../dto/account.dto';
 import { VoteMessage } from '../dto/votemessage.dto';
@@ -87,11 +92,11 @@ export class VotingController {
   @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   async startVoting(
-    @Req() req: any,
+    @Req() req: AdminRequest,
     @Body() body: { durationMinutes?: number; deletePreviousResults?: boolean },
   ) {
     await this.votingService.openVotingWithDuration(
-      req.user.adminUser.eventId,
+      requireAdminEventId(req),
       Number(body.durationMinutes ?? 60),
       body.deletePreviousResults === true,
     );
@@ -102,10 +107,10 @@ export class VotingController {
   @ApiCookieAuth('admin-cookie')
   @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
-  async stopVoting(@Req() req: any) {
-    await this.votingService.closeVotingNow(req.user.adminUser.eventId);
+  async stopVoting(@Req() req: AdminRequest) {
+    await this.votingService.closeVotingNow(requireAdminEventId(req));
     const awards = await this.votingService.generateAwards(
-      req.user.adminUser.eventId,
+      requireAdminEventId(req),
     );
     return { success: true, awards };
   }
@@ -114,7 +119,10 @@ export class VotingController {
   @ApiCookieAuth('admin-cookie')
   @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
-  sendAdminMessage(@Req() req: any, @Body() body: { message?: string }) {
+  sendAdminMessage(
+    @Req() req: AdminRequest,
+    @Body() body: { message?: string },
+  ) {
     this.votingService.publishMessage(String(body.message ?? ''));
     return { success: true };
   }
@@ -122,23 +130,23 @@ export class VotingController {
   @Get('admin/voting/results')
   @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
-  getVotingResults(@Req() req: any) {
-    return this.votingService.calculateVotes(req.user.adminUser.eventId);
+  getVotingResults(@Req() req: AdminRequest) {
+    return this.votingService.calculateVotes(requireAdminEventId(req));
   }
 
   @Post('admin/voting/awards/generate')
   @ApiCookieAuth('admin-cookie')
   @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
-  async generateAwards(@Req() req: any) {
-    return this.votingService.generateAwards(req.user.adminUser.eventId);
+  async generateAwards(@Req() req: AdminRequest) {
+    return this.votingService.generateAwards(requireAdminEventId(req));
   }
 
   @Get('admin/voting/awards')
   @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
-  async getAwards(@Req() req: any) {
-    return this.votingService.getAwardAssignments(req.user.adminUser.eventId);
+  async getAwards(@Req() req: AdminRequest) {
+    return this.votingService.getAwardAssignments(requireAdminEventId(req));
   }
 
   @Post('admin/voting/awards/:awardId/assign')
@@ -146,12 +154,12 @@ export class VotingController {
   @ApiSecurity('csrf')
   @UseGuards(MandatoryAdminCookieGuard)
   async assignAward(
-    @Req() req: any,
+    @Req() req: AdminRequest,
     @Param('awardId') awardId: number,
     @Body() body: { categoryId?: number | null },
   ) {
     await this.votingService.assignAward(
-      req.user.adminUser.eventId,
+      requireAdminEventId(req),
       Number(awardId),
       body.categoryId === null || body.categoryId === undefined
         ? null
@@ -163,9 +171,9 @@ export class VotingController {
   @Get('admin/voting/status')
   @ApiCookieAuth('admin-cookie')
   @UseGuards(MandatoryAdminCookieGuard)
-  async getVotingStatus(@Req() req: any) {
+  async getVotingStatus(@Req() req: AdminRequest) {
     const event = await this.votingService.getVotingStatus(
-      req.user.adminUser.eventId,
+      requireAdminEventId(req),
     );
     return event;
   }
@@ -200,7 +208,7 @@ export class VotingController {
   // tighter than the module default against brute force (see
   // security-assessment-2026-09.md H1, endpoint inventory "jury brute force").
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  async login(@Req() req: any, @Res() res: Response) {
+  async login(@Req() req: JuryRequest, @Res() res: Response) {
     const account = await this.votingService.getAccount(req.user.id);
     if (!account) return res.status(403).send();
 
@@ -223,7 +231,7 @@ export class VotingController {
   @Get('auth/user')
   @ApiBearerAuth('jwt-voting')
   @UseGuards(JwtVotingAuthGuard)
-  async getUser(@Req() req: any): Promise<AccountDto> {
+  async getUser(@Req() req: JuryRequest): Promise<AccountDto> {
     const account = await this.votingService.getAccount(req.user.id);
     return account;
   }
@@ -243,8 +251,8 @@ export class VotingController {
   @ApiBearerAuth('jwt-voting')
   @UseGuards(JwtVotingAuthGuard)
   async getProjects(
-    @Req() req: any,
-    @Query() query: any,
+    @Req() req: JuryRequest,
+    @Query() query: { languages?: unknown; skipProject?: unknown },
   ): Promise<ProjectVoteDto | VoteMessage> {
     const languages = parseLanguagesQuery(query.languages);
     const skipProjectId = parseSkipProjectQuery(query.skipProject);
@@ -262,9 +270,9 @@ export class VotingController {
   @ApiSecurity('csrf')
   @UseGuards(JwtVotingAuthGuard)
   async submitVotes(
-    @Req() req: any,
+    @Req() req: JuryRequest,
     @Param('projectId') projectId: number,
-    @Body() body: any[],
+    @Body() body: Array<{ id: number; value?: number }>,
   ) {
     const votes = body.map((v) => ({
       id: v.id,

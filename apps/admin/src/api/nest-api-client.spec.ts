@@ -44,9 +44,11 @@ test('fromExpressRequest reads the Cookie header from rawHeaders when .headers i
   };
 
   const api = await NestApiClient.fromExpressRequest(adminJsShapedRequest);
-  const cookieString = await (api as any).jar.getCookieString(
-    'https://api.example.test',
-  );
+  const cookieString = await (
+    api as unknown as {
+      jar: { getCookieString(url: string): Promise<string> };
+    }
+  ).jar.getCookieString('https://api.example.test');
   assert.match(cookieString, /adminjs=abc/);
   assert.match(cookieString, /anonId=xyz/);
 

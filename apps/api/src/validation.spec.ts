@@ -67,7 +67,7 @@ describe('createValidationPipe', () => {
 
   it('accepts a valid registration and returns the plain body untouched', async () => {
     const input = validRegistration();
-    const result = await pipe.transform(input, body(RegistrationDto));
+    const result: unknown = await pipe.transform(input, body(RegistrationDto));
     expect(result).toBe(input);
   });
 

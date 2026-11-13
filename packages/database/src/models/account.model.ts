@@ -8,6 +8,9 @@ import { compareSync, hashSync } from 'bcrypt';
 
 @Table
 export class Account extends Model<InferAttributes<Account>, InferCreationAttributes<Account>> {
+  // Type-only: narrows Model's `id?: number | any` (see BaseEventModel).
+  declare id: CreationOptional<number>;
+
   @Column
   declare email: string;
 

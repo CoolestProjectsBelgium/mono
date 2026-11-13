@@ -4,6 +4,7 @@ import {
 } from '@coolestprojects/database';
 import { NestApiClient } from '../../api/nest-api-client.js';
 import { sequelize } from '../../database.js';
+import type { AdminPageContext, AdminPageRequest } from '../../admin-types.js';
 
 const Project = sequelize.models.Project as typeof ProjectModel;
 const UserProject = sequelize.models.UserProject as typeof UserProjectModel;
@@ -148,16 +149,16 @@ function errorMessage(error: unknown): string {
 }
 
 export const registerUserHandler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ) => {
   const api = await NestApiClient.fromExpressRequest(request);
 
   if (request.method?.toLowerCase() === 'post') {
     try {
       const payload = buildRegistrationPayload(
-        (request.payload ?? {}) as RegisterUserSubmission,
+        (request.payload ?? {}) as unknown as RegisterUserSubmission,
       );
       const response = await api.post<{ id: number; email: string }>(
         '/registration',

@@ -46,7 +46,10 @@ export default tseslint.config(
     files: ['**/*.spec.ts', 'test/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      // Vitest's asymmetric matchers (expect.any(), expect.stringContaining(),
+      // ...) are typed `any`, so every matcher inside an expected object trips
+      // this rule; the other no-unsafe-* rules stay on for tests.
+      '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'warn',
       '@typescript-eslint/no-unsafe-member-access': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',

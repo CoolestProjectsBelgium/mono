@@ -46,7 +46,7 @@ describe('mail-context', () => {
       Ctor: { prototype: T },
       fields: Record<string, unknown>,
     ): T {
-      return Object.assign(Object.create(Ctor.prototype), {
+      return Object.assign(Object.create(Ctor.prototype) as T, {
         getEvent: vi.fn().mockResolvedValue(event),
         ...fields,
       });

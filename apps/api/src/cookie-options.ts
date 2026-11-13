@@ -17,7 +17,7 @@ export function buildAppCookieOptions(
     request.headers?.['x-forwarded-proto'] === 'https';
 
   // COOKIE_DOMAIN, never NODE_ENV — Domain=.production is rejected by the browser.
-  const rawDomain = config.get('cookies.domain')?.trim();
+  const rawDomain = config.get<string>('cookies.domain')?.trim();
   const isLocalhostDev = Boolean(rawDomain?.endsWith('.localhost'));
   const isNonProduction = config.get('enviroment') !== 'production';
   const corsHasLocalhost = parseCorsOrigins().some((origin) =>
@@ -54,7 +54,7 @@ export function clearLegacyJwtCookies(
   request: CookieRequest,
 ): void {
   const base = buildAppCookieOptions(config, request);
-  const rawDomain = config.get('cookies.domain')?.trim();
+  const rawDomain = config.get<string>('cookies.domain')?.trim();
   if (!rawDomain || rawDomain.endsWith('.localhost')) {
     return;
   }

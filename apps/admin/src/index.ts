@@ -33,6 +33,7 @@ import {
   twoFactorDisableHandler,
 } from './components/two-factor/actions.js';
 import { sequelize } from './database.js';
+import type { AdminUser } from './admin-types.js';
 import {
   exportAllResource,
   userProjectSummaryResource,
@@ -137,7 +138,7 @@ const start = async () => {
 
   const admin = new AdminJS({
     rootPath,
-    branding: async (currentAdmin: any) => {
+    branding: async (currentAdmin?: AdminUser) => {
       const eventId = currentAdmin?.eventId;
       const currentEvent = eventId
         ? await (sequelize.models.Event as typeof EventModel).findByPk(eventId)

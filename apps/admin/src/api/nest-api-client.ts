@@ -52,7 +52,9 @@ export class NestApiClient {
    *
    * IMPORTANT: create one per incoming request.
    */
-  static async fromExpressRequest(req: any): Promise<NestApiClient> {
+  static async fromExpressRequest(req: {
+    rawHeaders?: string[];
+  }): Promise<NestApiClient> {
     const jar = new CookieJar();
 
     const client = new NestApiClient(jar);

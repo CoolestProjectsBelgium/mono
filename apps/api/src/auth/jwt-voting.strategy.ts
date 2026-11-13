@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/sequelize';
 import { Account } from '@coolestprojects/database';
+import type { JuryRequestUser } from './request-user';
 
 @Injectable()
 export class JwtVotingStrategy extends PassportStrategy(
@@ -16,11 +17,11 @@ export class JwtVotingStrategy extends PassportStrategy(
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.getOrThrow('voting.jwt'),
+      secretOrKey: configService.getOrThrow<string>('voting.jwt'),
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: JuryRequestUser) {
     // The JWT itself only proves it was validly signed; it stays valid for its
     // full 12h lifetime even if the jury account is deleted or demoted after
     // issuance. Re-check against the DB on every request so a revoked account

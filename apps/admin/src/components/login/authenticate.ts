@@ -6,10 +6,11 @@ import { verify } from 'otplib';
 export const Authenticate = async (
   email: string,
   password: string,
-  context: any,
+  context?: { req?: unknown },
 ) => {
+  // Login form fields, as parsed by AdminJS's formidable middleware.
   const fields = (
-    context?.req as unknown as Request & { fields?: Record<string, any> }
+    context?.req as { fields?: Record<string, string | undefined> } | undefined
   )?.fields;
   const eventId = fields?.event;
   const totpToken = fields?.totpToken;
@@ -46,7 +47,7 @@ export const Authenticate = async (
   }
 
   return {
-    id: account.id,
+    id: account.id as number,
     email: account.email,
     eventId,
     role: account.account_type,

@@ -1,6 +1,11 @@
 import { createReadStream } from 'node:fs';
 import FormData from 'form-data';
 import { NestApiClient } from '../../api/nest-api-client.js';
+import {
+  payloadString,
+  type AdminPageContext,
+  type AdminPageRequest,
+} from '../../admin-types.js';
 
 interface FormidableFile {
   path: string;
@@ -20,9 +25,9 @@ export interface FloorplansOverview {
 }
 
 export const Handler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<FloorplansOverview> => {
   const eventId = context.currentAdmin?.eventId;
   if (!eventId) {
@@ -34,7 +39,7 @@ export const Handler = async (
 
   if (request.method?.toLowerCase() === 'post') {
     if (payload.action === 'set-active') {
-      const filename = encodeURIComponent(String(payload.filename ?? ''));
+      const filename = encodeURIComponent(payloadString(payload.filename));
       return (
         await api.post<FloorplansOverview>(
           `/admin/floorplans/${filename}/activate`,
@@ -43,7 +48,7 @@ export const Handler = async (
     }
 
     if (payload.action === 'delete') {
-      const filename = encodeURIComponent(String(payload.filename ?? ''));
+      const filename = encodeURIComponent(payloadString(payload.filename));
       return (
         await api.delete<FloorplansOverview>(`/admin/floorplans/${filename}`)
       ).data;

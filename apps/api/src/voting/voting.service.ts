@@ -324,8 +324,8 @@ export class VotingService {
           rank: index + 1,
           adjustedAveragePercent: Number(result.adjusted_average_percent),
           medianPercent: Number(result.median_percent),
-          minPercent: Number((result as any).min_percent ?? 0),
-          maxPercent: Number((result as any).max_percent ?? 100),
+          minPercent: Number(result.min_percent ?? 0),
+          maxPercent: Number(result.max_percent ?? 100),
           outlierCount: Number(result.outlier_count),
         }));
       const winner = candidates.find(
@@ -415,8 +415,8 @@ export class VotingService {
           ) + 1,
         adjustedAveragePercent: Number(result.adjusted_average_percent),
         medianPercent: Number(result.median_percent),
-        minPercent: Number((result as any).min_percent ?? 0),
-        maxPercent: Number((result as any).max_percent ?? 100),
+        minPercent: Number(result.min_percent ?? 0),
+        maxPercent: Number(result.max_percent ?? 100),
         outlierCount: Number(result.outlier_count),
       }));
       return {
@@ -690,7 +690,7 @@ export class VotingService {
       },
     );
 
-    return results.map((vote: any) => {
+    return (results as VotesCalculationDto[]).map((vote) => {
       return {
         projectId: vote.projectId,
         categoryId: vote.categoryId,

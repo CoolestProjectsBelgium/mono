@@ -8,6 +8,7 @@ import {
   QuestionUser as QuestionUserModel,
 } from '@coolestprojects/database';
 import { sequelize } from '../../database.js';
+import type { AdminPageContext, AdminPageRequest } from '../../admin-types.js';
 
 const Project = sequelize.models.Project as typeof ProjectModel;
 const Attachment = sequelize.models.Attachment as typeof AttachmentModel;
@@ -57,9 +58,9 @@ export interface GroupedAttachments {
 }
 
 export const Handler = async (
-  _request: any,
-  _response: any,
-  context: any,
+  _request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<GroupedAttachments> => {
   const eventId = context.currentAdmin?.eventId;
 

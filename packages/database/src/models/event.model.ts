@@ -2,6 +2,9 @@ import { Column, Model, Table, DataType } from 'sequelize-typescript';
 
 @Table
 export class Event extends Model {
+  // Type-only: narrows Model's `id?: number | any` (see BaseEventModel).
+  declare id: number;
+
   @Column({
     type: DataType.STRING(200),
     allowNull: false,

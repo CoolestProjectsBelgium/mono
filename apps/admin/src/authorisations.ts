@@ -3,8 +3,28 @@
 // admin (can access resources of the selected event), can update their own account/password.
 // jury accounts never reach this app — they authenticate separately against the voting SPA.
 
+import type {
+  AdminPageContext,
+  AdminPageRequest,
+  AdminUser,
+} from './admin-types.js';
+
+/** A scalar record/session field value, as compared by the access checks below. */
+type FieldValue = string | number | boolean | null | undefined;
+
+/** The parts of AdminJS's ActionContext the access checks read. */
+interface AccessArgs {
+  currentAdmin?: AdminUser;
+  resource?: { id?: unknown };
+  record?: { params?: Record<string, FieldValue> };
+}
+
 export const filterEventId =
-  (filterName: string) => async (request: any, context: any) => {
+  (filterName: string) =>
+  async <R extends AdminPageRequest>(
+    request: R,
+    context: AdminPageContext,
+  ): Promise<R> => {
     const eventId = context.currentAdmin?.eventId;
 
     return {
@@ -31,10 +51,13 @@ export const filterEventId =
 export const filterUnlessRole =
   (
     filterName: string,
-    getValue: (currentAdmin: any) => any,
+    getValue: (currentAdmin: AdminUser) => unknown,
     bypassRole: string = 'super_admin',
   ) =>
-  async (request: any, context: any) => {
+  async <R extends AdminPageRequest>(
+    request: R,
+    context: AdminPageContext,
+  ): Promise<R> => {
     if (context.currentAdmin?.role === bypassRole) return request;
 
     return {
@@ -43,17 +66,17 @@ export const filterUnlessRole =
         ...request.query,
         filters: {
           ...request.query?.filters,
-          [filterName]: getValue(context.currentAdmin),
+          [filterName]: getValue(context.currentAdmin as AdminUser),
         },
       },
     };
   };
 
-export const addEventFilter = async (
+export const addEventFilter = async <R extends AdminPageRequest>(
   filterName: string = 'id',
-  request: any,
-  context: any,
-) => {
+  request: R,
+  context: AdminPageContext,
+): Promise<R> => {
   const eventId = context.currentAdmin?.eventId;
   if (!eventId) return request;
 
@@ -72,8 +95,8 @@ export const addEventFilter = async (
   };
 };
 
-export const canCreate = ({ currentAdmin, resource }: any) => {
-  if (currentAdmin.role === 'super_admin') return true;
+export const canCreate = ({ currentAdmin, resource }: AccessArgs) => {
+  if (currentAdmin!.role === 'super_admin') return true;
   if (currentAdmin?.role !== 'admin' || !currentAdmin?.eventId) return false;
   if (resource?.id === 'Account') return false;
   return true;
@@ -81,7 +104,7 @@ export const canCreate = ({ currentAdmin, resource }: any) => {
 
 export const canAccessResourceFieldFilter =
   (fieldName: string) =>
-  ({ currentAdmin, record }: any) => {
+  ({ currentAdmin, record }: AccessArgs) => {
     const adminValue = currentAdmin?.eventId;
     return record?.params?.[fieldName] === adminValue;
   };
@@ -90,16 +113,17 @@ export const canAccessResourceFieldFilter =
 // an arbitrary field on currentAdmin (e.g. a user's own Account id), instead of always eventId.
 export const canAccessResourceFieldMatch =
   (recordField: string, adminField: string) =>
-  ({ currentAdmin, record }: any) => {
+  ({ currentAdmin, record }: AccessArgs) => {
     const recordValue = record?.params?.[recordField];
     return (
       recordValue !== undefined &&
       recordValue !== null &&
-      String(recordValue) === String(currentAdmin?.[adminField])
+      String(recordValue) ===
+        String((currentAdmin as Record<string, FieldValue>)?.[adminField])
     );
   };
 
-export type AccessHandler = (args: any) => boolean;
+export type AccessHandler = (args: AccessArgs) => boolean;
 
 export const andAccess =
   (...filters: AccessHandler[]): AccessHandler =>
@@ -113,5 +137,5 @@ export const orAccess =
 
 export const canAccessResourceRoleFilter =
   (roleName: string) =>
-  ({ currentAdmin }: any) =>
-    currentAdmin.role === roleName;
+  ({ currentAdmin }: AccessArgs) =>
+    currentAdmin!.role === roleName;

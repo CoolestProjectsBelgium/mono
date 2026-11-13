@@ -101,7 +101,12 @@ describe('VotingService', () => {
     });
 
     it('publishes a timer event when voting starts', async () => {
-      const event: any = {
+      const event: {
+        votingOpen: boolean;
+        save: ReturnType<typeof vi.fn>;
+        votingStartDate?: Date;
+        votingEndDate?: Date;
+      } = {
         votingOpen: false,
         save: vi.fn(),
       };
@@ -114,13 +119,13 @@ describe('VotingService', () => {
       expect(event.save).toHaveBeenCalled();
       expect(events).toHaveLength(1);
       expect(events[0]).toMatchObject({ type: 'timer' });
-      expect(event.votingEndDate.getTime()).toBeGreaterThan(
-        event.votingStartDate.getTime(),
+      expect(event.votingEndDate!.getTime()).toBeGreaterThan(
+        event.votingStartDate!.getTime(),
       );
     });
 
     it('allows stopping an already closed voting window', async () => {
-      const event: any = {
+      const event = {
         votingOpen: false,
         votingStartDate: new Date('2026-09-01T10:00:00.000Z'),
         votingEndDate: new Date('2026-09-01T11:00:00.000Z'),

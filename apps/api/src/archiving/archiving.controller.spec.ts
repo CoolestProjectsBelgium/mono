@@ -5,7 +5,9 @@ import { EventguideService } from '../eventguide/eventguide.service';
 
 async function readStreamableFile(file: StreamableFile): Promise<Buffer> {
   const chunks: Buffer[] = [];
-  for await (const chunk of file.getStream()) {
+  for await (const chunk of file.getStream() as AsyncIterable<
+    Buffer | string
+  >) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
   return Buffer.concat(chunks);

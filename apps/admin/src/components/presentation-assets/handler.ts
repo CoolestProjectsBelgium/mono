@@ -1,6 +1,11 @@
 import { createReadStream } from 'node:fs';
 import FormData from 'form-data';
 import { NestApiClient } from '../../api/nest-api-client.js';
+import {
+  payloadString,
+  type AdminPageContext,
+  type AdminPageRequest,
+} from '../../admin-types.js';
 
 interface FormidableFile {
   path: string;
@@ -18,9 +23,9 @@ export interface PresentationAssetsOverview {
 }
 
 export const Handler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<PresentationAssetsOverview> => {
   const eventId = context.currentAdmin?.eventId;
   if (!eventId) {
@@ -33,7 +38,7 @@ export const Handler = async (
 
   if (method === 'post') {
     if (payload.action === 'delete') {
-      const filename = encodeURIComponent(String(payload.filename ?? ''));
+      const filename = encodeURIComponent(payloadString(payload.filename));
       return (
         await api.delete<PresentationAssetsOverview>(
           `/admin/presentation-assets/${filename}`,

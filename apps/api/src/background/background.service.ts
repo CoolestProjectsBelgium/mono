@@ -49,8 +49,8 @@ export class BackgroundService implements OnModuleInit {
   private readonly logger = new Logger(BackgroundService.name);
 
   onModuleInit() {
-    const cronBounce = this.configService.get('cron.bounce');
-    const cronMailing = this.configService.get('cron.mail');
+    const cronBounce = this.configService.get<string>('cron.bounce');
+    const cronMailing = this.configService.get<string>('cron.mail');
 
     if (cronMailing) {
       const mailingJob = new CronJob(cronMailing, () => {
@@ -349,7 +349,7 @@ export class BackgroundService implements OnModuleInit {
       let buffer = '';
 
       msg.on('body', (stream) => {
-        stream.on('data', (chunk) => {
+        stream.on('data', (chunk: Buffer) => {
           buffer += chunk.toString();
         });
         stream.once('end', () => resolve(buffer));

@@ -11,14 +11,21 @@ import {
   Text,
 } from '@adminjs/design-system';
 
+/** One entry of GET /api/events, shaped as a Select option. */
+type EventOption = {
+  value: number | string;
+  label: string;
+  isCurrent?: boolean;
+};
+
 type LoginProps = {
   action?: string;
   errorMessage?: string | null;
 };
 
 const Login: React.FC<LoginProps> = ({ errorMessage }) => {
-  const [events, setEvents] = useState<any[]>([]);
-  const [selectedEvent, setEvent] = useState<any>(null);
+  const [events, setEvents] = useState<EventOption[]>([]);
+  const [selectedEvent, setEvent] = useState<EventOption | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [step, setStep] = useState<'email' | 'credentials'>('email');
   const [email, setEmail] = useState('');
@@ -27,10 +34,10 @@ const Login: React.FC<LoginProps> = ({ errorMessage }) => {
     const fetchEvents = async () => {
       try {
         const response = await fetch('/api/events');
-        const data = await response.json();
+        const data = (await response.json()) as EventOption[];
         setEvents(data);
         // Pre-select current event if available
-        const currentEvent = data.find((e: any) => e.isCurrent);
+        const currentEvent = data.find((e) => e.isCurrent);
         setEvent(currentEvent || data[0]);
       } catch (error) {
         console.error('Failed to fetch events:', error);

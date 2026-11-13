@@ -1,6 +1,11 @@
 import { PresentationSlide as PresentationSlideModel } from '@coolestprojects/database';
 import { sequelize } from '../../database.js';
 import { NestApiClient } from '../../api/nest-api-client.js';
+import {
+  payloadString,
+  type AdminPageContext,
+  type AdminPageRequest,
+} from '../../admin-types.js';
 
 const PresentationSlide = sequelize.models
   .PresentationSlide as typeof PresentationSlideModel;
@@ -92,9 +97,9 @@ async function loadDeck(
 }
 
 export const Handler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<PresentationPageData> => {
   const eventId = context.currentAdmin?.eventId;
   if (!eventId) {
@@ -106,7 +111,7 @@ export const Handler = async (
 
   if (request.method?.toLowerCase() === 'post') {
     const payload = request.payload ?? {};
-    const action = String(payload.action ?? '');
+    const action = payloadString(payload.action);
 
     if (action === 'load-projects') {
       const response = await api.get<ProjectOption[]>(
@@ -121,7 +126,7 @@ export const Handler = async (
       if (!Number.isInteger(slideId)) {
         throw new Error('A slide must be selected');
       }
-      const body = String(payload.body ?? '');
+      const body = payloadString(payload.body);
       const projectId = payload.projectId
         ? Number(payload.projectId)
         : undefined;

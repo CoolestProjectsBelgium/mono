@@ -7,6 +7,7 @@ import {
 } from '@nestjs/swagger';
 import { Request, Body } from '@nestjs/common';
 import { JwtUserAuthGuard } from '../auth/jwt-user-auth.guard';
+import type { ParticipantRequest } from '../auth/request-user';
 import { RegistrationService } from '../registration/registration.service';
 import { OtherProjectDto } from '../dto/other-project.dto';
 
@@ -21,7 +22,7 @@ export class ParticipantController {
   @ApiSecurity('csrf')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async createParticipant(
-    @Request() req: any,
+    @Request() req: ParticipantRequest,
     @Body() participantDto: OtherProjectDto,
   ) {
     return this.registrationService.assignParticipant(
@@ -34,7 +35,7 @@ export class ParticipantController {
   @ApiSecurity('csrf')
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   async deleteParticipant(
-    @Request() req: any,
+    @Request() req: ParticipantRequest,
     @Body() participantDto: OtherProjectDto,
   ) {
     return this.registrationService.unassignParticipant(

@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { randomUUID } from 'crypto';
@@ -12,14 +13,14 @@ import { ConfigService } from '@nestjs/config';
 import { createValidationPipe } from './validation';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'fatal', 'error', 'warn', 'debug', 'verbose'],
   });
   const config = app.get(ConfigService);
 
   app.useGlobalPipes(createValidationPipe());
 
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  app.set('trust proxy', 1);
   configureSecurity(app);
 
   app.use(
@@ -74,7 +75,7 @@ async function bootstrap() {
         return String(user.id);
       }
 
-      return req.cookies.anonId;
+      return req.cookies.anonId as string;
     },
 
     getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'],

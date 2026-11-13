@@ -29,10 +29,11 @@ import {
   Affiliation,
 } from '@coolestprojects/database';
 
+import type { Dialect } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
 export const sequelize = new Sequelize({
-  dialect: process.env.DB_DIALECT as string,
+  dialect: process.env.DB_DIALECT as Dialect,
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
   username: process.env.DB_USER,
@@ -73,6 +74,6 @@ export const sequelize = new Sequelize({
   )
     ? console.log
     : false,
-} as any);
+});
 
 await sequelize.authenticate();

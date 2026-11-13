@@ -22,7 +22,9 @@ export class InfoInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { info?: InfoDto }>();
 
     const activeEvent = await this.eventModel.findOne({
       attributes: [
@@ -65,7 +67,7 @@ export class InfoInterceptor implements NestInterceptor {
         Date.now() > new Date(activeEvent.projectClosedDate).getTime();
     }
 
-    (request as any).info = info;
+    request.info = info;
 
     return next.handle();
   }

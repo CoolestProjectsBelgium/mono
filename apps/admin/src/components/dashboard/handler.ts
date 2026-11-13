@@ -8,6 +8,7 @@ import type {
   User as UserModel,
   UserProject as UserProjectModel,
 } from '@coolestprojects/database';
+import type { AdminPageContext, AdminPageRequest } from '../../admin-types.js';
 
 const Attachment = sequelize.models.Attachment as typeof AttachmentModel;
 const Event = sequelize.models.Event as typeof EventModel;
@@ -102,16 +103,22 @@ async function getTshirts(
       },
     );
     // Het resultaat van een raw query met type: QueryTypes.SELECT is al een array van platte objecten
-    tshirtsData = results.map((row: any) => ({
+    tshirtsData = (
+      results as Array<{
+        tshirtName: string;
+        total: number | string;
+        description: string | null;
+      }>
+    ).map((row) => ({
       id: row.tshirtName,
       total: Number(row.total),
       short: row.tshirtName,
       description: row.description || '',
     }));
-  } catch (err: any) {
+  } catch (err) {
     console.error(
       'SQL Fout bij het ophalen van tshirt statistieken:',
-      err.message,
+      err instanceof Error ? err.message : err,
     );
   }
   return tshirtsData;
@@ -139,16 +146,18 @@ async function getRegions(eventId: number): Promise<DashboardTableItem[]> {
         type: QueryTypes.SELECT,
       },
     );
-    regionsData = results.map((row: any) => ({
+    regionsData = (
+      results as Array<{ region: string; total: number | string }>
+    ).map((row) => ({
       id: row.region,
       total: Number(row.total),
       short: row.region,
       description: '',
     }));
-  } catch (err: any) {
+  } catch (err) {
     console.error(
       'SQL Fout bij het ophalen van regio statistieken:',
-      err.message,
+      err instanceof Error ? err.message : err,
     );
   }
   return regionsData;
@@ -188,13 +197,16 @@ async function getAgeGroups(eventId: number): Promise<DashboardTableItem[]> {
         type: QueryTypes.SELECT,
       },
     );
-    for (const row of results as any[]) {
+    for (const row of results as Array<{
+      ageGroup: string;
+      total: number | string;
+    }>) {
       totals.set(row.ageGroup, Number(row.total));
     }
-  } catch (err: any) {
+  } catch (err) {
     console.error(
       'SQL Fout bij het ophalen van leeftijd statistieken:',
-      err.message,
+      err instanceof Error ? err.message : err,
     );
   }
   return AGE_GROUP_ORDER.map((group) => ({
@@ -240,9 +252,14 @@ async function getQuestions(
       ORDER BY q.id;
     `;
     // Voer de query uit met bindings voor veiligheid tegen SQL-injectie
-    const results: any[] = await sequelize.query(sql, {
+    const results = await sequelize.query<{
+      question_id: number;
+      total_answers: number | string;
+      name: string | null;
+      description: string | null;
+    }>(sql, {
       replacements: { eventId, language },
-      type: (sequelize as any).QueryTypes.SELECT, // <--- Dit omzeilt de import-eis
+      type: QueryTypes.SELECT,
     });
     //console.log('Raw database result:', results);
     // Map de ruwe data naar jouw DashboardTableItem formaat
@@ -252,10 +269,10 @@ async function getQuestions(
       short: item.name || '',
       description: item.description || '', // Als je de beschrijving ook nodig hebt, voeg deze toe aan de SELECT in SQL
     }));
-  } catch (err: any) {
+  } catch (err) {
     console.error(
       'Fout bij het ophalen van question statistieken:',
-      err.message,
+      err instanceof Error ? err.message : err,
     );
   }
 
@@ -263,9 +280,9 @@ async function getQuestions(
 }
 
 export const Handler = async (
-  _request: any,
-  _response: any,
-  context: any,
+  _request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<DashboardResponse> => {
   const eventId = context.currentAdmin?.eventId;
 

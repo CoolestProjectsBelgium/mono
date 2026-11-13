@@ -9,6 +9,7 @@ import { tap } from 'rxjs/operators';
 import { TokensService } from './tokens/tokens.service';
 import { buildAppCookieOptions, clearLegacyJwtCookies } from './cookie-options';
 import { ConfigService } from '@nestjs/config';
+import type { Request, Response } from 'express';
 
 export { buildAppCookieOptions } from './cookie-options';
 
@@ -39,8 +40,8 @@ export class UserCookieInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
-    const request = ctx.getRequest();
-    const response = ctx.getResponse();
+    const request = ctx.getRequest<Request>();
+    const response = ctx.getResponse<Response>();
 
     return next.handle().pipe(
       tap({

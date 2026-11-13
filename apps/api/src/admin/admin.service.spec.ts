@@ -224,7 +224,7 @@ describe('AdminService floorplans', () => {
       fields: Record<string, unknown>,
       resolvedEvent: unknown = event,
     ): T {
-      return Object.assign(Object.create(Ctor.prototype), {
+      return Object.assign(Object.create(Ctor.prototype) as T, {
         getEvent: vi.fn().mockResolvedValue(resolvedEvent),
         ...fields,
       });

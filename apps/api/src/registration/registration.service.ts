@@ -32,6 +32,21 @@ import { normalizeGsm } from '../userinfo/normalize-gsm';
 // reaches validate(), so this matches directly against it.
 const BELGIAN_GSM_REGEX = /^((\+|00)32\s?|0)([1-9][0-9]\d{6})\d?$/;
 
+/** The fields of the intermediate registration object that `validate()` checks. */
+interface RegistrationCandidate {
+  questions: Array<{ questionId: string | number }>;
+  gsm: string;
+  gsm_guardian?: string | null;
+  email_guardian?: string | null;
+  postalcode: number;
+  birthmonth: Date;
+  project_code?: string | null;
+  project_name?: string | null;
+  project_descr?: string | null;
+  project_type?: string | null;
+  project_lang?: string | null;
+}
+
 @Injectable()
 export class RegistrationService {
   private readonly logger = new Logger(RegistrationService.name);
@@ -593,7 +608,7 @@ export class RegistrationService {
     await voucher.update({ userId });
   }
 
-  private async validate(event: Event, registration: any) {
+  private async validate(event: Event, registration: RegistrationCandidate) {
     // check if all mandatory questions are answered
     const mandatoryQuestions = await this.questionModel.findAll({
       attributes: ['id'],

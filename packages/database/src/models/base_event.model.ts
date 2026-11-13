@@ -14,6 +14,10 @@ export class BaseEventModel<
   TModelAttributes extends {} = any,
   TCreationAttributes extends {} = TModelAttributes,
 > extends Model<TModelAttributes, TCreationAttributes> {
+  // Type-only: sequelize-typescript's Model types the default auto-increment
+  // primary key as `number | any`, which makes every `row.id` an untyped `any`.
+  declare id: number;
+
   @ForeignKey(() => Event)
   @Column({ type: DataType.INTEGER, allowNull: false })
   declare eventId: number;

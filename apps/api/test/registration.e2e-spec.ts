@@ -105,12 +105,13 @@ describe('RegistrationController (e2e)', () => {
 
     // get the registration token from the acitivation mail
     const jwtRegex = /eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+/g;
-    const matches = sendMailMock.mock.calls[0][0].text.match(jwtRegex);
+    const activationMail = sendMailMock.mock.calls[0][0] as { text: string };
+    const matches = activationMail.text.match(jwtRegex);
     expect(matches).not.toBeNull();
 
     response = await request(app.getHttpServer())
       .get('/projectinfo')
-      .set('Authorization', matches[0])
+      .set('Authorization', matches![0])
       .set('Accept-Language', 'en-US'); //TODO test all
 
     expect(response.status).toBe(200);

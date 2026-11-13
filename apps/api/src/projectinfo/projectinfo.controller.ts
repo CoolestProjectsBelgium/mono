@@ -19,6 +19,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtUserAuthGuard } from '../auth/jwt-user-auth.guard';
+import {
+  requireAdminEventId,
+  type AdminOrParticipantRequest,
+  type AdminRequest,
+  type ParticipantRequest,
+} from '../auth/request-user';
 import { MandatoryAdminCookieGuard } from '../auth/mandatory-admin-cookie.guard';
 import { MandatoryAdminOrJwtUserAuthGuard } from '../auth/mandatory-admin-or-jwt-user-auth.guard';
 import { FileUploadService } from '../file-upload/file-upload.service';
@@ -44,7 +50,7 @@ export class ProjectinfoController {
   @ApiCookieAuth('jwt-user-cookie')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async getProject(@Request() req: any): Promise<OwnProjectDto> {
+  async getProject(@Request() req: ParticipantRequest): Promise<OwnProjectDto> {
     return this.projectService.getProjectInfo(req.user.id);
   }
 
@@ -55,7 +61,7 @@ export class ProjectinfoController {
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async createProject(
-    @Request() req: any,
+    @Request() req: ParticipantRequest,
     @Body() createProjectDto: OwnProjectDto,
   ): Promise<OwnProjectDto> {
     return await this.projectService.createProject(
@@ -71,7 +77,7 @@ export class ProjectinfoController {
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async updateProject(
-    @Request() req: any,
+    @Request() req: ParticipantRequest,
     @Body() updateProjectDto: OwnProjectDto,
   ): Promise<OwnProjectDto> {
     return await this.projectService.updateProject(
@@ -86,7 +92,7 @@ export class ProjectinfoController {
   @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async deleteProject(@Request() req: any): Promise<void> {
+  async deleteProject(@Request() req: ParticipantRequest): Promise<void> {
     return await this.projectService.deleteProject(req.user.id);
   }
 
@@ -95,7 +101,7 @@ export class ProjectinfoController {
   @ApiCookieAuth('jwt-user-cookie')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async getAttachments(@Request() req: any) {
+  async getAttachments(@Request() req: ParticipantRequest) {
     return await this.projectService.getAttachments(req.user.id);
   }
 
@@ -106,13 +112,13 @@ export class ProjectinfoController {
   @UseGuards(MandatoryAdminOrJwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async getAttachment(
-    @Request() req: any,
+    @Request() req: AdminOrParticipantRequest,
     @Param('attachmentId') attachmentId: number,
   ) {
     let result: StreamableFile;
     if (req.user.isAdmin) {
       result = await this.projectService.getThumbnailAdmin(
-        req.user.adminUser.eventId,
+        requireAdminEventId({ user: req.user }),
         attachmentId,
       );
     } else {
@@ -130,11 +136,11 @@ export class ProjectinfoController {
   @UseGuards(MandatoryAdminCookieGuard)
   @UseInterceptors(UserCookieInterceptor)
   async getAttachmentOriginal(
-    @Request() req: any,
+    @Request() req: AdminRequest,
     @Param('attachmentId') attachmentId: number,
   ) {
     return await this.projectService.getAttachment(
-      req.user.adminUser.eventId,
+      requireAdminEventId(req),
       attachmentId,
     );
   }
@@ -146,7 +152,7 @@ export class ProjectinfoController {
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async deleteAttachment(
-    @Request() req: any,
+    @Request() req: ParticipantRequest,
     @Param('attachmentId') attachmentId: number,
   ) {
     return await this.fileUploadService.deleteFile(req.user.id, attachmentId);
@@ -160,7 +166,7 @@ export class ProjectinfoController {
   async uploadFile(
     @UploadedFile()
     file: MulterFile,
-    @Request() req: any,
+    @Request() req: ParticipantRequest,
   ) {
     await this.fileUploadService.saveFile(req.user.id, file);
   }
@@ -170,7 +176,9 @@ export class ProjectinfoController {
   @ApiSecurity('csrf')
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
-  async createVoucher(@Request() req: any): Promise<VoucherCreatedDto> {
+  async createVoucher(
+    @Request() req: ParticipantRequest,
+  ): Promise<VoucherCreatedDto> {
     return await this.projectService.generateVoucher(req.user.id);
   }
 
@@ -180,7 +188,7 @@ export class ProjectinfoController {
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async deleteVoucher(
-    @Request() req: any,
+    @Request() req: ParticipantRequest,
     @Param('voucherGuid') voucherGuid: string,
   ) {
     return await this.projectService.deleteUnusedVoucher(
@@ -195,7 +203,7 @@ export class ProjectinfoController {
   @UseGuards(JwtUserAuthGuard)
   @UseInterceptors(UserCookieInterceptor)
   async changeProjectOwner(
-    @Request() req: any,
+    @Request() req: ParticipantRequest,
     @Param('newOwnerId') newOwnerId: number,
   ) {
     return await this.projectService.changeProjectOwner(

@@ -15,7 +15,8 @@ import { RegistrationService } from '../registration/registration.service';
  * header for this guard, so there's no fallback to preserve.
  */
 function fromSignedCookie(req: Request): string | null {
-  return (req.signedCookies?.jwt as string | undefined) ?? null;
+  const cookies = req.signedCookies as Record<string, unknown> | undefined;
+  return typeof cookies?.jwt === 'string' ? cookies.jwt : null;
 }
 
 @Injectable()
@@ -36,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt-user') {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: { registrationID?: number; userID?: number }) {
     // we need to activiate the registrationID
     let user: User | null = null;
     if (payload.registrationID) {

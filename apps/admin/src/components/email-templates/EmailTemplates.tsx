@@ -374,7 +374,7 @@ const EmailTemplates: React.FC = () => {
 
     if (previewContextJson.trim()) {
       try {
-        const parsed = JSON.parse(previewContextJson);
+        const parsed: unknown = JSON.parse(previewContextJson);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
           throw new Error('Context must be a JSON object');
         }

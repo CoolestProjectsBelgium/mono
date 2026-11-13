@@ -24,7 +24,7 @@ const launch = vi.fn().mockResolvedValue({ newPage, close: closeBrowser });
 
 vi.mock('puppeteer', () => ({
   __esModule: true,
-  default: { launch: (...args: unknown[]) => launch(...args) },
+  default: { launch: (...args: unknown[]): unknown => launch(...args) },
 }));
 
 vi.mock('node:fs/promises', () => ({

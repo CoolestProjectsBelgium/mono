@@ -1,4 +1,5 @@
 import { NestApiClient } from '../../api/nest-api-client.js';
+import type { AdminPageContext, AdminPageRequest } from '../../admin-types.js';
 
 interface EventguideProjectsResponse {
   projects: { id: number }[];
@@ -10,9 +11,9 @@ export interface ArchivingPageData {
 }
 
 export const Handler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<ArchivingPageData> => {
   const eventId = context.currentAdmin?.eventId;
   if (!eventId) {

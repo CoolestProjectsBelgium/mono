@@ -23,7 +23,7 @@ const launch = vi.fn().mockResolvedValue({ newPage, close: closeBrowser });
 
 vi.mock('puppeteer', () => ({
   __esModule: true,
-  default: { launch: (...args: unknown[]) => launch(...args) },
+  default: { launch: (...args: unknown[]): unknown => launch(...args) },
 }));
 
 vi.mock('node:fs/promises', () => ({
@@ -468,14 +468,15 @@ describe('PresentationService', () => {
       );
 
       // A cached render for one resolution must not be treated as a hit for another.
-      presentationRenderFindOne.mockImplementation(({ where }) =>
-        where.resolution === '1280x720'
-          ? Promise.resolve({
-              contentHash: 'irrelevant',
-              generatedAt: new Date(),
-              imagePath: 'slide-12-1280x720.png',
-            })
-          : Promise.resolve(null),
+      presentationRenderFindOne.mockImplementation(
+        ({ where }: { where: { resolution: string } }) =>
+          where.resolution === '1280x720'
+            ? Promise.resolve({
+                contentHash: 'irrelevant',
+                generatedAt: new Date(),
+                imagePath: 'slide-12-1280x720.png',
+              })
+            : Promise.resolve(null),
       );
       launch.mockClear();
 

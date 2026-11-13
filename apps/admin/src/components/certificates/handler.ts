@@ -9,6 +9,11 @@ import { createReadStream } from 'node:fs';
 import FormData from 'form-data';
 import { sequelize } from '../../database.js';
 import { NestApiClient } from '../../api/nest-api-client.js';
+import {
+  payloadString,
+  type AdminPageContext,
+  type AdminPageRequest,
+} from '../../admin-types.js';
 
 const Certificate = sequelize.models.Certificate as typeof CertificateModel;
 const CertificateTemplate = sequelize.models
@@ -95,7 +100,7 @@ async function loadProjectRecords(
       const certificate = certificateByProject.get(award.projectId);
       const awardText = award.text?.toString() ?? null;
       return {
-        certificateId: (certificate?.id as number | undefined) ?? null,
+        certificateId: certificate?.id ?? null,
         projectId: award.projectId,
         projectName: award.project?.name ?? `Project #${award.projectId}`,
         text: certificate?.text ?? awardText ?? '',
@@ -113,16 +118,16 @@ async function loadTemplates(
 ): Promise<CertificateTemplateRecord[]> {
   const templates = await CertificateTemplate.findAll({ where: { eventId } });
   return templates.map((template) => ({
-    id: template.id as number,
+    id: template.id,
     language: template.language,
     bodyHtml: template.bodyHtml,
   }));
 }
 
 export const Handler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<unknown> => {
   const eventId = context.currentAdmin?.eventId;
   assertEventId(eventId);
@@ -131,7 +136,7 @@ export const Handler = async (
   const method = request.method?.toLowerCase();
 
   if (method === 'post') {
-    const action = String(payload.action ?? '');
+    const action = payloadString(payload.action);
 
     if (action === 'sync-from-awards') {
       await syncCertificatesFromAwards(eventId);
@@ -169,8 +174,8 @@ export const Handler = async (
         await api.post('/admin/certificates/preview', {
           projectId: Number(payload.projectId),
           userId: Number(payload.userId),
-          bodyHtml: String(payload.bodyHtml ?? ''),
-          text: String(payload.text ?? ''),
+          bodyHtml: payloadString(payload.bodyHtml),
+          text: payloadString(payload.text),
         })
       ).data;
     }
@@ -182,7 +187,7 @@ export const Handler = async (
 
     if (action === 'delete-asset') {
       const api = await NestApiClient.fromExpressRequest(request);
-      const filename = encodeURIComponent(String(payload.filename ?? ''));
+      const filename = encodeURIComponent(payloadString(payload.filename));
       return (await api.delete(`/admin/certificates/assets/${filename}`)).data;
     }
 

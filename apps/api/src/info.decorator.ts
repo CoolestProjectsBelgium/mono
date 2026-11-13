@@ -3,7 +3,7 @@ import { InfoDto } from './dto/info.dto';
 
 export const Info = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): InfoDto => {
-    const request = ctx.switchToHttp().getRequest();
+    const request = ctx.switchToHttp().getRequest<{ info: InfoDto }>();
     return request.info;
   },
 );

@@ -15,6 +15,11 @@ import {
   type EmailTemplateRecord,
 } from './handler-helpers.js';
 import { renderPreview, type PreviewResult } from './render-preview.js';
+import {
+  payloadString,
+  type AdminPageContext,
+  type AdminPageRequest,
+} from '../../admin-types.js';
 
 const EmailTemplate = sequelize.models
   .EmailTemplate as typeof EmailTemplateModel;
@@ -67,7 +72,7 @@ async function loadRecord(
 
 function mapRecordFromRow(row: EmailTemplateModel): EmailTemplateRecord {
   return mapRecord({
-    id: row.id as number,
+    id: row.id,
     template: row.template,
     language: row.language,
     subject: row.subject,
@@ -122,7 +127,7 @@ async function listContextRecords(
  * real JWT. Keeps context shape defined in exactly one place.
  */
 async function fetchMailContext(
-  request: any,
+  request: AdminPageRequest,
   recordType?: ContextRecordType,
   recordId?: number,
 ): Promise<Record<string, unknown>> {
@@ -138,9 +143,9 @@ async function fetchMailContext(
 }
 
 export const Handler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<EmailTemplatesPageData | ContextRecordsPageData> => {
   const eventId = context.currentAdmin?.eventId;
   assertEventId(eventId);
@@ -149,10 +154,10 @@ export const Handler = async (
   const templates = await listTemplates(eventId);
 
   if (request.method?.toLowerCase() === 'post') {
-    const action = String(payload.action ?? '');
+    const action = payloadString(payload.action);
 
     if (action === 'context-options') {
-      const template = String(payload.template ?? '');
+      const template = payloadString(payload.template);
       const contextRecordType = getContextRecordType(template);
       return {
         templates,
@@ -164,8 +169,8 @@ export const Handler = async (
     }
 
     if (action === 'load-context') {
-      const contextRecordType = String(
-        payload.recordType ?? '',
+      const contextRecordType = payloadString(
+        payload.recordType,
       ) as ContextRecordType;
       const recordId = Number(payload.recordId);
       if (
@@ -186,8 +191,8 @@ export const Handler = async (
     }
 
     if (action === 'load') {
-      const template = String(payload.template ?? '');
-      const language = String(payload.language ?? '');
+      const template = payloadString(payload.template);
+      const language = payloadString(payload.language);
       const record = await loadRecord(eventId, template, language);
 
       if (!record) {
@@ -203,9 +208,11 @@ export const Handler = async (
       const savePayload = normalizeSavePayload(payload);
       let context: Record<string, unknown>;
 
-      if (String(payload.contextJson ?? '').trim()) {
+      if (payloadString(payload.contextJson).trim()) {
         try {
-          const parsed = JSON.parse(String(payload.contextJson));
+          const parsed: unknown = JSON.parse(
+            payloadString(payload.contextJson),
+          );
           if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
             throw new Error('Context must be a JSON object');
           }

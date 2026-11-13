@@ -8,6 +8,11 @@ import {
 import { Op } from 'sequelize';
 import { sequelize } from '../../database.js';
 import { NestApiClient } from '../../api/nest-api-client.js';
+import {
+  payloadString,
+  type AdminPageContext,
+  type AdminPageRequest,
+} from '../../admin-types.js';
 
 const Project = sequelize.models.Project as typeof ProjectModel;
 const Vote = sequelize.models.Vote as typeof VoteModel;
@@ -84,9 +89,9 @@ export interface VotingOverview {
 }
 
 export const Handler = async (
-  request: any,
-  _response: any,
-  context: any,
+  request: AdminPageRequest,
+  _response: unknown,
+  context: AdminPageContext,
 ): Promise<VotingOverview | { success: true }> => {
   const eventId = context.currentAdmin?.eventId;
   if (!eventId) {
@@ -97,7 +102,7 @@ export const Handler = async (
 
   if (request.method?.toLowerCase() === 'post') {
     const payload = request.payload ?? {};
-    const action = String(payload.action ?? '');
+    const action = payloadString(payload.action);
 
     if (action === 'start') {
       await api.post('/admin/voting/start', {
@@ -110,7 +115,7 @@ export const Handler = async (
       await api.post('/admin/voting/stop');
     } else if (action === 'message') {
       await api.post('/admin/voting/message', {
-        message: String(payload.message ?? ''),
+        message: payloadString(payload.message),
       });
     } else if (action === 'generate-awards') {
       await api.post('/admin/voting/awards/generate');

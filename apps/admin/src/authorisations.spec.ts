@@ -10,6 +10,7 @@ import {
   filterUnlessRole,
   orAccess,
 } from './authorisations.js';
+import type { AdminPageRequest } from './admin-types.js';
 
 const admin = { role: 'admin', eventId: 7, id: 42 };
 const superAdmin = { role: 'super_admin', eventId: 7, id: 1 };
@@ -31,7 +32,10 @@ test('filterEventId forces the admin event onto query filters and payload', asyn
 });
 
 test('filterEventId adds the filter when the request has none and leaves a missing payload alone', async () => {
-  const result = await filterEventId('eventId')({}, { currentAdmin: admin });
+  const result = await filterEventId('eventId')<AdminPageRequest>(
+    {},
+    { currentAdmin: admin },
+  );
   assert.deepEqual(result.query, { filters: { eventId: 7 } });
   assert.equal(result.payload, undefined);
 });
@@ -53,10 +57,10 @@ test('filterUnlessRole honours a custom bypass role', async () => {
     (currentAdmin) => currentAdmin.id,
     'admin',
   );
-  const request = { query: {} };
+  const request: AdminPageRequest = { query: {} };
   assert.equal(await hook(request, { currentAdmin: admin }), request);
   assert.deepEqual(
-    (await hook(request, { currentAdmin: superAdmin })).query.filters,
+    (await hook(request, { currentAdmin: superAdmin })).query?.filters,
     { id: 1 },
   );
 });
