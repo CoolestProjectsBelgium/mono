@@ -28,6 +28,11 @@ export default defineNuxtConfig({
   },
   i18n: {
     restructureDir: false,
+    bundle: {
+      // No `v-t` directives are used; the module recommends disabling this
+      // (deprecated in v10) and warns on every start until it is set explicitly.
+      optimizeTranslationDirective: false,
+    },
     locales: [
       { code: 'nl', language: 'nl-BE', name: 'Nederlands' },
       { code: 'fr', language: 'fr-BE', name: 'Français' },

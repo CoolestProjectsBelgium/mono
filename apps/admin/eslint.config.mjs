@@ -58,4 +58,12 @@ export default tseslint.config(
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
+  {
+    // node:test's test()/describe() return promises that are not meant to be
+    // awaited at module top level; the runner tracks them itself.
+    files: ['**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off',
+    },
+  },
 );

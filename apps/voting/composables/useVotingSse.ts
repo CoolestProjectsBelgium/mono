@@ -3,8 +3,6 @@ import { useVotingSessionStore } from '~/stores/votingSession'
 import { resolveApiBase } from '~/utils/api-base'
 import { connectVotingSse, disconnectVotingSse } from '~/utils/voting-sse-client'
 
-export { applyVotingSseEvent, connectVotingSse, disconnectVotingSse } from '~/utils/voting-sse-client'
-
 export function useVotingSse() {
   const authStore = useAuthStore()
   const config = useRuntimeConfig()

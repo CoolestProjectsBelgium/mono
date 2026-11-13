@@ -166,4 +166,4 @@ async function bootstrap() {
 
   await app.listen(env.API_PORT || 3001);
 }
-bootstrap();
+void bootstrap();

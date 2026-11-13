@@ -153,7 +153,7 @@ const EmailTemplates: React.FC = () => {
   }, [loadContextOptions]);
 
   useEffect(() => {
-    loadInitial();
+    void loadInitial();
   }, [loadInitial]);
 
   const loadTinyMce = useCallback(async () => {
@@ -227,7 +227,7 @@ const EmailTemplates: React.FC = () => {
       }
     };
 
-    initEditor();
+    void initEditor();
 
     return () => {
       cancelled = true;

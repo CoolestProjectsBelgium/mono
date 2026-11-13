@@ -1,4 +1,4 @@
-import { buildSequelizeSyncOptions } from './database-sync.js';
+import { buildSequelizeSyncOptions, envFlag } from './database-sync.js';
 
 export default () => ({
   enviroment: process.env.NODE_ENV,
@@ -10,6 +10,9 @@ export default () => ({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     ...buildSequelizeSyncOptions(),
+    // SQL statement logging is opt-in (DB_LOGGING=true): the schema sync alone
+    // prints hundreds of statements per boot and buries real warnings.
+    logging: envFlag(process.env.DB_LOGGING),
   },
   mailing: {
     host: process.env.SMTP_HOST,

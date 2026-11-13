@@ -98,6 +98,7 @@ import configuration from './config/configuration.js';
           database: configService.get('database.name'),
           synchronize: configService.get('database.synchronize'),
           sync: configService.get('database.sync'),
+          logging: configService.get('database.logging') ? console.log : false,
           autoLoadModels: true,
           models: [
             Event,

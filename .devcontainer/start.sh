@@ -25,8 +25,6 @@ export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--use-system-ca"
 # no-op after the first container start.
 npx puppeteer browsers install chrome
 
-npm i -g @nestjs/cli
-
 # build database package
 npm run build --workspace=packages/database
 
@@ -40,17 +38,25 @@ npm run build --workspace=apps/api
 # needed here.
 npm run seed-db --workspace=apps/api
 
-# Start Admin app
-npm run start:dev  --workspace=apps/admin &
+# Every app's output is mirrored to /tmp/<name>.log (same paths as
+# restart-apps.sh / rebuild-all.sh) so warnings can be read back later,
+# not only in this terminal. Ports come from each app's own start:dev script.
+start_app() {
+  npm run start:dev --workspace="apps/$1" 2>&1 | tee "/tmp/$1.log" &
+}
 
-# Start API backend (built dist — nest --watch can serve stale cookie/auth code)
-#nohup node apps/api/dist/main.js > /tmp/api.log 2>&1 &
-npm run start:dev  --workspace=apps/api > /tmp/api.log 2>&1 &
+# Start Admin app
+start_app admin
+
+# Start API backend in watch mode (`nest start --watch`, via the workspace's
+# own @nestjs/cli). Log file only: use `tail -f /tmp/api.log` to follow it.
+# restart-apps.sh / rebuild-all.sh run the built dist instead.
+npm run start:dev --workspace=apps/api > /tmp/api.log 2>&1 &
 
 # Start Static apps
-npm run start:dev --workspace=apps/eventguide -- -p 3002 &
-npm run start:dev --workspace=apps/registration -- -p 3004 &
-npm run start:dev --workspace=apps/voting -- -p 3005 &
+start_app eventguide
+start_app registration
+start_app voting
 
 # Keep container running
 wait

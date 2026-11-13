@@ -58,7 +58,7 @@ const sessionStore = new SequelizeStore({
   expiration: 8 * 60 * 60 * 1000,
 });
 
-sessionStore.sync();
+void sessionStore.sync();
 
 const PORT: number = parseInt(process.env.ADMINJS_PORT || '3000');
 

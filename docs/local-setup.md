@@ -14,10 +14,9 @@ Supported local development path: **VS Code / Cursor Dev Container**.
 3. `postStartCommand` runs [`.devcontainer/start.sh`](../.devcontainer/start.sh), which:
    - Trusts the dev CA in the container's system store (see [Certificates](#certificates))
    - Installs headless Chrome's runtime shared libraries (`libnspr4`, `libnss3`, etc. — the base image ships none) and the Chrome binary itself (`npx puppeteer browsers install chrome`), for `apps/api`'s presentation slide-deck rendering (Puppeteer) — see [Presentation slide deck](apps/api.md#presentation-slide-deck)
-   - Installs Nest CLI globally
    - Builds `packages/database` and `apps/api`
    - Seeds the database (`npm run seed-db --workspace=apps/api`)
-   - Starts all apps in the background
+   - Starts all apps in the background, with each app's output in `/tmp/<name>.log` (`admin`, `api`, `eventguide`, `registration`, `voting`). SQL statements are not logged unless `DB_LOGGING=true` is set
 
 ## Services
 

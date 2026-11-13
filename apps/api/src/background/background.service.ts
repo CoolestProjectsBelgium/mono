@@ -389,8 +389,9 @@ export class BackgroundService implements OnModuleInit {
 
       fetch.once('error', reject);
       fetch.once('end', () => {
-        Promise.all(pending).then((results) =>
-          resolve(results.filter((message) => message !== null)),
+        Promise.all(pending).then(
+          (results) => resolve(results.filter((message) => message !== null)),
+          reject,
         );
       });
     });

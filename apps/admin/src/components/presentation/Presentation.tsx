@@ -77,7 +77,7 @@ const Presentation: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadPage();
+    void loadPage();
   }, [loadPage]);
 
   const currentSlide = slides[currentIndex] ?? null;

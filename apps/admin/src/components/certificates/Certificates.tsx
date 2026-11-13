@@ -122,9 +122,9 @@ export const Certificates: React.FC = () => {
   };
 
   useEffect(() => {
-    loadAll();
-    loadAssets();
-    loadStatuses();
+    void loadAll();
+    void loadAssets();
+    void loadStatuses();
   }, []);
 
   useEffect(() => {

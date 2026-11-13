@@ -64,6 +64,7 @@ import configuration from '../config/configuration.js';
           autoLoadModels: true,
           synchronize: configService.get('database.synchronize'),
           sync: configService.get('database.sync'),
+          logging: configService.get('database.logging') ? console.log : false,
 
           models: [
             Event,

@@ -66,7 +66,7 @@ export const Tables: React.FC = () => {
   };
 
   useEffect(() => {
-    loadTables();
+    void loadTables();
   }, []);
 
   const assignProjectToTable = async (

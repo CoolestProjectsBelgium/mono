@@ -39,7 +39,7 @@ const Login: React.FC<LoginProps> = ({ errorMessage }) => {
         setIsLoading(false);
       }
     };
-    fetchEvents();
+    void fetchEvents();
   }, []);
 
   return (

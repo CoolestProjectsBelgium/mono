@@ -67,7 +67,12 @@ export const sequelize = new Sequelize({
     CertificateTemplate,
     Log,
   ],
-  logging: process.env.NODE_ENV === 'production' ? false : console.log,
+  // SQL statement logging is opt-in (DB_LOGGING=true), same flag as apps/api.
+  logging: ['1', 'true', 'yes'].includes(
+    (process.env.DB_LOGGING ?? '').trim().toLowerCase(),
+  )
+    ? console.log
+    : false,
 } as any);
 
 await sequelize.authenticate();

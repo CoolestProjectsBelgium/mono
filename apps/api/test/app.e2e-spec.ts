@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import type { App } from 'supertest/types';
 import type { Mock } from 'vitest';
 import { AppModule } from '../src/app.module';
 //import { RegistrationService } from '../src/registration/registration.service';
@@ -107,7 +108,7 @@ const sendMailMock = vi.fn().mockResolvedValue({});
     */
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication;
+  let app: INestApplication<App>;
   let mockInterceptor: MockInfoInterceptor;
 
   beforeAll(

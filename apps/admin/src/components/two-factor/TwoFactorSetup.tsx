@@ -58,7 +58,7 @@ const TwoFactorSetup: React.FC<ActionProps> = ({ record, resource }) => {
         setLoading(false);
       }
     };
-    loadSecret();
+    void loadSecret();
   }, [recordId, resource.id]);
 
   const confirmCode = async () => {

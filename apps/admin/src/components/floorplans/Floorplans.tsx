@@ -38,7 +38,7 @@ export const Floorplans: React.FC = () => {
   };
 
   useEffect(() => {
-    loadFloorplans();
+    void loadFloorplans();
   }, []);
 
   const setActive = async (filename: string) => {

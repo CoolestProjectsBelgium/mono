@@ -66,7 +66,7 @@ export const PictureHandlerPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
   }, []);
 
   // Update local state when toggled

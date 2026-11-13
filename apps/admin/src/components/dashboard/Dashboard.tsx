@@ -478,7 +478,7 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     let isSubscribed = true;
-    api.getDashboard().then((response) => {
+    void api.getDashboard().then((response) => {
       if (isSubscribed) {
         setData(response.data as DashboardResponse);
         setNow(Date.now());

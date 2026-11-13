@@ -38,7 +38,7 @@ export const PresentationAssets: React.FC = () => {
   };
 
   useEffect(() => {
-    loadAssets();
+    void loadAssets();
   }, []);
 
   const uploadAsset = async (file: File) => {
