@@ -22,7 +22,7 @@
   "license": "ISC",
   "description": "API for Coolest Projects",
   "dependencies": {
-    "@nestjs/common": "^11.1.27",
+    "@nestjs/common": "^12.4.2",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.27",
     "@nestjs/jwt": "^11.0.2",
