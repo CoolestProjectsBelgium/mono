@@ -10,17 +10,19 @@ function mockConfig(
 }
 
 describe('buildAppCookieOptions', () => {
-  const originalEnv = process.env;
-
+  // Stub the real process.env rather than replacing the object:
+  // bootstrap-security.ts reads CORS_ORIGINS through `import { env } from
+  // 'process'`, which stays bound to the original object. Replacing
+  // process.env made these tests depend on the Dev Container's own
+  // CORS_ORIGINS and fail on CI, where it is unset.
   beforeEach(() => {
-    process.env = { ...originalEnv };
-    delete process.env.COOKIE_DOMAIN;
-    delete process.env.CORS_ORIGINS;
-    delete process.env.NODE_ENV;
+    vi.stubEnv('COOKIE_DOMAIN', undefined);
+    vi.stubEnv('CORS_ORIGINS', undefined);
+    vi.stubEnv('NODE_ENV', undefined);
   });
 
-  afterAll(() => {
-    process.env = originalEnv;
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('uses SameSite=lax without a shared cookie domain in production', () => {
@@ -83,8 +85,10 @@ describe('buildAppCookieOptions', () => {
   });
 
   it('uses SameSite=none in non-production when CORS includes localhost', () => {
-    process.env.CORS_ORIGINS =
-      'https://registration.coolestprojects.localhost:8443';
+    vi.stubEnv(
+      'CORS_ORIGINS',
+      'https://registration.coolestprojects.localhost:8443',
+    );
     expect(
       buildAppCookieOptions(mockConfig({ enviroment: 'development' }), {
         secure: false,
