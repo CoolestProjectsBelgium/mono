@@ -10,7 +10,7 @@ import { Attachment } from '@coolestprojects/database';
 import { ConfigService } from '@nestjs/config';
 import { CronJob } from 'cron';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import Imap from 'imap';
+import { ImapFlow } from 'imapflow';
 import { simpleParser, ParsedMail } from 'mailparser';
 import { EmailLog, MailTemplates } from '@coolestprojects/database';
 import {
@@ -23,6 +23,12 @@ import {
 } from './reminder-reasons';
 import { TokensService } from '../tokens/tokens.service';
 import { RegistrationService } from '../registration/registration.service';
+
+/** An unseen INBOX message; `delete()` is only valid while its connection is open. */
+interface BounceMessage {
+  parsed: ParsedMail;
+  delete: () => Promise<void>;
+}
 
 @Injectable()
 export class BackgroundService implements OnModuleInit {
@@ -96,42 +102,46 @@ export class BackgroundService implements OnModuleInit {
       return;
     }
 
-    // check mails for bounce state
+    // check mails for bounce state; messages are handled while the IMAP
+    // connection is still open so `delete()` can reach the server
     try {
-      const messages = await this.getBounceMessages();
-
-      this.logger.log(`Found ${messages.length} bounce message(s)`);
-
-      for (const message of messages) {
-        try {
-          if (!isBounceNotification(message.parsed)) {
-            this.logger.debug('Skipping non-bounce message in bounce mailbox');
-            continue;
-          }
-
-          const messageId = extractBounceIdentifier(message.parsed);
-          const mailMessage = await this.emaillogModel.findOne({
-            where: { messageId: messageId },
-          });
-
-          if (!mailMessage) {
-            this.logger.debug('email not in email log');
-            continue;
-          }
-
-          mailMessage.status = 'bounced';
-          mailMessage.error = message.parsed.text;
-
-          await mailMessage.save();
-
-          // Only delete after DB processing has completed
-          await message.delete();
-        } catch (error) {
-          this.logger.error(`Failed to process bounce message`, error);
-        }
-      }
+      await this.withBounceMessages(async (messages) => {
+        this.logger.log(`Found ${messages.length} bounce message(s)`);
+        await this.processBounceMessages(messages);
+      });
     } catch (error) {
       this.logger.error('Failed to check bounce mailbox', error);
+    }
+  }
+
+  private async processBounceMessages(messages: BounceMessage[]) {
+    for (const message of messages) {
+      try {
+        if (!isBounceNotification(message.parsed)) {
+          this.logger.debug('Skipping non-bounce message in bounce mailbox');
+          continue;
+        }
+
+        const messageId = extractBounceIdentifier(message.parsed);
+        const mailMessage = await this.emaillogModel.findOne({
+          where: { messageId: messageId },
+        });
+
+        if (!mailMessage) {
+          this.logger.debug('email not in email log');
+          continue;
+        }
+
+        mailMessage.status = 'bounced';
+        mailMessage.error = message.parsed.text;
+
+        await mailMessage.save();
+
+        // Only delete after DB processing has completed
+        await message.delete();
+      } catch (error) {
+        this.logger.error(`Failed to process bounce message`, error);
+      }
     }
   }
 
@@ -275,138 +285,80 @@ export class BackgroundService implements OnModuleInit {
     return existing !== null;
   }
 
-  private deleteMessage(imap: Imap, seqno: number): Promise<void> {
-    return new Promise((resolve, reject) => {
-      imap.addFlags(seqno, '\\Deleted', (err) => {
-        if (err) {
-          reject(err);
+  private createImapClient(): ImapFlow {
+    return new ImapFlow({
+      host: this.configService.getOrThrow<string>('mailing.imap_host'),
+      port: this.configService.getOrThrow<number>('mailing.imap_port'),
+      secure: true,
+      tls: { rejectUnauthorized: true },
+      auth: {
+        user: this.configService.getOrThrow<string>('mailing.imap_user'),
+        pass: this.configService.getOrThrow<string>('mailing.imap_password'),
+      },
+      // imapflow logs every command through pino by default
+      logger: false,
+    });
+  }
+
+  /**
+   * Hands every unseen INBOX message to `run` while the connection is open,
+   * then logs out. Fetched messages are marked \Seen up front (as before
+   * with `markSeen`), so non-bounce or unparseable mail is not re-read on
+   * every cron run; `delete()` removes a message by UID.
+   */
+  private async withBounceMessages(
+    run: (messages: BounceMessage[]) => Promise<void>,
+  ): Promise<void> {
+    const client = this.createImapClient();
+    // An unhandled 'error' event would crash the process; commands still
+    // reject on their own when the connection drops.
+    client.on('error', (error: unknown) => {
+      this.logger.error('IMAP connection error', error);
+    });
+
+    await client.connect();
+    try {
+      const lock = await client.getMailboxLock('INBOX');
+      try {
+        const uids = await client.search({ seen: false }, { uid: true });
+        if (!uids || uids.length === 0) {
+          await run([]);
           return;
         }
 
-        imap.expunge((err) => (err ? reject(err) : resolve()));
-      });
-    });
-  }
+        const fetched = await client.fetchAll(
+          uids,
+          { uid: true, source: true },
+          { uid: true },
+        );
+        await client.messageFlagsAdd(uids, ['\\Seen'], { uid: true });
 
-  /** Connects and resolves once the connection is ready to open a mailbox. */
-  private connectImap(): Promise<Imap> {
-    return new Promise((resolve, reject) => {
-      const imap = new Imap({
-        user: this.configService.getOrThrow<string>('mailing.imap_user'),
-        password: this.configService.getOrThrow<string>(
-          'mailing.imap_password',
-        ),
-        host: this.configService.getOrThrow<string>('mailing.imap_host'),
-        port: this.configService.getOrThrow<number>('mailing.imap_port'),
-        tls: true,
-        tlsOptions: { rejectUnauthorized: true },
-      });
-
-      imap.once('ready', () => resolve(imap));
-      imap.once('error', reject);
-      imap.connect();
-    });
-  }
-
-  private openInbox(imap: Imap): Promise<void> {
-    return new Promise((resolve, reject) => {
-      imap.openBox('INBOX', false, (err) => (err ? reject(err) : resolve()));
-    });
-  }
-
-  private searchUnseenMessages(imap: Imap): Promise<number[]> {
-    return new Promise((resolve, reject) => {
-      imap.search(['UNSEEN'], (err, uids) =>
-        err ? reject(err) : resolve(uids),
-      );
-    });
-  }
-
-  /**
-   * Runs `run` against a freshly connected IMAP client, always closing the
-   * connection afterwards. Races `run` against the connection's own `error`
-   * event so a drop mid-fetch (which would otherwise leave `run` awaiting a
-   * response that never arrives) rejects instead of hanging the cron job.
-   */
-  private async withImapConnection<T>(
-    run: (imap: Imap) => Promise<T>,
-  ): Promise<T> {
-    const imap = await this.connectImap();
-
-    try {
-      return await new Promise<T>((resolve, reject) => {
-        imap.once('error', reject);
-        run(imap).then(resolve, reject);
-      });
-    } finally {
-      imap.end();
-    }
-  }
-
-  /** Buffers a fetched message's raw body until the stream ends. */
-  private readMessageBody(msg: Imap.ImapMessage): Promise<string> {
-    return new Promise((resolve) => {
-      let buffer = '';
-
-      msg.on('body', (stream) => {
-        stream.on('data', (chunk: Buffer) => {
-          buffer += chunk.toString();
-        });
-        stream.once('end', () => resolve(buffer));
-      });
-    });
-  }
-
-  /**
-   * Fetches and parses every given UID. A message that fails to parse is
-   * logged and dropped rather than failing the whole batch — one bad
-   * message shouldn't block the rest.
-   */
-  private fetchAndParseMessages(
-    imap: Imap,
-    uids: number[],
-  ): Promise<Array<{ parsed: ParsedMail; delete: () => Promise<void> }>> {
-    return new Promise((resolve, reject) => {
-      const fetch = imap.fetch(uids, { bodies: '', markSeen: true });
-      const pending: Array<
-        Promise<{ parsed: ParsedMail; delete: () => Promise<void> } | null>
-      > = [];
-
-      fetch.on('message', (msg, seqno) => {
-        pending.push(
-          this.readMessageBody(msg)
-            .then((buffer) => simpleParser(buffer))
-            .then((parsed) => ({
+        const messages: BounceMessage[] = [];
+        for (const message of fetched) {
+          if (!message.source) {
+            continue;
+          }
+          try {
+            const parsed = await simpleParser(message.source);
+            const { uid } = message;
+            messages.push({
               parsed,
-              delete: () => this.deleteMessage(imap, seqno),
-            }))
-            .catch((error): null => {
-              this.logger.error('Failed to parse email', error);
-              return null;
-            }),
-        );
-      });
+              delete: async () => {
+                await client.messageDelete([uid], { uid: true });
+              },
+            });
+          } catch (error) {
+            // one bad message shouldn't block the rest
+            this.logger.error('Failed to parse email', error);
+          }
+        }
 
-      fetch.once('error', reject);
-      fetch.once('end', () => {
-        Promise.all(pending).then(
-          (results) => resolve(results.filter((message) => message !== null)),
-          reject,
-        );
-      });
-    });
-  }
-
-  private getBounceMessages(): Promise<
-    Array<{
-      parsed: ParsedMail;
-      delete: () => Promise<void>;
-    }>
-  > {
-    return this.withImapConnection(async (imap) => {
-      await this.openInbox(imap);
-      const uids = await this.searchUnseenMessages(imap);
-      return uids.length ? this.fetchAndParseMessages(imap, uids) : [];
-    });
+        await run(messages);
+      } finally {
+        lock.release();
+      }
+    } finally {
+      await client.logout().catch(() => client.close());
+    }
   }
 }

@@ -107,13 +107,13 @@ Admin previews reuse the exact same function through a staff-only endpoint, `POS
 
 Each run (`handleBounce`):
 
-1. Connects over IMAP (`node-imap`, TLS with `rejectUnauthorized: true`) and opens `INBOX`.
-2. Searches for `UNSEEN` messages, fetches and parses each with `mailparser`'s `simpleParser`.
+1. Connects over IMAP (`imapflow`, implicit TLS with `rejectUnauthorized: true`) and locks `INBOX`. All later steps, including deletes, run on that one connection, which is logged out at the end of the run.
+2. Searches for unseen messages by UID, fetches them, marks them all `\Seen`, and parses each with `mailparser`'s `simpleParser`. A message that fails to parse is logged and skipped.
 3. For every parsed message, `isBounceNotification` ([`apps/api/src/background/bounce-detection.ts`](../../apps/api/src/background/bounce-detection.ts)) gates it: true if it carries a `message/delivery-status` MIME part (present on every RFC 3464 DSN — Gmail, Outlook/Microsoft 365, and Yahoo all send this) or if it's from a `mailer-daemon@…`/`postmaster@…` address (for non-standard bounce generators that skip the full DSN structure). Anything else — a genuine reply, an out-of-office autoresponder — is skipped rather than risk a false positive.
 4. `extractBounceIdentifier` (same file) ties the notification back to the send it's for, trying in order: the `In-Reply-To` header; the first `References` entry; the `Message-ID` inside the embedded original-message part (`message/rfc822`/`text/rfc822-headers` — what a standards-compliant DSN from Gmail/Outlook/Yahoo actually carries; `mailparser` exposes this via `mail.attachments`, not `mail.text`); finally a regex over the human-readable body text as a last resort.
 5. Looks up `EmailLog.findOne({ where: { messageId } })` using whatever identifier (if any) was found.
-   - No match → the message is skipped (left in the mailbox). Because the IMAP fetch used `markSeen: true`, it's now `\Seen` and **will not be picked up by a later run either** — unmatched mail silently accumulates in the mailbox rather than being retried, deleted, or flagged for review.
-   - Match → sets `EmailLog.status = 'bounced'`, stores the full bounce body in `EmailLog.error` (overloading the same column send-failure exceptions use), saves, then deletes the message from the mailbox (`\Deleted` flag + `expunge`) — only after the DB write succeeds.
+   - No match → the message is skipped (left in the mailbox). Because step 2 marked it `\Seen`, it **will not be picked up by a later run either** — unmatched mail silently accumulates in the mailbox rather than being retried, deleted, or flagged for review.
+   - Match → sets `EmailLog.status = 'bounced'`, stores the full bounce body in `EmailLog.error` (overloading the same column send-failure exceptions use), saves, then deletes the message from the mailbox by UID (`imapflow`'s `messageDelete`: `\Deleted` flag + expunge) — only after the DB write succeeds. Before the switch to `imapflow`, the connection was closed before this step, so matched bounces were never actually deleted.
 
 `EmailLog.status` is `'sent' | 'failed' | 'bounced'` ([`packages/database/src/models/email_log.model.ts`](../../packages/database/src/models/email_log.model.ts)) — there's no hard/soft-bounce distinction, no bounce timestamp, and no suppression: nothing in `MailerService` checks `EmailLog.status === 'bounced'` before sending to an address again.
 

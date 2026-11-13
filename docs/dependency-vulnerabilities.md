@@ -2,7 +2,7 @@
 
 Handoff document for whoever (human or agent) picks up the dependency-vulnerability work. It is self-contained: you do not need the conversation that produced it.
 
-Snapshot date: 2026-11-13. Branch: `best-practices-hardening`, 6 commits ahead of `main`, last commit `0767249` (the Nuxt 4 upgrade, not yet pushed).
+Snapshot date: 2026-11-13. Branch: `best-practices-hardening`. Tasks 1 and 2 below are done on it; see the commit log for the exact commits.
 
 ## Where things stand
 
@@ -11,7 +11,7 @@ GitHub Dependabot reports 85 open alerts (2 critical, 27 high, 45 moderate, 11 l
 | Lockfile | Critical | High | Moderate | Low | Total |
 |----------|----------|------|----------|-----|-------|
 | `main` | 6 | 28 | 76 | 4 | 114 |
-| `best-practices-hardening` | 0 | 4 | 68 | 3 | 75 |
+| `best-practices-hardening` | 0 | 1 | 68 | 3 | 72 |
 
 `npm audit` and Dependabot count differently, so the totals do not match; the direction does. The branch's dependency bumps already clear every critical (`handlebars`, `simple-git`, `shell-quote`, `vitest`, `tinypool`) and most highs (`multer`, `nodemailer`, `puppeteer`, `vite`, `sharp`, `body-parser`, `node-forge`, `zod`, and others).
 
@@ -23,17 +23,15 @@ Do not run `npm audit fix` with `--force` or `--legacy-peer-deps`. Several of it
 
 Merging `best-practices-hardening` into `main` removes all criticals with no further work. This is a decision for the repository owner; do not merge or open a pull request unless asked.
 
-## The 4 remaining highs
+## The remaining high
 
-They come from two roots (Tasks 1 and 3). Tasks are ordered by value for effort.
+Only TinyMCE (Task 3) is left. Tasks 1 and 2 are kept below as a record of what changed.
 
-### Task 1 — replace `imap` in the API (3 highs)
+### Task 1 — done: `imap` replaced with `imapflow` (3 highs cleared)
 
-- **Chain:** `imap@0.8.19` → `utf7@1.0.2` → `semver@5.3.0` (ReDoS). `imap` is unmaintained; there is no fixed version. `npm audit`'s suggested "fix" is a downgrade to 0.8.17 and is not a fix.
-- **Used in:** [apps/api/src/background/background.service.ts](../apps/api/src/background/background.service.ts) only — the bounce-mail job (`handleBounce`, `getBounceMessages`, `readMessageBody`). Connection settings come from `mailing.imap_*` in [apps/api/src/config/configuration.ts](../apps/api/src/config/configuration.ts).
-- **Do:** replace with a maintained client. `imapflow` is the usual choice (promise-based, same author as `mailparser` and `nodemailer`, both already dependencies). Remove `imap` and `@types/imap` from [apps/api/package.json](../apps/api/package.json).
-- **Keep:** the behaviour of the bounce job — which mailbox is read, which messages are parsed with `mailparser`, and that processed messages are deleted. Read the existing code and its spec before rewriting.
-- **Check:** there is no automated test against a real IMAP server. Say so in your report rather than claiming it is verified end to end.
+The API's bounce job ([apps/api/src/background/background.service.ts](../apps/api/src/background/background.service.ts)) now uses `imapflow` 2.x; `imap` and `@types/imap` are removed. The rewrite also fixed two existing bugs: the old code closed the IMAP connection before deleting matched bounces, and passed sequence numbers to a UID-based call, so bounces were never deleted from the mailbox. All work now happens on one connection, deletes are by UID, and fetched messages are still marked `\Seen` explicitly (imapflow reads with `BODY.PEEK`). The flow is described in [docs/apps/api.md](apps/api.md#bounce-mail-detection) and covered by mocked tests in `background.service.spec.ts`.
+
+Not verified: against a real IMAP server. Bounce checking only runs when `CRON_JOB_BOUNCE` is set, so try it on a test mailbox before enabling it in production.
 
 ### Task 2 — done: Nuxt 4 and `@nuxtjs/i18n` 10 (5 highs cleared)
 
@@ -66,7 +64,7 @@ Two separate things:
 - Read [CLAUDE.md](../CLAUDE.md) and [AGENTS.md](../AGENTS.md) first. npm workspaces monorepo; run everything from the repo root with `--workspace=<path>`.
 - Dev servers run inside the Dev Container only. Restart one after a material change with the command in CLAUDE.md. The API logs to `/tmp/api.log`; the other apps log to `/tmp/<name>.log` from the next container start (the updated `.devcontainer/start.sh`), or when restarted with the CLAUDE.md command.
 - After every task, run for each workspace you touched: `npm run build`, `npm test`, and `npm run lint` (only `apps/api` and `apps/admin` have lint). Then `npm audit` to confirm the count dropped, and `npm run check-docs`.
-- Current baselines to hold: `apps/api` lint 0 warnings, 376 tests; `apps/admin` lint 12 warnings (all React hooks, see below), 40 tests; `apps/registration` 306 tests; `apps/voting` 44 tests; `apps/eventguide` 43 tests.
+- Current baselines to hold: `apps/api` lint 0 warnings, 382 tests; `apps/admin` lint 12 warnings (all React hooks, see below), 40 tests; `apps/registration` 306 tests; `apps/voting` 44 tests; `apps/eventguide` 43 tests.
 - One root cause per commit. Commit and push only when asked.
 - `npx tsc --noEmit -p tsconfig.json` in `apps/api` already reports two errors that predate this work (see below). The normal build does not type-check those files.
 
