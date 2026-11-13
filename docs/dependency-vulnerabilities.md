@@ -25,7 +25,7 @@ Merging `best-practices-hardening` into `main` removes all criticals with no fur
 
 ## The remaining high
 
-Only TinyMCE (Task 3) is left. Tasks 1 and 2 are kept below as a record of what changed.
+Only TinyMCE (Task 3) is left, and it is an accepted risk. Tasks 1 and 2 are kept below as a record of what changed.
 
 ### Task 1 — done: `imap` replaced with `imapflow` (3 highs cleared)
 
@@ -42,12 +42,21 @@ Commit `0767249` moved registration, voting and eventguide to Nuxt 4.6.4, and re
 - `nuxt.config.ts` uses `vite.server.ws` (Vite 8 renamed it from `hmr`) and disables the `tailwindcss/nesting` PostCSS plugin, which Nuxt 4 cannot load and no stylesheet uses.
 - Not verified: hot reload through the TLS proxy (`wss://*.coolestprojects.localhost:8443`), and a manual click-through in a browser.
 
-### Task 3 — TinyMCE in admin (1 high)
+### Task 3 — TinyMCE in admin (1 high): accepted risk
 
-Two separate things:
+Accepted on 2026-11-13 by the repository owner: TinyMCE is only reachable by admins.
 
-- **Bundled copy:** `tinymce@6.8.6` arrives through `@adminjs/design-system@4.1.1` → `@tinymce/tinymce-react@4.3.2`, which only allows TinyMCE 5 or 6. Several XSS advisories are fixed only in 7.9.3 and later. There is no upgrade path inside AdminJS 7. A search of `apps/admin/src` for `richtext` finds no resource property using AdminJS's rich-text type, so the bundled copy is probably never loaded. Confirm that in the running admin (open a resource edit form with long text fields and check the network tab for TinyMCE) before dismissing the alert with that reason. If it turns out to be used, an npm `overrides` entry forcing a newer TinyMCE needs manual testing of that editor.
-- **CDN copy:** the email-template editor loads TinyMCE from `https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js` — a floating major tag with no integrity hash — at [apps/admin/src/components/email-templates/EmailTemplates.tsx](../apps/admin/src/components/email-templates/EmailTemplates.tsx) (`TINYMCE_SCRIPT`). Not in the audit, but pin an exact version (7.9.3 or later) and add `integrity` and `crossOrigin` attributes where the script tag is created. `apps/admin/src` sets no Content-Security-Policy (no `helmet`), so nothing there blocks the script; if a CSP is added later it must allow this origin.
+- **What is flagged:** `tinymce@6.8.6`, bundled through `@adminjs/design-system@4.1.1` → `@tinymce/tinymce-react@4.3.2`, which only allows TinyMCE 5 or 6. Its XSS advisories are fixed only in 7.9.3 and later, so there is no upgrade path inside AdminJS 7.
+- **Why the risk is acceptable:**
+  - The admin app is mounted with `AdminJSExpress.buildAuthenticatedRouter` ([apps/admin/src/index.ts](../apps/admin/src/index.ts)), and only `admin` and `super_admin` accounts can log in.
+  - The bundled copy is only used by the design system's TinyMCE editor component, and nothing in `apps/admin/src` uses that component.
+  - The one place TinyMCE does run, the email-template editor, edits content that only admins write.
+- **Where the exception is recorded:**
+  - `.github/dependabot.yml` ignores `tinymce`, so Dependabot does not propose upgrades that cannot apply.
+  - The GitHub Dependabot alert is dismissed as "Risk is tolerable". This is done in the GitHub UI, not in the repo.
+  - CI's `npm audit --audit-level=critical` does not fail on it. If that gate is tightened to `high`, it needs an allowlist for this advisory, because `npm audit` has no built-in ignore.
+- **Revisit when:** TinyMCE becomes reachable by non-admins (for example, participant-facing rich text), AdminJS releases a design system that allows TinyMCE 7.9.3 or later, or the admin app is upgraded off AdminJS 7.
+- **Optional hardening, not part of the audit finding:** the email-template editor loads TinyMCE from `https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js`, a floating major tag with no integrity hash (`TINYMCE_SCRIPT` in [apps/admin/src/components/email-templates/EmailTemplates.tsx](../apps/admin/src/components/email-templates/EmailTemplates.tsx)). Pinning an exact version (7.9.3 or later) with `integrity` and `crossOrigin` attributes would stop a compromised or changed CDN release from running in admin sessions. `apps/admin/src` sets no Content-Security-Policy, so nothing blocks the script today.
 
 ## The moderates
 

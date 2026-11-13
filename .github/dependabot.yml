@@ -11,6 +11,12 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Accepted risk: TinyMCE is only reachable inside the authenticated
+      # AdminJS app and edits admin-authored content. The bundled copy comes
+      # from @adminjs/design-system, which only allows TinyMCE 5-6, so these
+      # updates cannot apply. See docs/dependency-vulnerabilities.md.
+      - dependency-name: tinymce
 
   - package-ecosystem: github-actions
     directory: /
