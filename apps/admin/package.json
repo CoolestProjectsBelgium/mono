@@ -35,7 +35,7 @@
     "mysql2": "^3.24.2",
     "otplib": "^13.5.0",
     "qrcode": "^1.5.4",
-    "recharts": "2.15.4",
+    "recharts": "3.10.1",
     "sequelize-typescript": "^2.1.6",
     "tough-cookie": "^6.0.2"
   },
