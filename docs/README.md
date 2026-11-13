@@ -11,7 +11,7 @@ Source of truth for Coolest Projects monorepo architecture and per-package orien
 - [build-tools.md](build-tools.md) — Level27 publish CLI (`build_tools/`)
 - [email-templates/](email-templates/README.md) — canonical copy for core participant emails (en/nl/fr)
 - [unused-code.md](unused-code.md) — unused-code audit punch list
-- [dependency-vulnerabilities.md](dependency-vulnerabilities.md) — dependency-vulnerability remediation punch list (handoff)
+- [dependency-vulnerabilities.md](dependency-vulnerabilities.md) — dependency audit: open advisories, accepted risks and hardening steps
 
 ## Apps
 

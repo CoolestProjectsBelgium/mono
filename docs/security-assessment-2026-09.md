@@ -2,6 +2,7 @@
 
 **Original assessment:** 2026-09-05
 **Last re-verified:** 2026-09-12
+**Last updated:** 2026-11-13 — addenda for the 2026-11-12 and 2026-11-13 hardening passes (not full re-verifications; see [Addendum — 2026-11-13](#addendum--2026-11-13))
 **Scope:** Full monorepo (dev container, CI/CD, production deploy surface)
 **Method:** Static codebase analysis and configuration review — no live penetration testing
 **Status:** Re-verification complete — remediation in progress
@@ -12,13 +13,15 @@
 
 Since the 2026-09-05 baseline, **9 of the original 22 critical/high findings have been fixed** (2 of 3 critical, 7 of 12 high), including the top two risks from the original report (AdminJS RBAC role mismatch, unauthenticated Puppeteer endpoint), the dev-proxy JWT auth break, and — this pass — rate limiting on the endpoints named in H1. Swagger UI (`/api`) was also gated out of production. No medium or low finding has changed since the baseline — those 13 medium and 7 low items are carried forward unchanged. Dependency findings got slightly worse (72 → 78 npm audit findings) since no CI gate exists yet.
 
+> **Update 2026-11-13:** H7 is now mostly addressed. CI runs lint, builds, tests and `npm audit --audit-level=critical` on pull requests and pushes to `main`, Dependabot is enabled, and `npm audit` on `main` is down to 0 critical and 1 high (TinyMCE, accepted as admin-only). The full list of remaining advisories is in [dependency-vulnerabilities.md](dependency-vulnerabilities.md). The top-5 ranking below is from 2026-09-12 and should be redone at the next full re-verification.
+
 **Overall posture:** Moderate risk, improving. C2 (committed TLS private keys) is confirmed to be dev-only tooling — a self-signed easy-rsa CA used solely by the dev container's local HTTPS proxy, never referenced by prod config or deploy scripts, and committed intentionally so every contributor gets an identical multi-subdomain cert layout for testing. It remains a git-hygiene item worth cleaning up (gitignore + generation script) but is not a production secret exposure. With H1 addressed, the item with the largest real blast radius that is still open is the CI/dependency hardening (H7) flagged as a separate effort in the original report, followed by the voting-JWT/localStorage and `DB_SYNC_ALTER` pair (H4/H10).
 
 ### Top 5 risks (current)
 
 | # | ID | Risk | Environment |
 |---|-----|------|-------------|
-| 1 | **H7** | 78 npm audit findings (2 critical, 20 high) — no CI gate or Dependabot; worse than baseline (72) | Both |
+| 1 | **H7** | 78 npm audit findings (2 critical, 20 high) — no CI gate or Dependabot; worse than baseline (72). *2026-11-13: mostly addressed — CI gate and Dependabot in place; 0 critical, 1 high (accepted).* | Both |
 | 2 | **H4/H10** | Voting JWT persisted in localStorage (XSS = full account compromise); `DB_SYNC_ALTER` still allows runtime DDL in prod | Prod |
 | 3 | **M-cluster** | Unsanitized SVG `innerHTML`, no Multer size caps, client-supplied `mimetype` trusted, no global `ValidationPipe` — all unchanged | Prod |
 | 4 | **H8/H9** | Hardcoded secrets in `docker-compose.yml`; seed credentials (`admin`/`admin`, `jury`/`jury`) — dev-only but still open | Dev |
@@ -138,7 +141,7 @@ No new resource-level RBAC audit was needed for `super_admin`/`admin` since the 
 | H4 | Voting JWT persisted in localStorage (XSS = full account compromise) | Prod | **Open, unchanged** | Document XSS risk; consider httpOnly cookie |
 | H5 | `POST /presentation/generate` unauthenticated; launches Puppeteer | Prod | **Fixed** | — |
 | H6 | Swagger UI always enabled at `/api` | Prod | **Fixed (this pass)** | Gated behind `NODE_ENV !== 'production'` in `apps/api/src/main.ts` |
-| H7 | No Dependabot; npm audit findings up to 78 (2 critical, 20 high, 56 moderate) | Both | **Open, worse** (was 72) | Add Dependabot + audit CI gate |
+| H7 | No Dependabot; npm audit findings up to 78 (2 critical, 20 high, 56 moderate) | Both | **Mostly addressed (2026-11-13)** | Dependabot and a CI audit gate (`--audit-level=critical`) added; `main` at 0 critical, 1 high (TinyMCE, accepted risk), 68 moderate, 3 low. Remaining: tighten the gate to `high` with an allowlist; see [dependency-vulnerabilities.md](dependency-vulnerabilities.md) |
 | H8 | Hardcoded secrets in `docker-compose.yml` (JWT, DB, CSRF, admin cookie) | Dev | **Open, unchanged** | Confirm never reused in prod |
 | H9 | Seed credentials `admin/admin`, `jury/jury`, etc. in `seed.ts` | Dev | **Open, unchanged** | Gate seeder; never run on shared DBs |
 | H10 | Production schema via `DB_SYNC_ALTER=true` — runtime DDL | Prod | **Open, unchanged** | Versioned migrations; disable alter in prod |
@@ -151,7 +154,7 @@ No new resource-level RBAC audit was needed for `super_admin`/`admin` since the 
 
 | ID | Finding | Env | Status |
 |----|---------|-----|--------|
-| M1 | No global `ValidationPipe`; DTOs have no `class-validator` decorators | Prod | **Open, unchanged** |
+| M1 | No global `ValidationPipe`; DTOs have no `class-validator` decorators | Prod | **Partly addressed (2026-11-12)** — global pipe added; registration and login DTOs decorated, others not yet |
 | M2 | SVG XSS via `innerHTML` in eventguide floorplan modal | Prod | **Open, unchanged** (`ProjectTableModal.vue` L77, 104, 135) |
 | M3 | Multer memory upload without pre-size cap | Prod | **Open, unchanged** (`projectinfo.controller.ts` `FileInterceptor('file')` still has no `limits`) |
 | M4 | Upload validation trusts client-reported `mimetype` | Prod | **Open, unchanged** (`file-validation.interceptor.ts` L41) |
@@ -160,7 +163,7 @@ No new resource-level RBAC audit was needed for `super_admin`/`admin` since the 
 | M7 | Admin cookies not httpOnly outside production | Dev | **Open, unchanged (by design)** |
 | M8 | Registration draft PII in localStorage (`cp-registration-draft`) | Prod | **Open, unchanged** |
 | M9 | phpMyAdmin with `PMA_ARBITRARY=1` on host port 3006 | Dev | **Open, unchanged** |
-| M10 | Deploy workflows have no test/audit/SAST before push | Both | **Open, unchanged** (still only `deploy-test.yml`/`deploy-prod.yml`) |
+| M10 | Deploy workflows have no test/audit/SAST before push | Both | **Partly addressed (2026-11-12)** — both deploy workflows now require `ci.yml` (lint, builds, tests, `npm audit`); no SAST yet |
 | M11 | Shared SSH deploy key across all components/environments | Prod | **Open, unchanged** (`L27_SSH_PRIVATE_KEY` in both workflows) |
 | M12 | Eventguide exposes participant names, project data by `eventId` | Prod | **Open, unchanged (intentional)** |
 | M13 | Hardcoded JWT fallback in smoke scripts matches dev compose secret | Dev | **Open, unchanged** |
@@ -250,7 +253,7 @@ All original P0 items are now closed.
 |---------|--------|--------|
 | H1 | Rate limiting on auth, registration, upload endpoints | **Done** (scoped to login/mailToken, registration, voting login — see Findings inventory above for why uploads and a global guard were deliberately skipped) |
 | H3/H4 | Voting JWT DB re-validation; document XSS risk for localStorage token | H3 **done**; H4 doc/mitigation still **open** |
-| H7 | Add Dependabot + `npm audit` CI gate | **Open** (findings count rising) |
+| H7 | Add Dependabot + `npm audit` CI gate | **Done** (2026-11-12/13); follow-up: gate at `high` with an allowlist |
 | H11 | Complete jury RBAC audit and lock down PII resources | **Done** (resolved via C1) |
 | M2 | Sanitize SVG in eventguide modal | **Open** |
 | C2/C3 | Remove committed TLS keys; fix dev proxy file auth | C3 **done**; C2 downgraded in priority — confirmed dev-only, not a production secret; still worth a git-hygiene cleanup (gitignore + generation script) but no longer urgent |
@@ -259,12 +262,12 @@ All original P0 items are now closed.
 
 | Finding | Action | Status |
 |---------|--------|--------|
-| M1 | Global ValidationPipe + class-validator on DTOs | **Open** |
+| M1 | Global ValidationPipe + class-validator on DTOs | **Partly done** (pipe + registration/login DTOs) |
 | M3/M4 | Multer size limits; magic-byte file type check | **Open** |
 | M5 | Parameterize SQL in voting service | **Open** |
 | M8 | Registration draft storage review (GDPR) | **Open** |
 | H10 | Versioned migrations; disable `DB_SYNC_ALTER` in prod | **Open** |
-| M10/M11 | CI security gates; separate deploy SSH keys | **Open** |
+| M10/M11 | CI security gates; separate deploy SSH keys | M10 **partly done** (CI gate, no SAST); M11 **open** |
 | L7 | PII data classification and retention policy | **Open** |
 
 ---
@@ -278,6 +281,14 @@ Run date: 2026-09-12 (baseline: 2026-09-05)
 ```
 
 Baseline was 72 (51 moderate, 19 high, 2 critical) — findings increased across the board. No automated scanning has been added to CI since the baseline; H7/M10 remain open. Recommend `npm audit` in the deploy workflow and Dependabot for `package-lock.json` as the next concrete step.
+
+**Update 2026-11-13** (`main` after the hardening passes):
+
+```
+72 vulnerabilities (3 low, 68 moderate, 1 high)
+```
+
+Those 72 entries come from 18 advisories in 10 packages; the rest are packages listed only because they depend on one of those 10. Every advisory, with its source, reachability and status, is listed in [dependency-vulnerabilities.md](dependency-vulnerabilities.md#findings), together with the dependency hardening steps.
 
 ---
 
@@ -313,6 +324,27 @@ Not a full re-verification; only the items below were touched, on branch `best-p
 
 ---
 
+## Addendum — 2026-11-13
+
+Not a full re-verification. Hardening done on branch `best-practices-hardening` after the 2026-11-12 pass, and fast-forwarded into `main` (`e24feaa..b8ac7ac`); the TinyMCE exception (`97f9543`) follows on the branch.
+
+| ID | Commit | Change |
+|----|--------|--------|
+| H7 | `0767249` | Registration, voting and eventguide upgraded to Nuxt 4.6.4; registration to `@nuxtjs/i18n` 10 (`vue-i18n` 11). Clears the five `vue-i18n` XSS highs. |
+| H7 | `995cf88` | Unmaintained `imap` replaced with `imapflow` in the API bounce job. Clears the three `imap` → `utf7` → `semver` ReDoS highs. |
+| H7 | `97f9543` | TinyMCE (bundled by `@adminjs/design-system`, capped at 6.x) accepted as an admin-only risk; Dependabot ignore rule added. The GitHub alert is to be dismissed in the UI. |
+| H7, M10 | `b8ac7ac` | Deploy-workflow contract specs fixed so the CI gate passes on `main`; the full CI sequence was run in a clean `npm ci` checkout before the merge. |
+| — | `995cf88` | Bounce-mail handling fixed: matched bounces were never deleted from the mailbox (the IMAP connection was closed before the delete, and the delete used a sequence number where a UID was expected). Bounce mail, which can contain participants' addresses, no longer piles up in the mailbox. |
+| — | `2ac7f5a` | SQL statement logging is now opt-in (`DB_LOGGING=true`) in both the API and admin. Admin previously logged every SQL statement, including query values, whenever `NODE_ENV` was not `production`. |
+| — | `2e114aa` | `req.user` typed per auth guard (`apps/api/src/auth/request-user.ts`). The admin voting and attachment routes, and the admin tables page, now reject an admin session with no selected event (400 / error) instead of passing `undefined` on to queries. AdminJS hook and handler inputs typed (`apps/admin/src/admin-types.ts`). Unsafe-`any` lint warnings: API 324 → 0, admin 271 → 12 (React hooks only). |
+| — | `2ac7f5a` | All `no-floating-promises` lint warnings resolved (API and admin). |
+| — | `2ac7f5a` | Dev container start script no longer runs an unpinned `npm i -g @nestjs/cli` on every start; the workspace's own pinned CLI is used. |
+| — | `bbed006` | `apps/eventguide/.output` (a committed build) untracked and ignored, so a deploy run with `--skip-build` can no longer ship a stale committed build. |
+
+Still open from this pass: `imapflow` is only covered by mocked tests (try it on a test mailbox before enabling `CRON_JOB_BOUNCE` in production), and the CI audit gate is still at `critical`.
+
+---
+
 ## Suggested follow-up
 
-P0 is fully closed, and H1 (rate limiting) is now done. Next recommended PR: Dependabot/npm audit CI gate (H7) — the current top real risk. SVG sanitization (M2) and Multer limits (M3/M4) are small, isolated fixes that could ride along in the same PR or immediately after. C2's git-hygiene cleanup (gitignore the private keys, add a generation script per `docs/local-setup.md`) and the H8/H9 dev-secret/seed-credential cleanup are worth doing but are no longer time-critical.
+P0 is fully closed, and H1 (rate limiting) is now done. *2026-11-13: H7 (Dependabot and the `npm audit` CI gate) is now done too; the remaining dependency work is listed in [dependency-vulnerabilities.md](dependency-vulnerabilities.md#possible-next-steps).* Originally recommended next PR: Dependabot/npm audit CI gate (H7). SVG sanitization (M2) and Multer limits (M3/M4) are small, isolated fixes that could ride along in the same PR or immediately after. C2's git-hygiene cleanup (gitignore the private keys, add a generation script per `docs/local-setup.md`) and the H8/H9 dev-secret/seed-credential cleanup are worth doing but are no longer time-critical.
