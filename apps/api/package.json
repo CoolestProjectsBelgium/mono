@@ -23,7 +23,7 @@
   "description": "API for Coolest Projects",
   "dependencies": {
     "@nestjs/common": "^11.1.27",
-    "@nestjs/config": "^4.0.4",
+    "@nestjs/config": "^12.1.1",
     "@nestjs/core": "^11.1.27",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
