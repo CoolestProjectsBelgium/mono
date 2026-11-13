@@ -61,10 +61,11 @@ describe('useAttachments', () => {
       ok: true,
       blob: async () => blob,
     }))
-    vi.stubGlobal('URL', {
+    // Keep URL constructible: Nuxt's link prefetching calls `new URL()`.
+    vi.stubGlobal('URL', Object.assign(class extends URL {}, {
       createObjectURL: vi.fn(() => 'blob:thumb-12'),
       revokeObjectURL: vi.fn(),
-    })
+    }))
 
     const { fetchThumbnailObjectUrl } = await callComposable(() => useAttachments())
     await expect(fetchThumbnailObjectUrl('12')).resolves.toBe('blob:thumb-12')

@@ -60,6 +60,13 @@ export default defineNuxtConfig({
     '/eventguide/**': { proxy: 'http://127.0.0.1:3001/eventguide/**' },
   },
 
+  postcss: {
+    plugins: {
+      // @nuxtjs/tailwindcss adds Tailwind 3's nesting plugin, which Nuxt 4
+      // cannot load (NUXT_B7027). No stylesheet here uses CSS nesting.
+      'tailwindcss/nesting': false,
+    },
+  },
   vite: {
     server: {
       allowedHosts: ['eventguide.coolestprojects.localhost'],
@@ -67,7 +74,8 @@ export default defineNuxtConfig({
         usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
         interval: Number(process.env.CHOKIDAR_INTERVAL || 1000),
       },
-      hmr: {
+      // Vite 8 moved these from `server.hmr` to `server.ws`.
+      ws: {
         protocol: 'wss',
         host: 'eventguide.coolestprojects.localhost',
         clientPort: 8443,

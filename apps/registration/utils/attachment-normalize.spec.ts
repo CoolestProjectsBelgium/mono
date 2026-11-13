@@ -31,15 +31,27 @@ describe('attachment-normalize', () => {
       height: 10,
       close: vi.fn(),
     })))
-    vi.spyOn(document, 'createElement').mockReturnValue({
-      width: 0,
-      height: 0,
-      getContext: () => ({ drawImage }),
-      toBlob,
-    } as unknown as HTMLCanvasElement)
+    // Fake only <canvas>: Nuxt's head renderer creates real elements on a timer.
+    const createElement = document.createElement.bind(document)
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(
+      ((tagName: string, options?: ElementCreationOptions) =>
+        tagName.toLowerCase() === 'canvas'
+          ? ({
+              width: 0,
+              height: 0,
+              getContext: () => ({ drawImage }),
+              toBlob,
+            } as unknown as HTMLCanvasElement)
+          : createElement(tagName, options)) as typeof document.createElement,
+    )
 
-    const { normalizeUploadFile } = await import('./attachment-normalize')
-    const result = await normalizeUploadFile(new File(['x'], 'photo.webp', { type: 'image/webp' }))
-    expect(result.filename).toBe('photo.jpg')
+    try {
+      const { normalizeUploadFile } = await import('./attachment-normalize')
+      const result = await normalizeUploadFile(new File(['x'], 'photo.webp', { type: 'image/webp' }))
+      expect(result.filename).toBe('photo.jpg')
+    }
+    finally {
+      createElementSpy.mockRestore()
+    }
   })
 })

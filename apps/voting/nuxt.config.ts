@@ -65,10 +65,18 @@ export default defineNuxtConfig({
     '/sse': { proxy: 'http://127.0.0.1:3001/sse' },
   },
 
+  postcss: {
+    plugins: {
+      // @nuxtjs/tailwindcss adds Tailwind 3's nesting plugin, which Nuxt 4
+      // cannot load (NUXT_B7027). No stylesheet here uses CSS nesting.
+      'tailwindcss/nesting': false,
+    },
+  },
   vite: {
     server: {
       allowedHosts: ['voting.coolestprojects.localhost'],
-      hmr: {
+      // Vite 8 moved these from `server.hmr` to `server.ws`.
+      ws: {
         protocol: 'wss',
         host: 'voting.coolestprojects.localhost',
         clientPort: 8443,
